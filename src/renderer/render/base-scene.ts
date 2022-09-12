@@ -11,8 +11,8 @@ import { Sunlight } from "./sunlight";
 export class BaseScene extends Scene {
   #janitor: Janitor;
   #borderTiles: BorderTiles;
-  #mapWidth: number;
-  #mapHeight: number;
+  mapWidth: number;
+  mapHeight: number;
 
   sunlight: Sunlight;
 
@@ -41,8 +41,8 @@ export class BaseScene extends Scene {
     this.#borderTiles.rotation.x = -Math.PI / 2;
     this.#borderTiles.updateMatrixWorld();
 
-    this.#mapHeight = mapHeight;
-    this.#mapWidth = mapWidth;
+    this.mapHeight = mapHeight;
+    this.mapWidth = mapWidth;
 
     // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });
   }
@@ -52,7 +52,7 @@ export class BaseScene extends Scene {
     for (const child of this.sunlight.children) {
       this.remove(child);
     }
-    this.sunlight = new Sunlight(this.#mapWidth, this.#mapHeight);
+    this.sunlight = new Sunlight(this.mapWidth, this.mapHeight);
     this.add(...this.sunlight.children);
   }
 

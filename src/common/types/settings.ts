@@ -123,6 +123,9 @@ export type SettingsV6 = {
         sanityCheckReplayCommands: boolean,
         debugMode: boolean,
         detectMeleeObservers: boolean,
+        detectMeleeObserversThreshold: number,
+        alertDesynced: boolean,
+        alertDesyncedThreshold: number,
     },
     plugins: {
         serverPort: number;

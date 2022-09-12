@@ -90,6 +90,7 @@ export const createSession = async (openBW: OpenBW): Promise<Session> => {
     return {
         sessionApi,
         dispose: () => {
+            plugins.dispose();
             janitor.dispose()
         },
         onFrame: (

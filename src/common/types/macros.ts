@@ -4,7 +4,7 @@ export enum MacroActionSequence {
     SingleRandom = "SingleRandom",
 }
 
-export enum MacroActionEffect {
+export enum ModifyValueActionEffect {
     SetToDefault = "SetToDefault",
     Set = "Set",
     Toggle = "Toggle",
@@ -14,7 +14,6 @@ export enum MacroActionEffect {
     DecreaseCycle = "DecreaseCycle",
     Min = "Min",
     Max = "Max",
-    CallMethod = "CallMethod",
 }
 
 export enum MacroActionType {
@@ -96,22 +95,18 @@ export type MacroActionHostModifyValue = {
     type: MacroActionType.ModifyAppSettings;
     field: string[];
     value?: any;
-
     id: string;
-    effect: MacroActionEffect;
+    effect: ModifyValueActionEffect;
     error?: MacroActionConfigurationError;
 }
 
 export type MacroActionGameTimeApiCallMethod = {
     type: MacroActionType.CallGameTimeApi;
     value: string;
-
     id: string;
-    effect: MacroActionEffect;
     error?: MacroActionConfigurationError;
 }
 
-type NotAFunction<T> = T extends (...args: any[]) => any ? never : T;
 export type MacroActionPluginModifyValue = {
     type: MacroActionType.ModifyPluginSettings;
     pluginName: string;
@@ -119,13 +114,11 @@ export type MacroActionPluginModifyValue = {
     value?: any;
 
     id: string;
-    effect: MacroActionEffect;
+    effect: ModifyValueActionEffect;
     error?: MacroActionConfigurationError;
-    resetValue?: NotAFunction<any>;
 }
 
-export type MacroActionPlugin = MacroActionPluginModifyValue;
-export type MacroAction = (MacroActionHostModifyValue | MacroActionGameTimeApiCallMethod | MacroActionPlugin);
+export type MacroAction = (MacroActionHostModifyValue | MacroActionGameTimeApiCallMethod | MacroActionPluginModifyValue);
 
 export type MacroTriggerDTO = {
     type: TriggerType;

@@ -33,7 +33,10 @@ export const defaultSettingsV6: SettingsV6 = {
   util: {
     sanityCheckReplayCommands: true,
     debugMode: false,
-    detectMeleeObservers: true
+    detectMeleeObservers: false,
+    detectMeleeObserversThreshold: 1000,
+    alertDesynced: true,
+    alertDesyncedThreshold: 10
   },
   graphics: {
     pixelRatio: 1,

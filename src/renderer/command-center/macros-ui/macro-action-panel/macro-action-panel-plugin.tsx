@@ -1,4 +1,7 @@
-import { MacroActionEffect, MacroActionPluginModifyValue } from "common/types";
+import {
+  ModifyValueActionEffect,
+  MacroActionPluginModifyValue,
+} from "common/types";
 import { MacroActionEffectSelector } from "./macro-action-effect-selector";
 import { MacroActionModifyValue } from "./macro-action-modify-value";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
@@ -19,7 +22,6 @@ export const MacroActionPanelPlugin = (
               disabled.`);
   }
 
-  const method = plugin.methods.find((m) => m === action.field[0]);
   const field = plugin.config?.[action.field[0] as keyof typeof plugin.config];
 
   return (
@@ -42,7 +44,7 @@ export const MacroActionPanelPlugin = (
                 pluginName: evt.target.value,
                 field: [],
                 value: undefined,
-                effect: MacroActionEffect.SetToDefault,
+                effect: ModifyValueActionEffect.SetToDefault,
               });
             }}
             value={action.pluginName}
@@ -63,7 +65,7 @@ export const MacroActionPanelPlugin = (
                 ...action,
                 field: [evt.target.value],
                 value: undefined,
-                effect: MacroActionEffect.SetToDefault,
+                effect: ModifyValueActionEffect.SetToDefault,
               });
             }}
             value={action.field[0]}
@@ -80,18 +82,13 @@ export const MacroActionPanelPlugin = (
                     </option>
                   );
                 })}
-            {plugin.methods.map((method) => (
-              <option key={method} value={method}>
-                {method}
-              </option>
-            ))}
           </select>
         </label>
         <ErrorBoundary message="Error with effects">
           <MacroActionEffectSelector {...props} />
         </ErrorBoundary>
 
-        {viewOnly && action.effect === MacroActionEffect.Set && (
+        {viewOnly && action.effect === ModifyValueActionEffect.Set && (
           <p
             style={{
               background: "var(--green-0)",
@@ -105,9 +102,8 @@ export const MacroActionPanelPlugin = (
           </p>
         )}
       </div>
-      {action.effect === MacroActionEffect.Set &&
+      {action.effect === ModifyValueActionEffect.Set &&
         !viewOnly &&
-        !method &&
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>
             <ErrorBoundary message="Error with modifier">

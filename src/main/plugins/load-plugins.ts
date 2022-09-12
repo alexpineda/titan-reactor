@@ -120,7 +120,7 @@ const loadPluginPackage = async (folderPath: string, folderName: string): Promis
         nativeSource: pluginNative,
         readme: readme ?? undefined,
         indexFile,
-        methods: getMethods(pluginNative ?? ""),
+        externMethods: getExternMethods(pluginNative ?? ""),
         isSceneController: (pluginNative ?? "").includes("onEnterScene"),
         hooks: packageJSON.config?.system?.customHooks ?? [],
     };
@@ -348,8 +348,8 @@ export const savePluginConfig = async (pluginId: string, config: any) => {
     }
 }
 
-const getMethods = (fn: string) => {
-    const regex = /(onMacro([a-zA-Z0-9_$]+))+/g
+const getExternMethods = (fn: string) => {
+    const regex = /(externMethod([a-zA-Z0-9_$]+))+/g
     const matches = fn.match(regex);
     if (matches) {
         return [...new Set(matches)];

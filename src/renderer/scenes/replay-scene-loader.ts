@@ -44,15 +44,18 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   processStore().increment(Process.ReplayInitialization);
 
-  document.title = "Titan Reactor - Loading";
+  document.title = "Titan Reactor";
 
   const sanityCheck = settings.util.sanityCheckReplayCommands ? sanityCheckCommands(replay, true) : [];
 
   if (sanityCheck.length) {
+
     sanityCheck.forEach((command, i) => i < 10 && log.warning(`@sanity-check/${command.reason}: ${JSON.stringify(command)}`));
+
     if (sanityCheck.length > 10) {
       log.warning(`@load-replay/sanity-check: ${sanityCheck.length} total invalid commands found`);
     }
+
   }
 
   if (replay.version !== Version.titanReactor) {
@@ -62,6 +65,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
     const rawCmds = sanityCheck.length ? writeCommands(replay, []) : replay.rawCmds;
 
     replayBuffer = await writeReplay(replay.rawHeader, rawCmds, chk, replay.limits);
+
     if (rendererIsDev) {
       fs.writeFileSync(`D:\\last_replay.rep`, replayBuffer);
     }
@@ -73,7 +77,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   if (replay.header.gameType === GameTypes.Melee && settings.util.detectMeleeObservers) {
 
-    const meleeObservers = detectMeleeObservers(new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer));
+    const meleeObservers = detectMeleeObservers(settings.util.detectMeleeObserversThreshold, new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer));
 
     replay.header.players = replay.header.players.filter(p => !meleeObservers.includes(p.id));
 

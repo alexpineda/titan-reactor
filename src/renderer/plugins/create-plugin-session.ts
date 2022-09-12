@@ -41,6 +41,7 @@ export const createPluginSession = async (macros: Macros) => {
 
         if (type === SendWindowActionType.PluginConfigChanged) {
 
+            //TODO: diff
             uiPlugins.sendMessage({
                 type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
                 payload: { pluginId, config }
@@ -65,31 +66,15 @@ export const createPluginSession = async (macros: Macros) => {
         screenStore().setError(new Error("Failed to install plugins"));
     });
 
-    for (const macro of macros) {
-        nativePlugins.setAllMacroDefaults(macro);
-    }
 
     nativePlugins.externalHookListener = (...args) => macros.callFromHook(...args);
 
-    // The user changed a plugin config
-    janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
-        type: SendWindowActionType.PluginConfigChanged
-        payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
-    }) => {
-        if (type === SendWindowActionType.PluginConfigChanged) {
-            for (const macro of macros) {
-                nativePlugins.setMacroDefaults(macro, pluginId, config);
-            }
-        }
-    })
-
-
     // available to macros and sandbox only
-    const reactiveApi = createReactivePluginApi(nativePlugins);
+    const reactiveApi = janitor.mop(createReactivePluginApi(nativePlugins));
 
     macros.getPluginProperty = reactiveApi.getRawValue;
     macros.doPluginAction = (action) => {
-        const result = reactiveApi.doAction(action);
+        const result = reactiveApi.applyEffectFromAction(action);
         if (result) {
             uiPlugins.sendMessage({
                 type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
@@ -98,19 +83,17 @@ export const createPluginSession = async (macros: Macros) => {
         }
     };
 
+    const _clickPassThrough = (evt: MouseEvent) => uiPlugins.sendMessage({
+        type: UI_SYSTEM_MOUSE_CLICK,
+        payload: {
+            clientX: evt.clientX,
+            clientY: evt.clientY,
+            button: evt.button,
+            shiftKey: evt.shiftKey,
+            ctrlKey: evt.ctrlKey,
+        },
+    });
 
-    const _clickPassThrough = (evt: MouseEvent) => {
-        uiPlugins.sendMessage({
-            type: UI_SYSTEM_MOUSE_CLICK,
-            payload: {
-                clientX: evt.clientX,
-                clientY: evt.clientY,
-                button: evt.button,
-                shiftKey: evt.shiftKey,
-                ctrlKey: evt.ctrlKey,
-            },
-        });
-    }
 
     document.body.addEventListener("mouseup", _clickPassThrough);
     janitor.mop(() => document.body.removeEventListener("mouseup", _clickPassThrough));

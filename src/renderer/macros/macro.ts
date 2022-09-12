@@ -1,5 +1,4 @@
-import { MacroAction, MacroActionSequence, MacroActionType, MacroCondition, MacroTrigger, Settings } from "common/types";
-import get from "lodash.get";
+import { MacroAction, MacroActionSequence, MacroCondition, MacroTrigger } from "common/types";
 import { MathUtils } from "three";
 
 export class Macro {
@@ -20,14 +19,6 @@ export class Macro {
         this.actions = actions;
         this.actionSequence = actionSequence;
         this.conditions = conditions;
-    }
-
-    setPluginsDefaults(pluginName: string, data: any) {
-        for (const action of this.actions) {
-            if (action.type === MacroActionType.ModifyPluginSettings && action.pluginName === pluginName) {
-                action.resetValue = get(data.config, action.field);
-            }
-        }
     }
 
     getActionSequence() {

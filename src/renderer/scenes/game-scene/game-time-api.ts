@@ -1,14 +1,12 @@
 import { BasePlayer } from "@core/players";
-import { Terrain } from "@core/terrain";
 import { Unit } from "@core/unit";
-import { GetTerrainY } from "@image/generate-map/get-terrain-y";
 import BaseScene from "@render/base-scene";
+import Chk from "bw-chk";
 import { Assets, Settings } from "common/types";
 import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "renderer/camera/game-viewport";
 import { Color, Scene, Vector3 } from "three";
 import { createSandboxApi } from "./sandbox-api";
-
 
 export interface GameTimeApi {
     type: "replay" | "game" | "live",
@@ -22,6 +20,7 @@ export interface GameTimeApi {
     scene: BaseScene;
     cssScene: Scene;
     assets: Assets;
+    map: Chk;
     toggleFogOfWarByPlayerId(playerId: number): void;
     unitsIterator(): IterableIterator<Unit>;
     skipForward(seconds: number): void;
@@ -33,12 +32,6 @@ export interface GameTimeApi {
     setGameSpeed(speed: number): void;
     refreshScene(): void;
     pxToGameUnit: PxToWorld;
-    mapWidth: number;
-    mapHeight: number;
-    tileset: number;
-    tilesetName: string;
-    getTerrainY: GetTerrainY;
-    terrain: Terrain;
     readonly currentFrame: number;
     gotoFrame(frame: number): void;
     exitScene(): void;

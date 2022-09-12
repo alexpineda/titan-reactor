@@ -1,5 +1,5 @@
 import { fromNestedToLevaSettingsField } from "common/get-app-settings-leva-config";
-import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, MacroActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, ModifyValueActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacroDTO, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
@@ -65,7 +65,7 @@ const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPl
             action.effect = validEffects[0];
         }
 
-        if (action.effect !== MacroActionEffect.Set && action.effect !== MacroActionEffect.Toggle) {
+        if (action.effect !== ModifyValueActionEffect.Set && action.effect !== ModifyValueActionEffect.Toggle) {
             delete action.value;
         }
     }
@@ -92,7 +92,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             return;
         }
 
-        const assignProperValue = action.type === MacroActionType.ModifyAppSettings && action.effect === MacroActionEffect.Set || action.type === "AppSettingsCondition";
+        const assignProperValue = action.type === MacroActionType.ModifyAppSettings && action.effect === ModifyValueActionEffect.Set || action.type === "AppSettingsCondition";
         if (assignProperValue) {
             if (action.value === undefined) {
                 if (field.options) {
@@ -121,8 +121,8 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
         if (!action.field || action.field.length === 0) {
             let replaced: string | undefined;
-            if (plugin.methods.length) {
-                replaced = plugin.methods[0];
+            if (plugin.externMethods.length) {
+                replaced = plugin.externMethods[0];
             } else if (plugin.config) {
                 replaced = Object.keys(plugin.config!).find(k => k !== "system");
             }
@@ -130,7 +130,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
                 action.field = [replaced]
             }
             // failed to properly assign a field even though the config is available and/or plugins methods are available
-            else if (getPluginConfigFields(plugin.config).length || plugin.methods.length) {
+            else if (getPluginConfigFields(plugin.config).length || plugin.externMethods.length) {
                 action.error = {
                     type: MacroActionConfigurationErrorType.MissingField,
                     message: `Missing field for plugin`,
@@ -140,7 +140,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             return;
         }
 
-        if (action.field[0].startsWith("onMacro") && !plugin.methods.includes(action.field[0])) {
+        if (action.field[0].startsWith("externMethod") && !plugin.externMethods.includes(action.field[0])) {
             action.error = {
                 type: MacroActionConfigurationErrorType.MissingField,
                 message: `Missing field for plugin ${action.pluginName} ${action.field[0]}`,
@@ -148,7 +148,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             return;
         }
 
-        const checkField = action.type === MacroActionType.ModifyPluginSettings && action.effect === MacroActionEffect.Set || action.type === "PluginSettingsCondition";
+        const checkField = action.type === MacroActionType.ModifyPluginSettings && action.effect === ModifyValueActionEffect.Set || action.type === "PluginSettingsCondition";
         if (checkField) {
             const field = plugin.config?.[action.field[0] as keyof typeof plugin] ?? { value: null };
             if (action.value === undefined) {
@@ -172,23 +172,23 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number" | "string") => {
     if (valueType === "boolean") {
         return [
-            MacroActionEffect.SetToDefault,
-            MacroActionEffect.Set,
-            MacroActionEffect.Toggle,
+            ModifyValueActionEffect.SetToDefault,
+            ModifyValueActionEffect.Set,
+            ModifyValueActionEffect.Toggle,
         ];
     } else if (valueType === "number") {
         return [
-            MacroActionEffect.SetToDefault,
-            MacroActionEffect.Set,
-            MacroActionEffect.Increase,
-            MacroActionEffect.IncreaseCycle,
-            MacroActionEffect.Decrease,
-            MacroActionEffect.DecreaseCycle,
-            MacroActionEffect.Min,
-            MacroActionEffect.Max,
+            ModifyValueActionEffect.SetToDefault,
+            ModifyValueActionEffect.Set,
+            ModifyValueActionEffect.Increase,
+            ModifyValueActionEffect.IncreaseCycle,
+            ModifyValueActionEffect.Decrease,
+            ModifyValueActionEffect.DecreaseCycle,
+            ModifyValueActionEffect.Min,
+            ModifyValueActionEffect.Max,
         ];
     } else if (valueType === "string") {
-        return [MacroActionEffect.SetToDefault, MacroActionEffect.Set];
+        return [ModifyValueActionEffect.SetToDefault, ModifyValueActionEffect.Set];
     }
     return [];
 };
@@ -197,13 +197,9 @@ export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number"
 export const getMacroActionValidEffects = (
     action: MacroAction,
     settings: SettingsAndPluginsMeta
-): MacroActionEffect[] => {
+): ModifyValueActionEffect[] => {
 
     if (action.type === MacroActionType.ModifyAppSettings) {
-        if (action.effect === MacroActionEffect.CallMethod) {
-            return [];
-        }
-
         const field = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, action.field);
         if (!field) {
             return [];
@@ -217,25 +213,23 @@ export const getMacroActionValidEffects = (
         }
         return getMacroActionValidModifyEffects(typeOfField);
     } else if (action.type === MacroActionType.CallGameTimeApi) {
-        return [MacroActionEffect.CallMethod];
+        return [];
     } else if (action.type === MacroActionType.ModifyPluginSettings) {
         const plugin = settings.enabledPlugins.find((p) => p.name === action.pluginName);
         if (!plugin) {
             return [];
         }
 
-        const callMethod = plugin.methods.includes(action.field[0]) ? [MacroActionEffect.CallMethod] : [];
-
         const field = plugin.config?.[action.field[0] as keyof typeof plugin];
         if (field === undefined) {
-            return callMethod;
+            return [];
         }
         const typeOfField = typeof field.value;
         if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
             console.warn(`Unsupported field type: ${typeOfField}`);
             return [];
         }
-        return [...callMethod, ...getMacroActionValidModifyEffects(typeOfField)];
+        return [...getMacroActionValidModifyEffects(typeOfField)];
     }
     return [];
 };
@@ -268,18 +262,16 @@ export const getMacroConditionValidComparators = (
             return [];
         }
 
-        const callMethod = plugin.methods.includes(condition.field[0]) ? getMacroConditionValueValidComparitors("number") : null;
-
         const field = plugin.config?.[condition.field[0] as keyof typeof plugin];
         if (field === undefined) {
-            return callMethod ?? [];
+            return [];
         }
         const typeOfField = typeof field.value;
         if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
             console.warn(`Unsupported field type: ${typeOfField}`);
             return [];
         }
-        return callMethod ?? getMacroConditionValueValidComparitors(typeOfField);
+        return getMacroConditionValueValidComparitors(typeOfField);
     }
     return [];
 };

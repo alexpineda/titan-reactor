@@ -10,6 +10,9 @@ import {
   MacroDTO,
   TriggerType,
   MacroCondition,
+  ModifyValueActionEffect,
+  MacroActionPluginModifyValue,
+  MacroActionHostModifyValue,
 } from "common/types";
 import { MacroActionPanel } from "./macro-action-panel/macro-action-panel";
 import { CreateMacroAction } from "./create-macro-action";
@@ -27,6 +30,7 @@ export const MacroPanel = ({
   pluginsMetadata,
   updateMacro,
   updateMacroAction,
+  updateMacroActionEffect,
   updateMacroCondition,
   activeAction: activeActionOrCondition,
   setActiveAction: setActiveActionOrCondition,
@@ -40,6 +44,10 @@ export const MacroPanel = ({
   pluginsMetadata: PluginMetaData[];
   updateMacro: (macro: MacroDTO) => void;
   updateMacroAction: (action: MacroAction) => void;
+  updateMacroActionEffect: (
+    action: MacroActionHostModifyValue | MacroActionPluginModifyValue,
+    effect: ModifyValueActionEffect
+  ) => void;
   updateMacroCondition: (condition: MacroCondition) => void;
   activeAction: string | null;
   setActiveAction: (id: string | null) => void;
@@ -290,6 +298,7 @@ export const MacroPanel = ({
             action={action}
             pluginsMetadata={pluginsMetadata}
             updateMacroAction={updateMacroAction}
+            updateMacroActionEffect={updateMacroActionEffect}
             viewOnly={activeActionOrCondition !== action.id}
             setActiveAction={setActiveActionOrCondition}
             deleteAction={deleteAction}

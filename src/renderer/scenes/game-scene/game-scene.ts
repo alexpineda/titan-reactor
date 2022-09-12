@@ -381,6 +381,11 @@ export async function makeGameScene(
 
     return {
       type: "replay",
+      map,
+      scene,
+      cssScene,
+      assets,
+      unitsIterator,
       get sandbox() {
         return sandbox;
       },
@@ -393,14 +398,12 @@ export async function makeGameScene(
       get secondViewport() {
         return viewports.viewports[1];
       },
-      scene,
-      cssScene,
-      assets,
       toggleFogOfWarByPlayerId(playerId: number) {
         if (players.toggleFogOfWarByPlayerId(playerId)) {
           fogOfWar.forceInstantUpdate = true;
         }
       },
+      //todo deprecate
       get cameraMovementSpeed() {
         return sessionApi.getState().game.movementSpeed;
       },
@@ -410,7 +413,6 @@ export async function makeGameScene(
       get cameraZoomLevels() {
         return sessionApi.getState().game.zoomLevels;
       },
-      unitsIterator,
       skipForward: (amount = 1) => skipHandler(1, amount),
       skipBackward: (amount = 1) => skipHandler(-1, amount),
       speedUp: () => speedHandler(SpeedDirection.Up, openBW),
@@ -429,14 +431,6 @@ export async function makeGameScene(
         reset = refreshScene;
       },
       pxToGameUnit: pxToWorld,
-      mapWidth,
-      mapHeight,
-      tileset: map.tileset,
-      tilesetName: map.tilesetName,
-      getTerrainY: terrain.getTerrainY,
-      get terrain() {
-        return terrain;
-      },
       get currentFrame() {
         return currentBwFrame;
       },
@@ -515,10 +509,10 @@ export async function makeGameScene(
       set mouseCursor(val: boolean) {
         viewports.mouseCursor = val;
       },
-
+      //todo: deprecate
       changeRenderMode: (renderMode3D?: boolean) => {
         viewports.primaryViewport.renderMode3D = renderMode3D ?? !viewports.primaryViewport.renderMode3D;
-        initializeRenderMode(viewports.primaryViewport.renderMode3D)
+        // initializeRenderMode(viewports.primaryViewport.renderMode3D)
       }
     }
   })();

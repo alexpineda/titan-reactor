@@ -2,7 +2,7 @@ import range from "common/utils/range";
 import { CMDS } from "../process-replay/commands/commands";
 import CommandsStream from "../process-replay/commands/commands-stream";
 
-export const detectMeleeObservers = (cmds: CommandsStream) => {
+export const detectMeleeObservers = (threshold: number, cmds: CommandsStream) => {
     const buildCommands = range(0, 11).fill(0);
 
     let i = 0;
@@ -14,7 +14,7 @@ export const detectMeleeObservers = (cmds: CommandsStream) => {
             buildCommands[cmd.player] += 1;
             i++;
         }
-        if (i > 20) {
+        if (i > threshold) {
             break;
         }
     }

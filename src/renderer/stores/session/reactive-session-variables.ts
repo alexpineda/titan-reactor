@@ -1,7 +1,7 @@
 
-import { FieldDefinition, MacroActionEffect, SessionSettingsData, MacroActionHostModifyValue } from "common/types";
+import { FieldDefinition, ModifyValueActionEffect, SessionSettingsData, MacroActionHostModifyValue } from "common/types";
 import deepMerge from 'deepmerge';
-import { doMacroActionEffect } from "@macros";
+import { doActionEffect } from "@macros";
 import { fromNestedToSessionLevaConfig, fromnNestedToSessionLevaField } from "common/get-app-settings-leva-config";
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
@@ -16,9 +16,9 @@ const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
 export type MergeSessionStore = (rhs: DeepPartial<SessionStore>) => void;
 
-const applyEffectToSessionProperty = (mergeRootSession: MergeSessionStore, effect: MacroActionEffect, path: string[], field: FieldDefinition, newValue: any, resetValue: any, beforeSet?: (newValue: any, field: FieldDefinition) => boolean | void) => {
+const applyEffectToSessionProperty = (mergeRootSession: MergeSessionStore, effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue: any, resetValue: any, beforeSet?: (newValue: any, field: FieldDefinition) => boolean | void) => {
 
-    let value = doMacroActionEffect(effect, field, newValue, resetValue);
+    let value = doActionEffect(effect, field, newValue, resetValue);
 
     if (beforeSet && beforeSet(value, field) === false) {
         return;
@@ -101,7 +101,7 @@ export const createReactiveSessionVariables = () => {
         })
     })
 
-    function applyEffectToSessionRoot(effect: MacroActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {
+    function applyEffectToSessionRoot(effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {
 
         applyEffectToSessionProperty(mergeRootSession, effect, path, field, newValue, lGet(settingsStore().data, path), beforeSet);
 

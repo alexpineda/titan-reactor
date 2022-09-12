@@ -2,10 +2,13 @@ import { useState } from "react";
 import ErrorBoundary from "../error-boundary";
 import {
   MacroAction,
+  MacroActionHostModifyValue,
+  MacroActionPluginModifyValue,
   MacroActionSequence,
   MacroCondition,
   MacroDTO,
   MacrosDTO,
+  ModifyValueActionEffect,
 } from "common/types";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
@@ -49,6 +52,16 @@ export const MacrosPanel = () => {
     newMacros.splice(idx, 1, macro);
 
     save({ ...state, macros: newMacros, revision: state.revision + 1 });
+  };
+
+  const updateMacroActionEffect = (
+    action: MacroActionHostModifyValue | MacroActionPluginModifyValue,
+    effect: ModifyValueActionEffect
+  ) => {
+    updateMacroAction({
+      ...action,
+      effect,
+    });
   };
 
   const updateMacroAction = (action: MacroAction) => {
@@ -254,6 +267,7 @@ export const MacrosPanel = () => {
                     pluginsMetadata={settings.enabledPlugins}
                     updateMacro={updateMacro}
                     updateMacroAction={updateMacroAction}
+                    updateMacroActionEffect={updateMacroActionEffect}
                     updateMacroCondition={updateMacroCondition}
                     activeAction={activeAction}
                     setActiveAction={setActiveAction}

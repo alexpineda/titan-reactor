@@ -1,5 +1,5 @@
 import * as log from "@ipc/log";
-import { MacroActionType, MacrosDTO, Settings, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator, MacroActionPlugin, MacroActionHostModifyValue } from "common/types";
+import { MacroActionType, MacrosDTO, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator, MacroActionPluginModifyValue, MacroActionHostModifyValue } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
@@ -26,7 +26,7 @@ export class Macros {
         }
 
     doSessionAction?: (action: MacroActionHostModifyValue) => void;
-    doPluginAction?: (action: MacroActionPlugin) => void;
+    doPluginAction?: (action: MacroActionPluginModifyValue) => void;
     getSessionProperty?: (field: string[]) => SessionStore;
     getPluginProperty?: (pluginName: string, field: string[]) => any;
 
@@ -116,16 +116,6 @@ export class Macros {
 
     setCreateCompartment(createCompartment: ((context?: any) => Compartment)) {
         this.#createGameCompartment = createCompartment;
-    }
-
-    /**
-     * Resets the defaults from plugin configuration. Referred to in Set To Default option.
-     * @param settings 
-     */
-    setPluginsDefaults(pluginName: string, data: any) {
-        for (const macro of this.macros) {
-            macro.setPluginsDefaults(pluginName, data);
-        }
     }
 
     #testCondition(comparator: MacroConditionComparator, a: any, b: any) {

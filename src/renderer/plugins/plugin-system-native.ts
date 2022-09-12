@@ -1,4 +1,4 @@
-import { PluginMetaData, NativePlugin, MacroActionPlugin, MacroActionEffect, PluginPackage, SceneInputHandler } from "common/types";
+import { PluginMetaData, NativePlugin, PluginPackage, SceneInputHandler } from "common/types";
 import withErrorMessage from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
@@ -6,7 +6,6 @@ import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { doMacroActionEffect, Macro } from "@macros";
 import { updatePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
@@ -216,12 +215,12 @@ export class PluginSystemNative {
         this.externalHookListener("onEnterScene", plugin.name);
     }
 
-    getByName(name: string) {
-        return this.#nativePlugins.find(p => p.name === name);
+    getById(id: string) {
+        return this.#nativePlugins.find(p => p.id === id);
     }
 
-    #getById(id: string) {
-        return this.#nativePlugins.find(p => p.id === id);
+    getByName(name: string) {
+        return this.#nativePlugins.find(p => p.name === name);
     }
 
     #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async: boolean = false) {
@@ -292,11 +291,15 @@ export class PluginSystemNative {
     }
 
     isRegularPluginOrActiveSceneController(plugin: NativePlugin) {
+
         return !plugin.isSceneController || this.#activeSceneInputHandler === plugin;
+
     }
 
     hook_onConfigChanged(pluginId: string, config: any) {
+
         const plugin = this.#nativePlugins.find(p => p.id === pluginId);
+
         if (plugin) {
             try {
                 const oldConfig = { ...plugin.config };
@@ -306,21 +309,27 @@ export class PluginSystemNative {
                 log.error(withErrorMessage(`@plugin-system-native: onConfigChanged "${plugin.name}"`, e));
             }
         }
+
     }
 
     hook_onBeforeRender(delta: number, elapsed: number) {
+
         for (const plugin of this.#nativePlugins) {
             plugin.onBeforeRender && this.isRegularPluginOrActiveSceneController(plugin) && plugin.onBeforeRender(delta, elapsed);
         }
+
     }
 
     hook_onRender(delta: number, elapsed: number) {
+
         for (const plugin of this.#nativePlugins) {
             plugin.onRender && plugin.onRender(delta, elapsed);
         }
+
     }
 
     hook_onFrame(frame: number, commands: any[]) {
+
         for (const plugin of this.#nativePlugins) {
             if (plugin.onFrame && this.isRegularPluginOrActiveSceneController(plugin)) {
                 if (this.#permissions.get(plugin.id)?.[PERMISSION_REPLAY_COMMANDS]) {
@@ -330,9 +339,11 @@ export class PluginSystemNative {
                 }
             }
         }
+
     }
 
     enableAdditionalPlugins(pluginPackages: PluginMetaData[]) {
+
         const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
 
         this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins] as PluginBase[];
@@ -342,18 +353,20 @@ export class PluginSystemNative {
      * Temporarily inject an api into all active plugins.
      */
     injectApi(object: {}) {
+
         mix(PluginBase.prototype, object);
         const keys = Object.keys(object);
-        console.log(keys)
 
         return () => {
             keys.forEach(key => {
                 delete PluginBase.prototype[key as keyof typeof PluginBase.prototype];
             })
         }
+
     }
 
     callHook(hookName: string, ...args: any[]) {
+
         if (this.#hooks[hookName] === undefined) {
             log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
             return;
@@ -373,6 +386,7 @@ export class PluginSystemNative {
     }
 
     async callHookAsync(hookName: string, ...args: any[]) {
+
         if (this.#hooks[hookName] === undefined) {
             log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
             return;
@@ -389,58 +403,7 @@ export class PluginSystemNative {
         }
         this.externalHookListener(hookName, undefined, args, context);
         return context;
-    }
 
-    setAllMacroDefaults(macro: Macro) {
-        for (const plugin of this.#nativePlugins) {
-            macro.setPluginsDefaults(plugin.name, plugin.config);
-        }
-    }
-
-    setMacroDefaults(macro: Macro, pluginId: string, config: any) {
-        const plugin = this.#getById(pluginId);
-        if (!plugin) {
-            log.error(`Plugin ${pluginId} not found`);
-            return;
-        }
-        macro.setPluginsDefaults(plugin.name, config);
-    }
-
-    doMacroAction(action: MacroActionPlugin) {
-        const plugin = this.getByName(action.pluginName!);
-        if (!plugin) {
-            log.error(`@macro-action: Plugin ${action.pluginName} not found`);
-            return null;
-        }
-
-        if (!this.isRegularPluginOrActiveSceneController(plugin)) {
-            return null;
-        }
-
-        if (action.effect === MacroActionEffect.CallMethod) {
-            const key = action.field[0];
-            if (typeof plugin[key as keyof NativePlugin] === "function") {
-                try {
-                    plugin[key as keyof NativePlugin]();
-                } catch (e) {
-                    log.error(withErrorMessage(`@macro-action: ${action.pluginName} ${key}`, e));
-                }
-            }
-            return null;
-        } else {
-            const key = action.field[0];
-            const field = plugin.getRawConfigComponent(key);
-            if (field === undefined) {
-                return null;
-            }
-            plugin.setConfig(key, doMacroActionEffect(action.effect, field, action.value, action.resetValue));
-            this.hook_onConfigChanged(plugin.id, plugin.rawConfig);
-
-            return {
-                pluginId: plugin.id,
-                config: plugin.config
-            }
-        }
     }
 
 }

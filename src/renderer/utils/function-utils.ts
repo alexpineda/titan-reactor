@@ -24,3 +24,8 @@ export const normalizePluginConfiguration = (config: any) => {
     });
     return configCopy;
 }
+
+export function last<T extends any[]>(array: T) {
+    var length = array == null ? 0 : array.length;
+    return length ? array[length - 1] : undefined;
+}

@@ -1,5 +1,5 @@
 import { generateUUID } from "three/src/math/MathUtils";
-import { MacroActionEffect, MacroActionSequence, MacroActionType, MacroConditionComparator, MacroConditionType } from "common/types"
+import { ModifyValueActionEffect, MacroActionSequence, MacroActionType, MacroConditionComparator, MacroConditionType } from "common/types"
 import { HotkeyTrigger, Macro, Macros } from "@macros";
 import { MouseTrigger } from "@macros/mouse-trigger";
 
@@ -20,7 +20,7 @@ export const createDefaultMacros = () => {
           "game",
           "sceneController"
         ],
-        effect: MacroActionEffect.Set,
+        effect: ModifyValueActionEffect.Set,
         value: "@titan-reactor-plugins/camera-battle"
       }],
       MacroActionSequence.AllSync,
@@ -51,7 +51,7 @@ export const createDefaultMacros = () => {
           "game",
           "sceneController"
         ],
-        effect: MacroActionEffect.Set,
+        effect: ModifyValueActionEffect.Set,
         value: "@titan-reactor-plugins/camera-standard"
       }],
       MacroActionSequence.AllSync,
@@ -85,7 +85,6 @@ export const createDefaultMacros = () => {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
         value: "changeRenderMode();",
-        effect: MacroActionEffect.CallMethod
       }],
       MacroActionSequence.AllSync
     )
@@ -107,7 +106,7 @@ export const createDefaultMacros = () => {
         id: generateUUID(),
         type: MacroActionType.ModifyAppSettings,
         field: ["game", "sceneController"],
-        effect: MacroActionEffect.IncreaseCycle
+        effect: ModifyValueActionEffect.IncreaseCycle
       }],
       MacroActionSequence.SingleAlternate
     )
@@ -131,14 +130,14 @@ export const createDefaultMacros = () => {
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "music"],
 
-          effect: MacroActionEffect.SetToDefault,
+          effect: ModifyValueActionEffect.SetToDefault,
 
         },
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "music"],
-          effect: MacroActionEffect.Min,
+          effect: ModifyValueActionEffect.Min,
         },
       ],
       MacroActionSequence.SingleAlternate
@@ -161,13 +160,13 @@ export const createDefaultMacros = () => {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "sound"],
-          effect: MacroActionEffect.SetToDefault,
+          effect: ModifyValueActionEffect.SetToDefault,
         },
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "sound"],
-          effect: MacroActionEffect.Min,
+          effect: ModifyValueActionEffect.Min,
         },
       ],
       MacroActionSequence.SingleAlternate
@@ -186,7 +185,6 @@ export const createDefaultMacros = () => {
       {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
-        effect: MacroActionEffect.CallMethod,
         value: `togglePause(); simpleMessage("⏯️")`,
       },
     ])
@@ -203,7 +201,6 @@ export const createDefaultMacros = () => {
       {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
-        effect: MacroActionEffect.CallMethod,
         value: "const speed = speedUp(); simpleMessage(`🔼 ${speed}x`)",
       },
     ])
@@ -220,7 +217,6 @@ export const createDefaultMacros = () => {
       {
         id: generateUUID(),
         type: MacroActionType.CallGameTimeApi,
-        effect: MacroActionEffect.CallMethod,
         value: "const speed = speedDown(); simpleMessage(`🔽 ${speed}x`)",
       },
     ])
@@ -241,7 +237,6 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
-          effect: MacroActionEffect.CallMethod,
           value: "skipBackward(); simpleMessage('⏪')",
         },
       ]
@@ -263,7 +258,6 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
-          effect: MacroActionEffect.CallMethod,
           value: "skipForward(); simpleMessage('⏩')",
         },
       ]
@@ -285,7 +279,6 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
-          effect: MacroActionEffect.CallMethod,
           value: "gotoFrame(0); simpleMessage('Replay Start')",
         },
       ]
@@ -307,7 +300,6 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroActionType.CallGameTimeApi,
-          effect: MacroActionEffect.CallMethod,
           value: "gotoFrame(replay.frameCount); simpleMessage('Replay End')",
         },
       ]

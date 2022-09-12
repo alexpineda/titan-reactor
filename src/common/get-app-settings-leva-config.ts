@@ -21,33 +21,30 @@ export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins
 
     ...getDirectoryConfig(settings.directories),
 
-    pixelRatio: {
+    "graphics.pixelRatio": {
         folder: "Graphics",
         label: "Pixel Ratio",
         value: settings.graphics.pixelRatio,
-        path: "graphics",
         min: 0.5,
         max: maxPixelRatio,
         step: 0.1,
     },
-    useHD2: {
+    "graphics.useHD2": {
         folder: "Graphics",
         label: "Use HD2 (50% HD)",
         value: settings.graphics.useHD2,
-        path: "graphics",
         options: {
             "As Mipmap (Highest Quality)": "auto",
             "Never. Only HD.": "ignore",
             "Exclusively (Lower Memory)": "force",
         }
     },
-    preload: {
+    "assets.preload": {
         folder: "Graphics",
         label: "Preload Assets",
         value: settings.assets.preload,
-        path: "assets",
     },
-
+    ...getUtilConfig(settings.util),
     ...fromNestedToSessionLevaConfig(settings, plugins, maxAnisotropy, maxAntiAlias)
 
 });
@@ -64,6 +61,39 @@ export const fromNestedToSessionLevaConfig = (settings: SessionSettingsData, plu
     ...getGameConfig(settings.game, plugins.filter((p) => p.isSceneController)),
     ...getPostProcessingConfig(settings.postprocessing, maxAnisotropy, maxAntiAlias),
     ...getPostProcessing3DConfig(settings.postprocessing3d, maxAnisotropy, maxAntiAlias),
+});
+
+const getUtilConfig = (util: SettingsMeta["data"]["util"]) => ({
+    "util.sanityCheckReplayCommands": {
+        folder: "Utilities",
+        label: "Sanity Check Replay Commands (and rewrite command buffer overflows)",
+        value: util.sanityCheckReplayCommands,
+    },
+    "util.detectMeleeObservers": {
+        folder: "Utilities",
+        label: "Detect Melee Observers (and remove from players list)",
+        value: util.detectMeleeObservers,
+    },
+    "util.detectMeleeObserversThreshold": {
+        folder: "Utilities",
+        label: "Detect Melee Observers (Commands Threshold)",
+        value: util.detectMeleeObserversThreshold,
+        min: 1000,
+        max: 50000,
+        step: 1000
+    },
+    "util.alertDesynced": {
+        folder: "Utilities",
+        label: "Detect Desynced Replay Before Start",
+        value: util.alertDesynced,
+    },
+    "util.alertDesyncedThreshold": {
+        folder: "Utilities",
+        label: "Detect Desynced Replay (Idle Units Threshold)",
+        value: util.alertDesyncedThreshold,
+        min: 10,
+        max: 100,
+    }
 });
 
 const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]) => ({

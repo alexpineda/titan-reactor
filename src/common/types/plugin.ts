@@ -30,7 +30,7 @@ export interface PluginMetaData extends PluginPackage {
     date?: Date;
     readme?: string;
     indexFile: string;
-    methods: string[];
+    externMethods: string[];
     hooks: string[];
     isSceneController: boolean;
     apiVersion: string;
