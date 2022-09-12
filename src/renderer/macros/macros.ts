@@ -4,7 +4,7 @@ import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
-import { SessionStore } from "@stores/session/session";
+import { SessionStore } from "@core/session";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import Janitor from "@utils/janitor";
 import { MouseTrigger } from "./mouse-trigger";

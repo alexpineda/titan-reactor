@@ -32,7 +32,7 @@ const _canOnlySelectOne = [
   unitTypes.lurkerEgg,
 ];
 
-export const canOnlySelectOne = (unit: UnitStruct) => _canOnlySelectOne.includes(unit.typeId)
+export const canOnlySelectOne = (unit: UnitStruct) => _canOnlySelectOne.includes(unit.typeId);
 
 export const unitIsCloaked = (unit: UnitStruct) => {
   return (
@@ -145,3 +145,22 @@ export class PlayerInfo {
     return this.playerData[this._offset + 6];
   }
 }
+
+
+//TODO: re-implement
+// export const calculateFollowedUnitsTarget = debounce((pxToGameUnit: PxToWorld) => {
+//     if (followedUnits.length === 0) {
+//         return;
+//     }
+
+//     _followedUnitsPosition.set(pxToGameUnit.x(followedUnits[0].x), 0, pxToGameUnit.y(followedUnits[0].y));
+
+//     for (let i = 1; i < followedUnits.length; i++) {
+//         _followedUnitsPosition.set(
+//             (_followedUnitsPosition.x + pxToGameUnit.x(followedUnits[i].x)) / 2,
+//             0,
+//             (_followedUnitsPosition.z + pxToGameUnit.y(followedUnits[i].y)) / 2
+//         )
+//     }
+//     return _followedUnitsPosition;
+// }, 30);

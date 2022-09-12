@@ -11,7 +11,7 @@ import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import * as log from "@ipc/log"
 import { normalizePluginConfiguration } from "@utils/function-utils"
-import { GameTimeApi } from "../scenes/game-scene/game-time-api";
+import { GameTimeApi } from "@core/game-time-api";
 import { GameViewPort } from "../camera/game-viewport";
 
 export interface PluginBase extends NativePlugin, GameTimeApi { };

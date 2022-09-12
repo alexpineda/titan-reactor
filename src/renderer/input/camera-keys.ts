@@ -8,17 +8,14 @@ const keyForward = "ArrowUp";
 const keyBackward = "ArrowDown";
 const keyLeft = "ArrowLeft";
 const keyRight = "ArrowRight";
-const keyFollow = "KeyF";
 export class CameraKeys {
     #el: HTMLElement;
     #move = new Vector2();
     #janitor: Janitor;
-    #onToggleFollowUnit: () => void;
 
-    constructor(el: HTMLElement, onToggleFollowUnit: () => void) {
+    constructor(el: HTMLElement) {
         this.#el = el;
         this.#janitor = new Janitor();
-        this.#onToggleFollowUnit = onToggleFollowUnit;
 
         const keyDown = (e: KeyboardEvent) => {
             if (this.#move.y == 0) {
@@ -55,10 +52,6 @@ export class CameraKeys {
                 this.#move.x = 0;
             }
 
-            if (testKeys(e, keyFollow)) {
-                console.log("toggle follow");
-                this.#onToggleFollowUnit();
-            }
         }
         this.#el.addEventListener("keyup", keyUp);
         this.#janitor.mop(() => this.#el.removeEventListener("keyup", keyUp));

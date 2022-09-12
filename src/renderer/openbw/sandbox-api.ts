@@ -9,6 +9,8 @@ const identityPxToWorld: PxToWorld = {
     xyz: (x, z, v) => v.set(x, 0, z)
 }
 
+export type SandboxAPI = ReturnType<typeof createSandboxApi>;
+
 export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld) => {
 
     const sandBoxBufferViews = {

@@ -5,8 +5,7 @@ import gameStore from "@stores/game-store";
 import { Camera, Group, Vector3 } from "three";
 import { SpriteDAT, SpriteType } from "common/types";
 import { Unit } from "@core";
-import { useSelectedUnitsStore } from "@stores/selected-units-store";
-import { SpriteEntities } from "./sprite-entities";
+import { SpriteEntities } from "@core/sprite-entities";
 
 export interface SelectionObject extends Group {
     userData: {
@@ -41,13 +40,13 @@ export const hideSelections = () => {
     }
 }
 
-export function updateSelectionGraphics(camera: Camera, sprites: SpriteEntities, completedUpgrades: number[][]) {
+export function updateSelectionGraphics(camera: Camera, sprites: SpriteEntities, completedUpgrades: number[][], selectedUnits: Unit[]) {
     const bwDat = gameStore().assets!.bwDat;
     camera.getWorldDirection(_cameraWorldDirection);
     let sprite: SpriteType | undefined;
 
     for (let i = 0; i < 12; i++) {
-        const unit = useSelectedUnitsStore.getState().selectedUnits[i];
+        const unit = selectedUnits[i];
         selectionObjects[i].visible = !!unit;
         if (unit) {
             sprite = sprites.get(unit.spriteIndex)

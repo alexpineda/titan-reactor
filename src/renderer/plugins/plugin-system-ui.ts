@@ -1,7 +1,7 @@
 import Janitor from "@utils/janitor";
 import { PluginMetaData, OpenBW } from "common/types";
 import settingsStore from "@stores/settings-store";
-import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore, useSelectedUnitsStore } from "@stores";
+import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore } from "@stores";
 
 import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
 import { waitForTruthy } from "@utils/wait-for";
@@ -108,6 +108,7 @@ export type PluginStateMessage = {
     [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage['payload'],
 }
 
+//TODO: use external hooks for access to state changes
 export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement("iframe");
     #janitor = new Janitor();
@@ -219,13 +220,6 @@ export class PluginSystemUI {
             });
         }));
 
-        this.#janitor.mop(useSelectedUnitsStore.subscribe(({ selectedUnits }) => {
-            this.sendMessage({
-                type: UI_STATE_EVENT_UNITS_SELECTED,
-                payload: unitsPartial(selectedUnits)
-            });
-        }));
-
         this.#janitor.mop(useProcessStore.subscribe((process) => {
             this.sendMessage({
                 type: UI_STATE_EVENT_PROGRESS,
@@ -238,6 +232,13 @@ export class PluginSystemUI {
         document.body.appendChild(this.#iframe);
         this.#janitor.mop(() => document.body.removeChild(this.#iframe));
 
+    }
+
+    onUnitsSelected(units: Unit[]) {
+        this.sendMessage({
+            type: UI_STATE_EVENT_UNITS_SELECTED,
+            payload: unitsPartial(units)
+        });
     }
 
     sendMessage(message: any, transfer?: Transferable[]) {
@@ -269,7 +270,7 @@ export class PluginSystemUI {
         _selectedUnitMessage.payload = [];
     }
 
-    onFrame(openBW: OpenBW, currentFrame: number, playerDataAddr: number, productionDataAddr: number) {
+    onFrame(openBW: OpenBW, currentFrame: number, playerDataAddr: number, productionDataAddr: number, selectedUnits: Unit[]) {
         const time = getSecond(currentFrame);
 
         // update the ui every game second
@@ -309,13 +310,12 @@ export class PluginSystemUI {
 
             this.sendMessage(_replayPosition, _productionTransferables);
 
-            const units = useSelectedUnitsStore.getState().selectedUnits;
             // in this case only change if the empty state has changed
-            if (_lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 || units.length > 0) {
+            if (_lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 || selectedUnits.length > 0) {
                 //TODO move this out to supply to native as well
-                _selectedUnitMessage.payload = unitsPartial(units);
+                _selectedUnitMessage.payload = unitsPartial(selectedUnits);
                 this.sendMessage(_selectedUnitMessage);
-                _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = units.length;
+                _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = selectedUnits.length;
             }
 
         }

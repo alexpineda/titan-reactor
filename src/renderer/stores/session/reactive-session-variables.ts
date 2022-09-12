@@ -8,7 +8,7 @@ import lSet from "lodash.set";
 import lGet from "lodash.get";
 import settingsStore, { useSettingsStore } from "../settings-store";
 import * as log from "@ipc/log";
-import { SessionStore } from "./session";
+import { SessionStore } from "@core/session";
 import Janitor from "@utils/janitor";
 import { BeforeSet, createReactiveVariable, ReactiveVariable } from "./create-reactive-variable";
 

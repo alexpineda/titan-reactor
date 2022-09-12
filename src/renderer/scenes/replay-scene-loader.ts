@@ -20,7 +20,7 @@ import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { rendererIsDev } from "@utils/renderer-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { detectMeleeObservers } from "@utils/replay-utils";
-import { preloadMapUnitsAndSprites } from "./game-scene/preload-map-units-and-sprites";
+import { preloadMapUnitsAndSprites } from "@utils/preload-map-units-and-sprites";
 import { SceneState } from "./scene";
 import { Assets } from "common/types";
 import gameStore from "@stores/game-store";

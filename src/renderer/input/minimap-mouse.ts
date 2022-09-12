@@ -24,13 +24,12 @@ export class MinimapMouse extends EventTarget {
 
   #janitor = new Janitor();
 
-  constructor(surface: Surface, mapWidth: number, mapHeight: number, onClick: (e: MouseEvent) => void) {
+  constructor(surface: Surface, mapWidth: number, mapHeight: number) {
     super();
     this.#surface = surface;
     this.#mapWidth = mapWidth;
     this.#mapHeight = mapHeight;
 
-    this.#janitor.addEventListener(surface.canvas, "mousedown", onClick);
 
     // const max = Math.max(this.#mapWidth, this.#mapHeight);
     // const wAspect = this.#mapWidth / max;

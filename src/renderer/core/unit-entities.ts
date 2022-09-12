@@ -1,12 +1,15 @@
 import { UnitsBufferView } from "@buffer-view/units-buffer-view";
 import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
-import selectedUnitsStore from "@stores/selected-units-store";
-import { clearFollowedUnits, unfollowUnit } from "./followed-units";
 
 export class UnitEntities {
     freeUnits: Unit[] = [];
     units: Map<number, Unit> = new Map;
+
+    externalOnFreeUnit?(unit: Unit): void;
+    externalOnCreateUnit?(unit: Unit): void;
+    externalOnClearUnits?(): void;
+
 
     get(unitId: number) {
         return this.units.get(unitId);
@@ -26,7 +29,7 @@ export class UnitEntities {
             unit.extras.turretLo = null;
 
             this.units.set(unitData.id, unit as unknown as Unit);
-            // plugins.callHook(HOOK_ON_UNIT_CREATED, unit);
+            this.externalOnCreateUnit && this.externalOnCreateUnit(unit);
             return unit as unknown as Unit;
         }
     }
@@ -36,16 +39,13 @@ export class UnitEntities {
         if (unit) {
             this.units.delete(unitId);
             this.freeUnits.push(unit);
-            selectedUnitsStore().removeUnit(unit);
-            unfollowUnit(unit);
-            // plugins.callHook(HOOK_ON_UNIT_KILLED, unit);
+            this.externalOnFreeUnit && this.externalOnFreeUnit(unit);
         }
     }
 
     clear() {
         this.freeUnits.push(...this.units.values());
         this.units.clear();
-        selectedUnitsStore().clearSelectedUnits();
-        clearFollowedUnits();
+        this.externalOnClearUnits && this.externalOnClearUnits();
     }
 }

@@ -5,8 +5,8 @@ import Chk from "bw-chk";
 import { Assets, Settings } from "common/types";
 import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "renderer/camera/game-viewport";
-import { Color, Scene, Vector3 } from "three";
-import { createSandboxApi } from "./sandbox-api";
+import { Color, Scene } from "three";
+import { createSandboxApi } from "@openbw/sandbox-api";
 
 export interface GameTimeApi {
     type: "replay" | "game" | "live",
@@ -41,10 +41,6 @@ export interface GameTimeApi {
     setPlayerNames(names: { name: string, id: number }[]): void;
     getOriginalNames(): readonly { name: string, id: number }[];
     getPlayers(): BasePlayer[];
-    readonly followedUnitsPosition: Vector3 | undefined | null;
-    selectUnits(units: number[]): void;
-    deselectUnits(): void;
-    selectedUnits: Unit[];
     playSound(typeId: number, volumeOrX?: number, y?: number, unitTypeId?: number): void;
     togglePointerLock(val: boolean): void;
     readonly pointerLockLost: boolean;

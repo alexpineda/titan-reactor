@@ -2,28 +2,22 @@ import { debounce } from "lodash";
 import { Color, MathUtils, Object3D, PerspectiveCamera, Vector2, Vector3 } from "three";
 import type Chk from "bw-chk";
 import { mixer, Music } from "@audio"
-import { drawFunctions, imageTypes, orders, UnitFlags, unitTypes } from "common/enums";
-import { Surface } from "@image";
+import { drawFunctions, imageTypes, unitTypes } from "common/enums";
 import {
   OpenBW,
   Settings,
-  UnitTileScale,
 } from "common/types";
-import { makePxToWorld, floor32 } from "common/utils/conversions";
+import { floor32 } from "common/utils/conversions";
 import { SpriteStruct, ImageStruct } from "common/types";
-import { SoundChannels } from "@audio";
 import {
   Players,
-  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, Unit, BasePlayer
+  ImageHD, Creep, FogOfWar, FogOfWarEffect, Image3D, BasePlayer
 } from "@core";
-import {
-  MinimapMouse, CameraMouse, CameraKeys, createUnitSelection
-} from "@input";
 import { getOpenBW } from "@openbw";
 import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, SpritesBufferViewIterator } from "@buffer-view";
 import * as log from "@ipc/log";
 import {
-  GameSurface, renderComposer, SimpleText, BaseScene
+  renderComposer
 } from "@render";
 import { getImageLoOffset, imageIsDoodad, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
 import { buildSound } from "@utils/sound-utils";
@@ -33,31 +27,23 @@ import gameStore from "@stores/game-store";
 import settingsStore from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
-import { canSelectUnit, unitIsFlying } from "@utils/unit-utils";
+import { unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
-import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
-import selectedUnitsStore from "@stores/selected-units-store";
-import { selectionObjects as selectionMarkers, updateSelectionGraphics } from "./selection-objects";
+import { RELOAD_PLUGINS } from "common/ipc-handle-names";
+import { selectionObjects as selectionMarkers, updateSelectionGraphics } from "../../core/selection-objects";
 import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { MinimapGraphics } from "@render/minimap-graphics";
-import { createSession } from "@stores/session/session";
-import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
-import { calculateFollowedUnitsTarget, clearFollowedUnits, followUnits, hasFollowedUnits } from "./followed-units";
-import { ImageEntities } from "./image-entities";
-import { SpriteEntities } from "./sprite-entities";
-import { CssScene } from "./css-scene";
-import { UnitEntities } from "./unit-entities";
-import { GameTimeApi } from "./game-time-api";
-import { SpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "./speed-controls";
+import { createSession } from "@core/session";
+import { GameTimeApi } from "@core/game-time-api";
+import { SpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "../../openbw/speed-controls";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImageHD, applyModelEffectsOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { EffectivePasses, GlobalEffects } from "@render/global-effects";
 import { createImageSelection } from "@input/create-image-selection";
-import { createSandboxApi } from "./sandbox-api";
 import { AudioListener } from "three";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
-import { createCompletedUpgradesHelper } from "./completed-upgrades";
+import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
 import { SessionChangeEvent } from "@stores/session/reactive-session-variables";
 import shallow from "zustand/shallow";
 
@@ -68,14 +54,6 @@ export async function makeGameScene(
   onOpenBWReady: (openBW: OpenBW) => BasePlayer[],
 ) {
 
-  const assets = gameStore().assets!;
-
-  const { terrain, terrainExtra } = await chkToTerrainMesh(
-    map, UnitTileScale.HD,
-  );
-
-  janitor.mop(terrain);
-
   const openBW = await getOpenBW();
 
   setDumpUnitCall((id) => openBW.get_util_funcs().dump_unit(id));
@@ -84,12 +62,12 @@ export async function makeGameScene(
 
   const basePlayers = onOpenBWReady(openBW);
 
-  openBW.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
+  const assets = gameStore().assets!;
 
-  openBW.setGameSpeed(1);
-  openBW.setPaused(false);
-
-  const { sessionApi, callHook, callHookAsync, ...session } = janitor.mop(await createSession(openBW));
+  const { sessionApi, callHook, callHookAsync, terrain, terrainExtra, images, units, selectedUnits, unitSelectionBox, sprites, scene,
+    gameSurface, minimapMouse, cameraKeys, cameraMouse, cssScene, minimapSurface, pxToWorld, simpleText,
+    sandboxApi, soundChannels,
+    ...session } = janitor.mop(await createSession(openBW, assets, map));
 
   const sessionListener = ({ detail: { settings, rhs } }: SessionChangeEvent) => {
 
@@ -134,68 +112,11 @@ export async function makeGameScene(
   janitor.mop(() => sessionApi.events.removeEventListener("change", sessionListener));
 
 
-  const soundChannels = new SoundChannels();
   const music = janitor.mop(new Music(mixer as unknown as AudioListener));
   music.playGame();
 
-  const [mapWidth, mapHeight] = map.size;
-
-  const cssScene = new CssScene;
-
-  const gameSurface = janitor.mop(new GameSurface(mapWidth, mapHeight));
-  gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
-  janitor.mop(document.body.appendChild(gameSurface.canvas));
-  gameStore().setDimensions(gameSurface.getMinimapDimensions(settingsStore().data.game.minimapSize));
-
-  const minimapSurface = janitor.mop(new Surface({
-    position: "absolute",
-    bottom: "0",
-    zIndex: "20"
-  }));
-
-  janitor.mop(document.body.appendChild(minimapSurface.canvas));
-
-  const simpleText = janitor.mop(new SimpleText());
-  const pxToWorld = makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY);
-
-  const minimapMouse = janitor.mop(new MinimapMouse(
-    minimapSurface,
-    mapWidth,
-    mapHeight,
-    () => {
-      clearFollowedUnits();
-    }
-  ));
-
-  const cameraMouse = janitor.mop(new CameraMouse(document.body));
-
-  const cameraKeys = janitor.mop(new CameraKeys(document.body, () => {
-    if (hasFollowedUnits()) {
-      clearFollowedUnits();
-    } else if (selectedUnitsStore().selectedUnits.length) {
-      followUnits(selectedUnitsStore().selectedUnits);
-    }
-  }));
-
-  const scene = janitor.mop(new BaseScene(map.size[0], map.size[1], terrain));
-
-  scene.background = assets.skyBox;
-  scene.environment = assets.envMap;
-
-  const units = new UnitEntities
-
-  const sprites = new SpriteEntities();
-  scene.add(sprites.group);
-
-  const images = janitor.mop(new ImageEntities);
-  janitor.on(ipcRenderer, CLEAR_ASSET_CACHE, () => {
-    assets.resetAssetCache();
-    images.dispose();
-    reset = refreshScene;
-  })
-
   const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
-  const fogOfWar = new FogOfWar(mapWidth, mapHeight, openBW, fogOfWarEffect);
+  const fogOfWar = new FogOfWar(scene.mapWidth, scene.mapHeight, openBW, fogOfWarEffect);
 
   const globalEffectsBundle = janitor.mop(
     new GlobalEffects(
@@ -273,17 +194,6 @@ export async function makeGameScene(
 
   const viewports = janitor.mop(new GameViewportsDirector(gameSurface));
 
-  const _getSelectionUnit = (object: Object3D): Unit | null => {
-
-    if (object instanceof ImageHD || object instanceof Image3D) {
-      return canSelectUnit(images.getUnit(object));
-    } else if (object.parent) {
-      return _getSelectionUnit(object.parent);
-    }
-
-    return null;
-
-  }
 
   const _imageDebug: Partial<ImageStruct> = {};
   const imageSelection = janitor.mop(createImageSelection(scene, gameSurface, minimapSurface, (objects) => {
@@ -303,7 +213,6 @@ export async function makeGameScene(
   }));
 
 
-  const unitSelection = janitor.mop(createUnitSelection(scene, gameSurface, minimapSurface, (object) => _getSelectionUnit(object)));
 
   viewports.externalOnExitScene = session.onExitScene;
 
@@ -322,15 +231,7 @@ export async function makeGameScene(
       minimapHeight: sessionApi.getState().game.minimapEnabled === true ? rect.minimapHeight : 0,
     });
 
-    if (!sceneController.gameOptions.allowUnitSelection) {
-      selectedUnitsStore().clearSelectedUnits();
-    }
-
-    unitSelection.enabled = sceneController.gameOptions?.allowUnitSelection;
-    unitSelection.selectionBox.camera = sceneController.viewports[0].camera;
-    unitSelection.onSelectedUnitsChange = (units) => {
-      console.log(units)
-    }
+    unitSelectionBox.activate(sceneController.gameOptions?.allowUnitSelection, sceneController.viewports[0].camera)
 
     imageSelection.selectionBox.camera = sceneController.viewports[0].camera;
     _sceneResizeHandler();
@@ -364,7 +265,6 @@ export async function makeGameScene(
     startLocations,
   ));
 
-  const sandbox = createSandboxApi(openBW, makePxToWorld(mapWidth, mapHeight, terrain.getTerrainY, true));
 
   // window.sandbox = sandbox;
   // window.o = session;
@@ -387,7 +287,7 @@ export async function makeGameScene(
       assets,
       unitsIterator,
       get sandbox() {
-        return sandbox;
+        return sandboxApi;
       },
       simpleMessage(val: string) {
         simpleText.set(val);
@@ -466,28 +366,12 @@ export async function makeGameScene(
         return players.originalNames;
       },
       getPlayers: () => [...basePlayers.map(p => ({ ...p }))],
-      get followedUnitsPosition() {
-        if (!hasFollowedUnits()) {
-          return null;
-        }
-        return calculateFollowedUnitsTarget(pxToWorld);
-      },
-      selectUnits: (ids: number[]) => {
-        const selection = [];
-        for (const id of ids) {
-          const unit = units.get(id);
-          if (unit) {
-            selection.push(unit);
-          }
-        }
-        selectedUnitsStore().setSelectedUnits(selection);
-      },
-      deselectUnits() {
-        selectedUnitsStore().setSelectedUnits([]);
-      },
-      get selectedUnits() {
-        return selectedUnitsStore().selectedUnits
-      },
+      // get followedUnitsPosition() {
+      //   if (!hasFollowedUnits()) {
+      //     return null;
+      //   }
+      //   return calculateFollowedUnitsTarget(pxToWorld);
+      // },
 
       // fadingPointers,
       playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
@@ -579,9 +463,10 @@ export async function makeGameScene(
   let currentBwFrame = 0;
   let previousBwFrame = -1;
 
+  //TODO move to terrain generator
   const creep = janitor.mop(new Creep(
-    mapWidth,
-    mapHeight,
+    scene.mapWidth,
+    scene.mapHeight,
     terrainExtra.creepTextureUniform.value,
     terrainExtra.creepEdgesTextureUniform.value
   ));
@@ -637,13 +522,13 @@ export async function makeGameScene(
 
     unitData.copyTo(unit);
 
-    if (unit.extras.selected &&
-      (unit.order === orders.die ||
-        unit.order === orders.harvestGas ||
-        (unit.statusFlags & UnitFlags.Loaded) !== 0 ||
-        (unit.statusFlags & UnitFlags.InBunker) !== 0)) {
-      selectedUnitsStore().removeUnit(unit);
-    }
+    // if (unit.extras.selected &&
+    //   (unit.order === orders.die ||
+    //     unit.order === orders.harvestGas ||
+    //     (unit.statusFlags & UnitFlags.Loaded) !== 0 ||
+    //     (unit.statusFlags & UnitFlags.InBunker) !== 0)) {
+    //   selectedUnitsStore().removeUnit(unit);
+    // }
 
     if (unit.typeId === unitTypes.siegeTankTankMode) {
       if (unit.extras.turretLo === null) {
@@ -674,6 +559,7 @@ export async function makeGameScene(
     }
   }
 
+  //TODO move to sound buffer / iterator pattern
   const buildSounds = (elapsed: number) => {
 
     const soundsAddr = openBW.getSoundsAddress!();
@@ -875,7 +761,7 @@ export async function makeGameScene(
 
   };
 
-  const minimapGraphics = new MinimapGraphics(mapWidth, mapHeight, terrainExtra.minimapBitmap);
+  const minimapGraphics = new MinimapGraphics(scene.mapWidth, scene.mapHeight, terrainExtra.minimapBitmap);
 
   renderComposer.targetSurface = gameSurface;
 
@@ -926,7 +812,7 @@ export async function makeGameScene(
       buildUnits();
       buildMinimap();
       buildSprites(delta);
-      updateSelectionGraphics(viewports.primaryViewport.camera, sprites, completedUpgrades);
+      updateSelectionGraphics(viewports.primaryViewport.camera, sprites, completedUpgrades, selectedUnits.values());
 
       fogOfWar.texture.needsUpdate = true;
 
@@ -953,9 +839,11 @@ export async function makeGameScene(
 
       session.onFrame(currentBwFrame, _commandsThisFrame);
 
+      //TODO: move to sessionONFRAMR
+      minimapGraphics.drawMinimap(minimapSurface, scene.mapWidth, scene.mapHeight, creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
+
       previousBwFrame = currentBwFrame;
 
-      minimapGraphics.drawMinimap(minimapSurface, mapWidth, mapHeight, creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
 
     }
 
