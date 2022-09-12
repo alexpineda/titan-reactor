@@ -61,11 +61,13 @@ export class GlobalEffects implements PostProcessingBundle {
     #outlineEffect?: OutlineEffect;
 
     constructor(camera: Camera, scene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
+
         this.camera = camera;
         this.scene = scene;
         this.options = options;
         this.#renderPass = new RenderPass(scene, camera);
         this.#fogOfWarEffect = fogOfWar;
+
     }
 
     get options3d() {
@@ -77,20 +79,25 @@ export class GlobalEffects implements PostProcessingBundle {
     }
 
     set effectivePasses(_value: EffectivePasses) {
+
         let value = _value;
+
         if (value === EffectivePasses.ExtendedWithDepth && !isPostProcessing3D(this.options)) {
             value = EffectivePasses.Extended;
         } else if (value === EffectivePasses.Extended && isPostProcessing3D(this.options)) {
             value = EffectivePasses.ExtendedWithDepth;
         }
+
         if (this.#effectivePasses !== value) {
             this.#effectivePasses = value;
             OverrideMaterialManager.workaroundEnabled = value === EffectivePasses.Extended;
             this.needsUpdate = true;
         }
+
     }
 
     #updateEffects() {
+
         this.removeDepthOfField();
         this.removeBloom();
 

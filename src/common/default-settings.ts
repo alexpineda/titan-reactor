@@ -30,7 +30,7 @@ export const defaultSettingsV6: SettingsV6 = {
     rotateSpeed: 1,
     zoomLevels: [0.5, 1, 2],
   },
-  util: {
+  utilities: {
     sanityCheckReplayCommands: true,
     debugMode: false,
     detectMeleeObservers: false,

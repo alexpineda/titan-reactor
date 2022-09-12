@@ -22,7 +22,6 @@ export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins
     ...getDirectoryConfig(settings.directories),
 
     "graphics.pixelRatio": {
-        folder: "Graphics",
         label: "Pixel Ratio",
         value: settings.graphics.pixelRatio,
         min: 0.5,
@@ -30,7 +29,6 @@ export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins
         step: 0.1,
     },
     "graphics.useHD2": {
-        folder: "Graphics",
         label: "Use HD2 (50% HD)",
         value: settings.graphics.useHD2,
         options: {
@@ -40,11 +38,10 @@ export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins
         }
     },
     "assets.preload": {
-        folder: "Graphics",
         label: "Preload Assets",
         value: settings.assets.preload,
     },
-    ...getUtilConfig(settings.util),
+    ...getUtilConfig(settings.utilities),
     ...fromNestedToSessionLevaConfig(settings, plugins, maxAnisotropy, maxAntiAlias)
 
 });
@@ -63,32 +60,27 @@ export const fromNestedToSessionLevaConfig = (settings: SessionSettingsData, plu
     ...getPostProcessing3DConfig(settings.postprocessing3d, maxAnisotropy, maxAntiAlias),
 });
 
-const getUtilConfig = (util: SettingsMeta["data"]["util"]) => ({
-    "util.sanityCheckReplayCommands": {
-        folder: "Utilities",
+const getUtilConfig = (util: SettingsMeta["data"]["utilities"]) => ({
+    "utilities.sanityCheckReplayCommands": {
         label: "Sanity Check Replay Commands (and rewrite command buffer overflows)",
         value: util.sanityCheckReplayCommands,
     },
-    "util.detectMeleeObservers": {
-        folder: "Utilities",
+    "utilities.detectMeleeObservers": {
         label: "Detect Melee Observers (and remove from players list)",
         value: util.detectMeleeObservers,
     },
-    "util.detectMeleeObserversThreshold": {
-        folder: "Utilities",
+    "utilities.detectMeleeObserversThreshold": {
         label: "Detect Melee Observers (Commands Threshold)",
         value: util.detectMeleeObserversThreshold,
         min: 1000,
         max: 50000,
         step: 1000
     },
-    "util.alertDesynced": {
-        folder: "Utilities",
+    "utilities.alertDesynced": {
         label: "Detect Desynced Replay Before Start",
         value: util.alertDesynced,
     },
-    "util.alertDesyncedThreshold": {
-        folder: "Utilities",
+    "utilities.alertDesyncedThreshold": {
         label: "Detect Desynced Replay (Idle Units Threshold)",
         value: util.alertDesyncedThreshold,
         min: 10,
@@ -98,25 +90,21 @@ const getUtilConfig = (util: SettingsMeta["data"]["util"]) => ({
 
 const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]) => ({
     "directories.starcraft": {
-        folder: "Directories",
         label: "Starcraft",
         value: directories.starcraft,
         type: "directory",
     },
     "directories.maps": {
-        folder: "Directories",
         label: "Maps",
         value: directories.maps,
         type: "directory",
     },
     "directories.replays": {
-        folder: "Directories",
         label: "Replays",
         value: directories.replays,
         type: "directory",
     },
     "directories.assets": {
-        folder: "Directories",
         label: "3D Assets",
         value: directories.assets,
         type: "directory",
@@ -125,7 +113,6 @@ const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]) =>
 
 const getGameConfig = (game: SettingsMeta["data"]["game"], sceneControllers: PluginMetaData[]) => ({
     "game.minimapSize": {
-        folder: "Game",
         label: "Minimap Size % Height",
         min: 0.5,
         max: 1.5,
@@ -133,24 +120,20 @@ const getGameConfig = (game: SettingsMeta["data"]["game"], sceneControllers: Plu
         value: game.minimapSize,
     },
     "game.minimapEnabled": {
-        folder: "Game",
         label: "Minimap Visible",
         value: game.minimapEnabled,
     },
     "game.sandBoxMode": {
-        folder: "Game",
         label: "Sandbox Mode",
         value: game.sandBoxMode,
     },
     "game.sceneController": {
-        folder: "Game",
         label: "Scene Controller (Default)",
         value: game.sceneController,
         options: sceneControllers
             .reduce((m, p) => ({ ...m, [p.description ?? p.name]: p.name }), {}),
     },
     "game.dampingFactor": {
-        folder: "Game",
         label: "Camera Movement Damping",
         value: game.dampingFactor,
         min: 0.01,
@@ -158,22 +141,18 @@ const getGameConfig = (game: SettingsMeta["data"]["game"], sceneControllers: Plu
         step: 0.01,
     },
     "game.zoomLevels": {
-        folder: "Game",
         label: "Camera Zoom Levels",
         value: game.zoomLevels,
     },
     "game.rotateSpeed": {
-        folder: "Game",
         label: "Camera Rotate Speed",
         value: game.rotateSpeed,
     },
     "game.movementSpeed": {
-        folder: "Game",
         label: "Camera Movement Speed",
         value: game.movementSpeed,
     },
     "game.cameraShakeStrength": {
-        folder: "Game",
         label: "Camera Shake Strength",
         value: game.cameraShakeStrength,
         min: 0,
@@ -183,7 +162,6 @@ const getGameConfig = (game: SettingsMeta["data"]["game"], sceneControllers: Plu
 
 const getAudioConfig = (audio: SettingsMeta["data"]["audio"]) => ({
     "audio.global": {
-        folder: "Audio",
         label: "Global Volume",
         value: audio.global,
         min: 0,
@@ -191,7 +169,6 @@ const getAudioConfig = (audio: SettingsMeta["data"]["audio"]) => ({
         step: 0.05,
     },
     "audio.music": {
-        folder: "Audio",
         label: "Music Volume",
         value: audio.music,
         min: 0,
@@ -199,7 +176,6 @@ const getAudioConfig = (audio: SettingsMeta["data"]["audio"]) => ({
         step: 0.05,
     },
     "audio.sound": {
-        folder: "Audio",
         label: "Sound Volume",
         value: audio.sound,
         min: 0,
@@ -207,7 +183,6 @@ const getAudioConfig = (audio: SettingsMeta["data"]["audio"]) => ({
         step: 0.05,
     },
     "audio.playIntroSounds": {
-        folder: "Audio",
         label: "Play App Intro Sounds",
         value: audio.playIntroSounds,
     }
@@ -219,7 +194,6 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
     "postprocessing.anisotropy": {
         label: "Anisotropy",
         value: postprocessing.anisotropy,
-        folder: "Classic Renderer",
         min: 0,
         max: maxAnisotropy,
         step: 1,
@@ -227,7 +201,6 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
     "postprocessing.antialias": {
         label: "Anti Alias",
         value: postprocessing.antialias,
-        folder: "Classic Renderer",
         min: 0,
         max: maxAntiAlias,
         step: 1,
@@ -235,7 +208,6 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
     "postprocessing.toneMapping": {
         label: "Tone Mapping Exposure",
         value: postprocessing.toneMapping,
-        folder: "Classic Renderer",
         min: 0,
         max: 2,
         step: 0.1,
@@ -243,7 +215,6 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
     "postprocessing.bloom": {
         label: "Bloom Intensity",
         value: postprocessing.bloom,
-        folder: "Classic Renderer",
         min: 0,
         max: 1000,
         step: 0.1,
@@ -251,7 +222,6 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
     "postprocessing.brightness": {
         label: "Brightness",
         value: postprocessing.brightness,
-        folder: "Classic Renderer",
         min: -0.5,
         max: 0.5,
         step: 0.01,
@@ -259,14 +229,12 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
     "postprocessing.contrast": {
         label: "Contrast",
         value: postprocessing.contrast,
-        folder: "Classic Renderer",
         min: -0.5,
         max: 0.5,
         step: 0.01,
     },
     "postprocessing.fogOfWar": {
         label: "Fog Of War Opacity",
-        folder: "Classic Renderer",
         value: postprocessing.fogOfWar,
         min: 0,
         max: 1,
@@ -279,7 +247,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     "postprocessing3d.anisotropy": {
         label: "Anisotropy",
         value: postprocessing3d.anisotropy,
-        folder: "3D Renderer",
         min: 0,
         max: maxAnisotropy,
         step: 1,
@@ -287,7 +254,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     "postprocessing3d.antialias": {
         label: "Anti Alias",
         value: postprocessing3d.antialias,
-        folder: "3D Renderer",
         min: 0,
         max: maxAntiAlias,
         step: 1,
@@ -295,7 +261,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     "postprocessing3d.toneMapping": {
         label: "Tone Mapping Exposure",
         value: postprocessing3d.toneMapping,
-        folder: "3D Renderer",
         min: 0,
         max: 2,
         step: 0.1,
@@ -303,7 +268,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     "postprocessing3d.bloom": {
         label: "Bloom Intensity",
         value: postprocessing3d.bloom,
-        folder: "3D Renderer",
         min: 0,
         max: 1000,
         step: 1,
@@ -311,7 +275,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     "postprocessing3d.brightness": {
         label: "Brightness",
         value: postprocessing3d.brightness,
-        folder: "3D Renderer",
         min: -0.5,
         max: 0.5,
         step: 0.01,
@@ -319,14 +282,12 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     "postprocessing3d.contrast": {
         label: "Contrast",
         value: postprocessing3d.contrast,
-        folder: "3D Renderer",
         min: -0.5,
         max: 0.5,
         step: 0.01,
     },
     "postprocessing3d.depthFocalLength": {
         "label": "Depth Focal Length",
-        folder: "3D Renderer",
         "value": postprocessing3d.depthFocalLength,
         "min": 1,
         "max": 20,
@@ -334,7 +295,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.depthFocalRange": {
         "label": "Depth Focal Range",
-        folder: "3D Renderer",
         "value": postprocessing3d.depthFocalRange,
         "min": 1,
         "max": 20,
@@ -342,7 +302,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.depthBokehScale": {
         "label": "Depth Bokeh Scale",
-        folder: "3D Renderer",
         "value": postprocessing3d.depthBokehScale,
         "min": 1,
         "max": 5,
@@ -350,7 +309,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.depthBlurQuality": {
         "label": "Depth Blur Quality",
-        folder: "3D Renderer",
         "value": postprocessing3d.depthBlurQuality,
         "options": {
 
@@ -362,7 +320,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.fogOfWar": {
         "label": "Fog Of War Opacity",
-        folder: "3D Renderer",
         "value": postprocessing3d.fogOfWar,
         min: 0,
         max: 1,
@@ -370,7 +327,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.envMap": {
         "label": "Environment Map",
-        folder: "3D Renderer",
         "value": postprocessing3d.envMap,
         min: 0,
         max: 2,
@@ -378,13 +334,11 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.sunlightDirection": {
         "label": "Sunlight Position",
-        folder: "3D Renderer",
         "value": postprocessing3d.sunlightDirection,
         step: 1
     },
     "postprocessing3d.sunlightIntensity": {
         "label": "Sunlight Intensity",
-        folder: "3D Renderer",
         "value": postprocessing3d.sunlightIntensity,
         step: 0.25,
         min: 0,
@@ -392,12 +346,10 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.sunlightColor": {
         "label": "Sunlight Color",
-        folder: "3D Renderer",
         "value": postprocessing3d.sunlightColor,
     },
     "postprocessing3d.shadowIntensity": {
         "label": "Shadow Intensity",
-        folder: "3D Renderer",
         "value": postprocessing3d.shadowIntensity,
         min: 0,
         max: 1,
@@ -405,7 +357,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
     },
     "postprocessing3d.shadowQuality": {
         "label": "Shadow Quality",
-        folder: "3D Renderer",
         "value": postprocessing3d.shadowQuality,
         min: 0,
         max: 8,

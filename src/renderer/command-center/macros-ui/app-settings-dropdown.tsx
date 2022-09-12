@@ -24,7 +24,7 @@ export const SessionSettingsDropDown = ({
         const field = config[key as keyof typeof config];
         return (
           <option key={key} value={key}>
-            {field.folder} &gt; {field.label.replace("(Default)", "")}
+            &gt; {field.label.replace("(Default)", "")}
           </option>
         );
       })}

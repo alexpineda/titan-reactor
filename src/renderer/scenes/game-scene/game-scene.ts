@@ -919,6 +919,7 @@ export async function makeGameScene(
   _sceneResizeHandler();
 
   await session.onSceneReady();
+
   renderComposer.getWebGLRenderer().setAnimationLoop(GAME_LOOP)
 
   return () => {

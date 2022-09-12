@@ -119,7 +119,7 @@ export type SettingsV6 = {
         cameraShakeStrength: number;
         zoomLevels: [number, number, number];
     },
-    util: {
+    utilities: {
         sanityCheckReplayCommands: boolean,
         debugMode: boolean,
         detectMeleeObservers: boolean,
