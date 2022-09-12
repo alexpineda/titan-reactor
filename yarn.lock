@@ -3745,10 +3745,10 @@ builtins@^1.0.3:
   resolved "https://registry.yarnpkg.com/builtins/-/builtins-1.0.3.tgz#cb94faeb61c8696451db36534e1422f94f0aee88"
   integrity sha1-y5T662HIaWRR2zZTThQi+U8K7og=
 
-bw-casclib@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/bw-casclib/-/bw-casclib-2.0.0.tgz#8f65c4360fca1faa3a8c7f8a2b3a88a05a09fe07"
-  integrity sha512-YCuQSPG5cJznWoPFFztb5PomL1qlrn60Vxj9ZTqDZjRzp2Bmxpwl0uXBLhZnTgUlIeYdw7B25IwapfQdMb7S/g==
+bw-casclib@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/bw-casclib/-/bw-casclib-2.0.1.tgz#17779a536823ae753abe3dc6fbc3ae01768ad267"
+  integrity sha512-6UUvzWa5tMjOfVElz2i/Sea3oIEc764rLk7uwGD+MtbvgZ+aCcHH9JH7WgkAxdsLMPMI78LgCCREknxKZ/PMyA==
   dependencies:
     node-addon-api "^1.1.0"
 

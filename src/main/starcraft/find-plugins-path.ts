@@ -13,8 +13,9 @@ export async function findPluginsPath() {
             await fsPromises.mkdir(pluginsPath, { recursive: true });
             return pluginsPath;
         } catch (e) {
+            //TODO: log error
             console.error(e);
         }
     }
-    return "";
+    return getUserDataPath();
 }

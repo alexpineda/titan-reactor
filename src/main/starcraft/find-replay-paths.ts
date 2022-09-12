@@ -12,5 +12,5 @@ export async function findReplaysPath() {
   if (await fileExists(replaysPath)) {
     return replaysPath;
   }
-  return "";
+  return app.getPath("documents");
 }

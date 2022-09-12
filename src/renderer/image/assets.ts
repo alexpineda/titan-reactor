@@ -8,7 +8,7 @@ import electronFileLoader from "common/utils/electron-file-loader";
 import {
     openCascStorage,
     readCascFile,
-} from "@utils/casclib-win";
+} from "@utils/casclib";
 
 import { loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
@@ -172,8 +172,8 @@ export default async (settings: Settings) => {
                 envMap,
             );
 
-            atlases[imageId] = Object.assign({}, atlases[imageId], glb );
-            atlases[refImageId] = Object.assign({}, atlases[refImageId], glb );
+            atlases[imageId] = Object.assign({}, atlases[imageId], glb);
+            atlases[refImageId] = Object.assign({}, atlases[refImageId], glb);
 
         }
 

@@ -15,7 +15,6 @@ import {
 import { PluginSystemUI } from "./plugin-system-ui";
 import { PluginSystemNative } from "./plugin-system-native";
 import screenStore from "@stores/scene-store";
-import { HOOK_ON_SCENE_DISPOSED } from "./hooks";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import settingsStore from "@stores/settings-store";
 import Janitor from "@utils/janitor";
@@ -104,7 +103,6 @@ export const createPluginSession = async (macros: Macros) => {
         reactiveApi,
         dispose() {
             uiPlugins.reset();
-            nativePlugins.callHook(HOOK_ON_SCENE_DISPOSED);
             uiPlugins.dispose();
             nativePlugins.dispose();
             janitor.dispose();

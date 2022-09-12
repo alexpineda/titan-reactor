@@ -1,5 +1,7 @@
 // ported from ShieldBattery/ShieldBattery/master/app/find-install-path.js
+import path from "path";
 import Registry from "winreg";
+import { app } from "electron";
 
 function readRegValue(hive, key, value) {
   return new Promise((resolve, reject) => {
@@ -15,13 +17,20 @@ function readRegValue(hive, key, value) {
 }
 
 export async function findStarcraftPath() {
-  let starcraftPath = await findInstallPath();
-  if (!starcraftPath) {
-    starcraftPath = process.env["ProgramFiles(x86)"]
-      ? `${process.env["ProgramFiles(x86)"]}\\Starcraft`
-      : `${process.env.ProgramFiles}\\Starcraft`;
+  let starcraftPath = "";
+
+  if (process.platform === "darwin") {
+    return "/Applications/StarCraft";
   }
 
+  if (process.platform === "win32") {
+    let starcraftPath = await findInstallPath();
+    if (!starcraftPath) {
+      starcraftPath = process.env["ProgramFiles(x86)"]
+        ? `${process.env["ProgramFiles(x86)"]}\\Starcraft`
+        : `${process.env.ProgramFiles}\\Starcraft`;
+    }
+  }
   return starcraftPath;
 }
 

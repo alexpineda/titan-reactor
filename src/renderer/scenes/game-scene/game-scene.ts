@@ -26,7 +26,6 @@ import Janitor from "@utils/janitor";
 import gameStore from "@stores/game-store";
 import settingsStore from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
@@ -43,7 +42,6 @@ import { createImageSelection } from "@input/create-image-selection";
 import { AudioListener } from "three";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
-import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
 import { SessionChangeEvent } from "@stores/session/reactive-session-variables";
 import shallow from "zustand/shallow";
 
@@ -66,7 +64,7 @@ export async function makeGameScene(
 
   const { sessionApi, callHook, callHookAsync, terrain, terrainExtra, images, units, selectedUnits, unitSelectionBox, sprites, scene,
     gameSurface, minimapMouse, cameraKeys, cameraMouse, cssScene, minimapSurface, pxToWorld, simpleText,
-    sandboxApi, soundChannels,
+    sandboxApi, soundChannels, completedUpgrades, updateCompletedUpgrades,
     ...session } = janitor.mop(await createSession(openBW, assets, map));
 
   const sessionListener = ({ detail: { settings, rhs } }: SessionChangeEvent) => {
@@ -406,32 +404,19 @@ export async function makeGameScene(
   let reset: (() => void) | null = null;
   let _wasReset = false;
 
-  const { resetCompletedUpgrades, updateCompletedUpgrades, completedUpgrades } = createCompletedUpgradesHelper(openBW, (typeId: number, level: number) => {
-    callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.upgrades[typeId]]);
-  }, (typeId: number, level: number) => {
-    callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.tech[typeId]]);
-  });
 
   const refreshScene = () => {
-    images.clear();
-    units.clear();
-    sprites.clear();
+
     cmds = commandsStream.generate();
     cmd = cmds.next();
     globalEffectsBundle.clearBloomSelection();
 
-    const frame = openBW.getCurrentFrame();
+    session.onFrameReset(openBW.getCurrentFrame());
 
-    // remove any upgrade or tech that is no longer available
-    resetCompletedUpgrades(frame);
-    callHook(HOOK_ON_FRAME_RESET, frame);
     previousBwFrame = -1;
     reset = null;
     _wasReset = true;
   }
-
-  janitor.mop(() => resetCompletedUpgrades(0));
-
 
   const _sceneResizeHandler = () => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);

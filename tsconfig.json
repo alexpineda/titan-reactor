@@ -34,7 +34,6 @@
       "@core": ["renderer/core/index.ts"],
       "@stores/*": ["renderer/stores/*"],
       "@stores": ["renderer/stores/index.ts"],
-      "@utils/casclib": ["renderer/utils/casclib-win"],
       "@utils/*": ["renderer/utils/*"],
       "@ipc/*": ["renderer/ipc/*"],
       "@ipc": ["renderer/ipc/index.ts"],

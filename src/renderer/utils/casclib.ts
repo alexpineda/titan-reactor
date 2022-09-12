@@ -1,11 +1,11 @@
-import * as hardfile from "./casclib-disk";
+import * as casclibDisk from "./casclib-disk";
 import * as casclib from "bw-casclib";
 import settingsStore from "@stores/settings-store";
 let _storageHandle: any;
 
 export const readCascFile = async (filePath: string): Promise<Buffer> => {
   if (!settingsStore().isCascStorage) {
-    return hardfile.readCascFile(filePath) as Promise<Buffer>;
+    return casclibDisk.readCascFile(filePath) as Promise<Buffer>;
   }
   return await casclib.readFile(_storageHandle, filePath);
 
@@ -13,7 +13,7 @@ export const readCascFile = async (filePath: string): Promise<Buffer> => {
 
 export const findFile = async (fileName: string) => {
   if (!settingsStore().isCascStorage) {
-    return hardfile.findFile(fileName);
+    return casclibDisk.findFile(fileName);
   }
   const files = await casclib.findFiles(_storageHandle, `*${fileName}`);
   if (files.length === 0) {

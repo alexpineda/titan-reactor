@@ -9,7 +9,7 @@ import { ipcRenderer, IpcRendererEvent } from "electron";
 import { CLEAR_ASSET_CACHE, SEND_BROWSER_WINDOW, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { createCompartment } from "@utils/ses-util";
-import { HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED } from "@plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_READY, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { mix } from "@utils/object-utils";
 import { GameTimeApi } from "./game-time-api";
 import { chkToTerrainMesh, TerrainExtra } from "@image/generate-map/chk-to-terrain-mesh";
@@ -37,6 +37,7 @@ import { ImageHD } from "@core/image-hd";
 import { Image3D } from "@core/image-3d";
 import { canSelectUnit } from "@utils/unit-utils";
 import { IterableSet } from "@utils/iterable-set";
+import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
 
 export type Session = {
 
@@ -78,6 +79,9 @@ export type Session = {
     gameSurface: GameSurface;
     minimapSurface: Surface;
     sandboxApi: SandboxAPI;
+    onFrameReset(frame: number): void;
+    updateCompletedUpgrades: ReturnType<typeof createCompletedUpgradesHelper>["updateCompletedUpgrades"];
+    completedUpgrades: ReturnType<typeof createCompletedUpgradesHelper>["completedUpgrades"];
 }
 
 export type SessionStore = SessionSettingsData;
@@ -130,7 +134,6 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
 
     let plugins = await createPluginSession(macros);
 
-
     const { terrain, terrainExtra } = await chkToTerrainMesh(
         map, UnitTileScale.HD,
     );
@@ -175,7 +178,6 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
     }
 
     const units = new UnitEntities();
-    //TODO: clear units hook
     units.externalOnClearUnits = () => {
         selectedUnits.clear();
         followedUnits.clear();
@@ -252,6 +254,12 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
     const sandboxApi = createSandboxApi(openBW, makePxToWorld(scene.mapWidth, scene.mapHeight, terrain.getTerrainY, true));
 
 
+    const { resetCompletedUpgrades, updateCompletedUpgrades, completedUpgrades } = createCompletedUpgradesHelper(openBW, (typeId: number, level: number) => {
+        plugins.nativePlugins.callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.upgrades[typeId]]);
+    }, (typeId: number, level: number) => {
+        plugins.nativePlugins.callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.tech[typeId]]);
+    });
+
     return {
         sessionApi,
         sandboxApi,
@@ -272,6 +280,8 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
         cssScene,
         gameSurface,
         minimapSurface,
+        updateCompletedUpgrades,
+        completedUpgrades,
         dispose: () => {
             plugins.dispose();
             janitor.dispose()
@@ -337,8 +347,18 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk): P
 
         },
         async reloadPlugins() {
+            // nativePlugins.callHook(HOOK_ON_SCENE_DISPOSED);
+
             plugins.dispose();
             plugins = await createPluginSession(macros);
+        },
+        onFrameReset(frame: number) {
+            images.clear();
+            units.clear();
+            sprites.clear();
+            // remove any upgrade or tech that is no longer available
+            resetCompletedUpgrades(frame);
+            plugins.nativePlugins.callHook(HOOK_ON_FRAME_RESET, frame);
         }
     };
 };

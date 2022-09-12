@@ -7,5 +7,5 @@ export async function findMapsPath() {
   if (await fileExists(mapsPath)) {
     return mapsPath;
   }
-  return "";
+  return app.getPath("documents");
 }
