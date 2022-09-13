@@ -6,15 +6,14 @@ import { fromNestedToSessionLevaConfig, fromnNestedToSessionLevaField } from "co
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
 import lGet from "lodash.get";
-import settingsStore, { useSettingsStore } from "../settings-store";
+import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import * as log from "@ipc/log";
-import { SessionStore } from "@core/session";
 import Janitor from "@utils/janitor";
-import { BeforeSet, createReactiveVariable, ReactiveVariable } from "./create-reactive-variable";
+import { BeforeSet, createReactiveVariable, ReactiveVariable } from "@utils/create-reactive-variable";
 
 const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
-export type MergeSessionStore = (rhs: DeepPartial<SessionStore>) => void;
+export type MergeSessionStore = (rhs: DeepPartial<SessionSettingsData>) => void;
 
 const applyEffectToSessionProperty = (mergeRootSession: MergeSessionStore, effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue: any, resetValue: any, beforeSet?: (newValue: any, field: FieldDefinition) => boolean | void) => {
 
@@ -53,17 +52,19 @@ const isValidkey = (key: string) => {
 }
 
 export type SessionVariables = {
-    [K in keyof SessionStore]: {
-        [T in keyof SessionStore[K]]: ReactiveVariable
+    [K in keyof SessionSettingsData]: {
+        [T in keyof SessionSettingsData[K]]: ReactiveVariable
     };
 }
 
-export class SessionChangeEvent extends CustomEvent<{ settings: SessionStore, rhs: DeepPartial<SessionStore> }> {
-    constructor(settings: SessionStore, rhs: DeepPartial<SessionStore>) {
+export class SessionChangeEvent extends CustomEvent<{ settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> }> {
+    constructor(settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData>) {
         super("change", { detail: { settings, rhs } });
     }
 }
 
+
+export type ReactiveSessionVariables = ReturnType<typeof createReactiveSessionVariables>;
 /**
  * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
  */
@@ -80,9 +81,11 @@ export const createReactiveSessionVariables = () => {
         postprocessing3d: JSON.parse(JSON.stringify(initialSettings.postprocessing3d)),
     };
 
-    const mergeRootSession = async (rhs: DeepPartial<SessionStore>) => {
+    const mergeRootSession = async (rhs: DeepPartial<SessionSettingsData>) => {
 
-        const newSettings = deepMerge<DeepPartial<SessionStore>>(store, rhs, { arrayMerge: overwriteMerge });
+        console.debug("updating session");
+
+        const newSettings = deepMerge<DeepPartial<SessionSettingsData>>(store, rhs, { arrayMerge: overwriteMerge });
 
         Object.assign(store, newSettings);
 
@@ -90,9 +93,11 @@ export const createReactiveSessionVariables = () => {
 
     }
 
-
     // keep the session up to date with user changed settings
     useSettingsStore.subscribe(settings => {
+
+        console.debug("merging session with settings");
+
         mergeRootSession({
             audio: settings.data.audio,
             game: settings.data.game,
@@ -119,7 +124,8 @@ export const createReactiveSessionVariables = () => {
     const sessionVars = (Object.entries(sessionSettingsConfig).reduce((acc, [key, value]) => {
         if (isValidkey(key)) {
             const settingsKey = key.split(".");
-            lSet<SessionVariables>(acc, settingsKey, defineSessionProperty(value, settingsKey))
+            lSet<SessionVariables>(acc, settingsKey, defineSessionProperty(value, settingsKey));
+            lSet<SessionVariables>(acc, [...settingsKey.slice(0, -1), `get${[...settingsKey.slice(-1)][0].slice(0, 1).toUpperCase()}${settingsKey.slice(-1)[0].slice(1)}`], () => lGet(store, settingsKey));
         }
         return acc;
     }, {})) as SessionVariables;

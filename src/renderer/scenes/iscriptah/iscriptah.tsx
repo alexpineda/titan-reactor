@@ -18,7 +18,7 @@ import { TransformControls } from "three/examples/jsm/controls/TransformControls
 import App from "./components/app";
 import { Surface } from "@image";
 import "common/utils/electron-file-loader";
-import IScriptSprite from "@core/iscript-sprite";
+import IScriptSprite from "./iscript-sprite";
 import {
   incGameTick,
   setFrame,

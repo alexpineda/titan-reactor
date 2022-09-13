@@ -10,7 +10,7 @@ import { FieldDefinition, ModifyValueActionEffect, MacroActionPluginModifyValue 
 import { ipcRenderer } from "electron";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
-import { createReactiveVariable } from "./create-reactive-variable";
+import { createReactiveVariable } from "@utils/create-reactive-variable";
 
 type PluginResetStore = {
     [pluginName: string]: {
@@ -96,7 +96,9 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
         Object.entries(plugin.rawConfig).forEach(([key, value]) => {
             if (key !== "system") {
-                lSet(acc, [plugin.name, key], definePluginVar(plugin)(value as FieldDefinition, [plugin.name, key]))
+                const compKey = [plugin.name, key];
+                lSet(acc, compKey, definePluginVar(plugin)(value as FieldDefinition, compKey));
+                lSet(acc, [...compKey.slice(0, -1), `get${[...compKey.slice(-1)][0].slice(0, 1).toUpperCase()}${compKey.slice(-1)[0].slice(1)}`], () => lGet(acc, compKey));
             }
         });
 

@@ -11,7 +11,7 @@ export class ThingyBufferView
 
     protected _address = 0;
     protected _bw: OpenBW;
-    protected _sprite: SpritesBufferView;
+    protected _sprite?: SpritesBufferView;
 
     get address() {
         return this._address;
@@ -24,7 +24,7 @@ export class ThingyBufferView
 
     constructor(bw: OpenBW) {
         this._bw = bw;
-        this._sprite = new SpritesBufferView(bw);
+        // this._sprite = new SpritesBufferView(bw);
     }
 
     protected get _addr8() {
@@ -39,13 +39,9 @@ export class ThingyBufferView
         return FP8(this._bw.HEAPU32[this._addr32]);
     }
 
-    get owSprite() {
-        const spriteAddr = this._bw.HEAPU32[this._addr32 + 1];
-        return this._sprite.get(spriteAddr);
-    }
-
     get spriteIndex() {
-        return this.owSprite.index;
+        const spriteAddr = this._bw.HEAPU32[this._addr32 + 1];
+        return this._bw.HEAPU32[(spriteAddr >> 2) + 2];
     }
 
     copyTo(dest: Partial<ThingyStruct>) {
@@ -53,4 +49,3 @@ export class ThingyBufferView
         dest.spriteIndex = this.spriteIndex;
     }
 }
-export default ThingyBufferView;

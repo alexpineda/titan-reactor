@@ -9,7 +9,7 @@ import { MapDataTextures } from "./create-data-textures";
 import hdMapFrag from "./glsl/hd.frag";
 import hdHeaderFrag from "./glsl/hd-header.frag";
 import { Terrain } from "@core/terrain";
-import { HeightMaps } from "./height-maps";
+import { HeightMaps } from "./height-maps/render-height-maps";
 import gameStore from "@stores/game-store";
 import { getTerrainY } from "./get-terrain-y";
 

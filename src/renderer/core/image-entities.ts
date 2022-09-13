@@ -26,6 +26,9 @@ export class ImageEntities {
         this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages.all()));
         this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages3D.all()));
         this.#janitor.mop(this.#images);
+        this.#janitor.mop(() => {
+            this.clear();
+        });
     }
 
     #create(imageTypeId: number, atlas: AnimAtlas) {

@@ -15,7 +15,7 @@ import settingsStore from "@stores/settings-store";
 import processStore, { Process } from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";
 import Janitor from "@utils/janitor";
-import { useWorldStore } from "@stores";
+import { useReplayAndMapStore } from "@stores";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { rendererIsDev } from "@utils/renderer-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
@@ -25,6 +25,7 @@ import { SceneState } from "./scene";
 import { Assets } from "common/types";
 import gameStore from "@stores/game-store";
 import { waitForTruthy } from "@utils/wait-for";
+import { music } from "@audio/music";
 
 export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
 
@@ -94,8 +95,8 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
   log.info(`@load-replay/game: ${gameTitle}`);
   log.info(`@load-replay/game-type: ${GameTypes[replay.header.gameType]}`);
 
-  useWorldStore.setState({ replay, map, mapImage: await createMapImage(map) });
-  janitor.mop(() => useWorldStore.getState().reset())
+  useReplayAndMapStore.setState({ replay, map, mapImage: await createMapImage(map) });
+  janitor.mop(() => useReplayAndMapStore.getState().reset())
 
   // wait for initial assets to load
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
@@ -129,8 +130,13 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   return {
     id: "@replay",
-    start: () => { },
-    dispose: () => disposeScene(),
+    start: () => {
+      music.playGame();
+    },
+    dispose: () => {
+      music.stop();
+      disposeScene();
+    }
   };
 
 };

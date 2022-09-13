@@ -1,6 +1,6 @@
 import { BwDAT, UnitDAT, UnitStruct } from "common/types";
 import { UnitFlags, unitTypes, iscriptHeaders, orders, upgrades } from "common/enums";
-import { UnitsBufferView } from "@buffer-view";
+import { SpritesBufferView, UnitsBufferView } from "@buffer-view";
 import { Unit } from "@core/unit";
 
 export const unitIsCompleted = (unit: UnitStruct) => {
@@ -53,10 +53,10 @@ export const getAngle = (direction: number) => {
   return -(direction * Math.PI / 128.0) + Math.PI / 2.0;
 }
 
-export const unitIsAttacking = (u: UnitsBufferView, bwDat: BwDAT) => {
+export const unitIsAttacking = (u: UnitsBufferView, mainSprite: SpritesBufferView, bwDat: BwDAT) => {
   if (u.orderTargetAddr === 0 || u.orderTargetUnit === 0) return undefined;
   const unit = u.subunit && bwDat.units[u.subunit.typeId].isTurret ? u.subunit : u;
-  switch (unit.owSprite.mainImage.iscript.animation) {
+  switch (mainSprite.mainImage.iscript.animation) {
     case iscriptHeaders.gndAttkInit:
     case iscriptHeaders.gndAttkRpt:
       return bwDat.weapons[bwDat.units[unit.typeId].groundWeapon];

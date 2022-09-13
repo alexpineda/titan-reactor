@@ -77,6 +77,7 @@ if (!gotTheLock) {
   app.commandLine.appendSwitch("force_high_performance_gpu");
   app.commandLine.appendSwitch("disable-xr-sandbox");
   app.commandLine.appendSwitch("strict-origin-isolation");
+  app.commandLine.appendSwitch('js-flags', '--expose-gc')
 
   nativeTheme.themeSource = "light";
 

@@ -1,5 +1,7 @@
 import {
-  Scene
+  CubeTexture,
+  Scene,
+  Texture
 } from "three";
 
 import Janitor from "@utils/janitor";
@@ -24,7 +26,10 @@ export class BaseScene extends Scene {
   constructor(
     mapWidth: number,
     mapHeight: number,
-    terrain: Terrain) {
+    terrain: Terrain,
+    skyBox?: CubeTexture,
+    envMap?: Texture
+  ) {
     super();
     this.autoUpdate = false;
 
@@ -44,6 +49,13 @@ export class BaseScene extends Scene {
     this.mapHeight = mapHeight;
     this.mapWidth = mapWidth;
 
+    if (skyBox) {
+      this.background = skyBox;
+    }
+
+    if (envMap) {
+      this.environment = envMap;
+    }
     // this.overrideMaterial = new MeshBasicMaterial({ color: "white" });
   }
 

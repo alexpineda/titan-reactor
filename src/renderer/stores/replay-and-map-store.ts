@@ -3,16 +3,16 @@ import Chk from "bw-chk";
 import { Replay } from "../process-replay/parse-replay";
 import create from "zustand";
 
-export type WorldStore = {
+export type ReplayAndMapStore = {
     map?: Chk,
     replay?: Replay,
     mapImage?: HTMLCanvasElement,
     reset: () => void,
 };
 
-export const useWorldStore = create<WorldStore>((set) => ({
+export const useReplayAndMapStore = create<ReplayAndMapStore>((set) => ({
     reset: () => set({ map: undefined, replay: undefined, mapImage: undefined }),
 }));
 
-export default () => useWorldStore.getState();
+export const replayAndMapStore = () => useReplayAndMapStore.getState();
 

@@ -1,7 +1,7 @@
 import Janitor from "@utils/janitor";
 import { PluginMetaData, OpenBW } from "common/types";
 import settingsStore from "@stores/settings-store";
-import { useGameStore, useSceneStore, useWorldStore, SceneStore, WorldStore } from "@stores";
+import { useGameStore, useSceneStore, useReplayAndMapStore, SceneStore, ReplayAndMapStore } from "@stores";
 
 import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
 import { waitForTruthy } from "@utils/wait-for";
@@ -53,7 +53,7 @@ const _replayPosition = {
     payload: _makeReplayPosition()
 }
 
-const worldPartial = (world: WorldStore) => {
+const worldPartial = (world: ReplayAndMapStore) => {
     return {
         map: world.map ? {
             title: world.map.title,
@@ -150,7 +150,7 @@ export class PluginSystemUI {
             language: settingsStore().data.language,
             [UI_STATE_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
             [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useSceneStore.getState()).payload,
-            [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useWorldStore.getState()),
+            [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useReplayAndMapStore.getState()),
             [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
             [UI_STATE_EVENT_PROGRESS]: processStore().getTotalProgress(),
             [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage.payload,
@@ -213,7 +213,7 @@ export class PluginSystemUI {
             this.sendMessage(screenChanged(screen));
         }));
 
-        this.#janitor.mop(useWorldStore.subscribe((world) => {
+        this.#janitor.mop(useReplayAndMapStore.subscribe((world) => {
             this.sendMessage({
                 type: UI_STATE_EVENT_WORLD_CHANGED,
                 payload: worldPartial(world)

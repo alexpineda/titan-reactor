@@ -5,7 +5,7 @@ import processStore, { Process } from "@stores/process-store";
 import { Assets, OpenBW } from "common/types";
 import { waitForTruthy } from "@utils/wait-for";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
-import { useWorldStore } from "@stores";
+import { useReplayAndMapStore } from "@stores";
 import gameStore from "@stores/game-store";
 import Janitor from "@utils/janitor";
 import ChkDowngrader from "@process-replay/chk/chk-downgrader";
@@ -18,6 +18,7 @@ import { PlayerBufferViewIterator, PlayerController } from "@buffer-view/player-
 import { BasePlayer } from "@core/players";
 import { playerColors } from "common/enums";
 import { raceToString } from "@utils/string-utils";
+import { music } from "@audio/music";
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
@@ -38,8 +39,8 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
   cleanMapTitles(map);
   updateWindowTitle(map.title);
 
-  useWorldStore.setState({ map, mapImage: await createMapImage(map) });
-  janitor.mop(() => useWorldStore.getState().reset())
+  useReplayAndMapStore.setState({ map, mapImage: await createMapImage(map) });
+  janitor.mop(() => useReplayAndMapStore.getState().reset())
 
   processStore().increment(Process.MapInitialization);
 
@@ -93,7 +94,12 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
 
   return {
     id: "@map",
-    start: () => { },
-    dispose: () => disposeScene(),
+    start: () => {
+      music.playGame();
+    },
+    dispose: () => {
+      music.stop();
+      disposeScene();
+    }
   };;
 };

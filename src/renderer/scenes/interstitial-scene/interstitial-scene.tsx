@@ -1,5 +1,5 @@
 import { useSceneStore } from "@stores/scene-store";
-import { useWorldStore } from "@stores/world-store";
+import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
 import { LoadBar } from "../pre-home-scene/load-bar";
 
@@ -9,7 +9,7 @@ export const InterstitialScene = ({
   surface: HTMLCanvasElement;
 }) => {
   const error = useSceneStore((state) => state.error);
-  const { map, mapImage, replay } = useWorldStore();
+  const { map, mapImage, replay } = useReplayAndMapStore();
 
   if (mapImage) {
     mapImage.style.borderRadius = "10px";

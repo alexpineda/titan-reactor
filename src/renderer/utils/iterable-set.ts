@@ -26,7 +26,10 @@ export class IterableSet<T> {
     }
 
     delete(value: T) {
-        this.#copy.splice(this.#copy.indexOf(value!), 1);
+        const idx = this.#copy.indexOf(value);
+        if (idx !== -1) {
+            this.#copy.splice(idx, 1);
+        }
         this.#set.delete(value);
         this.externalOnChange(this.#copy);
     }

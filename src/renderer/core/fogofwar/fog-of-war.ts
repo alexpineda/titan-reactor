@@ -36,7 +36,7 @@ export class FogOfWar {
         this.effect.fogUvTransform = new Vector4(0.5, 0.5, 0.99 / this.texture.image.height, 0.99 / this.texture.image.width);
     }
 
-    update(playerVision: number) {
+    onFrame(playerVision: number) {
         const tilesize = this.#openBW.getFowSize();
         const ptr = this.#openBW.getFowPtr(playerVision, this.forceInstantUpdate);
 

@@ -1,8 +1,7 @@
-import { useWorldStore } from "@stores/world-store";
+import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import Janitor from "@utils/janitor";
 import {
   Player,
-  StartLocation,
 } from "common/types";
 import { Color } from "three";
 
@@ -32,8 +31,7 @@ export class Players extends Array<Player> {
   originalNames: readonly PlayerName[];
 
   constructor(
-    players: BasePlayer[],
-    startLocations: StartLocation[],
+    players: BasePlayer[]
   ) {
     super();
 
@@ -52,7 +50,6 @@ export class Players extends Array<Player> {
         name: player.name,
         race: player.race,
         vision: true,
-        startLocation: startLocations.find((u) => u.player == player.id)
       }))
     );
 
@@ -61,7 +58,7 @@ export class Players extends Array<Player> {
     }
   }
 
-  get(id: number) {
+  get(id: number): Player | undefined {
     return this.playersById[id];
   }
 
@@ -79,18 +76,18 @@ export class Players extends Array<Player> {
   }
 
   setPlayerColors = (colors: string[]) => {
-    const replay = useWorldStore.getState().replay;
+    const replay = useReplayAndMapStore.getState().replay;
     if (replay) {
       for (let i = 0; i < this.length; i++) {
         replay.header.players[i].color = colors[i];
         this[i].color = makeColor(colors[i]);
       }
-      useWorldStore.setState({ replay: { ...replay } })
+      useReplayAndMapStore.setState({ replay: { ...replay } })
     }
   }
 
   setPlayerNames(players: PlayerName[]) {
-    const replay = useWorldStore.getState().replay;
+    const replay = useReplayAndMapStore.getState().replay;
 
     if (replay) {
       for (const player of players) {
@@ -99,7 +96,7 @@ export class Players extends Array<Player> {
           replayPlayer.name = player.name;
         }
       }
-      useWorldStore.setState({ replay: { ...replay } })
+      useReplayAndMapStore.setState({ replay: { ...replay } })
     }
   }
 

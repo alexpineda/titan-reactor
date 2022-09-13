@@ -8,7 +8,7 @@ import {
 } from "common/enums";
 import { BwDAT, ImageDAT, UnitDAT } from "common/types";
 import pick from "common/utils/pick";
-import { ImageBase } from ".";
+import { ImageBase } from "@core";
 import { IScriptRunner } from "./iscript-runner";
 import { IScriptState } from "./iscript-state";
 

@@ -1,21 +1,15 @@
 import { OpenBW, BulletStruct } from "common/types";
-import FlingyBufferView from "./flingy-buffer-view";
-import { UnitsBufferView } from "./units-buffer-view";
+import { FlingyBufferView } from "./flingy-buffer-view";
 
 /**
  * Maps to openbw bullet_t
  */
 export class BulletsBufferView extends FlingyBufferView
     implements BulletStruct {
-    private _bulletTarget: UnitsBufferView;
-    private _bulletOwnerUnit: UnitsBufferView;
-    private _prevBounceUnit: UnitsBufferView;
 
     constructor(bw: OpenBW) {
         super(bw);
-        this._bulletTarget = new UnitsBufferView(bw);
-        this._bulletOwnerUnit = new UnitsBufferView(bw);
-        this._prevBounceUnit = new UnitsBufferView(bw);
+
     }
 
     override get index() {
@@ -29,7 +23,7 @@ export class BulletsBufferView extends FlingyBufferView
     get targetUnit() {
         const addr = this._bw.HEAPU32[this._addr32 + 30];
         if (addr === 0) return undefined;
-        return this._bulletTarget.get(addr);
+        return addr;
     }
 
     get targetPosX() {
@@ -52,13 +46,13 @@ export class BulletsBufferView extends FlingyBufferView
     get ownerUnit() {
         const addr = this._bw.HEAPU32[this._addr32 + 38];
         if (addr === 0) return undefined;
-        return this._bulletOwnerUnit.get(addr);
+        return addr;
     }
 
     get prevBounceUnit() {
         const addr = this._bw.HEAPU32[this._addr32 + 39];
         if (addr === 0) return undefined;
-        return this._prevBounceUnit.get(addr);
+        return addr;
     }
 
     /**

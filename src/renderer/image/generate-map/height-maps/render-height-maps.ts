@@ -14,9 +14,9 @@ import {
     KernelSize,
     BlendFunction,
 } from "postprocessing";
-import { MapEffect } from "./glsl/map-effect";
+import { MapEffect } from "./map-effect";
 
-import { MapDataTextures } from "./create-data-textures";
+import { MapDataTextures } from "../create-data-textures";
 import { GeometryOptions } from "common/types";
 import { rgbaToGreyScale } from "@image/canvas";
 

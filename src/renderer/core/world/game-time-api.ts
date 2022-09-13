@@ -9,13 +9,10 @@ import { createSandboxApi } from "@openbw/sandbox-api";
 
 export interface GameTimeApi {
     type: "replay" | "game" | "live",
-    sandbox: ReturnType<typeof createSandboxApi> | undefined,
+    sandboxApi: ReturnType<typeof createSandboxApi> | undefined,
     viewport: GameViewPort;
     secondViewport: GameViewPort
     simpleMessage(message: string): void;
-    cameraMovementSpeed: Settings["game"]["movementSpeed"];
-    cameraRotateSpeed: Settings["game"]["rotateSpeed"];
-    cameraZoomLevels: Settings["game"]["zoomLevels"];
     scene: BaseScene;
     cssScene: Scene;
     assets: Assets;
@@ -29,7 +26,7 @@ export interface GameTimeApi {
     readonly gameSpeed: number;
     setGameSpeed(speed: number): void;
     refreshScene(): void;
-    pxToGameUnit: PxToWorld;
+    pxToWorld: PxToWorld;
     readonly currentFrame: number;
     gotoFrame(frame: number): void;
     exitScene(): void;

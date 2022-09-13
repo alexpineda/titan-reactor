@@ -1,4 +1,4 @@
-import { ImageDAT, IScriptProgram, IScriptAnimation } from "../../common/types";
+import { ImageDAT, IScriptAnimation, IScriptProgram } from "common/types";
 
 type Commands = IScriptAnimation & { header?: number };
 

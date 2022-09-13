@@ -12,7 +12,10 @@ export class IterableMap<T, R> {
     }
 
     delete(key: T) {
-        this.#copy.splice(this.#copy.indexOf(this.#map.get(key)!), 1);
+        const idx = this.#copy.indexOf(this.#map.get(key)!);
+        if (idx !== -1) {
+            this.#copy.splice(idx, 1);
+        }
         this.#map.delete(key);
     }
 
@@ -27,6 +30,10 @@ export class IterableMap<T, R> {
 
     [Symbol.iterator]() {
         return this.#copy[Symbol.iterator]();
+    }
+
+    get length() {
+        return this.#copy.length;
     }
 
 }

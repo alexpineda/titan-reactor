@@ -1,6 +1,5 @@
 import { FlingyStruct } from "common/types";
-import ThingyBufferView from "./thingy-buffer-view";
-import { UnitsBufferView } from "./units-buffer-view";
+import { ThingyBufferView } from "./thingy-buffer-view";
 
 function fractional_part(raw_value: number, fractional_bits: number) {
     return raw_value & ((1 << fractional_bits) - 1);
@@ -8,7 +7,6 @@ function fractional_part(raw_value: number, fractional_bits: number) {
 
 export class FlingyBufferView extends ThingyBufferView
     implements FlingyStruct {
-    #moveTarget?: UnitsBufferView;
 
     get index() {
         return this._bw.HEAPU32[this._addr32 + 2];
@@ -20,15 +18,6 @@ export class FlingyBufferView extends ThingyBufferView
 
     get moveTargetY() {
         return this._bw.HEAPU32[this._addr32 + 4];
-    }
-
-    get moveTargetUnit(): UnitsBufferView | null {
-        const unitAddress = this._bw.HEAPU32[this._addr32 + 5];
-        if (unitAddress === 0) return null;
-        if (this.#moveTarget === undefined) {
-            this.#moveTarget = new UnitsBufferView(this._bw);
-        }
-        return this.#moveTarget.get(unitAddress);
     }
 
     get nextMovementWaypointX() {
@@ -74,4 +63,3 @@ export class FlingyBufferView extends ThingyBufferView
         dest.y = this.y;
     }
 }
-export default FlingyBufferView;

@@ -7,7 +7,7 @@ import { useGameStore } from "@stores/game-store";
 import Commands from "./commands";
 import Animation from "./animation";
 import Frames from "./frames";
-import IScriptSprite from "@core/iscript-sprite";
+import IScriptSprite from "../iscript-sprite";
 import calculateImagesFromIscript from "@utils/images-from-iscript";
 import { AnimAtlas, UnitDAT } from "common/types";
 import {
@@ -15,7 +15,7 @@ import {
   useIScriptahStore,
   useIscriptStore,
 } from "../stores";
-import { IScriptRunner } from "@core/iscript-runner";
+import { IScriptRunner } from "../iscript-runner";
 import { ImageHD } from "@core/image-hd";
 import { loadImageAtlasDirect } from "@image/assets";
 import { isGltfAtlas } from "@utils/image-utils";

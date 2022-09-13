@@ -1,7 +1,7 @@
 import { Unit } from "../core";
 import { UnitStruct } from "common/types/structs";
 import { FP8 } from "./fixed-point";
-import FlingyBufferView from "./flingy-buffer-view";
+import { FlingyBufferView } from "./flingy-buffer-view";
 import { OpenBW } from "common/types";
 import { IntrusiveList } from "./intrusive-list";
 

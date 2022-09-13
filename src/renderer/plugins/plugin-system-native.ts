@@ -11,7 +11,7 @@ import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import * as log from "@ipc/log"
 import { normalizePluginConfiguration } from "@utils/function-utils"
-import { GameTimeApi } from "@core/game-time-api";
+import { GameTimeApi } from "@core/world/game-time-api";
 import { GameViewPort } from "../camera/game-viewport";
 
 export interface PluginBase extends NativePlugin, GameTimeApi { };
@@ -210,9 +210,11 @@ export class PluginSystemNative {
         return this.#nativePlugins.filter(p => p.isSceneController) as SceneController[];
     }
 
-    setActiveSceneController(plugin: SceneController) {
+    setActiveSceneController(plugin: SceneController | undefined) {
         this.#activeSceneInputHandler = plugin;
-        this.externalHookListener("onEnterScene", plugin.name);
+        if (plugin) {
+            this.externalHookListener("onEnterScene", plugin.name);
+        }
     }
 
     getById(id: string) {

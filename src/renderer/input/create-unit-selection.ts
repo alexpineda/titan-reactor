@@ -20,9 +20,9 @@ interface CreateUnitSelectionCallbacks {
     onGetUnit: (objects: Object3D) => Unit | null;
 }
 
-export const createUnitSelectionBox = (scene: Scene, units: IterableSet<Unit>, { onGetUnit }: CreateUnitSelectionCallbacks) => {
+export const createUnitSelectionBox = (units: IterableSet<Unit>, { onGetUnit }: CreateUnitSelectionCallbacks) => {
     const janitor = new Janitor;
-    const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
+    const selectionBox = new SelectionBox(new PerspectiveCamera, new Scene());
     const visualBox = janitor.mop(new MouseSelectionBox("#00cc00"));
 
     let mouseIsDown = false;
@@ -70,7 +70,7 @@ export const createUnitSelectionBox = (scene: Scene, units: IterableSet<Unit>, {
     const getUnitFromMouseIntersect = (clipV: Vector2) => {
         _selectRayCaster.setFromCamera(clipV, selectionBox.camera);
         // const intersects = _selectRayCaster.intersectObjects(spritesGroup.children, true);
-        const intersects = _selectRayCaster.intersectObjects(scene.children, true);
+        const intersects = _selectRayCaster.intersectObjects(selectionBox.scene.children, true);
         if (intersects.length) {
             let closestUnit: Unit | undefined;
             let closestRenderOrder = -1;
@@ -172,8 +172,9 @@ export const createUnitSelectionBox = (scene: Scene, units: IterableSet<Unit>, {
             return janitor;
 
         },
-        activate(value: boolean, camera: Camera) {
+        activate(value: boolean, camera: Camera, scene: Scene) {
             selectionBox.camera = camera;
+            selectionBox.scene = scene;
             visualBox.enabled = value;
             if (!value) {
                 units.clear();

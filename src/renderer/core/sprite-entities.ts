@@ -1,20 +1,27 @@
 import { Unit } from "@core/unit";
-import { SparseList } from "@utils/sparse-list";
+import { IterableMap } from "@utils/iteratible-map";
 import { SpriteType } from "common/types";
 import { Group } from "three";
 
 export class SpriteEntities {
     group = new Group();
 
-    #spritesMap: Map<number, SpriteType> = new Map();
+    #spritesMap: IterableMap<number, SpriteType> = new IterableMap();
     #spritePool: SpriteType[] = [];
 
     // duplicate access
     #unitsBySprite: Map<number, Unit> = new Map();
-    #spritesList = new SparseList<SpriteType>();
 
     constructor() {
         this.group.name = "sprites";
+    }
+
+    get isEmpty() {
+        return this.#spritesMap.length === 0;
+    }
+
+    [Symbol.iterator]() {
+        return this.#spritesMap[Symbol.iterator]();
     }
 
     get(spriteIndex: number) {
@@ -32,7 +39,6 @@ export class SpriteEntities {
             }
             this.#spritesMap.set(spriteIndex, sprite);
             this.group.add(sprite);
-            this.#spritesList.add(sprite);
             sprite.matrixAutoUpdate = false;
             sprite.userData.isNew = true;
 
@@ -51,7 +57,6 @@ export class SpriteEntities {
             sprite.removeFromParent();
             this.#spritePool.push(sprite);
             this.#spritesMap.delete(spriteIndex);
-            this.#spritesList.delete(sprite);
             this.#resetSpriteUserData(sprite);
         }
         this.#unitsBySprite.delete(spriteIndex);
@@ -62,13 +67,12 @@ export class SpriteEntities {
     }
 
     clear() {
-        for (const sprite of this.#spritesMap.values()) {
+        for (const sprite of this.#spritesMap) {
             this.#resetSpriteUserData(sprite);
             this.#spritePool.push(sprite);
         }
         this.#spritesMap.clear();
         this.#unitsBySprite.clear();
-        this.#spritesList.clear();
         // we do not clear this.group as we do that before first frame to avoid flickering
     }
 

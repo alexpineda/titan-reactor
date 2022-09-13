@@ -1,10 +1,9 @@
 import * as log from "@ipc/log";
-import { MacroActionType, MacrosDTO, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator, MacroActionPluginModifyValue, MacroActionHostModifyValue } from "common/types";
+import { MacroActionType, MacrosDTO, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator, MacroActionPluginModifyValue, MacroActionHostModifyValue, SessionSettingsData } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
-import { SessionStore } from "@core/session";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import Janitor from "@utils/janitor";
 import { MouseTrigger } from "./mouse-trigger";
@@ -27,8 +26,14 @@ export class Macros {
 
     doSessionAction?: (action: MacroActionHostModifyValue) => void;
     doPluginAction?: (action: MacroActionPluginModifyValue) => void;
-    getSessionProperty?: (field: string[]) => SessionStore;
+    getSessionProperty?: (field: string[]) => SessionSettingsData;
     getPluginProperty?: (pluginName: string, field: string[]) => any;
+
+    constructor(macros?: MacrosDTO) {
+        if (macros) {
+            this.deserialize(macros);
+        }
+    }
 
     add(macro: Macro) {
         this.macros.push(macro);

@@ -1,5 +1,4 @@
 import { FogOfWar } from "@core/fogofwar";
-import { Players } from "@core/players";
 import { Unit } from "@core/unit";
 import { Surface } from "@image/canvas";
 import { unitTypes } from "common/enums";
@@ -17,8 +16,6 @@ export class MinimapGraphics {
     #unitsBitmap?: ImageBitmap;
     #resourcesBitmap?: ImageBitmap;
     #creepBitmap?: ImageBitmap;
-
-
 
     drawMinimap({ canvas, ctx }: Surface, mapWidth: number, mapHeight: number, creepImage: ImageData, fogOfWarOpacity: number, callbacks: UserInputCallbacks) {
 
@@ -150,7 +147,7 @@ export class MinimapGraphics {
         this.#minimapResourcesImage.data.fill(0);
     }
 
-    buildUnitMinimap(unit: Unit, unitType: UnitDAT, fogOfWar: FogOfWar, players: Players) {
+    buildUnitMinimap(unit: Unit, unitType: UnitDAT, fogOfWar: FogOfWar, getPlayerColor: (id: number) => Color) {
         const isResourceContainer = unitType.isResourceContainer && unit.owner === 11;
         if (
             (!isResourceContainer &&
@@ -167,7 +164,7 @@ export class MinimapGraphics {
         if (isResourceContainer) {
             color = this.#resourceColor;
         } else if (unit.owner < 8) {
-            color = unit.extras.recievingDamage & 1 ? this.#flashColor : players.get(unit.owner).color;
+            color = unit.extras.recievingDamage & 1 ? this.#flashColor : getPlayerColor(unit.owner);
         } else {
             return;
         }

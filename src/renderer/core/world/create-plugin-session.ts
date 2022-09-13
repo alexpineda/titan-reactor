@@ -11,24 +11,28 @@ import {
 import {
     UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
     UI_SYSTEM_MOUSE_CLICK,
-} from "./events";
-import { PluginSystemUI } from "./plugin-system-ui";
-import { PluginSystemNative } from "./plugin-system-native";
+} from "@plugins/events";
+import { PluginSystemUI } from "@plugins/plugin-system-ui";
+import { PluginSystemNative } from "@plugins/plugin-system-native";
 import screenStore from "@stores/scene-store";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import settingsStore from "@stores/settings-store";
 import Janitor from "@utils/janitor";
-import { Macros } from "@macros/macros";
-import { createReactivePluginApi } from "@stores/session/reactive-plugin-variables";
+import { createReactivePluginApi } from "@core/world/reactive-plugin-variables";
+import { GameTimeApi } from "./game-time-api";
+import { ReactiveSessionVariables } from "./reactive-session-variables";
+import { mix } from "@utils/object-utils";
+import { MacrosComposer } from "./macros-composer";
 
+export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
-export const createPluginSession = async (macros: Macros) => {
+export const createPluginSession = async (macrosComposer: MacrosComposer) => {
 
     const janitor = new Janitor;
 
     const pluginPackages = settingsStore().enabledPlugins;
-    const uiPlugins = new PluginSystemUI(pluginPackages);
-    const nativePlugins = new PluginSystemNative(pluginPackages, uiPlugins);
+    const uiPlugins = janitor.mop(new PluginSystemUI(pluginPackages));
+    const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, uiPlugins));
 
     await uiPlugins.isRunning();
 
@@ -66,13 +70,13 @@ export const createPluginSession = async (macros: Macros) => {
     });
 
 
-    nativePlugins.externalHookListener = (...args) => macros.callFromHook(...args);
+    nativePlugins.externalHookListener = (...args) => macrosComposer.macros.callFromHook(...args);
 
     // available to macros and sandbox only
     const reactiveApi = janitor.mop(createReactivePluginApi(nativePlugins));
 
-    macros.getPluginProperty = reactiveApi.getRawValue;
-    macros.doPluginAction = (action) => {
+    macrosComposer.macros.getPluginProperty = reactiveApi.getRawValue;
+    macrosComposer.macros.doPluginAction = (action) => {
         const result = reactiveApi.applyEffectFromAction(action);
         if (result) {
             uiPlugins.sendMessage({
@@ -101,10 +105,19 @@ export const createPluginSession = async (macros: Macros) => {
         nativePlugins,
         uiPlugins,
         reactiveApi,
+        initializeContainer(gameTimeApi: GameTimeApi, sessionApi: ReactiveSessionVariables) {
+
+            const safeAPI = mix({ settings: sessionApi.sessionVars }, gameTimeApi);
+
+            // unsafe api additionally allows access to plugin configurations
+            // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
+            const unSafeAPI = mix({ plugins: reactiveApi.pluginVars, settings: sessionApi.sessionVars }, gameTimeApi);
+
+            macrosComposer.setContainer(unSafeAPI);
+            nativePlugins.injectApi(safeAPI);
+
+        },
         dispose() {
-            uiPlugins.reset();
-            uiPlugins.dispose();
-            nativePlugins.dispose();
             janitor.dispose();
         },
 
