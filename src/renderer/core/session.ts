@@ -38,6 +38,7 @@ import { canSelectUnit } from "@utils/unit-utils";
 import { IterableSet } from "@utils/iterable-set";
 import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
 import { renderComposer } from "@render/render-composer";
+import { GameViewportsDirector } from "../camera/game-viewport-director";
 
 export type SessionStore = SessionSettingsData;
 
@@ -213,7 +214,23 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk) =>
         plugins.nativePlugins.callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.tech[typeId]]);
     });
 
+    const viewports = janitor.mop(new GameViewportsDirector(gameSurface));
+
+    viewports.externalOnCameraMouseUpdate = () => { };
+    viewports.externalOnDrawMinimap = () => { };
+    viewports.externalOnCameraKeyboardUpdate = () => { };
+    viewports.externalOnMinimapDragUpdate = () => { };
+    viewports.externalOnExitScene = (sceneController) => macros.callFromHook("onExitScene", sceneController);
+    viewports.beforeActivate = () => {
+
+        sessionApi.sessionVars.game.minimapSize.setToDefault();
+        sessionApi.sessionVars.game.minimapEnabled.setToDefault();
+
+    }
+
+
     return {
+        viewports,
         sessionApi,
         sandboxApi,
         terrain,
@@ -266,9 +283,6 @@ export const createSession = async (openBW: OpenBW, assets: Assets, map: Chk) =>
         setSceneController(sceneController: SceneController) {
             plugins.nativePlugins.setActiveSceneController(sceneController);
 
-        },
-        onExitScene(sceneController: string | undefined) {
-            macros.callFromHook("onExitScene", sceneController);
         },
         async onSceneReady(gameLoop: XRFrameRequestCallback) {
             await plugins.nativePlugins.callHookAsync(HOOK_ON_SCENE_READY);

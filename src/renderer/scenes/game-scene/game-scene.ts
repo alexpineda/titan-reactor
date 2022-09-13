@@ -14,7 +14,7 @@ import {
   ImageHD, FogOfWar, FogOfWarEffect, Image3D, BasePlayer, ImageBase
 } from "@core";
 import { getOpenBW } from "@openbw";
-import { ImageBufferView, SpritesBufferView, TilesBufferView, IntrusiveList, UnitsBufferView, SpritesBufferViewIterator } from "@buffer-view";
+import { ImageBufferView, SpritesBufferView, TilesBufferView, UnitsBufferView, SpritesBufferViewIterator, deletedImageIterator, deletedSpritesIterator, deletedUnitIterator, UnitsBufferViewIterator } from "@buffer-view";
 import * as log from "@ipc/log";
 import {
   renderComposer
@@ -30,14 +30,13 @@ import { unitIsFlying } from "@utils/unit-utils";
 import { ipcRenderer } from "electron";
 import { RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { selectionObjects as selectionMarkers, updateSelectionGraphics } from "../../core/selection-objects";
-import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { MinimapGraphics } from "@render/minimap-graphics";
 import { createSession } from "@core/session";
 import { GameTimeApi } from "@core/game-time-api";
 import { SpeedDirection, REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, speedHandler } from "../../openbw/speed-handler";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
 import { applyOverlayEffectsToImageHD, applyModelEffectsOnImage3d, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
-import { EffectivePasses, GlobalEffects } from "@render/global-effects";
+import { EffectivePasses, PostProcessingBundleComposer } from "@render/global-effects";
 import { AudioListener } from "three";
 import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
@@ -64,7 +63,7 @@ export async function makeGameScene(
 
   const { sessionApi, callHook, callHookAsync, terrain, terrainExtra, images, units, selectedUnits, unitSelectionBox, sprites, scene,
     gameSurface, minimapMouse, cameraKeys, cameraMouse, cssScene, minimapSurface, pxToWorld, simpleText,
-    sandboxApi, soundChannels, completedUpgrades, updateCompletedUpgrades,
+    sandboxApi, soundChannels, completedUpgrades, updateCompletedUpgrades, viewports,
     ...session } = janitor.mop(await createSession(openBW, assets, map));
 
   const sessionListener = ({ detail: { settings, rhs } }: SessionChangeEvent) => {
@@ -84,11 +83,11 @@ export async function makeGameScene(
       }
 
       if (viewports.primaryViewport.renderMode3D && rhs.postprocessing3d) {
-        if (shallow(globalEffectsBundle.options, settings.postprocessing3d) === false) {
+        if (shallow(postProcessingBundle.options, settings.postprocessing3d) === false) {
           initializeGlobalEffects(settings.postprocessing3d)
         }
       } else if (viewports.primaryViewport.renderMode3D === false && rhs.postprocessing) {
-        if (shallow(globalEffectsBundle.options, settings.postprocessing) === false) {
+        if (shallow(postProcessingBundle.options, settings.postprocessing) === false) {
           initializeGlobalEffects(settings.postprocessing)
         }
       }
@@ -116,8 +115,8 @@ export async function makeGameScene(
   const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
   const fogOfWar = new FogOfWar(scene.mapWidth, scene.mapHeight, openBW, fogOfWarEffect);
 
-  const globalEffectsBundle = janitor.mop(
-    new GlobalEffects(
+  const postProcessingBundle = janitor.mop(
+    new PostProcessingBundleComposer(
       new PerspectiveCamera,
       scene,
       settingsStore().data.postprocessing,
@@ -127,49 +126,49 @@ export async function makeGameScene(
   const ignoreRecieveShadow = [250, 253, 347, 349, 351];
   const ignoreCastShadow = [347, 349, 351];
   images.onCreateImage = (image: ImageBase) => {
-    globalEffectsBundle.addBloomSelection(image);
-    if (image instanceof Image3D && globalEffectsBundle.options3d) {
-      image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
+    postProcessingBundle.addBloomSelection(image);
+    if (image instanceof Image3D && postProcessingBundle.options3d) {
+      image.material.envMapIntensity = postProcessingBundle.options3d.envMap;
       image.castShadow = !ignoreCastShadow.includes(assets.refId(image.dat.index));
       image.receiveShadow = !ignoreRecieveShadow.includes(assets.refId(image.dat.index));;
     }
   }
 
   images.onFreeImage = (image: ImageBase) => {
-    globalEffectsBundle.removeBloomSelection(image);
-    if (globalEffectsBundle.debugSelection)
-      globalEffectsBundle.debugSelection.delete(image);
+    postProcessingBundle.removeBloomSelection(image);
+    if (postProcessingBundle.debugSelection)
+      postProcessingBundle.debugSelection.delete(image);
   }
 
   const initializeGlobalEffects = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
 
-    globalEffectsBundle.camera = viewports.primaryViewport.camera;
-    globalEffectsBundle.scene = scene;
-    globalEffectsBundle.options = options;
-    globalEffectsBundle.needsUpdate = true;
+    postProcessingBundle.camera = viewports.primaryViewport.camera;
+    postProcessingBundle.scene = scene;
+    postProcessingBundle.options = options;
+    postProcessingBundle.needsUpdate = true;
 
     // do this after changing render mode as Extended differs
-    globalEffectsBundle.effectivePasses = viewports.numActiveViewports > 1 ? EffectivePasses.Standard : EffectivePasses.Extended;
+    postProcessingBundle.effectivePasses = viewports.numActiveViewports > 1 ? EffectivePasses.Standard : EffectivePasses.Extended;
 
-    if (globalEffectsBundle.options3d) {
+    if (postProcessingBundle.options3d) {
 
       for (const image of images) {
         if (image instanceof Image3D) {
-          image.material.envMapIntensity = globalEffectsBundle.options3d.envMap;
+          image.material.envMapIntensity = postProcessingBundle.options3d.envMap;
         }
       }
 
-      if (globalEffectsBundle.options3d.shadowQuality !== scene.sunlight.shadowQuality) {
+      if (postProcessingBundle.options3d.shadowQuality !== scene.sunlight.shadowQuality) {
         scene.createSunlight();
-        scene.sunlight.shadowQuality = globalEffectsBundle.options3d.shadowQuality;
+        scene.sunlight.shadowQuality = postProcessingBundle.options3d.shadowQuality;
       }
-      scene.sunlight.shadowIntensity = globalEffectsBundle.options3d.shadowIntensity;
-      scene.sunlight.setPosition(globalEffectsBundle.options3d.sunlightDirection[0], globalEffectsBundle.options3d.sunlightDirection[1], globalEffectsBundle.options3d.sunlightDirection[2]);
-      scene.sunlight.intensity = globalEffectsBundle.options3d.sunlightIntensity;
-      scene.sunlight.setColor(globalEffectsBundle.options3d.sunlightColor);
+      scene.sunlight.shadowIntensity = postProcessingBundle.options3d.shadowIntensity;
+      scene.sunlight.setPosition(postProcessingBundle.options3d.sunlightDirection[0], postProcessingBundle.options3d.sunlightDirection[1], postProcessingBundle.options3d.sunlightDirection[2]);
+      scene.sunlight.intensity = postProcessingBundle.options3d.sunlightIntensity;
+      scene.sunlight.setColor(postProcessingBundle.options3d.sunlightColor);
       scene.sunlight.needsUpdate();
 
-      terrain.envMapIntensity = globalEffectsBundle.options3d.envMap;
+      terrain.envMapIntensity = postProcessingBundle.options3d.envMap;
 
     }
 
@@ -183,21 +182,8 @@ export async function makeGameScene(
     scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
     scene.sunlight.enabled = renderMode3D;
     images.use3dImages = renderMode3D;
-
-    // reset = refreshScene;
-
+    reset = refreshScene;
     initializeGlobalEffects(postprocessing);
-
-  }
-
-  const viewports = janitor.mop(new GameViewportsDirector(gameSurface));
-
-  viewports.externalOnExitScene = session.onExitScene;
-
-  viewports.beforeActivate = () => {
-
-    sessionApi.sessionVars.game.minimapSize.setToDefault();
-    sessionApi.sessionVars.game.minimapEnabled.setToDefault();
 
   }
 
@@ -217,11 +203,6 @@ export async function makeGameScene(
 
   }
 
-  viewports.externalOnCameraMouseUpdate = () => { };
-  viewports.externalOnDrawMinimap = () => { };
-  viewports.externalOnCameraKeyboardUpdate = () => { };
-  viewports.externalOnMinimapDragUpdate = () => { };
-
   const startLocations = map.units.filter((u) => u.unitId === unitTypes.startLocation);
   const players = janitor.mop(new Players(
     basePlayers,
@@ -236,7 +217,6 @@ export async function makeGameScene(
       scene,
       cssScene,
       assets,
-      unitsIterator,
       get sandbox() {
         return sandboxApi;
       },
@@ -264,12 +244,10 @@ export async function makeGameScene(
       get cameraZoomLevels() {
         return sessionApi.getState().game.zoomLevels;
       },
-      skipForward: skipHandler(openBW, 1, frame => {
-        // currentBwFrame = frame;
+      skipForward: skipHandler(openBW, 1, () => {
         reset = refreshScene;
       }),
-      skipBackward: skipHandler(openBW, -1, frame => {
-        // currentBwFrame = frame;
+      skipBackward: skipHandler(openBW, -1, () => {
         reset = refreshScene;
       }),
       speedUp: () => speedHandler(SpeedDirection.Up, openBW),
@@ -366,7 +344,7 @@ export async function makeGameScene(
 
     cmds = commandsStream.generate();
     cmd = cmds.next();
-    globalEffectsBundle.clearBloomSelection();
+    postProcessingBundle.clearBloomSelection();
     session.onFrameReset(openBW.getCurrentFrame());
     previousBwFrame = -1;
     reset = null;
@@ -407,31 +385,16 @@ export async function makeGameScene(
   const ignoreOnMinimap = [unitTypes.darkSwarm, unitTypes.disruptionWeb];
   const buildMinimap = () => {
     minimapGraphics.resetUnitsAndResources();
-    for (const unit of unitsIterator()) {
+    for (const unit of units) {
       if (!ignoreOnMinimap.includes(unit.typeId)) {
         minimapGraphics.buildUnitMinimap(unit, assets.bwDat.units[unit.typeId], fogOfWar, players)
       }
     }
   }
 
-  const unitBufferView = new UnitsBufferView(openBW);
-  const unitList = new IntrusiveList(openBW.HEAPU32, 0, 43);
-
-  function* unitsIterator() {
-    const playersUnitAddr = openBW.getUnitsAddr();
-    for (let p = 0; p < 12; p++) {
-      unitList.addr = playersUnitAddr + (p << 3);
-      for (const unitAddr of unitList) {
-        const unitData = unitBufferView.get(unitAddr);
-        const unit = units.get(unitData.id);
-        if (unit) {
-          yield unit;
-        } else {
-          log.error(`invalid access ${unitData.id}`);
-        }
-      }
-    }
-  }
+  const unitsBufferViewIterator = new UnitsBufferViewIterator(openBW);
+  const spritesIterator = new SpritesBufferViewIterator(openBW);
+  const imageBufferView = new ImageBufferView(openBW);
 
   const buildUnit = (unitData: UnitsBufferView) => {
     const unit = units.getOrCreate(unitData);
@@ -475,21 +438,15 @@ export async function makeGameScene(
 
   const buildUnits = (
   ) => {
-    const deletedUnitCount = openBW._counts(17);
-    const deletedUnitAddr = openBW._get_buffer(5);
 
-    for (let i = 0; i < deletedUnitCount; i++) {
-      units.free(openBW.HEAP32[(deletedUnitAddr >> 2) + i]);
+    for (const unitId of deletedUnitIterator(openBW)) {
+      units.free(unitId);
     }
 
-    const playersUnitAddr = openBW.getUnitsAddr();
-
-    for (let p = 0; p < 12; p++) {
-      unitList.addr = playersUnitAddr + (p << 3);
-      for (const unitAddr of unitList) {
-        buildUnit(unitBufferView.get(unitAddr));
-      }
+    for (const unit of unitsBufferViewIterator) {
+      buildUnit(unit);
     }
+
   }
 
   //TODO move to sound buffer / iterator pattern
@@ -661,15 +618,9 @@ export async function makeGameScene(
 
   }
 
-  const spritesIterator = new SpritesBufferViewIterator(openBW);
-  const imageBufferView = new ImageBufferView(openBW);
+
 
   const buildSprites = (delta: number) => {
-    const deleteImageCount = openBW._counts(15);
-    const deletedSpriteCount = openBW._counts(16);
-    const deletedImageAddr = openBW._get_buffer(3);
-    const deletedSpriteAddr = openBW._get_buffer(4);
-
     // avoid image flashing 
     // we clear the group here rather than on the reset event
     if (_wasReset) {
@@ -677,12 +628,12 @@ export async function makeGameScene(
       _wasReset = false;
     }
 
-    for (let i = 0; i < deletedSpriteCount; i++) {
-      sprites.free(openBW.HEAP32[(deletedSpriteAddr >> 2) + i]);
+    for (const spriteIndex of deletedSpritesIterator(openBW)) {
+      sprites.free(spriteIndex);
     }
 
-    for (let i = 0; i < deleteImageCount; i++) {
-      images.free(openBW.HEAP32[(deletedImageAddr >> 2) + i]);
+    for (const imageIndex of deletedImageIterator(openBW)) {
+      images.free(imageIndex);
     }
 
     for (const sprite of spritesIterator) {
@@ -746,7 +697,7 @@ export async function makeGameScene(
       buildSprites(delta);
       updateSelectionGraphics(viewports.primaryViewport.camera, sprites, completedUpgrades, selectedUnits.values());
 
-      fogOfWar.texture.needsUpdate = true;
+      fogOfWar.update(players.getVisionFlag());
 
       const audioPosition = viewports.onUpdateAudioMixerLocation(delta, elapsed);
 
@@ -769,19 +720,16 @@ export async function makeGameScene(
 
       }
 
-      session.onFrame(currentBwFrame, _commandsThisFrame);
-
       //TODO: move to sessionONFRAMR
       minimapGraphics.drawMinimap(minimapSurface, scene.mapWidth, scene.mapHeight, terrainExtra.creep.minimapImageData, !fogOfWar.enabled ? 0 : fogOfWarEffect.opacity, viewports);
 
-      previousBwFrame = currentBwFrame;
+      session.onFrame(currentBwFrame, _commandsThisFrame);
 
+      previousBwFrame = currentBwFrame;
 
     }
 
     session.onBeforeRender(delta, elapsed);
-
-    fogOfWar.update(players.getVisionFlag());
 
     // global won't use camera so we can set it to any
     for (const v of viewports.activeViewports()) {
@@ -796,7 +744,7 @@ export async function makeGameScene(
 
         v.orbit.getTarget(_target);
         _target.setY(terrain.getTerrainY(_target.x, _target.z));
-        globalEffectsBundle.updateExtended(v.camera, _target)
+        postProcessingBundle.updateExtended(v.camera, _target)
 
       } else {
         // iterate all images again and update image frames according to different view camera
@@ -823,8 +771,8 @@ export async function makeGameScene(
 
       v.updateCamera(sessionApi.getState().game.dampingFactor, delta);
       v.shakeStart(elapsed, sessionApi.getState().game.cameraShakeStrength);
-      globalEffectsBundle.updateCamera(v.camera)
-      renderComposer.setBundlePasses(globalEffectsBundle);
+      postProcessingBundle.updateCamera(v.camera)
+      renderComposer.setBundlePasses(postProcessingBundle);
       renderComposer.render(delta, v.viewport);
       v.shakeEnd();
 

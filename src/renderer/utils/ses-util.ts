@@ -11,15 +11,23 @@ const STDLIB = {
     CSS2DObject
 }
 
+// declare global {
+//     interface Window {
+//         harden<T>(obj: T): T;
+//         lockdown(): void;
+//         Compartment: any;
+//     }
+// }
+
 export const createCompartment = (env: {} = {}) => {
 
     const modules = { THREE, STDLIB, postprocessing, Janitor, enums, cameraControls }
 
     const compartment = new Compartment(mix(
         env,
-        { console: harden(console) },
+        { console: window.harden(console) },
         modules,
-        { Image: harden(Image) },
+        { Image: window.harden(Image) },
     ));
     compartment.globalThis.Math = Math;
     return compartment;
@@ -53,12 +61,12 @@ export const lockdown_ = () => {
             };
         };
     } else {
-        lockdown({
-            localeTaming: "unsafe",
-            consoleTaming: "unsafe",
-            errorTaming: "unsafe",
-            errorTrapping: "none",
-            mathTaming: "unsafe",
-        });
+        // lockdown({
+        //     localeTaming: "unsafe",
+        //     consoleTaming: "unsafe",
+        //     errorTaming: "unsafe",
+        //     errorTrapping: "none",
+        //     mathTaming: "unsafe",
+        // });
     }
 }

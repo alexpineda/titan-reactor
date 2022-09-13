@@ -2,6 +2,8 @@ import { Unit } from "../core";
 import { UnitStruct } from "common/types/structs";
 import { FP8 } from "./fixed-point";
 import FlingyBufferView from "./flingy-buffer-view";
+import { OpenBW } from "common/types";
+import { IntrusiveList } from "./intrusive-list";
 
 /**
  * Maps to openbw unit_t
@@ -191,4 +193,37 @@ export class UnitsBufferView extends FlingyBufferView
         return bufferView.get(this._address);
     }
 
+}
+
+
+export class UnitsBufferViewIterator {
+    #bw: OpenBW;
+    #unitList: IntrusiveList;
+    #unitBufferView: UnitsBufferView;
+
+    constructor(openBW: OpenBW) {
+        this.#bw = openBW;
+        this.#unitList = new IntrusiveList(openBW.HEAPU32, 0, 43);
+        this.#unitBufferView = new UnitsBufferView(openBW);
+    }
+
+    *[Symbol.iterator]() {
+        const playersUnitAddr = this.#bw.getUnitsAddr();
+
+        for (let p = 0; p < 12; p++) {
+            this.#unitList.addr = playersUnitAddr + (p << 3);
+            for (const unitAddr of this.#unitList) {
+                yield this.#unitBufferView.get(unitAddr)
+            }
+        }
+    }
+}
+
+export function* deletedUnitIterator(openBW: OpenBW) {
+    const deletedUnitCount = openBW._counts(17);
+    const deletedUnitAddr = openBW._get_buffer(5);
+
+    for (let i = 0; i < deletedUnitCount; i++) {
+        yield openBW.HEAP32[(deletedUnitAddr >> 2) + i];
+    }
 }

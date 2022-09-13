@@ -106,3 +106,13 @@ export class SpritesBufferViewIterator {
     return this.#sprites.get(addr);
   }
 }
+
+export function* deletedSpritesIterator(openBW: OpenBW) {
+  const deletedSpriteCount = openBW._counts(16);
+  const deletedSpriteAddr = openBW._get_buffer(4);
+
+
+  for (let i = 0; i < deletedSpriteCount; i++) {
+    yield openBW.HEAP32[(deletedSpriteAddr >> 2) + i];
+  }
+}

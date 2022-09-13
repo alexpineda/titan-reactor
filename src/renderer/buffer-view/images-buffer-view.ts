@@ -98,3 +98,14 @@ export class ImageBufferView
   }
 
 }
+
+
+
+export function* deletedImageIterator(openBW: OpenBW) {
+  const deleteImageCount = openBW._counts(15);
+  const deletedImageAddr = openBW._get_buffer(3);
+
+  for (let i = 0; i < deleteImageCount; i++) {
+    yield openBW.HEAP32[(deletedImageAddr >> 2) + i];
+  }
+}

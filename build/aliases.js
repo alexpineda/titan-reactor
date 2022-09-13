@@ -2,7 +2,6 @@ module.exports = {
   "@image": "./src/renderer/image",
   "@core": "./src/renderer/core",
   "@stores": "./src/renderer/stores",
-  "@utils/casclib": "./src/renderer/utils/casclib-win",
   "@utils": "./src/renderer/utils",
   "@ipc": "./src/renderer/ipc",
   "@plugins": "./src/renderer/plugins",

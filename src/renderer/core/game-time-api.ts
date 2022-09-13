@@ -1,5 +1,4 @@
 import { BasePlayer } from "@core/players";
-import { Unit } from "@core/unit";
 import BaseScene from "@render/base-scene";
 import Chk from "bw-chk";
 import { Assets, Settings } from "common/types";
@@ -22,7 +21,6 @@ export interface GameTimeApi {
     assets: Assets;
     map: Chk;
     toggleFogOfWarByPlayerId(playerId: number): void;
-    unitsIterator(): IterableIterator<Unit>;
     skipForward(seconds: number): void;
     skipBackward(seconds: number): void;
     speedUp(): number;

@@ -36,7 +36,7 @@ export function isPostProcessing3D(obj: any): obj is Settings["postprocessing3d"
     return obj !== undefined && "depthFocalLength" in obj;
 }
 
-export class GlobalEffects implements PostProcessingBundle {
+export class PostProcessingBundleComposer implements PostProcessingBundle {
     #prevVersion = 0;
     #version = 0;
     #effectivePasses: EffectivePasses = EffectivePasses.None;

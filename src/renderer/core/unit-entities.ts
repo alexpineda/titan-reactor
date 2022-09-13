@@ -1,15 +1,19 @@
 import { UnitsBufferView } from "@buffer-view/units-buffer-view";
 import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
+import { IterableMap } from "@utils/iteratible-map";
 
 export class UnitEntities {
     freeUnits: Unit[] = [];
-    units: Map<number, Unit> = new Map;
+    units: IterableMap<number, Unit> = new IterableMap;
 
     externalOnFreeUnit?(unit: Unit): void;
     externalOnCreateUnit?(unit: Unit): void;
     externalOnClearUnits?(): void;
 
+    [Symbol.iterator]() {
+        return this.units[Symbol.iterator]();
+    }
 
     get(unitId: number) {
         return this.units.get(unitId);
@@ -44,7 +48,7 @@ export class UnitEntities {
     }
 
     clear() {
-        this.freeUnits.push(...this.units.values());
+        this.freeUnits.push(...this.units);
         this.units.clear();
         this.externalOnClearUnits && this.externalOnClearUnits();
     }
