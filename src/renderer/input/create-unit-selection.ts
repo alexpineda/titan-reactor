@@ -16,13 +16,9 @@ const _selectRayCaster = new Raycaster();
 let _unit: Unit | null;
 let _mouse = new Vector2();
 
-interface CreateUnitSelectionCallbacks {
-    onGetUnit: (objects: Object3D) => Unit | null;
-}
-
-export const createUnitSelectionBox = (units: IterableSet<Unit>, { onGetUnit }: CreateUnitSelectionCallbacks) => {
+export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
     const janitor = new Janitor;
-    const selectionBox = new SelectionBox(new PerspectiveCamera, new Scene());
+    const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
     const visualBox = janitor.mop(new MouseSelectionBox("#00cc00"));
 
     let mouseIsDown = false;
@@ -172,9 +168,9 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, { onGetUnit }: 
             return janitor;
 
         },
-        activate(value: boolean, camera: Camera, scene: Scene) {
+
+        activate(value: boolean, camera: Camera) {
             selectionBox.camera = camera;
-            selectionBox.scene = scene;
             visualBox.enabled = value;
             if (!value) {
                 units.clear();

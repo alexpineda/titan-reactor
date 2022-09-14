@@ -1,7 +1,7 @@
 import { BasePlayer } from "@core/players";
 import BaseScene from "@render/base-scene";
 import Chk from "bw-chk";
-import { Assets, Settings } from "common/types";
+import { Assets } from "common/types";
 import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "renderer/camera/game-viewport";
 import { Color, Scene } from "three";
@@ -39,6 +39,5 @@ export interface GameTimeApi {
     playSound(typeId: number, volumeOrX?: number, y?: number, unitTypeId?: number): void;
     togglePointerLock(val: boolean): void;
     readonly pointerLockLost: boolean;
-    mouseCursor: boolean;
     changeRenderMode(renderMode3D: boolean): void
 }

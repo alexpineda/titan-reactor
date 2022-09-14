@@ -2,18 +2,16 @@ import { Surface } from "@image/canvas";
 import GameSurface from "@render/game-surface";
 import { renderComposer } from "@render/render-composer";
 import gameStore from "@stores/game-store";
-import { ReactiveSessionVariables, SessionChangeEvent } from "./reactive-session-variables";
-import settingsStore from "@stores/settings-store";
+import { SessionChangeEvent } from "./reactive-session-variables";
+import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import Janitor from "@utils/janitor";
-import Chk from "bw-chk";
 import debounce from "lodash.debounce";
-import { Vector3 } from "three";
-import { GameViewportsDirector } from "../../camera/game-viewport-director";
 import { CssScene } from "./css-scene";
+import { World } from "./world";
 
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
-export const createSurfaceComposer = (map: Chk, sessionApi: ReactiveSessionVariables) => {
+export const createSurfaceComposer = ({ map, settings }: World) => {
 
     const janitor = new Janitor();
 
@@ -40,10 +38,10 @@ export const createSurfaceComposer = (map: Chk, sessionApi: ReactiveSessionVaria
     const _sceneResizeHandler = () => {
         gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
 
-        const rect = gameSurface.getMinimapDimensions(sessionApi.getState().game.minimapSize);
+        const rect = gameSurface.getMinimapDimensions(settings.getState().game.minimapSize);
         gameStore().setDimensions({
             minimapWidth: rect.minimapWidth,
-            minimapHeight: sessionApi.getState().game.minimapEnabled ? rect.minimapHeight : 0,
+            minimapHeight: settings.getState().game.minimapEnabled ? rect.minimapHeight : 0,
         });
 
         renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
@@ -54,7 +52,6 @@ export const createSurfaceComposer = (map: Chk, sessionApi: ReactiveSessionVaria
             rect.minimapHeight,
         );
 
-        viewports.aspect = gameSurface.aspect;
     };
 
     const sceneResizeHandler = debounce(() => {
@@ -65,33 +62,7 @@ export const createSurfaceComposer = (map: Chk, sessionApi: ReactiveSessionVaria
         passive: true,
     })
 
-    const viewports = janitor.mop(new GameViewportsDirector(gameSurface));
 
-    viewports.externalOnCameraMouseUpdate = () => { };
-    viewports.externalOnDrawMinimap = () => { };
-    viewports.externalOnCameraKeyboardUpdate = () => { };
-    viewports.externalOnMinimapDragUpdate = () => { };
-    // viewports.externalOnExitScene = (sceneController) => macros.callFromHook("onExitScene", sceneController);
-    viewports.beforeActivate = () => {
-
-        sessionApi.sessionVars.game.minimapSize.setToDefault();
-        sessionApi.sessionVars.game.minimapEnabled.setToDefault();
-
-    }
-
-    viewports.onActivate = () => {
-
-        const rect = gameSurface.getMinimapDimensions(sessionApi.getState().game.minimapSize);
-        gameStore().setDimensions({
-            minimapWidth: rect.minimapWidth,
-            minimapHeight: sessionApi.getState().game.minimapEnabled === true ? rect.minimapHeight : 0,
-        });
-
-        // unitSelectionBox.activate(sceneController.gameOptions?.allowUnitSelection, sceneController.viewports[0].camera, scene)
-
-        resize();
-
-    }
 
     const resize = (immediate = false) => {
         if (immediate) {
@@ -116,67 +87,31 @@ export const createSurfaceComposer = (map: Chk, sessionApi: ReactiveSessionVaria
 
     };
 
-    //@ts-ignore cant type EventTarget?
-    janitor.addEventListener(sessionApi.events, "change", sessionListener, { passive: true });
+    janitor.addEventListener(settings.events, "change", sessionListener, { passive: true });
 
-    const _target = new Vector3();
+    // some values we do not keep in the user facing reactive variables but will want to listen to
+    janitor.mop(useSettingsStore.subscribe(settings => {
+        if (settings.data.graphics.pixelRatio !== gameSurface.pixelRatio) {
+            sceneResizeHandler();
+        }
+    }));
 
     return {
         cssScene,
         gameSurface,
         minimapSurface,
-        viewports,
-        onRender(delta: number) {
-            for (const viewport of viewports.activeViewports()) {
-
-                if (!viewport.freezeCamera) {
-                    viewport.orbit.update(delta / 1000);
-                    viewport.projectedView.update(viewport.camera, viewport.orbit.getTarget(_target));
-                }
-
-            }
-            cssScene.render(viewports.primaryViewport.camera);
-        },
         dispose() {
             janitor.dispose();
         },
         resize,
-        get sceneController() {
-            return viewports.activeSceneController;
-        },
-        get primaryCamera() {
-            return viewports.primaryViewport.camera;
-        },
-        get primaryViewport() {
-            return viewports.primaryViewport;
-        },
-        get primaryRenderMode3D() {
-            return viewports.primaryViewport?.renderMode3D ?? false;
-        },
         surfaceGameTimeApi: {
             cssScene,
-            get viewport() {
-                return viewports.viewports[0];
-            },
-            get secondViewport() {
-                return viewports.viewports[1];
-            },
             togglePointerLock: (val: boolean) => {
                 gameSurface.togglePointerLock(val);
             },
             get pointerLockLost() {
                 return gameSurface.pointerLockLost;
             },
-            get mouseCursor() {
-                return viewports.mouseCursor;
-            },
-            set mouseCursor(val: boolean) {
-                viewports.mouseCursor = val;
-            },
-            //todo: deprecate
-            changeRenderMode: (renderMode3D?: boolean) => {
-                viewports.primaryViewport.renderMode3D = renderMode3D ?? !viewports.primaryViewport.renderMode3D;
-            }
         }
 
     }

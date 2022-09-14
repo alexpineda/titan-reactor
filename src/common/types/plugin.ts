@@ -129,6 +129,7 @@ export interface NativePlugin {
      * When research has been completed
      */
     onTechCompleted?(): void;
+
 }
 
 export interface UserInputCallbacks {
@@ -157,11 +158,6 @@ export interface UserInputCallbacks {
     onCameraKeyboardUpdate(delta: number, elapsed: number, truck: Vector2): void;
 
     /**
-     * Whether or not a unit should be drawn.
-     */
-    onShouldHideUnit(unit: any): boolean | undefined;
-
-    /**
      * You must return a Vector3 with a position for the audio listener.
      * 
      * @param delta - Time in milliseconds since last frame
@@ -180,10 +176,6 @@ export interface UserInputCallbacks {
      */
     onMinimapDragUpdate(pos: Vector3, isDragStart: boolean, mouseButton?: number): void;
 
-    /**
-     * Called every frame to draw the minimap.
-     */
-    onDrawMinimap(ctx: CanvasRenderingContext2D): void;
 
 }
 

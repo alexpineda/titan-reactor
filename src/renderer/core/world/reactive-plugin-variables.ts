@@ -112,7 +112,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
     }, {});
 
 
-    const applyEffectFromAction = (action: MacroActionPluginModifyValue) => {
+    const mutate = (action: MacroActionPluginModifyValue) => {
 
         const resetValue = lGet(defaultValues, [action.pluginName, ...action.field]);
 
@@ -122,7 +122,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
     return {
         getRawValue,
-        applyEffectFromAction,
+        mutate,
         pluginVars,
         dispose: () => janitor.dispose(),
     }

@@ -133,7 +133,7 @@ export const createReactiveSessionVariables = () => {
     const getRawValue = (path: string[]) => lGet(store, path);
 
     // A macro has defined the session field it is interested in
-    const doAction = async (action: MacroActionHostModifyValue) => {
+    const mutate = async (action: MacroActionHostModifyValue) => {
 
         const field = getSessionSettingsField(store, action.field!);
 
@@ -145,5 +145,5 @@ export const createReactiveSessionVariables = () => {
 
     const getState = () => store;
 
-    return { getRawValue, sessionVars, doAction, getState, dispose: () => janitor.dispose(), events };
+    return { getRawValue, sessionVars, mutate, getState, dispose: () => janitor.dispose(), events };
 }

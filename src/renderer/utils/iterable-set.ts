@@ -1,7 +1,13 @@
 export class IterableSet<T> {
     #set: Set<T> = new Set;
     #copy: T[] = [];
-    externalOnChange: (values: T[]) => void = () => { }
+    onChange: (values: T[]) => void = () => { }
+
+    constructor(onChange?: (values: T[]) => void) {
+        if (onChange) {
+            this.onChange = onChange;
+        }
+    }
 
     values() {
         return this.#copy;
@@ -11,7 +17,7 @@ export class IterableSet<T> {
         if (!this.#set.has(value)) {
             this.#copy.push(value);
             this.#set.add(value);
-            this.externalOnChange(this.#copy);
+            this.onChange(this.#copy);
         }
     }
 
@@ -22,7 +28,7 @@ export class IterableSet<T> {
         for (const value of values) {
             this.#set.add(value);
         }
-        this.externalOnChange(this.#copy);
+        this.onChange(this.#copy);
     }
 
     delete(value: T) {
@@ -31,7 +37,7 @@ export class IterableSet<T> {
             this.#copy.splice(idx, 1);
         }
         this.#set.delete(value);
-        this.externalOnChange(this.#copy);
+        this.onChange(this.#copy);
     }
 
     has(key: T) {
@@ -41,7 +47,7 @@ export class IterableSet<T> {
     clear() {
         this.#copy.length = 0;
         this.#set.clear();
-        this.externalOnChange(this.#copy);
+        this.onChange(this.#copy);
     }
 
     [Symbol.iterator]() {

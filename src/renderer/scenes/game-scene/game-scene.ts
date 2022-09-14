@@ -26,17 +26,15 @@ export async function makeGameScene(
 
   const openBW = await getOpenBW();
 
-  setDumpUnitCall((id) => openBW.get_util_funcs().dump_unit(id));
-
   await openBW.start(readCascFile);
 
   const basePlayers = onOpenBWReady(openBW);
 
-  const { sceneComposer, surfaceComposer, sessionApi, ...worldComposer } = janitor.mop(await createWorld(openBW, gameStore().assets!, map, basePlayers, commandsStream));
+  const worldComposer = janitor.mop(await createWorld(openBW, gameStore().assets!, map, basePlayers, commandsStream));
 
   worldComposer.init();
 
-  await worldComposer.activate(false, settingsStore().data.game.sceneController, { target: sceneComposer.startLocations[0] });
+  await worldComposer.activate(false, settingsStore().data.game.sceneController, { target: worldComposer.sceneComposer.startLocations[0] });
 
   return () => {
 

@@ -2,7 +2,7 @@ import { FogOfWar } from "@core/fogofwar";
 import { Unit } from "@core/unit";
 import { Surface } from "@image/canvas";
 import { unitTypes } from "common/enums";
-import { UnitDAT, UserInputCallbacks } from "common/types";
+import { UnitDAT } from "common/types";
 import { floor32 } from "common/utils/conversions";
 import { Color } from "three";
 
@@ -17,7 +17,7 @@ export class MinimapGraphics {
     #resourcesBitmap?: ImageBitmap;
     #creepBitmap?: ImageBitmap;
 
-    drawMinimap({ canvas, ctx }: Surface, mapWidth: number, mapHeight: number, creepImage: ImageData, fogOfWarOpacity: number, callbacks: UserInputCallbacks) {
+    drawMinimap({ canvas, ctx }: Surface, mapWidth: number, mapHeight: number, creepImage: ImageData, fogOfWarOpacity: number, onDrawMinimap: (ctx: CanvasRenderingContext2D) => void) {
 
         if (!this.#generatingMinimapFog) {
             this.#generatingMinimapFog = true;
@@ -116,7 +116,7 @@ export class MinimapGraphics {
             canvas.height / 2
         );
 
-        callbacks.onDrawMinimap(ctx);
+        onDrawMinimap(ctx);
 
         ctx.restore();
 

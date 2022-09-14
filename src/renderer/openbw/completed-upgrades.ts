@@ -2,7 +2,7 @@ import { StdVector } from "@buffer-view";
 import { OpenBW } from "common/types";
 import range from "common/utils/range";
 
-export const createCompletedUpgradesHelper = (openBW: OpenBW, onUpgradeCompleted: (typeId: number, level: number) => void, onResearchCompleted: (typeId: number, level: number) => void) => {
+export const createCompletedUpgradesHelper = (openBW: OpenBW, onUpgradeCompleted: (owner: number, typeId: number, level: number) => void, onResearchCompleted: (owner: number, typeId: number) => void) => {
 
     const completedUpgrades = range(0, 8).map(() => [] as number[]);
     const completedResearch = range(0, 8).map(() => [] as number[]);
@@ -18,13 +18,13 @@ export const createCompletedUpgradesHelper = (openBW: OpenBW, onUpgradeCompleted
         let addr32 = openBW._get_buffer(9) >> 2;
         for (let player = 0; player < 8; player++) {
             productionData.addr32 = addr32 + (player * 9) + 3;
-            _updateCompleted(completedUpgrades[player], completedUpgradesReset[player], 3, currentBwFrame, onUpgradeCompleted);
+            _updateCompleted(completedUpgrades[player], completedUpgradesReset[player], 3, currentBwFrame, player, onUpgradeCompleted);
             productionData.addr32 += 3;
-            _updateCompleted(completedResearch[player], completedResearchReset[player], 2, currentBwFrame, onResearchCompleted);
+            _updateCompleted(completedResearch[player], completedResearchReset[player], 2, currentBwFrame, player, onResearchCompleted);
         }
     }
 
-    const _updateCompleted = (arr: number[], arrReset: number[][], size: number, currentBwFrame: number, callback: (typeId: number, level: number) => void) => {
+    const _updateCompleted = (arr: number[], arrReset: number[][], size: number, currentBwFrame: number, owner: number, callback: (owner: number, typeId: number, level: number) => void) => {
         let j = 0;
         let typeId = 0;
         let level = 0;
@@ -35,7 +35,7 @@ export const createCompletedUpgradesHelper = (openBW: OpenBW, onUpgradeCompleted
                 if (val === 0 && !arr.includes(typeId)) {
                     arr.push(typeId);
                     arrReset.push([typeId, currentBwFrame]);
-                    callback(typeId, level);
+                    callback(owner, typeId, level);
 
                 }
             } else if (j === 1) {

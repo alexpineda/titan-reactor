@@ -66,28 +66,6 @@ const worldPartial = (world: ReplayAndMapStore) => {
         replay: world.replay?.header
     }
 }
-
-const unitsPartial = (units: Unit[]): Unit[] | DumpedUnit[] => {
-    if (units.length === 1) {
-        return units.map(unitWithDump);
-    } else {
-        return units;
-    }
-}
-let _dumpUnitCall: (id: number) => any;
-
-const unitWithDump = (unit: Unit) => {
-    return {
-        ...unit,
-        ..._dumpUnitCall(unit.id)
-    } as DumpedUnit
-}
-
-export const setDumpUnitCall = (fn: (id: number) => {}) => {
-    _dumpUnitCall = fn;
-}
-
-
 const _selectedUnitMessage: {
     type: string;
     payload: DumpedUnit[]
@@ -113,6 +91,8 @@ export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement("iframe");
     #janitor = new Janitor();
     #isRunning = false;
+    #dumpUnit: (unit: Unit) => DumpedUnit;
+
     refresh: () => void;
 
     isRunning() {
@@ -133,7 +113,15 @@ export class PluginSystemUI {
         });
     }
 
-    constructor(pluginPackages: PluginMetaData[]) {
+    constructor(pluginPackages: PluginMetaData[], dumpUnitCall: (id: number) => any) {
+
+        this.#dumpUnit = (unit: Unit) => {
+            return {
+                ...unit,
+                ...dumpUnitCall(unit.id)
+            } as DumpedUnit
+        }
+
         this.#iframe.style.backgroundColor = "transparent";
         this.#iframe.style.border = "none";
         this.#iframe.style.left = "0";
@@ -234,10 +222,18 @@ export class PluginSystemUI {
 
     }
 
+    #unitsToUnitsPayload = (units: Unit[]): Unit[] | DumpedUnit[] => {
+        if (units.length === 1) {
+            return units.map(this.#dumpUnit);
+        } else {
+            return units;
+        }
+    }
+
     onUnitsSelected(units: Unit[]) {
         this.sendMessage({
             type: UI_STATE_EVENT_UNITS_SELECTED,
-            payload: unitsPartial(units)
+            payload: this.#unitsToUnitsPayload(units)
         });
     }
 
@@ -313,7 +309,7 @@ export class PluginSystemUI {
             // in this case only change if the empty state has changed
             if (_lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 || selectedUnits.length > 0) {
                 //TODO move this out to supply to native as well
-                _selectedUnitMessage.payload = unitsPartial(selectedUnits);
+                _selectedUnitMessage.payload = this.#unitsToUnitsPayload(selectedUnits);
                 this.sendMessage(_selectedUnitMessage);
                 _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = selectedUnits.length;
             }

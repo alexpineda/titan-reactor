@@ -2,7 +2,6 @@ import { deletedImageIterator, ImageBufferView } from "@buffer-view/images-buffe
 import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
 import { deletedSpritesIterator, SpritesBufferViewIterator } from "@buffer-view/sprites-buffer-view-iterator";
 import { deletedUnitIterator, UnitsBufferView, UnitsBufferViewIterator } from "@buffer-view/units-buffer-view";
-import { FogOfWar } from "@core/fogofwar";
 import { Image3D } from "@core/image-3d";
 import { ImageEntities } from "@core/image-entities";
 import { ImageHD } from "@core/image-hd";
@@ -17,19 +16,19 @@ import { imageIsDoodad, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@
 import Janitor from "@utils/janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import { unitIsFlying } from "@utils/unit-utils";
-import Chk from "bw-chk";
 import { drawFunctions, unitTypes } from "common/enums";
-import { Assets, ImageStruct, OpenBW, UnitTileScale } from "common/types";
+import { Assets, ImageStruct, UnitTileScale } from "common/types";
 import { floor32, makePxToWorld } from "common/utils/conversions";
-import { MathUtils, Vector3 } from "three";
-import { BasePlayer } from "..";
+import { ViewComposer } from "@core/world/view-composer";
+import { Color, MathUtils, Vector3 } from "three";
 import { createPlayersGameTimeApi } from "./players-api";
-import { SurfaceComposer } from "./surface-composer";
+import { World } from "./world";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
+const white = new Color(0xffffff);
 
 // Primarily concerned about converting OpenBW state to three objects and animations
-export const createSceneComposer = async ({ viewports }: SurfaceComposer, map: Chk, basePlayers: BasePlayer[], openBW: OpenBW, assets: Assets, fogOfWar: FogOfWar) => {
+export const createSceneComposer = async ({ map, players: basePlayers, openBW, fogOfWar, events }: World, viewports: ViewComposer, assets: Assets) => {
 
     const janitor = new Janitor();
 
@@ -39,13 +38,19 @@ export const createSceneComposer = async ({ viewports }: SurfaceComposer, map: C
 
     const pxToWorld = makePxToWorld(map.size[0], map.size[1], terrain.getTerrainY);
 
-    const players = janitor.mop(new Players(
-        basePlayers
-    ));
-    const startLocations = map.units.filter((u) => u.unitId === unitTypes.startLocation).map(location => pxToWorld.xyz(location.x, location.y, new Vector3()));
-    const getPlayerColor = (playerId: number) => players.get(playerId)?.color;
+    const players = new Players(basePlayers);
+
+    const startLocations =
+        map.units.filter((u) => u.unitId === unitTypes.startLocation)
+            .sort((a, b) => a.player - b.player)
+            .map(location => pxToWorld.xyz(location.x, location.y, new Vector3()));
+
+    const getPlayerColor = (playerId: number) => players.get(playerId)?.color ?? white;
 
     const units = new UnitEntities();
+    units.externalOnClearUnits = () => events.emit("units-cleared");
+    units.externalOnFreeUnit = (unit) => events.emit("unit-killed", unit);
+    units.externalOnCreateUnit = (unit) => events.emit("unit-created", unit);
 
     openBW.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
 
@@ -110,17 +115,12 @@ export const createSceneComposer = async ({ viewports }: SurfaceComposer, map: C
         // doodads and resources are always visible
         // show units as fog is lifting from or lowering to explored
         // show if a building has been explored
-        let spriteIsVisible =
+        sprite.visible = !spriteIsHidden(spriteData) && (
             spriteData.owner === 11 ||
             imageIsDoodad(dat.image) ||
-            fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y));
+            fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y)));
 
-        // sprites may be hidden (eg training units, flashing effects, iscript tmprmgraphicstart/end)
-        if (spriteIsHidden(spriteData) || (unit && viewports.onShouldHideUnit(unit))) {
-            spriteIsVisible = false;
-        }
-        sprite.visible = spriteIsVisible;
-        sprite.renderOrder = viewports.primaryViewport.renderMode3D ? 0 : spriteSortOrder(spriteData);
+        sprite.renderOrder = viewports.primaryViewport!.renderMode3D ? 0 : spriteSortOrder(spriteData);
 
         _spriteY = spriteData.extYValue + (spriteData.extFlyOffset * 1);
         _spriteY = _spriteY * terrain.geomOptions.maxTerrainHeight + 0.1;
@@ -150,7 +150,7 @@ export const createSceneComposer = async ({ viewports }: SurfaceComposer, map: C
             // only draw shadow if main image is not 3d
             const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || image.dat.drawFunction === drawFunctions.rleShadow && !viewports.primaryViewport?.renderMode3D;
 
-            image.visible = spriteIsVisible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
+            image.visible = sprite.visible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
             image.matrixWorldNeedsUpdate = false;
 
             // if (image.visible) {
@@ -200,7 +200,7 @@ export const createSceneComposer = async ({ viewports }: SurfaceComposer, map: C
 
             if (image instanceof ImageHD) {
 
-                applyViewportToFrameOnImageHD(imageData, image, viewports.primaryViewport);
+                applyViewportToFrameOnImageHD(imageData, image, viewports.primaryViewport!);
                 applyOverlayEffectsToImageHD(imageData, image);
 
             } else if (image instanceof Image3D) {
@@ -231,11 +231,6 @@ export const createSceneComposer = async ({ viewports }: SurfaceComposer, map: C
 
         for (const imageIndex of deletedImageIterator(openBW)) {
             images.free(imageIndex);
-        }
-
-        // frame was cleared
-        if (sprites.isEmpty) {
-            sprites.group.clear();
         }
 
         for (const sprite of spritesIterator) {
@@ -270,6 +265,7 @@ export const createSceneComposer = async ({ viewports }: SurfaceComposer, map: C
             images.clear();
             sprites.clear();
             units.clear();
+            sprites.group.clear();
         },
         dispose: () => janitor.dispose(),
         resetImageCache() {

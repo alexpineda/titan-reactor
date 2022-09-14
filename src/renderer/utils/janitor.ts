@@ -43,9 +43,11 @@ export default class Janitor {
         return _i;
     }
 
-    mop<T extends ExtendedJanitorTypes>(obj: T): T {
-        this.#trackables.add(obj);
-        return obj;
+    mop<T extends ExtendedJanitorTypes>(...obj: T[]): T {
+        for (const o of obj) {
+            this.#trackables.add(o);
+        }
+        return obj[0];
     }
 
     #disposeAny(obj: ExtendedJanitorTypes) {

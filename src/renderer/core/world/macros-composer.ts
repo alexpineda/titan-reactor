@@ -9,7 +9,7 @@ import { createCompartment } from "@utils/ses-util";
 
 export type MacrosComposer = ReturnType<typeof createMacrosComposer>;
 
-export const createMacrosComposer = (sessionApi: ReactiveSessionVariables) => {
+export const createMacrosComposer = (settings: ReactiveSessionVariables) => {
 
     const janitor = new Janitor();
 
@@ -17,8 +17,8 @@ export const createMacrosComposer = (sessionApi: ReactiveSessionVariables) => {
 
     janitor.mop(macros.listenForKeyCombos());
 
-    macros.doSessionAction = sessionApi.doAction;
-    macros.getSessionProperty = sessionApi.getRawValue;
+    macros.doSessionAction = settings.mutate;
+    macros.getSessionProperty = settings.getRawValue;
 
     janitor.on(ipcRenderer, SERVER_API_FIRE_MACRO, (_: IpcRendererEvent, macroId: string) => {
         macros.execMacroById(macroId);

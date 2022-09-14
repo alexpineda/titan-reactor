@@ -1,10 +1,10 @@
 import { Assets, OpenBW } from "common/types";
 import Janitor from "@utils/janitor";
-import { createPluginSession } from "./create-plugin-session";
+import { createPluginsAndMacroSession } from "./create-plugin-session";
 import { createReactiveSessionVariables, SessionChangeEvent } from "./reactive-session-variables";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_SCENE_DISPOSED, HOOK_ON_SCENE_READY } from "@plugins/hooks";
+import { HOOK_ON_SCENE_DISPOSED, HOOK_ON_SCENE_READY } from "@plugins/hooks";
 import { GameTimeApi } from "./game-time-api";
 import Chk from "bw-chk";
 import { SimpleText } from "@render/simple-text";
@@ -18,117 +18,129 @@ import { createOpenBWComposer } from "./openbw-composer";
 import { createMinimapGraphicsComposer } from "./minimap-graphics-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createCommandsComposer } from "./commands-composer";
-import { mixer } from "@audio/main-mixer";
-import { createMacrosComposer } from "./macros-composer";
 import { createInputComposer } from "./input-composer";
 import { createGameLoopComposer } from "./game-loop-composer";
-import _ from "lodash";
-import settingsStore from "@stores/settings-store";
 import { renderComposer } from "@render/render-composer";
+import { createViewComposer } from "./view-composer";
+import { TypeEmitter } from "@utils/type-emitter";
+import { World, WorldEvents } from "./world";
+import { mixer } from "@audio/main-mixer";
 
-export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, basePlayers: BasePlayer[], commands: CommandsStream) => {
+export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, players: BasePlayer[], commands: CommandsStream) => {
 
     const janitor = new Janitor();
-    const sessionApi = janitor.mop(createReactiveSessionVariables());
-    const macrosComposer = janitor.mop(createMacrosComposer(sessionApi));
 
-    let plugins = await createPluginSession(macrosComposer);
+    const settings = janitor.mop(createReactiveSessionVariables());
+    const events = janitor.mop(new TypeEmitter<WorldEvents>());
+    const plugins = await createPluginsAndMacroSession(events, settings, openBW);
 
     const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
     const fogOfWar = new FogOfWar(map.size[0], map.size[1], openBW, fogOfWarEffect);
-    const surfaceComposer = janitor.mop(createSurfaceComposer(map, sessionApi));
-    const sceneComposer = janitor.mop(await createSceneComposer(surfaceComposer, map, basePlayers, openBW, assets, fogOfWar));
-    const postProcessingComposer = janitor.mop(createPostProcessingComposer(sceneComposer, surfaceComposer, sessionApi, fogOfWarEffect, openBW, assets));
-    const inputComposer = janitor.mop(createInputComposer(surfaceComposer, map, sessionApi));
-    const minimapGraphicsComposer = createMinimapGraphicsComposer(map, sceneComposer, surfaceComposer, fogOfWar, assets);
-    const sandboxApi = createSandboxApi(openBW, sceneComposer.pxToWorldInverse);
-    const commandsComposer = createCommandsComposer(commands);
-    const gameLoopComposer = janitor.mop(createGameLoopComposer());
 
-    const getSceneController = (name: string) => {
-        return plugins.nativePlugins.getSceneInputHandlers().find((handler) => handler.name === name);
-    }
-
-    const setSceneController = async (controllername: string, defaultData?: any) => {
-        const sceneController = getSceneController(controllername);
-        if (sceneController) {
-            plugins.nativePlugins.setActiveSceneController(sceneController);
-            await surfaceComposer.viewports.activate(sceneController, defaultData);
-        } else {
-            throw new Error(`Scene controller ${controllername} not found`);
+    const world: World = {
+        openBW,
+        map,
+        players,
+        commands,
+        fogOfWar,
+        fogOfWarEffect,
+        plugins,
+        settings,
+        janitor,
+        events,
+        reset() {
+            frameResetRequested = true;
         }
     }
 
-    const unsetSceneController = () => {
-        plugins.nativePlugins.setActiveSceneController(undefined);
-        surfaceComposer.viewports.activate(null);
+    const surfaceComposer = janitor.mop(createSurfaceComposer(world));
+    const viewComposer = createViewComposer(surfaceComposer, settings);
+    const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
+    const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, viewComposer, assets));
+    const inputComposer = janitor.mop(createInputComposer(world, surfaceComposer, sceneComposer, viewComposer, assets));
+    const minimapGraphicsComposer = createMinimapGraphicsComposer(world, sceneComposer, surfaceComposer, viewComposer, assets);
+    const sandboxApi = createSandboxApi(openBW, sceneComposer.pxToWorldInverse);
+    const commandsComposer = createCommandsComposer(commands);
+    const gameLoopComposer = janitor.mop(createGameLoopComposer());
+    const openBwComposer = createOpenBWComposer(world, sceneComposer, viewComposer);
+
+    janitor.addEventListener(settings.events, "change", ({ detail: { settings } }: SessionChangeEvent) => mixer.setVolumes(settings.audio), { passive: true });
+
+    const setSceneController = async (controllername: string, defaultData?: any) => {
+
+        const sceneController = plugins.native.getSceneInputHandlers().find((handler) => handler.name === controllername)
+
+        if (sceneController) {
+
+            await viewComposer.activateSceneController(sceneController, defaultData);
+            plugins.native.activateSceneController(sceneController);
+            inputComposer.onSceneControllerActivated(sceneController);
+
+        }
+
     }
 
-    // units.externalOnClearUnits = () => {
-    //     // selectedUnits.clear();
-    //     // followedUnits.clear();
-    // };
-    // units.externalOnCreateUnit = (unit) => plugins.nativePlugins.callHook(HOOK_ON_UNIT_CREATED, unit);
-    // //TODO: killed vs destroyed
-    // units.externalOnFreeUnit = (unit) => {
-    //     plugins.nativePlugins.callHook(HOOK_ON_UNIT_KILLED, unit);
-    //     // selectedUnits.delete(unit);
-    //     // followedUnits.delete(unit);
-    // }
+    const unsetSceneController = () => {
+
+        plugins.native.activateSceneController(undefined);
+        viewComposer.activateSceneController(null);
+
+    }
 
     janitor.on(ipcRenderer, CLEAR_ASSET_CACHE, () => {
+
         assets.resetAssetCache();
         sceneComposer.resetImageCache();
-        _reset();
+        frameResetRequested = true;
+
     });
 
     const sessionListener = ({ detail: { settings, rhs } }: SessionChangeEvent) => {
 
-        if (surfaceComposer.viewports.activeSceneController) {
+        if (viewComposer.activeSceneController) {
 
-            if (rhs.game?.sceneController && rhs.game.sceneController !== surfaceComposer.viewports.activeSceneController.name) {
+            if (rhs.game?.sceneController && rhs.game.sceneController !== viewComposer.activeSceneController.name) {
                 setTimeout(() => setSceneController(settings.game.sceneController), 0);
             }
 
-            if (surfaceComposer.primaryRenderMode3D && rhs.postprocessing3d) {
+            if (viewComposer.primaryRenderMode3D && rhs.postprocessing3d) {
                 postProcessingComposer.updatePostProcessingOptions(settings.postprocessing3d)
-            } else if (surfaceComposer.primaryRenderMode3D === false && rhs.postprocessing) {
+            } else if (viewComposer.primaryRenderMode3D === false && rhs.postprocessing) {
                 postProcessingComposer.updatePostProcessingOptions(settings.postprocessing)
             }
 
         }
 
     };
-    //@ts-ignore cant type EventTarget?
-    janitor.addEventListener(sessionApi.events, "change", sessionListener, { passive: true });
 
-    let _reset = () => { };
-
-    const openBwComposer = createOpenBWComposer(openBW, sceneComposer, surfaceComposer, fogOfWar, () => _reset());
+    janitor.addEventListener(settings.events, "change", sessionListener, { passive: true });
 
     //TODO: move to runtime
     const simpleText = janitor.mop(new SimpleText());
 
     const gameTimeApi: GameTimeApi = {
+
         type: "replay",
         map,
         assets,
         exitScene() {
             setTimeout(() => {
-                sessionApi.sessionVars.game.sceneController.setToDefault();
+                settings.sessionVars.game.sceneController.setToDefault();
             }, 0)
         },
         sandboxApi,
         ...surfaceComposer.surfaceGameTimeApi,
         ...sceneComposer.sceneGameTimeApi,
         ...openBwComposer.openBWGameTimeApi,
-        refreshScene: () => _reset(),
+        ...viewComposer.viewportsGameTimeApi,
+        refreshScene: () => frameResetRequested = true,
         simpleMessage(val: string) {
             simpleText.set(val);
         },
+
     }
 
-    let reset: (() => void) | null = null;
+    let frameResetRequested = false;
 
     return {
 
@@ -139,11 +151,11 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, base
 
             surfaceComposer.resize(true);
 
-            postProcessingComposer.onRenderModeChange(this.onFrameReset.bind(this));
+            postProcessingComposer.onRenderModeChange(() => frameResetRequested = true);
             gameLoopComposer.onUpdate(this.update.bind(this));
 
             janitor.on(ipcRenderer, RELOAD_PLUGINS, async () => {
-                await this.activate(true, sessionApi.getState().game.sceneController)
+                await this.activate(true, settings.getState().game.sceneController)
             });
 
         },
@@ -155,20 +167,18 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, base
 
             if (reloadPlugins) {
                 unsetSceneController();
-                await (settingsStore().load());
-                plugins.nativePlugins.callHook(HOOK_ON_SCENE_DISPOSED);
-
-                plugins.dispose();
-                plugins = await createPluginSession(macrosComposer);
+                plugins.native.callHook(HOOK_ON_SCENE_DISPOSED);
+                plugins.reload();
             }
 
-            plugins.initializeContainer(gameTimeApi, sessionApi);
+            plugins.activate(gameTimeApi, settings);
+
             await setSceneController(sceneController, targetData);
 
-            await plugins.nativePlugins.callHookAsync(HOOK_ON_SCENE_READY);
+            await plugins.native.callHookAsync(HOOK_ON_SCENE_READY);
 
             this.onRender(0, 0);
-            renderComposer.getWebGLRenderer().compile(sceneComposer.scene, surfaceComposer.primaryCamera);
+            renderComposer.getWebGLRenderer().compile(sceneComposer.scene, viewComposer.primaryCamera!);
 
             gameLoopComposer.start();
 
@@ -176,12 +186,14 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, base
         sceneComposer,
         surfaceComposer,
         inputComposer,
-        sessionApi,
+        world,
 
         dispose: () => {
-            plugins.nativePlugins.callHook(HOOK_ON_SCENE_DISPOSED);
+
+            plugins.native.callHook(HOOK_ON_SCENE_DISPOSED);
             plugins.dispose();
             janitor.dispose();
+
         },
 
         update(
@@ -189,15 +201,13 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, base
             elapsed: number
         ) {
 
-            if (!surfaceComposer.viewports.primaryViewport) return;
+            if (!viewComposer.primaryViewport) return;
 
-            if (reset) {
-                reset();
+            if (frameResetRequested) {
+                this.onFrameReset();
             }
 
             inputComposer.update(delta, elapsed);
-
-            mixer.updateFromVector3(surfaceComposer.viewports.onUpdateAudioMixerLocation(delta, elapsed), delta);
 
             if (openBwComposer.update(elapsed)) {
 
@@ -205,11 +215,11 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, base
 
                 minimapGraphicsComposer.onFrame()
 
-                plugins.uiPlugins.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), [])// selectedUnits.values());
+                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), [])// selectedUnits.values());
 
                 commandsComposer.onFrame(openBwComposer.currentFrame);
 
-                plugins.nativePlugins.hook_onFrame(
+                plugins.native.hook_onFrame(
                     openBwComposer.currentFrame,
                     commandsComposer.commandsThisFrame
                 );
@@ -222,13 +232,13 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, base
 
         onRender: (delta: number, elapsed: number) => {
 
-            plugins.nativePlugins.hook_onBeforeRender(delta, elapsed);
+            plugins.native.hook_onBeforeRender(delta, elapsed);
+
+            viewComposer.update(delta, elapsed);
 
             postProcessingComposer.render(delta, elapsed);
 
-            surfaceComposer.onRender(delta);
-
-            plugins.nativePlugins.hook_onRender(delta, elapsed);
+            plugins.native.hook_onRender(delta, elapsed);
 
         },
 
@@ -239,9 +249,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, base
             postProcessingComposer.onFrameReset();
             commandsComposer.onFrameReset();
 
-            plugins.nativePlugins.callHook(HOOK_ON_FRAME_RESET, openBwComposer.currentFrame);
-
-            reset = null;
+            events.emit("frame-reset");
+            frameResetRequested = false;
 
         }
     };

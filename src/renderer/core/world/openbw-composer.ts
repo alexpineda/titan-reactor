@@ -3,23 +3,20 @@ import { TilesBufferView } from "@buffer-view/tiles-buffer-view";
 import { skipHandler } from "@openbw/skip-handler";
 import { REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, SpeedDirection, speedHandler } from "@openbw/speed-handler";
 import { buildSound } from "@utils/sound-utils";
-import { OpenBW } from "common/types";
 import { floor32 } from "common/utils/conversions";
 import { SceneComposer } from "./scene-composer";
-import { SurfaceComposer } from "./surface-composer";
 import { MathUtils } from "three";
-import { FogOfWar } from "../fogofwar";
 import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
+import { ViewComposer } from "@core/world/view-composer";
+import { World } from "./world";
 
-export const createOpenBWComposer = (openBW: OpenBW, { pxToWorld, terrainExtra }: SceneComposer, { viewports }: SurfaceComposer, fogOfWar: FogOfWar, reset: () => void) => {
+export const createOpenBWComposer = ({ events, openBW, reset, fogOfWar }: World, { pxToWorld, terrainExtra }: SceneComposer, viewportsComposer: ViewComposer) => {
     let _currentFrame = 0;
     let _previousBwFrame = -1;
 
 
-    //TODO: properly track and dispose audio?
     const soundChannels = new SoundChannels();
 
-    //TODO move to sound buffer / iterator pattern
     const buildSounds = (elapsed: number) => {
 
         const soundsAddr = openBW.getSoundsAddress!();
@@ -31,21 +28,17 @@ export const createOpenBWComposer = (openBW: OpenBW, { pxToWorld, terrainExtra }
             const unitTypeId = openBW.HEAP32[addr + 3];
 
             if (fogOfWar.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
-                buildSound(elapsed, x, y, typeId, unitTypeId, pxToWorld, viewports.audio, viewports.primaryViewport.projectedView, soundChannels);
+                buildSound(elapsed, x, y, typeId, unitTypeId, pxToWorld, viewportsComposer.audio, viewportsComposer.primaryViewport!.projectedView, soundChannels);
             }
         }
 
     };
 
-    let _onUpgradeComplete: (typeId: number, level: number) => void = () => { };
-    let _onTechComplete: (typeId: number, level: number) => void = () => { };
 
-    const { resetCompletedUpgrades, updateCompletedUpgrades } = createCompletedUpgradesHelper(openBW, (typeId: number, level: number) => {
-        _onUpgradeComplete(typeId, level);
-        // plugins.nativePlugins.callHook(HOOK_ON_UPGRADE_COMPLETED, [typeId, level, assets.bwDat.upgrades[typeId]]);
-    }, (typeId: number, level: number) => {
-        _onTechComplete(typeId, level);
-        // plugins.nativePlugins.callHook(HOOK_ON_TECH_COMPLETED, [typeId, level, assets.bwDat.tech[typeId]]);
+    const { resetCompletedUpgrades, updateCompletedUpgrades } = createCompletedUpgradesHelper(openBW, (owner: number, typeId: number, level: number) => {
+        events.emit("completed-upgrade", { owner, typeId, level });
+    }, (owner: number, typeId: number) => {
+        events.emit("completed-upgrade", { owner, typeId });
     });
 
     //TOOD: get rid of creep generation and use openbw
@@ -59,12 +52,6 @@ export const createOpenBWComposer = (openBW: OpenBW, { pxToWorld, terrainExtra }
     let lastElapsed = 0;
 
     return {
-        onUpgradeComplete(cb: (typeId: number, level: number) => void) {
-            _onUpgradeComplete = cb;
-        },
-        onTechComplete(cb: (typeId: number, level: number) => void) {
-            _onTechComplete = cb;
-        },
         get currentFrame() {
             return _currentFrame;
         },
@@ -127,7 +114,7 @@ export const createOpenBWComposer = (openBW: OpenBW, { pxToWorld, terrainExtra }
             },
             playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
                 if (y !== undefined && volumeOrX !== undefined) {
-                    buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToWorld, viewports.audio, viewports.primaryViewport.projectedView, soundChannels);
+                    buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, pxToWorld, viewportsComposer.audio, viewportsComposer.primaryViewport!.projectedView, soundChannels);
                 } else {
                     soundChannels.playGlobal(typeId, volumeOrX);
                 }

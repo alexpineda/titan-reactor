@@ -210,7 +210,7 @@ export class PluginSystemNative {
         return this.#nativePlugins.filter(p => p.isSceneController) as SceneController[];
     }
 
-    setActiveSceneController(plugin: SceneController | undefined) {
+    activateSceneController(plugin: SceneController | undefined) {
         this.#activeSceneInputHandler = plugin;
         if (plugin) {
             this.externalHookListener("onEnterScene", plugin.name);

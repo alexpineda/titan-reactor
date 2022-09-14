@@ -1,27 +1,26 @@
 import { ImageBufferView } from "@buffer-view/images-buffer-view";
 import { SpritesBufferViewIterator } from "@buffer-view/sprites-buffer-view-iterator";
-import { FogOfWarEffect } from "@core/fogofwar";
 import { ImageBase } from "@core/image";
 import { Image3D } from "@core/image-3d";
 import { ImageHD } from "@core/image-hd";
 import { applyViewportToFrameOnImageHD } from "@core/model-effects";
 import { EffectivePasses, PostProcessingBundleComposer } from "@render/global-effects";
 import { renderComposer } from "@render/render-composer";
-import { ReactiveSessionVariables } from "./reactive-session-variables";
 import settingsStore from "@stores/settings-store";
 import Janitor from "@utils/janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
-import { Assets, OpenBW, Settings } from "common/types";
+import { Assets, Settings } from "common/types";
 import { PerspectiveCamera, Vector3 } from "three";
 import { SceneComposer } from "./scene-composer";
-import { SurfaceComposer } from "./surface-composer";
 import shallow from "zustand/shallow";
+import { ViewComposer } from "@core/world/view-composer";
+import { World } from "./world";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
 const ignoreCastShadow = [347, 349, 351];
 
-export const createPostProcessingComposer = ({ scene, images, sprites, terrain }: SceneComposer, { viewports }: SurfaceComposer, sessionApi: ReactiveSessionVariables, fogOfWarEffect: FogOfWarEffect, openBW: OpenBW, assets: Assets) => {
+export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW }: World, { scene, images, sprites, terrain }: SceneComposer, viewportsComposer: ViewComposer, assets: Assets) => {
     const janitor = new Janitor();
 
     const postProcessingBundle = janitor.mop(
@@ -34,13 +33,13 @@ export const createPostProcessingComposer = ({ scene, images, sprites, terrain }
 
     const updatePostProcessingOptions = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
 
-        postProcessingBundle.camera = viewports.primaryViewport.camera;
+        postProcessingBundle.camera = viewportsComposer.primaryCamera!;
         postProcessingBundle.scene = scene;
         postProcessingBundle.options = options;
         postProcessingBundle.needsUpdate = true;
 
         // do this after changing render mode as Extended differs
-        postProcessingBundle.effectivePasses = viewports.numActiveViewports > 1 ? EffectivePasses.Standard : EffectivePasses.Extended;
+        postProcessingBundle.effectivePasses = viewportsComposer.numActiveViewports > 1 ? EffectivePasses.Standard : EffectivePasses.Extended;
 
         if (postProcessingBundle.options3d) {
 
@@ -86,7 +85,7 @@ export const createPostProcessingComposer = ({ scene, images, sprites, terrain }
 
     const changeRenderMode = (renderMode3D: boolean) => {
 
-        const postprocessing = renderMode3D ? sessionApi.getState().postprocessing3d : sessionApi.getState().postprocessing;
+        const postprocessing = renderMode3D ? settings.getState().postprocessing3d : settings.getState().postprocessing;
 
         terrain.setTerrainQuality(renderMode3D, postprocessing.anisotropy);
         scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
@@ -104,9 +103,9 @@ export const createPostProcessingComposer = ({ scene, images, sprites, terrain }
     const render = (delta: number, elapsed: number) => {
 
         // global won't use camera so we can set it to any
-        for (const v of viewports.activeViewports()) {
+        for (const v of viewportsComposer.activeViewports()) {
 
-            if (v === viewports.primaryViewport) {
+            if (v === viewportsComposer.primaryViewport) {
 
                 if (v.needsUpdate) {
                     changeRenderMode(v.renderMode3D);
@@ -141,8 +140,8 @@ export const createPostProcessingComposer = ({ scene, images, sprites, terrain }
                 }
             }
 
-            v.updateCamera(sessionApi.getState().game.dampingFactor, delta);
-            v.shakeStart(elapsed, sessionApi.getState().game.cameraShakeStrength);
+            v.updateCamera(settings.getState().game.dampingFactor, delta);
+            v.shakeStart(elapsed, settings.getState().game.cameraShakeStrength);
             postProcessingBundle.updateCamera(v.camera)
             renderComposer.setBundlePasses(postProcessingBundle);
             renderComposer.render(delta, v.viewport);

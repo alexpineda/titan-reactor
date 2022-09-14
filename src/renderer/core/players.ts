@@ -1,5 +1,4 @@
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
-import Janitor from "@utils/janitor";
 import {
   Player,
 } from "common/types";
@@ -26,7 +25,6 @@ export type PlayerName = Pick<BasePlayer, "id" | "name">
 
 export class Players extends Array<Player> {
   playersById: Record<number, Player> = {};
-  #janitor = new Janitor();
   originalColors: readonly string[];
   originalNames: readonly PlayerName[];
 
@@ -69,10 +67,6 @@ export class Players extends Array<Player> {
   getVisionFlag() {
     return this.filter(_pVision)
       .reduce(_gFlags, 0);
-  }
-
-  dispose() {
-    this.#janitor.dispose();
   }
 
   setPlayerColors = (colors: string[]) => {
