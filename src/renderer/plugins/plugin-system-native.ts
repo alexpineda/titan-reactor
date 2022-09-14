@@ -6,7 +6,7 @@ import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import Janitor from "@utils/janitor";
-import { updatePluginsConfig } from "@ipc/plugins";
+import { savePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import * as log from "@ipc/log"
@@ -42,7 +42,7 @@ export class PluginBase implements NativePlugin {
      * @param value  The configuration value.
      * @returns 
      */
-    setConfig(key: string, value: any): void {
+    setConfig(key: string, value: any, persist = true): void {
         if (!(key in this.#config)) {
             log.warning(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
             return undefined;
@@ -51,7 +51,9 @@ export class PluginBase implements NativePlugin {
         // TODO: use leva detection algo here to determine if values are in bounds
         //@ts-ignore
         this.#config[key].value = value;
-        updatePluginsConfig(this.id, this.#config);
+        if (persist) {
+            savePluginsConfig(this.id, this.#config);
+        }
     }
 
     /*

@@ -61,7 +61,7 @@ export interface NativePlugin {
     /**
      * Allows a plugin to update it's own config key/value store
      */
-    setConfig(key: string, value: any): void;
+    setConfig(key: string, value: any, persist?: boolean): void;
 
     /**
      * Send a message to your plugin UI.

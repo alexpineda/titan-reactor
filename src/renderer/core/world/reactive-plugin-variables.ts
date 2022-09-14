@@ -69,7 +69,8 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
             return null;
         }
 
-        plugin.setConfig(fieldKey, doActionEffect(effect, field, newValue, resetValue));
+        //TODO: copy config to new config so onConfigChanged works properly
+        plugin.setConfig(fieldKey, doActionEffect(effect, field, newValue, resetValue), false);
         plugins.hook_onConfigChanged(plugin.id, plugin.rawConfig);
 
         return {

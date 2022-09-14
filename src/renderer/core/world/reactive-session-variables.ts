@@ -69,10 +69,10 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
     const initialSettings = settingsStore().data;
 
     const store = {
-        audio: JSON.parse(JSON.stringify(initialSettings.audio)),
-        game: JSON.parse(JSON.stringify(initialSettings.game)),
-        postprocessing: JSON.parse(JSON.stringify(initialSettings.postprocessing)),
-        postprocessing3d: JSON.parse(JSON.stringify(initialSettings.postprocessing3d)),
+        audio: initialSettings.audio,
+        game: initialSettings.game,
+        postprocessing: initialSettings.postprocessing,
+        postprocessing3d: initialSettings.postprocessing3d,
     };
 
     const mergeRootSession = async (rhs: DeepPartial<SessionSettingsData>) => {
@@ -81,9 +81,9 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
         const newSettings = deepMerge<DeepPartial<SessionSettingsData>>(store, rhs, { arrayMerge: overwriteMerge });
 
-        Object.assign(store, newSettings);
-
-        events.emit("settings-changed", { settings: store, rhs });
+        if (events.emit("settings-changed", { settings: store, rhs }) !== false) {
+            Object.assign(store, newSettings);
+        }
 
     }
 
@@ -92,12 +92,15 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
         console.debug("merging session with settings");
 
-        mergeRootSession({
+        Object.assign(store, {
             audio: settings.data.audio,
             game: settings.data.game,
             postprocessing: settings.data.postprocessing,
             postprocessing3d: settings.data.postprocessing3d,
         });
+
+        events.emit("settings-changed", { settings: store, rhs: {} });
+
 
     })
 

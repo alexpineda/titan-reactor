@@ -34,6 +34,13 @@ export const createOpenBWComposer = ({ events, openBW, reset, fogOfWar }: World,
 
     };
 
+    events.on("settings-changed", ({ rhs }) => {
+        if (rhs.game?.sandBoxMode !== undefined) {
+            if (openBW.setSandboxMode(rhs.game.sandBoxMode) === undefined) {
+                return false;
+            }
+        }
+    })
 
     const { resetCompletedUpgrades, updateCompletedUpgrades } = createCompletedUpgradesHelper(openBW, (owner: number, typeId: number, level: number) => {
         events.emit("completed-upgrade", { owner, typeId, level });

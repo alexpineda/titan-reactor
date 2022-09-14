@@ -7,7 +7,7 @@ export type MatchingKeys<
 export type VoidKeys<Record> = MatchingKeys<Record, void>;
 
 export class TypeEmitter<T>  {
-    #listeners: Map<keyof T, ((v: T[keyof T] | undefined) => void)[]> = new Map();
+    #listeners: Map<keyof T, ((v: T[keyof T] | undefined) => void | false)[]> = new Map();
 
     on<K extends keyof T>(s: K, listener: (v: T[K]) => void): void {
         this.#listeners.set(s, (this.#listeners.get(s) || []).concat(listener));
@@ -17,8 +17,12 @@ export class TypeEmitter<T>  {
         this.#listeners.set(s, (this.#listeners.get(s) || []).filter(l => l !== listener));
     }
 
-    emit(s: keyof T, v?: T[keyof T]): void {
-        this.#listeners.get(s)?.forEach(l => l(v));
+    emit(s: keyof T, v?: T[keyof T]): void | false {
+        for (const listener of this.#listeners.get(s) ?? []) {
+            if (listener(v) === false) {
+                return false;
+            }
+        }
     }
 
 

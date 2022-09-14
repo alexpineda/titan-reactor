@@ -3,7 +3,7 @@ import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
-import { updatePluginsConfig } from "@ipc/plugins";
+import { savePluginsConfig } from "@ipc/plugins";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { PluginMetaData } from "common/types";
 import DetailSheet from "./detail-sheet";
@@ -32,7 +32,7 @@ s.href =
 document.head.appendChild(s);
 
 const onChange = debounce(async (pluginId: string, config: any) => {
-  updatePluginsConfig(pluginId, config);
+  savePluginsConfig(pluginId, config);
   sendWindow(InvokeBrowserTarget.Game, {
     type: SendWindowActionType.PluginConfigChanged,
     payload: {
