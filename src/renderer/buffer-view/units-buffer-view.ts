@@ -219,11 +219,24 @@ export class UnitsBufferViewIterator {
     }
 }
 
-export function* deletedUnitIterator(openBW: OpenBW) {
+export function* destroyedUnitsIterator(openBW: OpenBW) {
+
     const deletedUnitCount = openBW._counts(17);
     const deletedUnitAddr = openBW._get_buffer(5);
 
     for (let i = 0; i < deletedUnitCount; i++) {
         yield openBW.HEAP32[(deletedUnitAddr >> 2) + i];
     }
+    
+}
+
+export function* killedUnitIterator(openBW: OpenBW) {
+    
+    const deletedUnitCount = openBW._counts(19);
+    const deletedUnitAddr = openBW._get_buffer(13);
+
+    for (let i = 0; i < deletedUnitCount; i++) {
+        yield openBW.HEAP32[(deletedUnitAddr >> 2) + i];
+    }
+
 }

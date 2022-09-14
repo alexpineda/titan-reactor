@@ -1,39 +1,39 @@
-import SelectionCircle from "@core/selection-circle";
-import SelectionBars from "@core/selection-bars";
+import { SelectionCircle } from "@core/selection-circle";
+import { SelectionBars } from "@core/selection-bars";
 import range from "common/utils/range";
 import { Camera, Group, Vector3 } from "three";
 import { Assets, SpriteDAT, SpriteType } from "common/types";
 import { Unit } from "@core";
 import { SpriteEntities } from "@core/sprite-entities";
+import Janitor from "@utils/janitor";
 
-export interface SelectionObject extends Group {
-    userData: {
-        circle: SelectionCircle;
-        bars: SelectionBars;
-        update(unit: Unit, sprite: SpriteType, spriteDat: SpriteDAT, completedUpgrades: number[]): void;
+export class SelectionObject extends Group {
+
+    #circle = new SelectionCircle();
+    #bars = new SelectionBars();
+
+    constructor() {
+        super();
+        this.visible = false;
+        this.add(this.#circle);
+        this.add(this.#bars);
     }
+
+    update(unit: Unit, sprite: SpriteType, spriteDat: SpriteDAT, completedUpgrades: number[]) {
+
+        this.#circle.update(spriteDat);
+        this.#bars.update(unit, spriteDat, completedUpgrades, sprite.renderOrder);
+
+        this.position.copy(sprite.position);
+        this.lookAt(this.position.x - _cameraWorldDirection.x, this.position.y - _cameraWorldDirection.y, this.position.z - _cameraWorldDirection.z);
+        this.updateMatrixWorld();
+    }
+
 }
 
 export const createSelectionDisplayComposer = (assets: Assets) => {
 
-    const objects = range(0, 12).map(_ => {
-        const selectionObject = new Group() as SelectionObject;
-        selectionObject.visible = false;
-        selectionObject.userData = {
-            circle: new SelectionCircle(),
-            bars: new SelectionBars(),
-            update(unit: Unit, sprite: SpriteType, spriteDat: SpriteDAT, completedUpgrades: number[]) {
-                selectionObject.userData.circle.update(spriteDat);
-                selectionObject.userData.bars.update(unit, spriteDat, completedUpgrades, sprite.renderOrder);
-                selectionObject.position.copy(sprite.position);
-                selectionObject.lookAt(selectionObject.position.x - _cameraWorldDirection.x, selectionObject.position.y - _cameraWorldDirection.y, selectionObject.position.z - _cameraWorldDirection.z);
-                selectionObject.updateMatrixWorld();
-            }
-        };
-        selectionObject.add(selectionObject.userData.circle);
-        selectionObject.add(selectionObject.userData.bars);
-        return selectionObject;
-    });
+    const objects = range(0, 12).map(_ => new SelectionObject());
 
     const hideSelections = () => {
         for (const selectionObject of objects) {
@@ -51,7 +51,7 @@ export const createSelectionDisplayComposer = (assets: Assets) => {
             if (unit) {
                 sprite = sprites.get(unit.spriteIndex)
                 if (sprite) {
-                    objects[i].userData.update(unit, sprite, assets.bwDat.sprites[sprite.userData.typeId], completedUpgrades[unit.owner]);
+                    objects[i].update(unit, sprite, assets.bwDat.sprites[sprite.userData.typeId], completedUpgrades[unit.owner]);
                 } else {
                     console.warn("No sprite found for unit", unit);
                 }
@@ -65,7 +65,8 @@ export const createSelectionDisplayComposer = (assets: Assets) => {
         hideSelections,
         update,
         dispose() {
-            //TODO;
+            const janitor = new Janitor();
+            janitor.dispose(this);
         }
     }
 

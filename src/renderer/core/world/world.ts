@@ -3,7 +3,7 @@ import CommandsStream from "@process-replay/commands/commands-stream";
 import Janitor from "@utils/janitor";
 import { TypeEmitter } from "@utils/type-emitter";
 import Chk from "bw-chk";
-import { OpenBW } from "common/types";
+import { DeepPartial, OpenBW, SessionSettingsData } from "common/types";
 import { BasePlayer, FogOfWar, FogOfWarEffect } from "..";
 import { PluginsAndMacroSession } from "./create-plugin-session";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
@@ -18,6 +18,8 @@ export interface WorldEvents {
     "completed-upgrade": { owner: number, typeId: number, level: number };
     "completed-tech": { owner: number, typeId: number };
     "frame-reset": void;
+    "settings-changed": { settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> };
+    "plugin-configuration-changed": { settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> };
 }
 
 export type World = {

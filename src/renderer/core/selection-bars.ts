@@ -212,4 +212,3 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
 
   }
 }
-export default SelectionBars;

@@ -38,6 +38,8 @@ export const createPluginSession = async (openBW: OpenBW) => {
     const pluginPackages = settingsStore().enabledPlugins;
     const uiPlugins = janitor.mop(new PluginSystemUI(pluginPackages, (id) => openBW.get_util_funcs().dump_unit(id)));
     const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, uiPlugins));
+    // available to macros and sandbox only
+    const reactiveApi = janitor.mop(createReactivePluginApi(nativePlugins));
 
     await uiPlugins.isRunning();
 
@@ -74,8 +76,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
         screenStore().setError(new Error("Failed to install plugins"));
     });
 
-    // available to macros and sandbox only
-    const reactiveApi = janitor.mop(createReactivePluginApi(nativePlugins));
+
 
     const _clickPassThrough = (evt: MouseEvent) => uiPlugins.sendMessage({
         type: UI_SYSTEM_MOUSE_CLICK,

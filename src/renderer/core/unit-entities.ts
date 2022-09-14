@@ -10,7 +10,6 @@ export class UnitEntities {
     freeUnits: Unit[] = [];
     units: IterableMap<number, Unit> = new IterableMap;
 
-    externalOnFreeUnit?(unit: Unit): void;
     externalOnCreateUnit?(unit: Unit): void;
     externalOnClearUnits?(): void;
 
@@ -40,13 +39,9 @@ export class UnitEntities {
         }
     }
 
-    free(unitId: number) {
-        const unit = this.units.get(unitId);
-        if (unit) {
-            this.units.delete(unitId);
-            this.freeUnits.push(unit);
-            this.externalOnFreeUnit && this.externalOnFreeUnit(unit);
-        }
+    free(unit: Unit) {
+        this.units.delete(unit.id);
+        this.freeUnits.push(unit);
     }
 
     clear() {

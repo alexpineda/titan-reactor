@@ -10,6 +10,8 @@ import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import * as log from "@ipc/log";
 import Janitor from "@utils/janitor";
 import { BeforeSet, createReactiveVariable, ReactiveVariable } from "@utils/create-reactive-variable";
+import { WorldEvents } from "./world";
+import { TypeEmitter } from "@utils/type-emitter";
 
 const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
 
@@ -57,22 +59,14 @@ export type SessionVariables = {
     };
 }
 
-export class SessionChangeEvent extends CustomEvent<{ settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> }> {
-    constructor(settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData>) {
-        super("change", { detail: { settings, rhs } });
-    }
-}
-
-
 export type ReactiveSessionVariables = ReturnType<typeof createReactiveSessionVariables>;
 /**
  * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
  */
-export const createReactiveSessionVariables = () => {
+export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>) => {
 
     const janitor = new Janitor();
     const initialSettings = settingsStore().data;
-    const events = new EventTarget;
 
     const store = {
         audio: JSON.parse(JSON.stringify(initialSettings.audio)),
@@ -89,7 +83,7 @@ export const createReactiveSessionVariables = () => {
 
         Object.assign(store, newSettings);
 
-        events.dispatchEvent(new SessionChangeEvent(store, rhs));
+        events.emit("settings-changed", { settings: store, rhs });
 
     }
 
@@ -103,7 +97,8 @@ export const createReactiveSessionVariables = () => {
             game: settings.data.game,
             postprocessing: settings.data.postprocessing,
             postprocessing3d: settings.data.postprocessing3d,
-        })
+        });
+
     })
 
     function applyEffectToSessionRoot(effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {

@@ -14,7 +14,6 @@ import gameStore from "@stores/game-store";
 import settingsStore from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createWorld } from "@core/world/world-composer";
-import { setDumpUnitCall } from "@plugins/plugin-system-ui";
 import readCascFile from "@utils/casclib";
 
 export async function makeGameScene(

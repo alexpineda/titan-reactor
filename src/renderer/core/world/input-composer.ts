@@ -68,14 +68,11 @@ export const createInputComposer = ({ events, map }: World, { gameSurface, minim
         followedUnits.delete(unit);
     });
 
-    // get followedUnitsPosition() {
-    //   if (!hasFollowedUnits()) {
-    //     return null;
-    //   }
-    //   return calculateFollowedUnitsTarget(pxToWorld);
-    // },
+
 
     return {
+        selectedUnits,
+        followedUnits,
         onSceneControllerActivated(sceneController: SceneController) {
             unitSelectionBox.activate(sceneController.gameOptions?.allowUnitSelection, sceneController.viewports[0].camera)
         },
@@ -84,10 +81,18 @@ export const createInputComposer = ({ events, map }: World, { gameSurface, minim
             cameraMouse.update(delta / 100, elapsed, viewComposer);
             cameraKeys.update(delta / 100, elapsed, viewComposer);
             minimapMouse.update(viewComposer);
-            selectionDisplayComposer.update(viewComposer.primaryCamera!, sprites, [], selectedUnits.values());
+            selectionDisplayComposer.update(viewComposer.primaryCamera!, sprites, [], selectedUnits.toArray());
         },
         dispose() {
             janitor.dispose();
+        },
+        inputGameTimeApi: {
+            // get followedUnitsPosition() {
+            //   if (!hasFollowedUnits()) {
+            //     return null;
+            //   }
+            //   return calculateFollowedUnitsTarget(pxToWorld);
+            // },
         }
     }
 }

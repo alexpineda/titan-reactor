@@ -9,7 +9,7 @@ export class IterableSet<T> {
         }
     }
 
-    values() {
+    toArray() {
         return this.#copy;
     }
 

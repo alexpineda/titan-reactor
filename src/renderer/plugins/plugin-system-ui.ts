@@ -267,6 +267,7 @@ export class PluginSystemUI {
     }
 
     onFrame(openBW: OpenBW, currentFrame: number, playerDataAddr: number, productionDataAddr: number, selectedUnits: Unit[]) {
+
         const time = getSecond(currentFrame);
 
         // update the ui every game second

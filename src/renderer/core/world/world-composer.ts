@@ -1,7 +1,7 @@
 import { Assets, OpenBW } from "common/types";
 import Janitor from "@utils/janitor";
 import { createPluginsAndMacroSession } from "./create-plugin-session";
-import { createReactiveSessionVariables, SessionChangeEvent } from "./reactive-session-variables";
+import { createReactiveSessionVariables } from "./reactive-session-variables";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { HOOK_ON_SCENE_DISPOSED, HOOK_ON_SCENE_READY } from "@plugins/hooks";
@@ -30,8 +30,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
     const janitor = new Janitor();
 
-    const settings = janitor.mop(createReactiveSessionVariables());
     const events = janitor.mop(new TypeEmitter<WorldEvents>());
+    const settings = janitor.mop(createReactiveSessionVariables(events));
     const plugins = await createPluginsAndMacroSession(events, settings, openBW);
 
     const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
@@ -64,7 +64,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
     const gameLoopComposer = janitor.mop(createGameLoopComposer());
     const openBwComposer = createOpenBWComposer(world, sceneComposer, viewComposer);
 
-    janitor.addEventListener(settings.events, "change", ({ detail: { settings } }: SessionChangeEvent) => mixer.setVolumes(settings.audio), { passive: true });
+    events.on("settings-changed", ({ settings }) => mixer.setVolumes(settings.audio));
 
     const setSceneController = async (controllername: string, defaultData?: any) => {
 
@@ -72,8 +72,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
         if (sceneController) {
 
-            await viewComposer.activateSceneController(sceneController, defaultData);
             plugins.native.activateSceneController(sceneController);
+            await viewComposer.activateSceneController(sceneController, defaultData);
             inputComposer.onSceneControllerActivated(sceneController);
 
         }
@@ -95,7 +95,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
     });
 
-    const sessionListener = ({ detail: { settings, rhs } }: SessionChangeEvent) => {
+    events.on("settings-changed", ({ settings, rhs }) => {
 
         if (viewComposer.activeSceneController) {
 
@@ -111,11 +111,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
         }
 
-    };
+    });
 
-    janitor.addEventListener(settings.events, "change", sessionListener, { passive: true });
-
-    //TODO: move to runtime
     const simpleText = janitor.mop(new SimpleText());
 
     const gameTimeApi: GameTimeApi = {
@@ -133,6 +130,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
         ...sceneComposer.sceneGameTimeApi,
         ...openBwComposer.openBWGameTimeApi,
         ...viewComposer.viewportsGameTimeApi,
+        ...inputComposer.inputGameTimeApi,
         refreshScene: () => frameResetRequested = true,
         simpleMessage(val: string) {
             simpleText.set(val);
@@ -215,7 +213,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
                 minimapGraphicsComposer.onFrame()
 
-                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), [])// selectedUnits.values());
+                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), inputComposer.selectedUnits.toArray())
 
                 commandsComposer.onFrame(openBwComposer.currentFrame);
 

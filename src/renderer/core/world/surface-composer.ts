@@ -2,7 +2,6 @@ import { Surface } from "@image/canvas";
 import GameSurface from "@render/game-surface";
 import { renderComposer } from "@render/render-composer";
 import gameStore from "@stores/game-store";
-import { SessionChangeEvent } from "./reactive-session-variables";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import Janitor from "@utils/janitor";
 import debounce from "lodash.debounce";
@@ -11,7 +10,7 @@ import { World } from "./world";
 
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
-export const createSurfaceComposer = ({ map, settings }: World) => {
+export const createSurfaceComposer = ({ map, settings, events }: World) => {
 
     const janitor = new Janitor();
 
@@ -72,7 +71,7 @@ export const createSurfaceComposer = ({ map, settings }: World) => {
         }
     }
 
-    const sessionListener = ({ detail: { settings, rhs } }: SessionChangeEvent) => {
+    events.on("settings-changed", ({ settings, rhs }) => {
 
         if (rhs.game?.minimapSize) {
             resize();
@@ -85,9 +84,7 @@ export const createSurfaceComposer = ({ map, settings }: World) => {
             }
         }
 
-    };
-
-    janitor.addEventListener(settings.events, "change", sessionListener, { passive: true });
+    });
 
     // some values we do not keep in the user facing reactive variables but will want to listen to
     janitor.mop(useSettingsStore.subscribe(settings => {

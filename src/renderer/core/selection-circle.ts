@@ -46,6 +46,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
         },
       })
     );
+
     this.material.depthTest = false;
     this.material.transparent = true;
     this.name = "selectionCircle";
@@ -68,5 +69,5 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
       this.#spriteDat = spriteDat;
     }
   }
+
 }
-export default SelectionCircle;

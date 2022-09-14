@@ -1,7 +1,7 @@
 import { deletedImageIterator, ImageBufferView } from "@buffer-view/images-buffer-view";
 import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
 import { deletedSpritesIterator, SpritesBufferViewIterator } from "@buffer-view/sprites-buffer-view-iterator";
-import { deletedUnitIterator, UnitsBufferView, UnitsBufferViewIterator } from "@buffer-view/units-buffer-view";
+import { destroyedUnitsIterator, killedUnitIterator, UnitsBufferView, UnitsBufferViewIterator } from "@buffer-view/units-buffer-view";
 import { Image3D } from "@core/image-3d";
 import { ImageEntities } from "@core/image-entities";
 import { ImageHD } from "@core/image-hd";
@@ -23,6 +23,7 @@ import { ViewComposer } from "@core/world/view-composer";
 import { Color, MathUtils, Vector3 } from "three";
 import { createPlayersGameTimeApi } from "./players-api";
 import { World } from "./world";
+import { Unit } from "@core/unit";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
@@ -49,7 +50,6 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
 
     const units = new UnitEntities();
     units.externalOnClearUnits = () => events.emit("units-cleared");
-    units.externalOnFreeUnit = (unit) => events.emit("unit-killed", unit);
     units.externalOnCreateUnit = (unit) => events.emit("unit-created", unit);
 
     openBW.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
@@ -87,11 +87,25 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
 
     }
 
+    let unit: Unit|undefined;
+
     const buildUnits = (
     ) => {
 
-        for (const unitId of deletedUnitIterator(openBW)) {
-            units.free(unitId);
+        for (const unitId of killedUnitIterator(openBW)) {
+            unit = units.get(unitId);
+            if (unit) {
+                units.free(unit);
+                events.emit("unit-killed", unit);
+            }
+        }
+
+        for (const unitId of destroyedUnitsIterator(openBW)) {
+            unit = units.get(unitId);
+            if (unit) {
+                units.free(unit);
+                events.emit("unit-destroyed", unit);
+            }
         }
 
         for (const unit of unitsBufferViewIterator) {
