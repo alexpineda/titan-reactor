@@ -48,8 +48,6 @@ export class PluginBase implements NativePlugin {
             return undefined;
         }
 
-        // TODO: use leva detection algo here to determine if values are in bounds
-        //@ts-ignore
         this.#config[key].value = value;
         if (persist) {
             savePluginsConfig(this.id, this.#config);

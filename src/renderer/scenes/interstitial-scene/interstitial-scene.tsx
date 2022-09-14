@@ -2,6 +2,7 @@ import { useSceneStore } from "@stores/scene-store";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
 import { LoadBar } from "../pre-home-scene/load-bar";
+import { GlobalErrorState } from "../error-state";
 
 export const InterstitialScene = ({
   surface,
@@ -26,6 +27,7 @@ export const InterstitialScene = ({
         flexDirection: "column",
       }}
     >
+      {error && <GlobalErrorState error={error} action={null} />}
       <WrappedCanvas canvas={surface} style={{ zIndex: "-1" }} />
       <LoadBar
         color="rgb(100 200 87)"

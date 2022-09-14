@@ -4,6 +4,7 @@ import discordLogo from "@image/assets/discord.png";
 import youtubeLogo from "@image/assets/youtube.png";
 import githubLogo from "@image/assets/github.png";
 import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
+import { GlobalErrorState } from "../error-state";
 
 const iconStyle = {
   width: "var(--size-8)",
@@ -28,6 +29,7 @@ export const Home = ({ surface }: { surface: HTMLCanvasElement }) => {
         flexDirection: "column",
       }}
     >
+      {error && <GlobalErrorState error={error} action={null} />}
       <WrappedCanvas canvas={surface} style={{ zIndex: "-1" }} />
       {!error && (
         <div

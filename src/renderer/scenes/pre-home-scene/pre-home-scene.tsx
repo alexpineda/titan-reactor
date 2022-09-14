@@ -7,8 +7,8 @@ import { useEffect } from "react";
 import { imbateamLogo } from "@image/assets/imbateam";
 import titanReactorLogo from "@image/assets/logo.png";
 import { LoadBar } from "./load-bar";
-import CommanderImage from "./marine.png";
 import "./styles.css";
+import { GlobalErrorState } from "../error-state";
 import { showFolderDialog } from "@ipc/dialogs";
 import settingsStore from "@stores/settings-store";
 
@@ -29,67 +29,26 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
   _firstInstall = true;
 });
 
-const GlobalErrorState = ({ error }: { error: Error }) => {
-  const isStarCraftDirectoryError = error.message.includes(
-    "StarCraft directory"
-  );
-
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: "50%",
-        top: "50%",
-        transform: `translate(-50%, -50%)`,
-        cursor: "wait",
-        color: "#ffeedd",
-        fontFamily: "Conthrax",
-      }}
-    >
-      <img
-        style={{
-          filter: "sepia(0.5) hue-rotate(101deg) saturate(6.5) blur(1px)",
-          borderRadius: "var(--radius-6)",
-        }}
-        src={CommanderImage}
-      />
-      <p
-        style={{
-          marginBlock: "3rem",
-          color: "var(--blue-2)",
-          fontFamily: "Conthrax",
-        }}
-      >
-        Commander. We have a problem.
-      </p>
-      <p
-        style={{
-          color: "var(--yellow-2)",
-          fontFamily: "Inter, sans-serif",
-        }}
-      >
-        {error.message}
-      </p>
-      {isStarCraftDirectoryError && (
-        <button
-          onClick={async () => {
-            const folders = await showFolderDialog();
-            if (folders && folders.length > 0) {
-              settingsStore().data.directories.starcraft = folders[0];
-              await settingsStore().save(settingsStore().data);
-            }
-          }}
-        >
-          Select StarCraft Directory
-        </button>
-      )}
-    </div>
-  );
-};
-
 export const PreHomeScene = () => {
   const error = useSceneStore((state) => state.error);
   const progress = useProcessStore((state) => state.getTotalProgress());
+
+  const isStarCraftDirectoryError =
+    error && error.message.toLowerCase().includes("starcraft directory");
+
+  const action = isStarCraftDirectoryError ? (
+    <button
+      onClick={async () => {
+        const folders = await showFolderDialog();
+        if (folders && folders.length > 0) {
+          settingsStore().data.directories.starcraft = folders[0];
+          await settingsStore().save(settingsStore().data);
+        }
+      }}
+    >
+      Select StarCraft Directory
+    </button>
+  ) : null;
 
   useEffect(() => {
     const b = (1 - progress) * 0.2;
@@ -120,7 +79,9 @@ export const PreHomeScene = () => {
         flexDirection: "column",
       }}
     >
-      {error && !_firstInstall && <GlobalErrorState error={error} />}
+      {error && !_firstInstall && (
+        <GlobalErrorState error={error} action={action} />
+      )}
       {!error && !_firstInstall && (
         //@ts-ignore
         <div style={styleCenterText}>
