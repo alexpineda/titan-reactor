@@ -1,25 +1,23 @@
 import { ReadFile } from "common/types";
-import { WebGLRenderer } from "three";
 
 import parseDdsGrp from "../formats/parse-dds-grp";
 import generateWireframes from "./generate-wireframes";
-import generateCenteredCursors from "./generate-centered-cursors";
-import generateCursors from "./generate-cursors";
+import {generateCenteredCursorsDataURI} from "./generate-centered-cursors";
+import { generateCursors, generateCursorsDataURI } from "./generate-cursors";
 import generateCmdIcons from "./generate-cmds";
 import generateRaceInsetIcons from "./generate-races";
 import generateResourceIcons from "./generate-resources";
+import { renderComposer } from "@render/render-composer";
+import { RepeatWrapping } from "three";
 
-export default async (readFile: ReadFile) => {
-  const renderer = new WebGLRenderer({
-    depth: false,
-    stencil: false,
-    alpha: true,
-  });
-  renderer.autoClear = false;
+export const generateAllIcons = async (readFile: ReadFile) => {
+
+  renderComposer.preprocessStart();
+  const renderer = renderComposer.getWebGLRenderer();
 
   const palette = new Uint8Array((await readFile("TileSet/jungle.wpe")).buffer).subarray(0, 1024);
 
-  const resourceIcons = generateResourceIcons(
+  const gameIcons = generateResourceIcons(
     renderer,
     parseDdsGrp(await readFile("game/icons.dds.grp"))
   );
@@ -34,28 +32,48 @@ export default async (readFile: ReadFile) => {
     parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
   );
 
-  const arrowIcons = await generateCursors(
+  const arrowIcons = await generateCursorsDataURI(
     await readFile("cursor/arrow.grp"),
     palette
   );
 
-  const hoverIcons = await generateCenteredCursors(
+  const arrowIconsGPU = (await generateCursors(
+    await readFile("cursor/arrow.grp"),
+    palette
+  ));
+
+  arrowIconsGPU.texture.wrapS = arrowIconsGPU.texture.wrapT = RepeatWrapping;
+
+  const hoverIcons = await generateCenteredCursorsDataURI(
     await readFile("cursor/MagY.grp"),
     palette
   );
 
-  const dragIcons = await generateCenteredCursors(
+  const hoverIconsGPU = (await generateCursors(
+    await readFile("cursor/MagY.grp"),
+    palette
+  ));
+
+  hoverIconsGPU.texture.wrapS = hoverIconsGPU.texture.wrapT = RepeatWrapping;
+
+  const dragIcons = await generateCenteredCursorsDataURI(
     await readFile("cursor/Drag.grp"),
     palette
   );
+
+  const dragIconsGPU = (await generateCursors(
+    await readFile("cursor/Drag.grp"),
+    palette
+  ));
+
+  dragIconsGPU.texture.wrapS = dragIconsGPU.texture.wrapT = RepeatWrapping;
 
   const wireframeIcons = await generateWireframes(
     renderer,
     parseDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
   );
 
-  renderer.dispose();
-
+  renderComposer.preprocessEnd();
 
   const workerIcons = {
     apm: `data:image/png;base64,${(
@@ -73,7 +91,7 @@ export default async (readFile: ReadFile) => {
   };
 
   return {
-    resourceIcons,
+    gameIcons,
     cmdIcons,
     raceInsetIcons,
     workerIcons,
@@ -81,5 +99,8 @@ export default async (readFile: ReadFile) => {
     hoverIcons,
     dragIcons,
     wireframeIcons,
+    arrowIconsGPU,
+    hoverIconsGPU,
+    dragIconsGPU
   };
 };

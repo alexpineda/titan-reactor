@@ -1,5 +1,6 @@
 import {
     HalfFloatType,
+    LinearEncoding,
     PerspectiveCamera,
     Scene,
     sRGBEncoding,
@@ -8,10 +9,9 @@ import {
     WebGLRenderer,
 } from "three";
 import {
-    EffectComposer
+    EffectComposer, Pass
 } from "postprocessing";
 import Surface from "../image/canvas/surface";
-import { PostProcessingBundle } from "common/types";
 import { ColorManagement } from "three/src/math/ColorManagement";
 
 
@@ -77,7 +77,7 @@ export class TitanRenderComposer {
         return renderer;
     }
 
-    setBundlePasses(...args: PostProcessingBundle[]) {
+    setBundlePasses(...args: { passes: Pass[] }[]) {
         this.composer.removeAllPasses();
         let lastPass: any = null;
         for (const bundle of args) {
@@ -156,6 +156,17 @@ export class TitanRenderComposer {
         precompileCamera.position.setY(1000)
         precompileCamera.lookAt(0, 0, 0);
         this.getWebGLRenderer().render(scene, precompileCamera);
+    }
+
+    // for rendering atlases ahead of time like terrain textures, icons, etc.
+    preprocessStart() {
+        this.getWebGLRenderer().autoClear = false;
+        this.getWebGLRenderer().outputEncoding = LinearEncoding;
+    }
+
+    preprocessEnd() {
+        this.getWebGLRenderer().autoClear = true;
+        this.getWebGLRenderer().outputEncoding = sRGBEncoding;
     }
 }
 

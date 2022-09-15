@@ -55,7 +55,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
   update(spriteDat: SpriteDAT) {
     if (spriteDat !== this.#spriteDat) {
       const circle = spriteDat.selectionCircle;
-      const grp = gameStore().assets!.selectionCirclesHD[circle.index];
+      const grp = gameStore().assets!.selectionCircles[circle.index];
       this.material.map = grp.diffuse;
       this.material.needsUpdate = true;
       this.position.y = -spriteDat.selectionCircleOffset / 32;

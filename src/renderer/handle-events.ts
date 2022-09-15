@@ -71,13 +71,13 @@ if (!rendererIsDev) {
 
 ipcRenderer.on(OPEN_MAP_DIALOG, async (_, map: string) => {
     await sceneStore().execSceneLoader(interstitialSceneLoader);
-    sceneStore().execSceneLoader(() => mapSceneLoader(map));
+    sceneStore().execSceneLoader(() => mapSceneLoader(map), interstitialSceneLoader);
 });
 
 
 ipcRenderer.on(OPEN_REPLAY_DIALOG, async (_, replay: string) => {
     await sceneStore().execSceneLoader(interstitialSceneLoader);
-    sceneStore().execSceneLoader(() => replaySceneLoader(replay));
+    sceneStore().execSceneLoader(() => replaySceneLoader(replay), interstitialSceneLoader);
 });
 
 ipcRenderer.on(OPEN_ISCRIPTAH, async () => {
@@ -99,7 +99,7 @@ ipcRenderer.on(
     ) => {
         if (type === SendWindowActionType.LoadReplay) {
             await sceneStore().execSceneLoader(interstitialSceneLoader);
-            sceneStore().execSceneLoader(() => replaySceneLoader(payload));
+            sceneStore().execSceneLoader(() => replaySceneLoader(payload), interstitialSceneLoader);
         }
     }
 );

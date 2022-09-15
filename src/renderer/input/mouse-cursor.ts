@@ -5,6 +5,7 @@ type Icons = string[];
 export class MouseCursor {
   #lastClass = "";
 
+  #element: HTMLElement;
   #arrowIcons: Icons;
   #dragIcons: Icons;
   #hoverIcons: Icons;
@@ -15,7 +16,9 @@ export class MouseCursor {
   #dragIconsIndex = 0;
   #interval: NodeJS.Timeout | undefined;
 
-  constructor() {
+  constructor(element: HTMLElement) {
+    this.#element = element;
+
     const icons = gameStore().assets!;
 
     this.#arrowIcons = icons.arrowIcons;
@@ -79,10 +82,10 @@ export class MouseCursor {
   }
 
   _updateClasses(index: number, type: "pointer" | "hover" | "drag" | "none") {
-    if (!window.document.body.classList.contains(this.#lastClass)) {
-      window.document.body.classList.add(`cursor-${type}-${index}`);
+    if (!this.#element.classList.contains(this.#lastClass)) {
+      this.#element.classList.add(`cursor-${type}-${index}`);
     } else {
-      window.document.body.classList.replace(
+      this.#element.classList.replace(
         this.#lastClass,
         `cursor-${type}-${index}`
       );
@@ -132,7 +135,7 @@ export class MouseCursor {
   }
 
   dispose() {
-    window.document.body.style.cursor = "";
+    this.#element.style.cursor = "";
     window.document.getElementById("cursor-styles")?.remove();
     clearInterval(this.#interval!);
   }

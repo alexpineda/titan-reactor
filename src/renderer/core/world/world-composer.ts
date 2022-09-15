@@ -56,8 +56,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
     const surfaceComposer = janitor.mop(createSurfaceComposer(world));
     const viewComposer = createViewComposer(surfaceComposer, settings);
     const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
-    const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, viewComposer, assets));
     const inputComposer = janitor.mop(createInputComposer(world, surfaceComposer, sceneComposer, viewComposer, assets));
+    const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, surfaceComposer, viewComposer, inputComposer, assets));
     const minimapGraphicsComposer = createMinimapGraphicsComposer(world, sceneComposer, surfaceComposer, viewComposer, assets);
     const sandboxApi = createSandboxApi(openBW, sceneComposer.pxToWorldInverse);
     const commandsComposer = createCommandsComposer(commands);
@@ -211,9 +211,9 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
                 sceneComposer.onFrame(delta);
 
-                minimapGraphicsComposer.onFrame()
+                minimapGraphicsComposer.onFrame();
 
-                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), inputComposer.selectedUnits.toArray())
+                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), inputComposer.selectedUnits.toArray());
 
                 commandsComposer.onFrame(openBwComposer.currentFrame);
 

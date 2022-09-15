@@ -9,7 +9,6 @@ import { getTilesetBuffers } from "./get-tileset-buffers";
 
 import * as sd from "./sd";
 import * as hd from "./hd";
-import { LinearEncoding, sRGBEncoding } from "three";
 import { renderComposer } from "@render";
 import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
@@ -34,6 +33,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   log.verbose(`Generating terrain textures`);
 
+
   const renderer = renderComposer.getWebGLRenderer();
 
   //TODO: properly dispose stuff in here
@@ -50,8 +50,8 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   const isLowRes = textureResolution === UnitTileScale.SD;
 
-  renderer.autoClear = false;
-  renderer.outputEncoding = LinearEncoding;
+  renderComposer.preprocessStart();
+
   renderer.clear();
   const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, textureResolution, renderer);
 
@@ -77,9 +77,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
     }
   }
 
-  //TODO: required?
-  renderer.autoClear = true;
-  renderer.outputEncoding = sRGBEncoding;
+  renderComposer.preprocessEnd();
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, heightMaps, textures, effectsTextures);
 

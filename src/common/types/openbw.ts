@@ -107,7 +107,7 @@ export interface OpenBW extends OpenBWWasm {
     isReplay: () => boolean;
     nextFrame: () => number;
     nextFrameNoAdvance: () => number;
-    tryCatch: (callback: () => void) => void;
+    tryCatch: <T>(callback: () => T) => T;
     loadReplay: (buffer: Buffer) => void;
     loadMap: (buffer: Buffer) => void;
     start: (readFile: ReadFile) => Promise<void>;

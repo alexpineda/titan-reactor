@@ -15,7 +15,7 @@ import { loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
-import generateIcons from "./generate-icons/generate-icons";
+import { generateAllIcons } from "./generate-icons/generate-icons";
 import * as log from "../ipc/log"
 import { loadEnvironmentMap } from "./environment/env-map";
 import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
@@ -69,18 +69,6 @@ export default async (settings: Settings) => {
     )
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
     const envMap = await loadEnvironmentMap(envMapFilename);
-
-    const {
-        resourceIcons,
-        cmdIcons,
-        raceInsetIcons,
-        workerIcons,
-        arrowIcons,
-        hoverIcons,
-        dragIcons,
-        wireframeIcons,
-    } = await generateIcons(readCascFile);
-
 
     const refId = (id: number) => {
         if (sdAnim?.[id]?.refId !== undefined) {
@@ -211,16 +199,9 @@ export default async (settings: Settings) => {
 
     gameStore().setAssets({
         bwDat,
-        grps: atlases,
-        selectionCirclesHD,
-        gameIcons: resourceIcons,
-        cmdIcons,
-        raceInsetIcons,
-        workerIcons,
-        arrowIcons,
-        hoverIcons,
-        dragIcons,
-        wireframeIcons,
+        atlases,
+        selectionCircles: selectionCirclesHD,
+        ...await generateAllIcons(readCascFile),
         envMap,
         loadImageAtlas: (imageId: number) => {
             loadImageAtlas(imageId);

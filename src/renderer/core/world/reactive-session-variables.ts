@@ -12,8 +12,7 @@ import Janitor from "@utils/janitor";
 import { BeforeSet, createReactiveVariable, ReactiveVariable } from "@utils/create-reactive-variable";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
-
-const overwriteMerge = (_: any, sourceArray: any) => sourceArray;
+import { arrayOverwriteMerge } from "@utils/object-utils";
 
 export type MergeSessionStore = (rhs: DeepPartial<SessionSettingsData>) => void;
 
@@ -79,7 +78,7 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
         console.debug("updating session");
 
-        const newSettings = deepMerge<DeepPartial<SessionSettingsData>>(store, rhs, { arrayMerge: overwriteMerge });
+        const newSettings = deepMerge<DeepPartial<SessionSettingsData>>(store, rhs, { arrayMerge: arrayOverwriteMerge });
 
         if (events.emit("settings-changed", { settings: store, rhs }) !== false) {
             Object.assign(store, newSettings);
@@ -90,8 +89,6 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
     // keep the session up to date with user changed settings
     useSettingsStore.subscribe(settings => {
 
-        console.debug("merging session with settings");
-
         Object.assign(store, {
             audio: settings.data.audio,
             game: settings.data.game,
@@ -101,8 +98,8 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
         events.emit("settings-changed", { settings: store, rhs: {} });
 
+    });
 
-    })
 
     function applyEffectToSessionRoot(effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {
 
@@ -113,11 +110,6 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
     const defineSessionProperty = createReactiveVariable(applyEffectToSessionRoot, (path) => lGet(store, path));
 
     const sessionSettingsConfig = fromNestedToSessionLevaConfig(settingsStore().data, settingsStore().enabledPlugins);
-
-    // {
-    //     sandboxMode: defineSessionProperty(false, ["sandboxMode"], (newValue) => {
-    //         return openBW.setSandboxMode(newValue) !== undefined;
-    //     }
 
     const sessionVars = (Object.entries(sessionSettingsConfig).reduce((acc, [key, value]) => {
         if (isValidkey(key)) {

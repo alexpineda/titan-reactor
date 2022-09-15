@@ -57,6 +57,8 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
     const scene = janitor.mop(new BaseScene(map.size[0], map.size[1], terrain, assets.skyBox, assets.envMap));
     const sprites = janitor.mop(new SpriteEntities());
     const images = janitor.mop(new ImageEntities());
+    images.onCreateImage = (image) => events.emit("image-created", image);
+    images.onFreeImage = (image) => events.emit("image-destroyed", image);
 
     scene.add(sprites.group);
 
@@ -87,7 +89,7 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
 
     }
 
-    let unit: Unit|undefined;
+    let unit: Unit | undefined;
 
     const buildUnits = (
     ) => {

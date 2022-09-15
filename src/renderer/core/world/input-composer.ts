@@ -3,7 +3,6 @@ import { CameraKeys } from "@input/camera-keys";
 import Janitor from "@utils/janitor";
 import { SurfaceComposer } from "./surface-composer";
 import MinimapMouse from "@input/minimap-mouse";
-import { MouseCursor } from "@input/mouse-cursor";
 import { ViewComposer } from "./view-composer";
 import { Object3D } from "three";
 import { Image3D, ImageHD, Unit } from "..";
@@ -15,18 +14,22 @@ import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { Assets } from "common/types";
 import { SceneController } from "@plugins/plugin-system-native";
 import { World } from "./world";
+import { MouseCursor } from "@input/mouse-cursor";
+
+export type InputComposer = ReturnType<typeof createInputComposer>;
 
 export const createInputComposer = ({ events, map }: World, { gameSurface, minimapSurface }: SurfaceComposer, { images, sprites, scene }: SceneComposer, viewComposer: ViewComposer, assets: Assets) => {
 
     const janitor = new Janitor();
     const cameraMouse = janitor.mop(new CameraMouse(document.body));
-    const mouseCursor = janitor.mop(new MouseCursor());
     const cameraKeys = janitor.mop(new CameraKeys(document.body));
     const minimapMouse = janitor.mop(new MinimapMouse(
         minimapSurface,
         map.size[0],
         map.size[1],
     ));
+    janitor.mop(new MouseCursor(minimapSurface.canvas));
+    gameSurface.canvas.style.cursor = "none";
 
     const _getSelectionUnit = (object: Object3D): Unit | null => {
 
@@ -69,14 +72,18 @@ export const createInputComposer = ({ events, map }: World, { gameSurface, minim
     });
 
 
-
     return {
+        get mousePosition() {
+            return cameraMouse.mouse;
+        },
         selectedUnits,
         followedUnits,
+        get unitSelectionStatus() {
+            return unitSelectionBox.status;
+        },
         onSceneControllerActivated(sceneController: SceneController) {
             unitSelectionBox.activate(sceneController.gameOptions?.allowUnitSelection, sceneController.viewports[0].camera)
         },
-        mouseCursor,
         update(delta: number, elapsed: number) {
             cameraMouse.update(delta / 100, elapsed, viewComposer);
             cameraKeys.update(delta / 100, elapsed, viewComposer);

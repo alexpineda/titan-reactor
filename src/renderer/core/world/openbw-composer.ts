@@ -14,7 +14,6 @@ export const createOpenBWComposer = ({ events, openBW, reset, fogOfWar }: World,
     let _currentFrame = 0;
     let _previousBwFrame = -1;
 
-
     const soundChannels = new SoundChannels();
 
     const buildSounds = (elapsed: number) => {
@@ -73,7 +72,7 @@ export const createOpenBWComposer = ({ events, openBW, reset, fogOfWar }: World,
         update(elapsed: number) {
 
             lastElapsed = elapsed;
-            _currentFrame = openBW.nextFrame();
+            _currentFrame = openBW.tryCatch(openBW.nextFrame);
 
             if (_currentFrame !== _previousBwFrame) {
 

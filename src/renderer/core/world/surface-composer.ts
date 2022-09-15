@@ -51,6 +51,7 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
             rect.minimapHeight,
         );
 
+        events.emit("resize", gameSurface);
     };
 
     const sceneResizeHandler = debounce(() => {

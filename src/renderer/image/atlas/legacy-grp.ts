@@ -13,7 +13,7 @@ type Palettes = Uint8Array[] & { dark?: Buffer; light?: Buffer };
 
 // Load 1.16 GRP into textures and frames
 // FIXME: refactor to implement GRPInterface
-export class GrpSDLegacy {
+export class LegacyGRP {
   width = 0;
   height = 0;
   grpWidth?= 0;
@@ -160,4 +160,4 @@ export class GrpSDLegacy {
     this.texture?.dispose();
   }
 }
-export default GrpSDLegacy;
+export default LegacyGRP;

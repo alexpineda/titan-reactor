@@ -1,5 +1,6 @@
 import { FogOfWarEffect } from "@core/fogofwar";
-import { PostProcessingBundle, Settings } from "common/types";
+import { CursorEffect } from "@image/effects/cursor-effect";
+import { Assets, Settings } from "common/types";
 import { BlendFunction, BloomEffect, BrightnessContrastEffect, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
 import { Camera, Object3D, OrthographicCamera, PerspectiveCamera, Scene, Vector3 } from "three";
 import { renderComposer } from "./render-composer";
@@ -36,7 +37,7 @@ export function isPostProcessing3D(obj: any): obj is Settings["postprocessing3d"
     return obj !== undefined && "depthFocalLength" in obj;
 }
 
-export class PostProcessingBundleComposer implements PostProcessingBundle {
+export class PostProcessingBundler {
     #prevVersion = 0;
     #version = 0;
     #effectivePasses: EffectivePasses = EffectivePasses.None;
@@ -52,6 +53,7 @@ export class PostProcessingBundleComposer implements PostProcessingBundle {
     #bloomEffect?: SelectiveBloomEffect | BloomEffect;
     #depthOfFieldEffect?: DepthOfFieldEffect;
     #fogOfWarEffect: FogOfWarEffect;
+    cursorEffect: CursorEffect;
 
     debug = false;
     get debugSelection() {
@@ -60,13 +62,14 @@ export class PostProcessingBundleComposer implements PostProcessingBundle {
 
     #outlineEffect?: OutlineEffect;
 
-    constructor(camera: Camera, scene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
+    constructor(camera: Camera, scene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect, assets: Assets) {
 
         this.camera = camera;
         this.scene = scene;
         this.options = options;
         this.#renderPass = new RenderPass(scene, camera);
         this.#fogOfWarEffect = fogOfWar;
+        this.cursorEffect = new CursorEffect(assets);
 
     }
 
@@ -153,6 +156,8 @@ export class PostProcessingBundleComposer implements PostProcessingBundle {
                 toneMappingPass.push(this.#brightnessContrast);
             }
         }
+
+        toneMappingPass.push(this.cursorEffect);
 
         if (this.debug) {
             this.#outlineEffect = new OutlineEffect(this.scene, this.camera, {

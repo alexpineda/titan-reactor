@@ -57,10 +57,12 @@
         "mac": {
             "category": "The Advanced Observing App"
         },
-        "extraResources": [{
-            "from": "bundled",
-            "to": "bundled"
-        }]
+        "extraResources": [
+            {
+                "from": "bundled",
+                "to": "bundled"
+            }
+        ]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",
@@ -83,7 +85,6 @@
         "electron-is-dev": "^1.2.0",
         "express": "^4.17.3",
         "iconv-lite": "0.6.3",
-        "immer": "^9.0.15",
         "leva": "^0.9.23",
         "libnpmsearch": "^5.0.0",
         "lodash.debounce": "^4.0.8",
@@ -99,6 +100,7 @@
         "pkware-wasm": "^1.0.0",
         "postprocessing": "6.28.5",
         "random": "^3.0.6",
+        "rbush": "^3.0.1",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-helmet": "^6.1.0",
@@ -107,16 +109,13 @@
         "scm-extractor": "^1.0.6",
         "semver": "^7.3.5",
         "ses": "^0.15.17",
-        "simplex-noise": "^4.0.0",
         "three": "0.143.0",
         "three-gpu-pathtracer": "^0.0.5",
         "three-instanced-uniforms-mesh": "^0.46.0",
         "threejs-shader-materials": "MasatoMakino/threejs-shader-materials",
-        "tone": "^14.7.77",
         "troika-three-utils": "^0.46.0",
         "ts-morph": "^15.1.0",
         "typescript": "^4.4.4",
-        "webpack": "4.42.1",
         "winreg": "^1.2.4",
         "zustand": "3.3.3"
     },
@@ -172,6 +171,7 @@
         "source-map-support": "^0.5.19",
         "ts-node": "^10.9.1",
         "url-loader": "^4.1.1",
+        "webpack": "4.42.1",
         "worker-loader": "^2.0.0"
     },
     "resolutions": {

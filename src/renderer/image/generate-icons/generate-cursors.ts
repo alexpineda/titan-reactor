@@ -1,11 +1,10 @@
 import { ImageDAT } from "common/types";
-import GrpSDLegacy from "../atlas/grp-sd-legacy";
+import LegacyGRP from "../atlas/legacy-grp";
 import { rgbToCanvas } from "../canvas";
 
+export const generateCursors = async (grp: Buffer, palette: Uint8Array) => {
 
-
-export default async (grp: Buffer, palette: Uint8Array) => {
-    const grpSD = new GrpSDLegacy();
+    const grpSD = new LegacyGRP();
 
     await grpSD.load({
         readGrp: () => Promise.resolve(grp),
@@ -16,6 +15,15 @@ export default async (grp: Buffer, palette: Uint8Array) => {
     if (!grpSD.texture || !grpSD.frames) {
         throw new Error("Could not load grp");
     }
+
+    return grpSD;
+
+}
+
+export const generateCursorsDataURI = async (grp: Buffer, palette: Uint8Array) => {
+
+    const grpSD = await generateCursors(grp, palette);
+
     const canvas = rgbToCanvas(
         {
             data: grpSD.texture.image.data,
@@ -25,7 +33,7 @@ export default async (grp: Buffer, palette: Uint8Array) => {
         "rgba"
     );
 
-    return grpSD.frames.map(({ x, y, grpX, grpY, w, h }) => {
+    return grpSD.frames!.map(({ x, y, grpX, grpY, w, h }) => {
         const dest = document.createElement("canvas");
         dest.width = w;
         dest.height = h;

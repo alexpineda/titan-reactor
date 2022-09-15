@@ -1,10 +1,10 @@
 
 import { ImageDAT } from "common/types";
-import GrpSDLegacy from "../atlas/grp-sd-legacy";
+import LegacyGRP from "../atlas/legacy-grp";
 import { rgbToCanvas } from "../canvas";
 
-export default async (grp: Buffer, palette: Uint8Array) => {
-    const grpSD = new GrpSDLegacy();
+export const generateCenteredCursorsDataURI = async (grp: Buffer, palette: Uint8Array) => {
+    const grpSD = new LegacyGRP();
 
     await grpSD.load({
         readGrp: () => Promise.resolve(grp),

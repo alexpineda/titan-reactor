@@ -1,5 +1,3 @@
-import produce from 'immer';
-
 import { FieldDefinition, ModifyValueActionEffect } from "common/types";
 
 
@@ -23,9 +21,6 @@ export const createReactiveVariable = (applyEffect: ApplyEffect, getValue: (path
     }
 
     return {
-        update(fn: (value: any) => any) {
-            this.value = produce(fn, this.value);
-        },
         /**
          * Get value of the property.
          */

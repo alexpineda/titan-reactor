@@ -77,7 +77,7 @@ export class ImageEntities {
         }
 
         // update to latest atlas
-        image.updateImageType(gameStore().assets!.grps[imageTypeId]);
+        image.updateImageType(gameStore().assets!.atlases[imageTypeId]);
         image.userData.imageIndex = imageIndex;
 
         return image;

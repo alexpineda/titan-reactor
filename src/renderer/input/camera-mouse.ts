@@ -88,6 +88,10 @@ export class CameraMouse {
 
     }
 
+    get mouse() {
+        return this.#mouse;
+    }
+
     update(delta: number, elapsed: number, callbacks: UserInputCallbacks) {
 
         callbacks.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked, this.#modifiers);

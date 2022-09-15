@@ -3,27 +3,33 @@ import { withErrorMessage } from "common/utils/with-error-message";
 import create from "zustand";
 import { SceneState } from "../scenes/scene";
 
+export type SceneLoader = (prevData?: any) => Promise<SceneState> | SceneState;
+
 export type SceneStore = {
     state: SceneState | null;
-    execSceneLoader: (load: () => Promise<SceneState> | SceneState) => Promise<void>;
+    execSceneLoader: (loader: SceneLoader, errorHandler?: SceneLoader, dontClearError?: boolean) => Promise<void>;
     error: Error | null;
     setError: (error: Error) => void;
     clearError: () => void;
+    reset(): void;
 };
 
 let _loading = false;
 
+
 export const useSceneStore = create<SceneStore>((set, get) => ({
-    scene: null,
     state: null,
     error: null,
-    execSceneLoader: async (loader: (prevData?: any) => Promise<SceneState> | SceneState) => {
+    execSceneLoader: async (loader: SceneLoader, errorHandler?: SceneLoader, clearError = true) => {
         if (_loading) {
             console.warn("Scene is already loading");
         }
         _loading = true;
 
-        get().clearError();
+        if (clearError) {
+            get().clearError();
+        }
+
         const oldState = get().state;
         let prevData: any = undefined;
         if (oldState) {
@@ -48,8 +54,17 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
                 log.error(err);
             }
             get().setError(err);
+            if (errorHandler) {
+                get().reset();
+                setTimeout(() => get().execSceneLoader(errorHandler, undefined, false), 0);
+            }
         }
         _loading = false;
+    },
+    reset() {
+        set({
+            state: null,
+        })
     },
     setError: (error: Error) => {
         log.error(error.message);

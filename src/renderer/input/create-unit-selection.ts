@@ -16,6 +16,12 @@ const _selectRayCaster = new Raycaster();
 let _unit: Unit | null;
 let _mouse = new Vector2();
 
+export enum UnitSelectionStatus {
+    None,
+    Dragging,
+    Hovering
+}
+
 export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
     const janitor = new Janitor;
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
@@ -23,6 +29,7 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
 
     let mouseIsDown = false;
     let enabled = true;
+    let _status = UnitSelectionStatus.None;
 
     const _selectDown = (minimapSurface: Surface) => (event: PointerEvent) => {
         if (event.button !== 0 || !enabled) return;
@@ -56,7 +63,7 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
                 0.5);
 
             visualBox.end(event.clientX, event.clientY);
-            // mouseCursor.drag();
+            _status = UnitSelectionStatus.Dragging;
         } else {
             // hoverUnit(event)
         }
@@ -95,7 +102,7 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
         minimapSurface.canvas.style.pointerEvents = "auto";
         mouseIsDown = false;
         visualBox.clear();
-        // mouseCursor.pointer();
+        _status = UnitSelectionStatus.None;
 
         let draft: Unit[] = [];
 
@@ -121,14 +128,6 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
                     draft.push(_unit);
                 }
             }
-
-            // if (event.shiftKey) {
-            //     for (const unit of selectedUnitsStore().selectedUnits) {
-            //         if (!selectedUnits.includes(unit)) {
-            //             selectedUnits.push(unit);
-            //         }
-            //     }
-            // }
 
             const onlyUnits = draft.filter(_hasAnyUnit);
             if (onlyUnits.length > 0 && onlyUnits.length !== draft.length) {
@@ -156,9 +155,10 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
 
     }
 
-
-
     return {
+        get status() {
+            return _status;
+        },
         listen(gameSurface: Surface, minimap: Surface) {
 
             janitor.addEventListener(gameSurface.canvas, 'pointerup', _selectUp(minimap));

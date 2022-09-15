@@ -1,4 +1,4 @@
-import GrpSDLegacy from "../../atlas/grp-sd-legacy";
+import LegacyGRP from "../../atlas/legacy-grp";
 import { ImageDAT, CreepTexture } from "common/types";
 import { NearestFilter } from "three";
 // leverage our SD grp reader to render creep edges in SD
@@ -7,7 +7,7 @@ export const grpToCreepEdgesTextureAsync = async (
   palette: Uint8Array
 ): Promise<CreepTexture> => {
   const stride = 37;
-  const grpSD = new GrpSDLegacy();
+  const grpSD = new LegacyGRP();
 
   await grpSD.load(
     {
