@@ -24,7 +24,8 @@ const createWebGLRenderer = () => {
         preserveDrawingBuffer: false,
         antialias: false,
         stencil: false,
-        depth: true,
+        depth: false,
+        alpha: false,
         precision: "highp",
     });
     renderer.outputEncoding = sRGBEncoding;
@@ -45,7 +46,9 @@ export class TitanRenderComposer {
     composer = new EffectComposer(undefined, {
         frameBufferType: HalfFloatType,
         multisampling: 0,
-        stencilBuffer: true
+        stencilBuffer: false,
+        alpha: true,
+        depthBuffer: true,
     });
 
     constructor() {
@@ -137,10 +140,13 @@ export class TitanRenderComposer {
     }
 
     setSize(bufferWidth: number, bufferHeight: number) {
+
         this.composer.setSize(bufferWidth, bufferHeight, false);
+
     }
 
     dispose() {
+
         if (this.#renderer) {
             this.#renderer.setAnimationLoop(null);
             this.#renderer.dispose();
@@ -165,7 +171,7 @@ export class TitanRenderComposer {
     }
 
     preprocessEnd() {
-        this.getWebGLRenderer().autoClear = true;
+        this.getWebGLRenderer().autoClear = false;
         this.getWebGLRenderer().outputEncoding = sRGBEncoding;
     }
 }

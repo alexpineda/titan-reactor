@@ -1,13 +1,13 @@
 import { Surface } from "@image/canvas";
 import Janitor from "@utils/janitor";
-import { MouseSelectionBox } from ".";
+import { VisualSelectionBox } from ".";
 import { Object3D, PerspectiveCamera, Scene } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 
 export const createImageSelection = (scene: Scene, gameSurface: Surface, minimapSurface: Surface, onSelect: (obj: Object3D[]) => void) => {
     const janitor = new Janitor;
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
-    const visualBox = janitor.mop(new MouseSelectionBox("#00cc00"));
+    const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"));
 
     let mouseIsDown = false;
     let enabled = true;

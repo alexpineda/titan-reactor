@@ -33,7 +33,7 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
 
     const janitor = new Janitor();
 
-    const { terrain, terrainExtra } = janitor.mop(await chkToTerrainMesh(
+    const { terrain, ...terrainExtra } = janitor.mop(await chkToTerrainMesh(
         map, UnitTileScale.HD,
     ));
 

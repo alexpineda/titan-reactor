@@ -2,7 +2,6 @@ import { CameraMouse } from "@input/camera-mouse";
 import { CameraKeys } from "@input/camera-keys";
 import Janitor from "@utils/janitor";
 import { SurfaceComposer } from "./surface-composer";
-import MinimapMouse from "@input/minimap-mouse";
 import { ViewComposer } from "./view-composer";
 import { Object3D } from "three";
 import { Image3D, ImageHD, Unit } from "..";
@@ -14,21 +13,14 @@ import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { Assets } from "common/types";
 import { SceneController } from "@plugins/plugin-system-native";
 import { World } from "./world";
-import { MouseCursor } from "@input/mouse-cursor";
 
 export type InputComposer = ReturnType<typeof createInputComposer>;
 
-export const createInputComposer = ({ events, map }: World, { gameSurface, minimapSurface }: SurfaceComposer, { images, sprites, scene }: SceneComposer, viewComposer: ViewComposer, assets: Assets) => {
+export const createInputComposer = ({ events }: World, { gameSurface }: SurfaceComposer, { images, sprites, scene }: SceneComposer, viewComposer: ViewComposer, assets: Assets) => {
 
     const janitor = new Janitor();
     const cameraMouse = janitor.mop(new CameraMouse(document.body));
     const cameraKeys = janitor.mop(new CameraKeys(document.body));
-    const minimapMouse = janitor.mop(new MinimapMouse(
-        minimapSurface,
-        map.size[0],
-        map.size[1],
-    ));
-    janitor.mop(new MouseCursor(minimapSurface.canvas));
     gameSurface.canvas.style.cursor = "none";
 
     const _getSelectionUnit = (object: Object3D): Unit | null => {
@@ -47,11 +39,9 @@ export const createInputComposer = ({ events, map }: World, { gameSurface, minim
 
     const selectedUnits = new IterableSet<Unit>((units) => events.emit("selected-units-changed", units));
 
-    janitor.addEventListener(minimapSurface.canvas, "mousedown", () => followedUnits.clear());
-
     const unitSelectionBox = createUnitSelectionBox(selectedUnits, scene, _getSelectionUnit);
 
-    janitor.mop(unitSelectionBox.listen(gameSurface, minimapSurface));
+    janitor.mop(unitSelectionBox.listen(gameSurface));
 
     const selectionDisplayComposer = createSelectionDisplayComposer(assets);
     scene.add(...selectionDisplayComposer.objects);
@@ -87,7 +77,6 @@ export const createInputComposer = ({ events, map }: World, { gameSurface, minim
         update(delta: number, elapsed: number) {
             cameraMouse.update(delta / 100, elapsed, viewComposer);
             cameraKeys.update(delta / 100, elapsed, viewComposer);
-            minimapMouse.update(viewComposer);
             selectionDisplayComposer.update(viewComposer.primaryCamera!, sprites, [], selectedUnits.toArray());
         },
         dispose() {

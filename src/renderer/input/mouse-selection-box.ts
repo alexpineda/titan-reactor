@@ -1,12 +1,12 @@
 import { Vector2 } from "three";
 
-export class MouseSelectionBox {
+export class VisualSelectionBox {
     selectElement: HTMLSpanElement;
     #enabled = true;
     #start = new Vector2
 
     set color(value: string) {
-        this.selectElement.style.outline = `3px solid ${value}`;
+        this.selectElement.style.outline = `2px solid ${value}`;
     }
 
     constructor(color: string) {

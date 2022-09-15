@@ -1,6 +1,4 @@
-import { Surface } from "@image/canvas";
 import GameSurface from "@render/game-surface";
-import { renderComposer } from "@render/render-composer";
 import gameStore from "@stores/game-store";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import Janitor from "@utils/janitor";
@@ -22,19 +20,10 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
     janitor.mop(document.body.appendChild(gameSurface.canvas));
 
-    renderComposer.targetSurface = gameSurface;
-
     gameStore().setDimensions(gameSurface.getMinimapDimensions(settingsStore().data.game.minimapSize));
 
-    const minimapSurface = janitor.mop(new Surface({
-        position: "absolute",
-        bottom: "0",
-        zIndex: "20"
-    }));
-
-    janitor.mop(document.body.appendChild(minimapSurface.canvas));
-
     const _sceneResizeHandler = () => {
+        console.log("resize handler");
         gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
 
         const rect = gameSurface.getMinimapDimensions(settings.getState().game.minimapSize);
@@ -45,11 +34,6 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
         });
 
         cssScene.setSize(gameSurface.width, gameSurface.height);
-
-        minimapSurface.setDimensions(
-            rect.minimapWidth,
-            rect.minimapHeight,
-        );
 
         events.emit("resize", gameSurface);
     };
@@ -62,8 +46,6 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
         passive: true,
     })
 
-
-
     const resize = (immediate = false) => {
         if (immediate) {
             _sceneResizeHandler();
@@ -71,21 +53,6 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
             sceneResizeHandler();
         }
     }
-
-    events.on("settings-changed", ({ settings, rhs }) => {
-
-        if (rhs.game?.minimapSize) {
-            resize();
-        }
-
-        if (rhs.game?.minimapEnabled && rhs.game.minimapEnabled !== settings.game.minimapEnabled) {
-            minimapSurface.canvas.style.display = rhs.game.minimapEnabled ? "block" : "none";
-            if (rhs.game.minimapEnabled) {
-                minimapSurface.canvas.style.pointerEvents = "auto";
-            }
-        }
-
-    });
 
     // some values we do not keep in the user facing reactive variables but will want to listen to
     janitor.mop(useSettingsStore.subscribe(settings => {
@@ -97,7 +64,6 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
     return {
         cssScene,
         gameSurface,
-        minimapSurface,
         dispose() {
             janitor.dispose();
         },

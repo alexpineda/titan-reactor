@@ -14,23 +14,24 @@ import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewComposer } from "@core/world/view-composer";
 import { World } from "./world";
-import { InputComposer } from "./input-composer";
 import { SurfaceComposer } from "./surface-composer";
-import { UnitSelectionStatus } from "@input";
+import { OverlayComposer } from "./overlay-composer";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
 const ignoreCastShadow = [347, 349, 351];
 
-export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW, events }: World, { scene, images, sprites, terrain }: SceneComposer, { gameSurface }: SurfaceComposer, viewportsComposer: ViewComposer, inputs: InputComposer, assets: Assets) => {
+export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW, events, reset }: World, { scene, images, sprites, terrain }: SceneComposer, { gameSurface }: SurfaceComposer, viewportsComposer: ViewComposer, overlayComposer: OverlayComposer, assets: Assets) => {
     const janitor = new Janitor();
 
     const postProcessingBundle = janitor.mop(
         new PostProcessingBundler(
+            gameSurface,
             new PerspectiveCamera,
             scene,
+            overlayComposer.overlayGroup,
             settingsStore().data.postprocessing,
-            fogOfWarEffect, assets)
+            fogOfWarEffect)
     );
 
     const updatePostProcessingOptions = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
@@ -55,6 +56,7 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
                 scene.createSunlight();
                 scene.sunlight.shadowQuality = postProcessingBundle.options3d.shadowQuality;
             }
+
             scene.sunlight.shadowIntensity = postProcessingBundle.options3d.shadowIntensity;
             scene.sunlight.setPosition(postProcessingBundle.options3d.sunlightDirection[0], postProcessingBundle.options3d.sunlightDirection[1], postProcessingBundle.options3d.sunlightDirection[2]);
             scene.sunlight.intensity = postProcessingBundle.options3d.sunlightIntensity;
@@ -68,24 +70,32 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
     }
 
     events.on("image-destroyed", (image) => {
+
         postProcessingBundle.removeBloomSelection(image);
         if (postProcessingBundle.debugSelection)
             postProcessingBundle.debugSelection.delete(image);
+
     });
 
     events.on("image-created", (image) => {
+
         postProcessingBundle.addBloomSelection(image);
         if (image instanceof Image3D && postProcessingBundle.options3d) {
             image.material.envMapIntensity = postProcessingBundle.options3d.envMap;
             image.castShadow = !ignoreCastShadow.includes(assets.refId(image.dat.index));
             image.receiveShadow = !ignoreRecieveShadow.includes(assets.refId(image.dat.index));;
         }
+
     });
 
-    postProcessingBundle.cursorEffect.resolution.set(gameSurface.bufferWidth, gameSurface.bufferHeight);
-    events.on("resize", (surface) => {
+    renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
+
+    events.on("resize", (gameSurface) => {
+
+        console.log("postprocessing:resize");
+
         renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
-        postProcessingBundle.cursorEffect.resolution.set(surface.bufferWidth, surface.bufferHeight);
+
     })
 
     const changeRenderMode = (renderMode3D: boolean) => {
@@ -103,37 +113,27 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
     const _target = new Vector3();
     const spritesIterator = new SpritesBufferViewIterator(openBW);
     const imageBufferView = new ImageBufferView(openBW);
-    let _onRenderModeChange = () => { };
 
     return Object.freeze({
-        get cursorEffect() {
-            return postProcessingBundle.cursorEffect
-        },
-        onRenderModeChange(listener: () => void) {
-            _onRenderModeChange = listener;
-        },
         changeRenderMode,
         updatePostProcessingOptions(options: Settings["postprocessing"] | Settings["postprocessing3d"]) {
+
             if (shallow(postProcessingBundle.options, options) === false) {
                 updatePostProcessingOptions(options)
             }
+
         },
         dispose() {
+
             janitor.dispose();
+
         },
         onFrameReset() {
+
             postProcessingBundle.clearBloomSelection();
+
         },
         render(delta: number, elapsed: number) {
-
-            postProcessingBundle.cursorEffect.cursorPosition.set(inputs.mousePosition.x, inputs.mousePosition.y);
-            if (inputs.unitSelectionStatus === UnitSelectionStatus.Dragging) {
-                postProcessingBundle.cursorEffect.drag();
-            } else if (inputs.unitSelectionStatus === UnitSelectionStatus.Hovering) {
-                postProcessingBundle.cursorEffect.hover();
-            } else {
-                postProcessingBundle.cursorEffect.pointer();
-            }
 
             // global won't use camera so we can set it to any
             for (const v of viewportsComposer.activeViewports()) {
@@ -142,7 +142,7 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
 
                     if (v.needsUpdate) {
                         changeRenderMode(v.renderMode3D);
-                        _onRenderModeChange();
+                        reset();
                         v.needsUpdate = false;
                     }
 
@@ -151,8 +151,10 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
                     postProcessingBundle.updateExtended(v.camera, _target)
 
                 } else {
+
                     // iterate all images again and update image frames according to different view camera
                     //TODO: iterate over image objects and add image address to get buffer view
+
                     for (const spriteBuffer of spritesIterator) {
 
                         const object = sprites.get(spriteBuffer.index);

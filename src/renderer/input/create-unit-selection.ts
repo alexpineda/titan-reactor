@@ -3,7 +3,7 @@ import { Surface } from "@image/canvas";
 import { inverse } from "@utils/function-utils";
 import Janitor from "@utils/janitor";
 import { canOnlySelectOne } from "@utils/unit-utils";
-import { MouseSelectionBox } from ".";
+import { VisualSelectionBox } from ".";
 import { Camera, Object3D, PerspectiveCamera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 import { IterableSet } from "@utils/iterable-set";
@@ -25,15 +25,14 @@ export enum UnitSelectionStatus {
 export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
     const janitor = new Janitor;
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
-    const visualBox = janitor.mop(new MouseSelectionBox("#00cc00"));
+    const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"));
 
     let mouseIsDown = false;
     let enabled = true;
     let _status = UnitSelectionStatus.None;
 
-    const _selectDown = (minimapSurface: Surface) => (event: PointerEvent) => {
+    const _selectDown = (event: PointerEvent) => {
         if (event.button !== 0 || !enabled) return;
-        minimapSurface.canvas.style.pointerEvents = "none";
         mouseIsDown = true;
         selectionBox.startPoint.set(
             (event.clientX / window.innerWidth) * 2 - 1,
@@ -96,10 +95,9 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
         }
     };
 
-    const _selectUp = (minimapSurface: Surface) => (event: PointerEvent) => {
+    const _selectUp = (event: PointerEvent) => {
         if (!mouseIsDown || !enabled) return;
 
-        minimapSurface.canvas.style.pointerEvents = "auto";
         mouseIsDown = false;
         visualBox.clear();
         _status = UnitSelectionStatus.None;
@@ -159,10 +157,10 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
         get status() {
             return _status;
         },
-        listen(gameSurface: Surface, minimap: Surface) {
+        listen(gameSurface: Surface) {
 
-            janitor.addEventListener(gameSurface.canvas, 'pointerup', _selectUp(minimap));
-            janitor.addEventListener(gameSurface.canvas, "pointerdown", _selectDown(minimap));
+            janitor.addEventListener(gameSurface.canvas, 'pointerup', _selectUp);
+            janitor.addEventListener(gameSurface.canvas, "pointerdown", _selectDown);
             janitor.addEventListener(gameSurface.canvas, 'pointermove', _selectMove);
 
             return janitor;

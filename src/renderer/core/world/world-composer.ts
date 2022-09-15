@@ -15,7 +15,7 @@ import { BasePlayer } from "../players";
 import { FogOfWar, FogOfWarEffect } from "../fogofwar";
 import { createSurfaceComposer } from "./surface-composer";
 import { createOpenBWComposer } from "./openbw-composer";
-import { createMinimapGraphicsComposer } from "./minimap-graphics-composer";
+import { createOverlayComposer } from "./overlay-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createCommandsComposer } from "./commands-composer";
 import { createInputComposer } from "./input-composer";
@@ -52,13 +52,14 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
             frameResetRequested = true;
         }
     }
+    let frameResetRequested = false;
 
     const surfaceComposer = janitor.mop(createSurfaceComposer(world));
     const viewComposer = createViewComposer(surfaceComposer, settings);
     const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
     const inputComposer = janitor.mop(createInputComposer(world, surfaceComposer, sceneComposer, viewComposer, assets));
-    const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, surfaceComposer, viewComposer, inputComposer, assets));
-    const minimapGraphicsComposer = createMinimapGraphicsComposer(world, sceneComposer, surfaceComposer, viewComposer, assets);
+    const overlayComposer = createOverlayComposer(world, sceneComposer, surfaceComposer, inputComposer, assets);
+    const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, surfaceComposer, viewComposer, overlayComposer, assets));
     const sandboxApi = createSandboxApi(openBW, sceneComposer.pxToWorldInverse);
     const commandsComposer = createCommandsComposer(commands);
     const gameLoopComposer = janitor.mop(createGameLoopComposer());
@@ -138,7 +139,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
     }
 
-    let frameResetRequested = false;
+
+
 
     return {
 
@@ -149,7 +151,6 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
             surfaceComposer.resize(true);
 
-            postProcessingComposer.onRenderModeChange(() => frameResetRequested = true);
             gameLoopComposer.onUpdate(this.update.bind(this));
 
             janitor.on(ipcRenderer, RELOAD_PLUGINS, async () => {
@@ -207,11 +208,13 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
             inputComposer.update(delta, elapsed);
 
+            overlayComposer.update(delta);
+
             if (openBwComposer.update(elapsed)) {
 
                 sceneComposer.onFrame(delta);
 
-                minimapGraphicsComposer.onFrame();
+                overlayComposer.onFrame();
 
                 plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), inputComposer.selectedUnits.toArray());
 

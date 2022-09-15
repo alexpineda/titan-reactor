@@ -1,7 +1,7 @@
 import { FogOfWarEffect } from "@core/fogofwar";
-import { CursorEffect } from "@image/effects/cursor-effect";
-import { Assets, Settings } from "common/types";
-import { BlendFunction, BloomEffect, BrightnessContrastEffect, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
+import { Surface } from "@image/canvas";
+import { Settings } from "common/types";
+import { BlendFunction, BloomEffect, BrightnessContrastEffect, CopyPass, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
 import { Camera, Object3D, OrthographicCamera, PerspectiveCamera, Scene, Vector3 } from "three";
 import { renderComposer } from "./render-composer";
 
@@ -41,11 +41,13 @@ export class PostProcessingBundler {
     #prevVersion = 0;
     #version = 0;
     #effectivePasses: EffectivePasses = EffectivePasses.None;
+    #surface: Surface;
     camera: Camera;
     scene: Scene;
     options: Settings["postprocessing"] | Settings["postprocessing3d"];
 
     #renderPass: RenderPass;
+    #overlayPass: RenderPass;
     #passes: Pass[] = [];
 
     #tonemapping = new ToneMappingEffect({ mode: ToneMappingMode.OPTIMIZED_CINEON });
@@ -53,7 +55,6 @@ export class PostProcessingBundler {
     #bloomEffect?: SelectiveBloomEffect | BloomEffect;
     #depthOfFieldEffect?: DepthOfFieldEffect;
     #fogOfWarEffect: FogOfWarEffect;
-    cursorEffect: CursorEffect;
 
     debug = false;
     get debugSelection() {
@@ -62,14 +63,25 @@ export class PostProcessingBundler {
 
     #outlineEffect?: OutlineEffect;
 
-    constructor(camera: Camera, scene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect, assets: Assets) {
+    constructor(surface: Surface, camera: Camera, scene: Scene, overlayScene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
 
         this.camera = camera;
         this.scene = scene;
         this.options = options;
+
         this.#renderPass = new RenderPass(scene, camera);
+        this.#renderPass.clear = true;
+
+        this.#overlayPass = new RenderPass(overlayScene, camera);
+        this.#overlayPass.clear = false;
+        this.#overlayPass.skipShadowMapUpdate = true;
+        this.#overlayPass.ignoreBackground = true;
+
         this.#fogOfWarEffect = fogOfWar;
-        this.cursorEffect = new CursorEffect(assets);
+
+        this.#surface = surface;
+        renderComposer.targetSurface = surface;
+
 
     }
 
@@ -101,6 +113,7 @@ export class PostProcessingBundler {
 
     #updateEffects() {
 
+
         this.removeDepthOfField();
         this.removeBloom();
 
@@ -125,7 +138,6 @@ export class PostProcessingBundler {
             this.#bloomEffect = createBloomEffect(this.scene, this.camera, this.options.bloom, true);
             if (this.#bloomEffect instanceof SelectiveBloomEffect) {
                 this.#bloomEffect.ignoreBackground = true;
-                // this.#bloomEffect.depthMaskPass.epsilon = 0.001;/// and 0.00001
                 if (this.#depthOfFieldEffect) {
                     pass2.push(this.#bloomEffect);
                 } else {
@@ -157,8 +169,6 @@ export class PostProcessingBundler {
             }
         }
 
-        toneMappingPass.push(this.cursorEffect);
-
         if (this.debug) {
             this.#outlineEffect = new OutlineEffect(this.scene, this.camera, {
                 blendFunction: BlendFunction.SCREEN,
@@ -185,9 +195,15 @@ export class PostProcessingBundler {
             this.#passes.push(this.#renderPass);
             for (const passEffects of this.#updateEffects()) {
                 if (passEffects.length) {
-                    this.#passes.push(new EffectPass(this.camera, ...passEffects));
+                    const pass = new EffectPass(this.camera, ...passEffects);
+                    this.#passes.push(pass);
                 }
             }
+            this.#passes.push(this.#overlayPass);
+            this.#passes.push(new CopyPass());
+            renderComposer.setSize(this.#surface.bufferWidth, this.#surface.bufferHeight);
+
+
         }
         return this.#passes;
     }

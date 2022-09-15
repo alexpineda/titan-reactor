@@ -81,8 +81,6 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, heightMaps, textures, effectsTextures);
 
-  const minimapBitmap = await sd.createMinimapBitmap(bitmaps.diffuse, mapWidth, mapHeight);
-
   const creep = new Creep(
     mapWidth,
     mapHeight,
@@ -92,13 +90,9 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   return {
     terrain,
-    terrainExtra: {
-      minimapBitmap,
-      creepEdgesTextureUniform: dataTextures.creepEdgesTextureUniform,
-      creepTextureUniform: dataTextures.creepTextureUniform,
-      heightMaps,
-      creep
-    },
+    dataTextures,
+    creep,
+    heightMaps,
     dispose() {
       janitor.dispose(
         creep,
@@ -109,5 +103,3 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
     }
   }
 }
-
-export type TerrainExtra = Awaited<ReturnType<typeof chkToTerrainMesh>>["terrainExtra"];
