@@ -7,14 +7,9 @@ export class MouseCursor {
 
   #element: HTMLElement;
   #arrowIcons: Icons;
-  #dragIcons: Icons;
-  #hoverIcons: Icons;
   #pointerNone: Icons = [];
   #pointer: Icons;
   #arrowIconsIndex = 0;
-  #hoverIconsIndex = 0;
-  #dragIconsIndex = 0;
-  #interval: NodeJS.Timeout | undefined;
 
   constructor(element: HTMLElement) {
     this.#element = element;
@@ -22,21 +17,7 @@ export class MouseCursor {
     const icons = gameStore().assets!;
 
     this.#arrowIcons = icons.arrowIcons;
-    this.#hoverIcons = icons.hoverIcons.icons;
-    this.#dragIcons = icons.dragIcons.icons;
-
     this.#pointer = this.#arrowIcons;
-
-    this.#interval = setInterval(() => {
-      this.#arrowIconsIndex =
-        (this.#arrowIconsIndex + 1) % this.#arrowIcons.length;
-      this.#hoverIconsIndex =
-        (this.#hoverIconsIndex + 1) % this.#hoverIcons.length;
-      this.#dragIconsIndex = (this.#dragIconsIndex + 1) % this.#dragIcons.length;
-      if (this.#pointer === this.#hoverIcons) {
-        this._updateIcon();
-      }
-    }, 50);
 
     const style = document.createElement("style");
     style.id = "cursor-styles";
@@ -53,26 +34,6 @@ export class MouseCursor {
           )
           .join("\n")}
             
-          ${this.#hoverIcons
-          .map(
-            (icon, i: number) => `
-              .cursor-hover-${i} {
-                cursor: url(${icon}), auto
-              }
-            `
-          )
-          .join("\n")}
-    
-          ${this.#dragIcons
-          .map(
-            (icon, i: number) => `
-              .cursor-drag-${i} {
-                cursor: url(${icon}), auto
-              }
-            `
-          )
-          .join("\n")}
-
           .cursor-none-0 {
             cursor: none;
           }
@@ -81,7 +42,7 @@ export class MouseCursor {
     this.pointer();
   }
 
-  _updateClasses(index: number, type: "pointer" | "hover" | "drag" | "none") {
+  #css(index: number, type: "pointer") {
     if (!this.#element.classList.contains(this.#lastClass)) {
       this.#element.classList.add(`cursor-${type}-${index}`);
     } else {
@@ -93,29 +54,15 @@ export class MouseCursor {
     this.#lastClass = `cursor-${type}-${index}`;
   }
 
-  _updateIcon() {
+  #update() {
     if (this.#pointer === this.#arrowIcons) {
-      this._updateClasses(this.#arrowIconsIndex, "pointer");
-    } else if (this.#pointer === this.#hoverIcons) {
-      this._updateClasses(this.#hoverIconsIndex, "hover");
-    } else if (this.#pointer === this.#dragIcons) {
-      this._updateClasses(this.#dragIconsIndex, "drag");
-    } else {
-      this._updateClasses(0, "none");
+      this.#css(this.#arrowIconsIndex, "pointer");
     }
   }
 
   pointer() {
     this.#pointer = this.#arrowIcons;
-    this._updateIcon();
-  }
-
-  hover() {
-    this.#pointer = this.#hoverIcons;
-  }
-
-  drag() {
-    this.#pointer = this.#dragIcons;
+    this.#update();
   }
 
   hide() {
@@ -137,6 +84,5 @@ export class MouseCursor {
   dispose() {
     this.#element.style.cursor = "";
     window.document.getElementById("cursor-styles")?.remove();
-    clearInterval(this.#interval!);
   }
 }

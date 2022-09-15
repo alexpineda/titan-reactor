@@ -9,8 +9,6 @@ import vertexShader from "./cursor.vert";
 import { Assets } from "common/types";
 import { LegacyGRP } from "..";
 
-window.uGraphicOffset = new Vector2(-0.01, -0.01);
-
 export class CursorEffect extends Effect {
     #assets: Assets;
     constructor(assets: Assets) {
@@ -25,7 +23,7 @@ export class CursorEffect extends Effect {
                 ["uResolution", new Uniform(new Vector2())],
                 ["uCursorPosition", new Uniform(new Vector2())],
                 ["uFrame", new Uniform(new Vector2(cursor.frames?.length!, 1))],
-                ["uGraphicOffset", new Uniform(window.uGraphicOffset)],
+                ["uGraphicOffset", new Uniform(new Vector2(-0.01, -0.01))],
             ]),
         });
 

@@ -1,6 +1,6 @@
 import { CubeTexture, Texture } from "three";
 import { BwDAT, AnimAtlas } from "common/types";
-import { WorkerIcons, CenteredCursorIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
+import { WorkerIcons, ResourceIcons, RaceInsetIcons } from "common/types/icons";
 import { GltfAtlas } from "./anim-grp";
 import { LegacyGRP } from "@image/atlas";
 
@@ -14,13 +14,11 @@ export interface Assets {
     raceInsetIcons: RaceInsetIcons;
     workerIcons: WorkerIcons;
     arrowIcons: string[];
-    
+
     hoverIconsGPU: LegacyGRP;
     arrowIconsGPU: LegacyGRP;
     dragIconsGPU: LegacyGRP;
 
-    hoverIcons: CenteredCursorIcons;
-    dragIcons: CenteredCursorIcons;
     wireframeIcons: string[];
     envMap: Texture;
     loadImageAtlas: (imageID: number) => AnimAtlas | undefined;

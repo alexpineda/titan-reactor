@@ -1,4 +1,5 @@
 import "./reset.css";
+import "../../bundled/assets/open-props.1.4.min.css";
 import sceneStore from "./stores/scene-store";
 import { logCapabilities } from "@utils/renderer-utils";
 import { lockdown_ } from "@utils/ses-util";

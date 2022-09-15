@@ -38,12 +38,12 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
         gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
 
         const rect = gameSurface.getMinimapDimensions(settings.getState().game.minimapSize);
+
         gameStore().setDimensions({
             minimapWidth: rect.minimapWidth,
             minimapHeight: settings.getState().game.minimapEnabled ? rect.minimapHeight : 0,
         });
 
-        renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
         cssScene.setSize(gameSurface.width, gameSurface.height);
 
         minimapSurface.setDimensions(

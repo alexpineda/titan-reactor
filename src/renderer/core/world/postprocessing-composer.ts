@@ -16,7 +16,7 @@ import { ViewComposer } from "@core/world/view-composer";
 import { World } from "./world";
 import { InputComposer } from "./input-composer";
 import { SurfaceComposer } from "./surface-composer";
-import { UnitSelectionStatus } from "@input/";
+import { UnitSelectionStatus } from "@input";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
@@ -32,7 +32,6 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
             settingsStore().data.postprocessing,
             fogOfWarEffect, assets)
     );
-
 
     const updatePostProcessingOptions = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
 
@@ -85,6 +84,7 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
 
     postProcessingBundle.cursorEffect.resolution.set(gameSurface.bufferWidth, gameSurface.bufferHeight);
     events.on("resize", (surface) => {
+        renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
         postProcessingBundle.cursorEffect.resolution.set(surface.bufferWidth, surface.bufferHeight);
     })
 

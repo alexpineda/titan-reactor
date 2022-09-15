@@ -2,7 +2,6 @@ import { ReadFile } from "common/types";
 
 import parseDdsGrp from "../formats/parse-dds-grp";
 import generateWireframes from "./generate-wireframes";
-import {generateCenteredCursorsDataURI} from "./generate-centered-cursors";
 import { generateCursors, generateCursorsDataURI } from "./generate-cursors";
 import generateCmdIcons from "./generate-cmds";
 import generateRaceInsetIcons from "./generate-races";
@@ -44,22 +43,12 @@ export const generateAllIcons = async (readFile: ReadFile) => {
 
   arrowIconsGPU.texture.wrapS = arrowIconsGPU.texture.wrapT = RepeatWrapping;
 
-  const hoverIcons = await generateCenteredCursorsDataURI(
-    await readFile("cursor/MagY.grp"),
-    palette
-  );
-
   const hoverIconsGPU = (await generateCursors(
     await readFile("cursor/MagY.grp"),
     palette
   ));
 
   hoverIconsGPU.texture.wrapS = hoverIconsGPU.texture.wrapT = RepeatWrapping;
-
-  const dragIcons = await generateCenteredCursorsDataURI(
-    await readFile("cursor/Drag.grp"),
-    palette
-  );
 
   const dragIconsGPU = (await generateCursors(
     await readFile("cursor/Drag.grp"),
@@ -96,8 +85,6 @@ export const generateAllIcons = async (readFile: ReadFile) => {
     raceInsetIcons,
     workerIcons,
     arrowIcons,
-    hoverIcons,
-    dragIcons,
     wireframeIcons,
     arrowIconsGPU,
     hoverIconsGPU,

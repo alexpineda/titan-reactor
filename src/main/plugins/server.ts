@@ -22,9 +22,6 @@ app.use(function (_, res, next) {
     next()
 })
 
-
-//TODO: preload runtime.html and runtime.tsx
-
 app.get('*', async function (req, res) {
     if (req.url.startsWith("/m_api")) {
         if (req.method === "GET") {
@@ -75,16 +72,24 @@ app.get('*', async function (req, res) {
         return;
     }
 
-    if (req.path.endsWith("conthrax-hv.otf")) {
-        return res.sendFile(path.resolve(__static, "fonts", "conthrax-hv.otf"));
-    } else if (req.path.endsWith("conthrax-rg.otf")) {
-        return res.sendFile(path.resolve(__static, "fonts", "conthrax-rg.otf"));
-    } else if (req.path.endsWith("Inter-VariableFont_slnt,wght.ttf")) {
-        return res.sendFile(path.resolve(__static, "fonts", "Inter-VariableFont_slnt,wght.ttf"));
-    } else if (req.path.endsWith("runtime.html")) {
+
+    if (req.path.startsWith("/bundled/")) {
+
+        const filepath = path.join(__static, req.path.replace("/bundled/", ""));
+
+        if (!(filepath.startsWith(__static))) {
+            logService.error(`@server/403-forbidden: ${filepath}`);
+            return res.sendStatus(403);
+        }
+
+        return res.sendFile(filepath);
+
+    }
+    else if (req.path.endsWith("runtime.html")) {
         res.setHeader("Content-Type", "text/html");
         return res.send(runtimeHTML);
-    } else if (req.path.endsWith("runtime.tsx")) {
+    }
+    else if (req.path.endsWith("runtime.tsx")) {
         const { result } = transpile(runtimeJSX, "runtime.tsx");
         res.setHeader("Content-Type", "application/javascript");
         return res.send(result.outputText);
