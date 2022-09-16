@@ -50,6 +50,7 @@ export const defaultSettingsV6: SettingsV6 = {
     pixelRatio: 1,
     useHD2: "force",
     preload: false,
+    cursorSize: 2
   },
   postprocessing: {
     anisotropy: 0,

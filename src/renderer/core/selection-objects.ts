@@ -21,7 +21,6 @@ export class SelectionObject extends Group {
     }
 
     update(unit: Unit, sprite: SpriteType, spriteDat: SpriteDAT, completedUpgrades: number[]) {
-
         this.#circle.update(spriteDat);
         this.#bars.update(unit, spriteDat, completedUpgrades, sprite.renderOrder);
 

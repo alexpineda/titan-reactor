@@ -24,6 +24,8 @@ export interface WorldEvents {
     "settings-changed": { settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> };
     "plugin-configuration-changed": { settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> };
     "resize": GameSurface;
+    "minimap-enter": void;
+    "minimap-leave": void;
 }
 
 export type World = {

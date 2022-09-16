@@ -105,6 +105,7 @@ export type SettingsV6 = {
         pixelRatio: number;
         useHD2: string;
         preload: boolean;
+        cursorSize: number;
     },
     minimap: {
         mode: "2d" | "3d";

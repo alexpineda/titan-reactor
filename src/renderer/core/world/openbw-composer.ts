@@ -41,7 +41,7 @@ export const createOpenBWComposer = ({ events, openBW, reset, fogOfWar }: World,
         }
     })
 
-    const { resetCompletedUpgrades, updateCompletedUpgrades } = createCompletedUpgradesHelper(openBW, (owner: number, typeId: number, level: number) => {
+    const { resetCompletedUpgrades, updateCompletedUpgrades, completedUpgrades } = createCompletedUpgradesHelper(openBW, (owner: number, typeId: number, level: number) => {
         events.emit("completed-upgrade", { owner, typeId, level });
     }, (owner: number, typeId: number) => {
         events.emit("completed-upgrade", { owner, typeId });
@@ -58,6 +58,7 @@ export const createOpenBWComposer = ({ events, openBW, reset, fogOfWar }: World,
     let lastElapsed = 0;
 
     return {
+        completedUpgrades,
         get currentFrame() {
             return _currentFrame;
         },

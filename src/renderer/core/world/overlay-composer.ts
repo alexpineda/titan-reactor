@@ -2,7 +2,7 @@ import { CursorMaterial } from "@image/effects/cursor-material";
 import { MinimapMaterial } from "@render/minimap-material";
 import { unitTypes } from "common/enums";
 import { Assets } from "@image/assets";
-import { Intersection, Mesh, PlaneBufferGeometry, Raycaster, Scene, Vector2 } from "three";
+import { Intersection, Mesh, Object3D, PlaneBufferGeometry, Raycaster, Scene, Vector2 } from "three";
 import { InputComposer } from "./input-composer";
 import { SceneComposer } from "./scene-composer";
 import { SurfaceComposer } from "./surface-composer";
@@ -12,15 +12,36 @@ import vertexShader from "../../render/minimap-vert.glsl";
 import { ViewComposer } from "./view-composer";
 import gameStore from "@stores/game-store";
 import settingsStore from "@stores/settings-store";
+import { createSelectionDisplayComposer } from "@core/selection-objects";
+import { createUnitSelectionBox } from "@input/create-unit-selection";
+import { ImageHD } from "@core/image-hd";
+import { Image3D } from "@core/image-3d";
+import { canSelectUnit } from "@utils/unit-utils";
+import { Unit } from "@core/unit";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
 let _intersects: Intersection[] = [];
 
-export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World, { terrainExtra, getPlayerColor, units }: SceneComposer, { gameSurface }: SurfaceComposer, inputs: InputComposer, viewComposer: ViewComposer, assets: Assets) => {
+const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D): Unit | null => {
+
+    if (object instanceof ImageHD || object instanceof Image3D) {
+        return canSelectUnit(images.getUnit(object));
+    } else if (object.parent) {
+        return _getSelectionUnit(images)(object.parent);
+    }
+
+    return null;
+
+};
+
+export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, { gameSurface }: SurfaceComposer, inputs: InputComposer, viewComposer: ViewComposer, assets: Assets) => {
 
     const overlayGroup = new Scene();
 
+    const unitSelectionBox = createUnitSelectionBox(inputs.mouse, selectedUnits, scene, _getSelectionUnit(images));
+    const selectionDisplayComposer = createSelectionDisplayComposer(assets);
+    scene.add(...selectionDisplayComposer.objects);
 
     const cursorMaterial = new CursorMaterial(assets);
     const cursorGraphics = new Mesh(new PlaneBufferGeometry(1, 1), cursorMaterial);
@@ -144,18 +165,32 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
     const mapAspect = new Vector2(mapAspectF > 1.0 ? 1.0 / mapAspectF : 1.0, mapAspectF < 1.0 ? mapAspectF : 1.0);
     const bounds = new Vector2(0.5 - 0.5 * mapAspect.y, 0.5 - 0.5 * mapAspect.x);
 
+    let _insideMinimap = false;
+
+    //test events
+    events.on("minimap-enter", () => {
+        minimapMaterial.uniforms.uOpacity.value = Math.max(settings.getState().minimap.opacity + 0.5);
+    });
+
+    events.on("minimap-leave", () => {
+        minimapMaterial.uniforms.uOpacity.value = settings.getState().minimap.opacity;
+    });
 
     return {
         overlayGroup,
+        unitSelectionBox,
         update(delta: number) {
 
-            cursorMaterial.update(delta, inputs.mouse.move, inputs.unitSelectionBox.status);
+            cursorMaterial.update(delta, inputs.mouse.move, unitSelectionBox.status);
 
-            inputs.unitSelectionBox.enabled = _intersects.length === 0 ? settings.getState().input.unitSelection : false;
-            inputs.unitSelectionBox.update()
+            unitSelectionBox.enabled = _intersects.length === 0 ? settings.getState().input.unitSelection : false;
+            unitSelectionBox.update();
 
-            if (inputs.unitSelectionBox.isActive) return;
-            if (!(settings.getState().minimap.interactive && settings.getState().minimap.enabled)) {
+            if (unitSelectionBox.isActive || !(settings.getState().minimap.interactive && settings.getState().minimap.enabled)) {
+                if (_insideMinimap) {
+                    events.emit("minimap-leave");
+                    _insideMinimap = false;
+                }
                 return;
             }
 
@@ -165,7 +200,13 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
             minimap.matrixWorld.copy(minimapMaterial.localMatrix);
             minimap.raycast(rayCast, _intersects);
 
-            inputs.unitSelectionBox.enabled = _intersects.length === 0;
+            if (_insideMinimap && _intersects.length === 0) {
+                events.emit("minimap-leave");
+            } else if (!_insideMinimap && _intersects.length > 0) {
+                events.emit("minimap-enter");
+            }
+
+            unitSelectionBox.enabled = _insideMinimap = _intersects.length === 0;
 
             minimapMaterial.uniforms.uOpacity.value = settings.getState().minimap.opacity;
 
@@ -177,20 +218,17 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
                 uv.set((uv.x - bounds.x) / mapAspect.y, (uv.y - bounds.y) / mapAspect.x);
 
-                if (inputs.mouse.move.z === -1) {
-                    // minimapConsoleMaterial.uniforms.uOpacity.value = Math.max(settings.getState().minimap.opacity * 1.5);
-                } else {
+                if (inputs.mouse.move.z > -1) {
                     viewComposer.onMinimapDragUpdate(uv.set(uv.x, 1 - uv.y).subScalar(0.5).multiply(mapV), !!inputs.mouse.clicked, inputs.mouse.move.z);
-                    // minimapConsoleMaterial.uniforms.uOpacity.value = settings.getState().minimap.opacity;
                 }
-                // minimapMaterial.uniformsNeedUpdate = true;
-                // minimapConsoleMaterial.uniformsNeedUpdate = true;
 
             }
 
         },
 
-        onFrame() {
+        onFrame(completedUpgrades: number[][]) {
+
+            selectionDisplayComposer.update(viewComposer.primaryCamera!, sprites, completedUpgrades, selectedUnits.toArray());
 
             minimapMaterial.update(fogOfWar.buffer, terrainExtra.creep.minimapImageData, fogOfWar.effect.opacity);
 

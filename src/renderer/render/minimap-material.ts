@@ -3,7 +3,7 @@ import { Unit } from "@core/unit";
 import { unitTypes } from "common/enums";
 import { Settings, UnitDAT } from "common/types";
 import { floor32 } from "common/utils/conversions";
-import { Color, CustomBlending, DstAlphaFactor, Euler, Matrix4, OneFactor, OneMinusDstAlphaFactor, OrthographicCamera, PerspectiveCamera, Quaternion, ShaderMaterial, SrcAlphaFactor, Texture, Vector2, Vector3 } from "three";
+import { Color, Euler, Matrix4, OrthographicCamera, PerspectiveCamera, Quaternion, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
 import fragmentShader from "./minimap-frag.glsl";
 import vertexShader from "./minimap-vert.glsl";
 
@@ -74,9 +74,6 @@ export class MinimapMaterial extends ShaderMaterial {
     constructor(mapWidth: number, mapHeight: number, terrain: Texture) {
 
         super();
-
-        window.mini = this;
-        console.log(mapWidth, mapHeight);
 
         this.vertexShader = vertexShader;
         this.fragmentShader = fragmentShader;

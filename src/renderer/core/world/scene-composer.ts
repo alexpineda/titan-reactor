@@ -25,6 +25,7 @@ import { Color, MathUtils, Vector3 } from "three";
 import { createPlayersGameTimeApi } from "./players-api";
 import { World } from "./world";
 import { Unit } from "@core/unit";
+import { IterableSet } from "@utils/iterable-set";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
@@ -62,6 +63,24 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
     images.onFreeImage = (image) => events.emit("image-destroyed", image);
 
     scene.add(sprites.group);
+
+    const followedUnits = new IterableSet<Unit>((units) => events.emit("followed-units-changed", units));
+    const selectedUnits = new IterableSet<Unit>((units) => events.emit("selected-units-changed", units));
+
+    events.on("units-cleared", () => {
+        selectedUnits.clear();
+        followedUnits.clear();
+    });
+
+    events.on("unit-killed", (unit) => {
+        selectedUnits.delete(unit);
+        followedUnits.delete(unit);
+    });
+
+    events.on("unit-destroyed", (unit) => {
+        selectedUnits.delete(unit);
+        followedUnits.delete(unit);
+    });
 
     const unitsBufferViewIterator = new UnitsBufferViewIterator(openBW);
 
@@ -262,6 +281,8 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
         images,
         sprites,
         units,
+        selectedUnits,
+        followedUnits,
         scene,
         terrain,
         terrainExtra,

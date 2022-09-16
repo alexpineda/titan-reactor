@@ -20,27 +20,7 @@ export const fromNestedToLevaSettingsField = (
 export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({
 
     ...getDirectoryConfig(settings.directories),
-
-    "graphics.pixelRatio": {
-        label: "Pixel Ratio",
-        value: settings.graphics.pixelRatio,
-        min: 0.5,
-        max: maxPixelRatio,
-        step: 0.1,
-    },
-    "graphics.useHD2": {
-        label: "Use HD2 (50% HD)",
-        value: settings.graphics.useHD2,
-        options: {
-            "As Mipmap (Highest Quality)": "auto",
-            "Never. Only HD.": "ignore",
-            "Exclusively (Lower Memory)": "force",
-        }
-    },
-    "graphics.preload": {
-        label: "Preload Assets",
-        value: settings.graphics.preload,
-    },
+    ...getGraphicsConfig(settings.graphics, maxPixelRatio),
     ...getUtilConfig(settings.utilities),
     ...fromNestedToSessionLevaConfig(settings, plugins, maxAnisotropy, maxAntiAlias)
 
@@ -59,6 +39,42 @@ export const fromNestedToSessionLevaConfig = (settings: SessionSettingsData, plu
     ...getInputConfig(settings.input, plugins.filter((p) => p.isSceneController)),
     ...getPostProcessingConfig(settings.postprocessing, maxAnisotropy, maxAntiAlias),
     ...getPostProcessing3DConfig(settings.postprocessing3d, maxAnisotropy, maxAntiAlias),
+});
+
+
+type GraphicsConfig = {
+    [key in `graphics.${string}`]: any;
+}
+
+const getGraphicsConfig = (graphics: SettingsMeta["data"]["graphics"], maxPixelRatio = 1): GraphicsConfig => ({
+
+    "graphics.pixelRatio": {
+        label: "Pixel Ratio",
+        value: graphics.pixelRatio,
+        min: 0.5,
+        max: maxPixelRatio,
+        step: 0.1,
+    },
+    "graphics.useHD2": {
+        label: "Use HD2 (50% HD)",
+        value: graphics.useHD2,
+        options: {
+            "As Mipmap (Highest Quality)": "auto",
+            "Never. Only HD.": "ignore",
+            "Exclusively (Lower Memory)": "force",
+        }
+    },
+    "graphics.preload": {
+        label: "Preload Assets",
+        value: graphics.preload,
+    },
+    "graphics.cursorSize": {
+        label: "Cursor Size",
+        value: graphics.cursorSize,
+        min: 0.5,
+        max: 4,
+        step: 0.5
+    }
 });
 
 type UtilConfig = {
@@ -125,21 +141,39 @@ type MinimapConfig = {
 }
 
 const getMinimapConfig = (minimap: SettingsMeta["data"]["minimap"]): MinimapConfig => ({
-    "minimap.scale": {
-        label: "Minimap Size % Height",
-        min: 1,
-        max: 20,
-        step: 0.1,
-        value: minimap.scale,
-    },
     "minimap.enabled": {
         label: "Minimap Visible",
         value: minimap.enabled,
+    },
+    "minimap.interactive": {
+        label: "Interactive",
+        value: minimap.interactive,
+    },
+    "minimap.softEdges": {
+        label: "Minimap Soft Edges",
+        value: minimap.softEdges,
+    },
+    "minimap.mode": {
+        label: "Minimap Mode",
+        value: minimap.mode,
+        options: {
+            "2D (Ortho)": "2d",
+            "3D": "3d",
+        }
+    },
+    "minimap.scale": {
+        label: "Minimap Size % Height",
+        min: 1,
+        max: 10,
+        step: 0.1,
+        value: minimap.scale,
     },
     "minimap.position": {
         label: "Minimap Position",
         value: minimap.position,
         step: 0.5,
+        min: -10,
+        max: 10
     },
     "minimap.rotation": {
         label: "Minimap Rotation",
@@ -155,14 +189,7 @@ const getMinimapConfig = (minimap: SettingsMeta["data"]["minimap"]): MinimapConf
         max: 1,
         step: 0.1
     },
-    "minimap.softEdges": {
-        label: "Minimap Soft Edges",
-        value: minimap.softEdges,
-    },
-    "minimap.interactive": {
-        label: "Interactive",
-        value: minimap.interactive,
-    },
+
 });
 
 type InputConfig = {

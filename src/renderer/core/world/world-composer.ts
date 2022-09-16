@@ -57,14 +57,15 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
     const surfaceComposer = janitor.mop(createSurfaceComposer(world));
     const viewComposer = createViewComposer(world, surfaceComposer);
+    const inputComposer = createInputComposer(world, surfaceComposer, viewComposer);
     const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
-    const inputComposer = janitor.mop(createInputComposer(world, surfaceComposer, sceneComposer, viewComposer, assets));
     const overlayComposer = createOverlayComposer(world, sceneComposer, surfaceComposer, inputComposer, viewComposer, assets);
     const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, surfaceComposer, viewComposer, overlayComposer, assets));
     const sandboxApi = createSandboxApi(openBW, sceneComposer.pxToWorldInverse);
     const commandsComposer = createCommandsComposer(commands);
     const gameLoopComposer = janitor.mop(createGameLoopComposer());
     const openBwComposer = createOpenBWComposer(world, sceneComposer, viewComposer);
+
 
     events.on("settings-changed", ({ settings }) => mixer.setVolumes(settings.audio));
 
@@ -76,7 +77,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
             plugins.native.activateSceneController(sceneController);
             await viewComposer.activateSceneController(sceneController, defaultData);
-            inputComposer.unitSelectionBox.camera = viewComposer.primaryCamera!;
+            overlayComposer.unitSelectionBox.camera = viewComposer.primaryCamera!;
 
         }
 
@@ -88,6 +89,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
         viewComposer.activateSceneController(null);
 
     }
+
+
 
     janitor.on(ipcRenderer, CLEAR_ASSET_CACHE, () => {
 
@@ -218,9 +221,9 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
                 sceneComposer.onFrame(delta);
 
-                overlayComposer.onFrame();
+                overlayComposer.onFrame(openBwComposer.completedUpgrades);
 
-                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), inputComposer.selectedUnits.toArray());
+                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), sceneComposer.selectedUnits.toArray());
 
                 commandsComposer.onFrame(openBwComposer.currentFrame);
 

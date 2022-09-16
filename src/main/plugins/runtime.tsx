@@ -724,7 +724,7 @@ const App = ({ components }: { components: Component[] }) => {
           style={{
             display: "flex",
             flexDirection: "column-reverse",
-            marginBottom: "var(--minimap-height)",
+            // marginBottom: "var(--minimap-height)",
           }}
         >
           {components
