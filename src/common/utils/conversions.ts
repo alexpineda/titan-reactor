@@ -1,4 +1,4 @@
-import { Vector2, Vector3 } from "three";
+import { MathUtils, Vector2, Vector3 } from "three";
 
 export type PxToWorld = {
   x: (v: number) => number;
@@ -74,4 +74,20 @@ export const angleToDirection = (angle: number) =>
 
 export const getSecond = (frame: number) => {
   return Math.floor((frame * gameSpeeds.fastest) / 1000);
+}
+
+export const clipSpaceToMapSpace = (_in: { x: number, y: number }, out: { x: number, y: number }, mapWidth: number, mapHeight: number) => {
+  out.x =
+    MathUtils.clamp(
+      _in.x,
+      -1,
+      1
+    ) * mapWidth * 0.5;
+
+  out.y =
+    MathUtils.clamp(
+      _in.y,
+      -1,
+      1
+    ) * mapHeight * 0.5;
 }

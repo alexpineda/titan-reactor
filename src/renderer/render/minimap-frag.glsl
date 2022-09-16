@@ -31,7 +31,7 @@ void main() {
     result = mix(result, resourcesColor, resourcesColor.a * uOpacity * uOpacity);
 
     result = mix(vec4(0.0, 0.0, 0.0, 1.0), result,  step(bounds.x, vUv.x) * step(bounds.y, vUv.y) * step(bounds.x, 1.-vUv.x) * step(bounds.y, 1.-vUv.y));
-    result.a *= mix(result.a, smoothstep(0.0, 0.1, vUv.x) * smoothstep(0.0, 0.1, vUv.y) * smoothstep(0.0, 0.1, 1.-vUv.x) * smoothstep(0.0, 0.1, 1.-vUv.y),  uSoftEdges);
+    result.a = mix(result.a,  result.a* smoothstep(0.0, 0.1, vUv.x) * smoothstep(0.0, 0.1, vUv.y) * smoothstep(0.0, 0.1, 1.-vUv.x) * smoothstep(0.0, 0.1, 1.-vUv.y),  uSoftEdges);
 
     gl_FragColor = result.rgba;
 

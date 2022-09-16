@@ -174,7 +174,7 @@ export interface UserInputCallbacks {
      * @param isDragStart - Did the user just start dragging
      * @param mouseButton - The button the user is using.
      */
-    onMinimapDragUpdate(pos: Vector3, isDragStart: boolean, mouseButton?: number): void;
+    onMinimapDragUpdate(pos: Vector2, isDragStart: boolean, mouseButton?: number): void;
 
 
 }

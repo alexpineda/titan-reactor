@@ -6,8 +6,9 @@ import { UserInputCallbacks } from "common/types";
 const passive = { passive: true };
 
 const clicked = new Vector3();
+const released = new Vector3();
 
-export class CameraMouse {
+export class MouseInput {
     #_mouseWheelTimeout?: NodeJS.Timeout;
     #mouseWheelDelay = 200;
     #janitor = new Janitor();
@@ -15,6 +16,7 @@ export class CameraMouse {
     #lookAt = new Vector2()
     #mouseScrollY = 0;
     #clicked?: Vector3;
+    #released?: Vector3;
     #mouse = new Vector3(0, 0, -1);
     #modifiers = new Vector3(0, 0, 0);
     #clientX = 0;
@@ -69,14 +71,17 @@ export class CameraMouse {
         }
 
         const pointerDown = (evt: PointerEvent) => {
-            this.#mouse.z = evt.button;
             this.#modifiers.set(evt.altKey ? 1 : 0, evt.ctrlKey ? 1 : 0, evt.shiftKey ? 1 : 0);
+
+            this.#mouse.z = evt.button;
+            this.#mouse.x = (evt.clientX / window.innerWidth) * 2 - 1;
+            this.#mouse.y = - (evt.clientY / window.innerHeight) * 2 + 1;
+            this.#clicked = clicked.copy(this.#mouse);
         }
 
-        const pointerUp = (evt: PointerEvent) => {
+        const pointerUp = () => {
             this.#screenDrag.set(0, 0);
-            this.#clicked = clicked.copy(this.#mouse);
-            this.#clicked.z = evt.button;
+            this.#released = released.copy(this.#mouse);
             this.#mouse.z = -1;
             this.#modifiers.set(0, 0, 0);
         }
@@ -88,18 +93,31 @@ export class CameraMouse {
 
     }
 
-    get mouse() {
+    get released() {
+        return this.#released;
+    }
+
+    get position() {
         return this.#mouse;
+    }
+
+    get clicked() {
+        return this.#clicked;
     }
 
     update(delta: number, elapsed: number, callbacks: UserInputCallbacks) {
 
         callbacks.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked, this.#modifiers);
 
+
+    }
+
+    reset() {
         this.#mouseScrollY = 0;
         this.#lookAt.x = 0;
         this.#lookAt.y = 0;
         this.#clicked = undefined;
+        this.#released = undefined;
     }
 
     dispose() {

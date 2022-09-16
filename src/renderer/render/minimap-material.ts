@@ -3,7 +3,7 @@ import { Unit } from "@core/unit";
 import { unitTypes } from "common/enums";
 import { Settings, UnitDAT } from "common/types";
 import { floor32 } from "common/utils/conversions";
-import { Color, Euler, Matrix4, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, Quaternion, Shader, ShaderChunk, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
+import { Color, Euler, Matrix4, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, Quaternion, Shader, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
 import fragmentShader from "./minimap-frag.glsl";
 import vertexShader from "./minimap-vert.glsl";
 
@@ -21,7 +21,8 @@ export class MinimapMaterial extends ShaderMaterial {
     #flashColor = new Color(200, 200, 200);
     #mapWidth: number;
     #mapHeight: number;
-    #modelMatrix = new Matrix4();
+    localMatrix = new Matrix4();
+    worldMatrix = new Matrix4();
 
     #scale = new Vector3(1, 1);
     #position = new Vector3(0, 0);
@@ -29,22 +30,20 @@ export class MinimapMaterial extends ShaderMaterial {
 
     camera: PerspectiveCamera | OrthographicCamera = new PerspectiveCamera(45, 1, 0.1, 100);
 
-    applyViewMatrix(out: Matrix4, scale: Vector3, position: Vector3, rotation: Euler) {
+    applyViewMatrix(worldOut: Matrix4, localOut: Matrix4, scale: Vector3, position: Vector3, rotation: Euler) {
 
-        this.camera.position.set(0, 0, 1);
+        this.camera.position.set(0, 0, 10);
+        this.camera.lookAt(0, 0, 0);
         this.camera.updateProjectionMatrix();
-        out.compose(position, (new Quaternion()).setFromEuler(rotation), scale);
-        out.multiplyMatrices(this.camera.projectionMatrixInverse, out);
-
+        this.camera.updateMatrixWorld();
+        localOut.compose(position, (new Quaternion()).setFromEuler(rotation), scale);
+        worldOut.multiplyMatrices(this.camera.matrixWorldInverse, localOut);
+        worldOut.multiplyMatrices(this.camera.projectionMatrix, worldOut);
     }
 
     updateMatrix() {
 
-        this.applyViewMatrix(this.#modelMatrix, this.#scale, this.#position, this.#rotation);
-        // this.camera.position.set(0, 0, 1);
-        // this.camera.updateProjectionMatrix();
-        // this.#modelMatrix.compose(this.#position, (new Quaternion()).setFromEuler(this.#rotation), this.#scale);
-        // this.#modelMatrix.multiplyMatrices(this.camera.projectionMatrixInverse, this.#modelMatrix);
+        this.applyViewMatrix(this.worldMatrix, this.localMatrix, this.#scale, this.#position, this.#rotation);
 
     }
 
@@ -71,7 +70,7 @@ export class MinimapMaterial extends ShaderMaterial {
         uResolution: { value: new Vector2() },
         uOpacity: { value: 1 },
         uSoftEdges: { value: 0 },
-        uMatrix: { value: this.#modelMatrix },
+        uMatrix: { value: this.worldMatrix },
     }
 
     constructor(mapWidth: number, mapHeight: number, terrain: Texture) {

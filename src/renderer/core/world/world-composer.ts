@@ -59,7 +59,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
     const viewComposer = createViewComposer(surfaceComposer);
     const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
     const inputComposer = janitor.mop(createInputComposer(world, surfaceComposer, sceneComposer, viewComposer, assets));
-    const overlayComposer = createOverlayComposer(world, sceneComposer, surfaceComposer, inputComposer, assets);
+    const overlayComposer = createOverlayComposer(world, sceneComposer, surfaceComposer, inputComposer, viewComposer, assets);
     const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, surfaceComposer, viewComposer, overlayComposer, assets));
     const sandboxApi = createSandboxApi(openBW, sceneComposer.pxToWorldInverse);
     const commandsComposer = createCommandsComposer(commands);
@@ -232,6 +232,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
             }
 
             this.onRender(delta, elapsed);
+
+            inputComposer.resetState();
 
         },
 

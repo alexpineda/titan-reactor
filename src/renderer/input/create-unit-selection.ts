@@ -181,6 +181,9 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
         },
         get enabled() {
             return enabled;
+        },
+        isActive() {
+            return mouseIsDown;
         }
     }
 

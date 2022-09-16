@@ -1,5 +1,5 @@
-import { CameraMouse } from "@input/camera-mouse";
-import { CameraKeys } from "@input/camera-keys";
+import { MouseInput } from "@input/mouse-input";
+import { ArrowKeyInput } from "@input/arrow-key-input";
 import Janitor from "@utils/janitor";
 import { SurfaceComposer } from "./surface-composer";
 import { ViewComposer } from "./view-composer";
@@ -19,8 +19,8 @@ export type InputComposer = ReturnType<typeof createInputComposer>;
 export const createInputComposer = ({ events }: World, { gameSurface }: SurfaceComposer, { images, sprites, scene }: SceneComposer, viewComposer: ViewComposer, assets: Assets) => {
 
     const janitor = new Janitor();
-    const cameraMouse = janitor.mop(new CameraMouse(document.body));
-    const cameraKeys = janitor.mop(new CameraKeys(document.body));
+    const mouseInput = janitor.mop(new MouseInput(document.body));
+    const arrowKeyInput = janitor.mop(new ArrowKeyInput(document.body));
     gameSurface.canvas.style.cursor = "none";
 
     const _getSelectionUnit = (object: Object3D): Unit | null => {
@@ -63,21 +63,22 @@ export const createInputComposer = ({ events }: World, { gameSurface }: SurfaceC
 
 
     return {
-        get mousePosition() {
-            return cameraMouse.mouse;
+        get mouse() {
+            return mouseInput;
         },
         selectedUnits,
         followedUnits,
-        get unitSelectionStatus() {
-            return unitSelectionBox.status;
-        },
+        unitSelectionBox,
         onSceneControllerActivated(sceneController: SceneController) {
             unitSelectionBox.activate(sceneController.gameOptions?.allowUnitSelection, sceneController.viewports[0].camera)
         },
         update(delta: number, elapsed: number) {
-            cameraMouse.update(delta / 100, elapsed, viewComposer);
-            cameraKeys.update(delta / 100, elapsed, viewComposer);
+            mouseInput.update(delta / 100, elapsed, viewComposer);
+            arrowKeyInput.update(delta / 100, elapsed, viewComposer);
             selectionDisplayComposer.update(viewComposer.primaryCamera!, sprites, [], selectedUnits.toArray());
+        },
+        resetState() {
+            mouseInput.reset();
         },
         dispose() {
             janitor.dispose();

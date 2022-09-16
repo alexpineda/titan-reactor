@@ -8,7 +8,7 @@ const keyForward = "ArrowUp";
 const keyBackward = "ArrowDown";
 const keyLeft = "ArrowLeft";
 const keyRight = "ArrowRight";
-export class CameraKeys {
+export class ArrowKeyInput {
     #el: HTMLElement;
     #move = new Vector2();
     #janitor: Janitor;
