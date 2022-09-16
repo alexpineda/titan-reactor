@@ -21,7 +21,9 @@ void main() {
     vec4 fogColor = texture2D(fogBitmap, mapUv);
     vec4 resourcesColor = texture2D(resourcesBitmap, mapUv);
 
-    vec4 result = vec4(mix(minimapTerrainColor, creepColor, creepColor.a).rgb, uOpacity * uOpacity);
+    vec4 result = vec4(minimapTerrainColor.rgb, uOpacity  * uOpacity);
+    
+    result = mix(result, creepColor, creepColor.a * uOpacity * uOpacity); 
 
     // intensify unit color on lower opacity
     unitsColor = vec4(unitsColor.rgb + vec3(1.0 - uOpacity), unitsColor.a);
@@ -30,8 +32,8 @@ void main() {
     result = mix(result, fogColor, fogColor.a * fogOfWarOpacity * uOpacity * uOpacity);
     result = mix(result, resourcesColor, resourcesColor.a * uOpacity * uOpacity);
 
-    result = mix(vec4(0.0, 0.0, 0.0, 1.0), result,  step(bounds.x, vUv.x) * step(bounds.y, vUv.y) * step(bounds.x, 1.-vUv.x) * step(bounds.y, 1.-vUv.y));
-    result.a = mix(result.a,  result.a* smoothstep(0.0, 0.1, vUv.x) * smoothstep(0.0, 0.1, vUv.y) * smoothstep(0.0, 0.1, 1.-vUv.x) * smoothstep(0.0, 0.1, 1.-vUv.y),  uSoftEdges);
+    result = mix(vec4(0.0, 0.0, 0.0, result.a), result,  step(bounds.x, vUv.x) * step(bounds.y, vUv.y) * step(bounds.x, 1.-vUv.x) * step(bounds.y, 1.-vUv.y));
+    result.a = mix(result.a,  result.a * smoothstep(0.0, 0.1, vUv.x) * smoothstep(0.0, 0.1, vUv.y) * smoothstep(0.0, 0.1, 1.-vUv.x) * smoothstep(0.0, 0.1, 1.-vUv.y),  uSoftEdges);
 
     gl_FragColor = result.rgba;
 

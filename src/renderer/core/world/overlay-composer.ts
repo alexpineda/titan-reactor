@@ -1,8 +1,8 @@
 import { CursorMaterial } from "@image/effects/cursor-material";
-import { IgnoreCameraBasicMaterial, MinimapMaterial } from "@render/minimap-material";
+import { MinimapMaterial } from "@render/minimap-material";
 import { unitTypes } from "common/enums";
 import { Assets } from "@image/assets";
-import { Intersection, Mesh, MeshBasicMaterial, PlaneBufferGeometry, Raycaster, Scene, Vector2, Vector3 } from "three";
+import { Intersection, Mesh, PlaneBufferGeometry, Raycaster, Scene, Vector2 } from "three";
 import { InputComposer } from "./input-composer";
 import { SceneComposer } from "./scene-composer";
 import { SurfaceComposer } from "./surface-composer";
@@ -63,14 +63,18 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
     const rayCast = new Raycaster();
 
-    const minimapConsole = new Mesh(new PlaneBufferGeometry(1, 1), new IgnoreCameraBasicMaterial({ map: assets.minimapConsole.square }));
-    minimapConsole.frustumCulled = false;
-    minimapConsole.renderOrder = 2;
-    minimapConsole.matrixAutoUpdate = false;
+    // const minimapConsoleMaterial = new BasicOverlayMaterial(assets.minimapConsole.square);
+    // const minimapConsole = new Mesh(new PlaneBufferGeometry(1, 1), minimapConsoleMaterial);
+    // minimapConsole.material.depthTest = false;
+    // minimapConsole.material.depthWrite = false;
+    // minimapConsole.material.transparent = true;
+    // minimapConsole.visible = false;
 
-    const minimapClockConsole = new Mesh(new PlaneBufferGeometry(1, 1), new MeshBasicMaterial({ map: assets.minimapConsole.clock }));
-    minimapConsole.frustumCulled = false;
-    minimapConsole.renderOrder = 0;
+    // minimapConsole.frustumCulled = false;
+    // minimapConsole.renderOrder = 0;
+    // minimapConsole.matrixAutoUpdate = false;
+
+    // const minimapClockConsole = new Mesh(new PlaneBufferGeometry(1, 1), new MeshBasicMaterial({ map: assets.minimapConsole.clock }));
 
     overlayGroup.add(minimap, cursorGraphics);
 
@@ -104,19 +108,16 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
         minimapMaterial.uniformsNeedUpdate = true;
 
         minimapMaterial.updateMatrix();
-        // ignore the built in material camera
+        // ignore the built in material camera for raycaster
         minimap.matrixWorld.copy(minimapMaterial.localMatrix);
 
-        minimapConsole.position.copy(minimapMaterial.position).add(new Vector3(0, 0, 0));
-        minimapConsole.scale.copy(minimapMaterial.scale).multiplyScalar(1.5);
-        minimapConsole.rotation.copy(minimapMaterial.rotation);
-        minimapMaterial.applyViewMatrix(minimapConsole.matrixWorld, minimapConsole.matrix, minimapConsole.scale, minimapConsole.position, minimapConsole.rotation);
+        // minimapConsoleMaterial.uniforms.uOpacity.value = settings.minimap.opacity;
+        // minimapConsoleMaterial.worldMatrix.copy(minimapMaterial.worldMatrix);
+        // minimapConsoleMaterial.uniformsNeedUpdate = true;
 
         cursorMaterial.uniforms.uResolution.value.set(gameSurface.bufferWidth, gameSurface.bufferHeight);
         cursorMaterial.uniformsNeedUpdate = true;
 
-        // minimapConsole.visible = settings.game.minimap.enabled && !settings.game.minimap.softEdges;
-        // minimapConsole.material.opacity = settings.game.minimap.opacity;
     }
 
     events.on("settings-changed", ({ settings, rhs }) => {
@@ -126,6 +127,10 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
     });
 
     const mapV = new Vector2(map.size[0], map.size[1]);
+    const mapAspectF = map.size[0] / map.size[1];
+    const mapAspect = new Vector2(mapAspectF > 1.0 ? 1.0 / mapAspectF : 1.0, mapAspectF < 1.0 ? mapAspectF : 1.0);
+    const bounds = new Vector2(0.5 - 0.5 * mapAspect.y, 0.5 - 0.5 * mapAspect.x);
+
 
     return {
         overlayGroup,
@@ -149,13 +154,24 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
             inputs.unitSelectionBox.enabled = _intersects.length === 0;
 
+            minimapMaterial.uniforms.uOpacity.value = settings.getState().minimap.opacity;
+
             if (_intersects.length && _intersects[0].uv) {
+
+                minimapMaterial.uniforms.uOpacity.value = Math.min(1, settings.getState().minimap.opacity + 0.1);
+
+                const uv = _intersects[0].uv;
+
+                uv.set((uv.x - bounds.x) / mapAspect.y, (uv.y - bounds.y) / mapAspect.x);
+
                 if (inputs.mouse.move.z === -1) {
-                    minimapMaterial.uniforms.uOpacity.value = Math.max(settings.getState().minimap.opacity * 1.5);
-                    minimapMaterial.uniformsNeedUpdate = true;
+                    // minimapConsoleMaterial.uniforms.uOpacity.value = Math.max(settings.getState().minimap.opacity * 1.5);
                 } else {
-                    viewComposer.onMinimapDragUpdate(_intersects[0].uv.set(_intersects[0].uv.x, 1 - _intersects[0].uv.y).subScalar(0.5).multiply(mapV), !!inputs.mouse.clicked, inputs.mouse.move.z);
+                    viewComposer.onMinimapDragUpdate(uv.set(uv.x, 1 - uv.y).subScalar(0.5).multiply(mapV), !!inputs.mouse.clicked, inputs.mouse.move.z);
+                    // minimapConsoleMaterial.uniforms.uOpacity.value = settings.getState().minimap.opacity;
                 }
+                // minimapMaterial.uniformsNeedUpdate = true;
+                // minimapConsoleMaterial.uniformsNeedUpdate = true;
 
             }
 

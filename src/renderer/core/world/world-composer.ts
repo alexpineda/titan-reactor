@@ -56,7 +56,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
     let frameResetRequested = false;
 
     const surfaceComposer = janitor.mop(createSurfaceComposer(world));
-    const viewComposer = createViewComposer(surfaceComposer);
+    const viewComposer = createViewComposer(world, surfaceComposer);
     const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
     const inputComposer = janitor.mop(createInputComposer(world, surfaceComposer, sceneComposer, viewComposer, assets));
     const overlayComposer = createOverlayComposer(world, sceneComposer, surfaceComposer, inputComposer, viewComposer, assets);

@@ -3,7 +3,7 @@ import { Unit } from "@core/unit";
 import { unitTypes } from "common/enums";
 import { Settings, UnitDAT } from "common/types";
 import { floor32 } from "common/utils/conversions";
-import { Color, Euler, Matrix4, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, Quaternion, Shader, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
+import { Color, Euler, Matrix4, OrthographicCamera, PerspectiveCamera, Quaternion, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
 import fragmentShader from "./minimap-frag.glsl";
 import vertexShader from "./minimap-vert.glsl";
 
@@ -11,8 +11,6 @@ if (module.hot) {
     module.hot.accept("./minimap-frag.glsl");
     module.hot.accept("./minimap-vert.glsl");
 }
-
-// I like opacity 0.7, scale 10, position -4,7, rotation -0.03,0,0
 
 //TODO:change to fit in to 1:1 box
 export class MinimapMaterial extends ShaderMaterial {
@@ -33,7 +31,7 @@ export class MinimapMaterial extends ShaderMaterial {
     applyViewMatrix(worldOut: Matrix4, localOut: Matrix4, scale: Vector3, position: Vector3, rotation: Euler) {
 
         this.camera.position.set(0, 0, 10);
-        this.camera.lookAt(0, 0, 0);
+        // this.camera.lookAt(0, 0, 0);
         this.camera.updateProjectionMatrix();
         this.camera.updateMatrixWorld();
         localOut.compose(position, (new Quaternion()).setFromEuler(rotation), scale);
@@ -190,10 +188,51 @@ export class MinimapMaterial extends ShaderMaterial {
 
 }
 
-export class IgnoreCameraBasicMaterial extends MeshBasicMaterial {
+export class BasicOverlayMaterial extends ShaderMaterial {
 
-    override onBeforeCompile(shader: Shader): void {
-        shader.fragmentShader = shader.fragmentShader.replace("#include <project_vertex>", "gl_Position = modelMatrix * vec4( transformed, 1.0 );");
+    worldMatrix = new Matrix4();
+
+    override uniforms = {
+        uMatrix: { value: this.worldMatrix },
+        uTex: { value: new Texture() },
+        uOpacity: { value: 1 },
+    }
+
+    constructor(tex: Texture) {
+
+        super();
+
+        this.uniforms.uTex.value = tex;
+
+        this.vertexShader = `
+            varying vec2 vUv;
+            uniform mat4 uMatrix;
+
+            void main() {
+
+                gl_Position = uMatrix * vec4(position, 1.0);   // vec4(position.xy * aspect + uPosition, 1.0, 1.0);
+                vUv = uv;
+
+            }
+        `;
+        this.fragmentShader = `
+            uniform float uOpacity;
+            uniform sampler2D uTex;
+            varying vec2 vUv;
+
+            void main() {
+
+                vec4 tex = texture2D(uTex, vUv);
+                gl_FragColor = vec4(tex.rgb, tex.a * uOpacity * step(0.05, tex.rgb/3.0));
+
+            }
+
+        `;
+
+        this.depthTest = false;
+        this.depthWrite = false;
+        this.transparent = true;
+
     }
 
 }

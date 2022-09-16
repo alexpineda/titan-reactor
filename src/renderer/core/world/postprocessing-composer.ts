@@ -97,6 +97,7 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
 
         renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
 
+
     })
 
     const changeRenderMode = (renderMode3D: boolean) => {

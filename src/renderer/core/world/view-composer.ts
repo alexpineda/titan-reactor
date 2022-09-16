@@ -7,6 +7,7 @@ import { SceneInputHandler, UserInputCallbacks } from "common/types";
 import { easeCubicIn } from "d3-ease";
 import { Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
+import { World } from "./world";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {
@@ -29,7 +30,7 @@ const empty: GameViewPort[] = [];
 
 export type ViewComposer = ReturnType<typeof createViewComposer>;
 
-export const createViewComposer = ({ gameSurface }: SurfaceComposer) => {
+export const createViewComposer = ({ events }: World, { gameSurface }: SurfaceComposer) => {
 
     let activating = false;
 
@@ -43,6 +44,14 @@ export const createViewComposer = ({ gameSurface }: SurfaceComposer) => {
     // viewports.aspect = gameSurface.aspect;
 
     const viewports = () => sceneController?.viewports ?? empty;
+
+    events.on("resize", (surface) => {
+        for (const viewport of viewports()) {
+            viewport.width = surface.bufferWidth;
+            viewport.height = surface.bufferHeight;
+            viewport.aspect = surface.aspect;
+        };
+    });
 
 
     return {
