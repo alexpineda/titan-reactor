@@ -36,6 +36,7 @@ export const defaultSettingsV6: SettingsV6 = {
     movementSpeed: 1,
     rotateSpeed: 1,
     zoomLevels: [0.5, 1, 2],
+    unitSelection: true,
   },
   utilities: {
     sanityCheckReplayCommands: true,

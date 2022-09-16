@@ -125,6 +125,7 @@ export type SettingsV6 = {
         rotateSpeed: number;
         cameraShakeStrength: number;
         zoomLevels: [number, number, number];
+        unitSelection: boolean;
     },
     utilities: {
         sanityCheckReplayCommands: boolean,

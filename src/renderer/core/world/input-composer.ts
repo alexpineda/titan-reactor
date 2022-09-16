@@ -39,9 +39,7 @@ export const createInputComposer = ({ events }: World, { gameSurface }: SurfaceC
 
     const selectedUnits = new IterableSet<Unit>((units) => events.emit("selected-units-changed", units));
 
-    const unitSelectionBox = createUnitSelectionBox(selectedUnits, scene, _getSelectionUnit);
-
-    janitor.mop(unitSelectionBox.listen(gameSurface));
+    const unitSelectionBox = createUnitSelectionBox(mouseInput, selectedUnits, scene, _getSelectionUnit);
 
     const selectionDisplayComposer = createSelectionDisplayComposer(assets);
     scene.add(...selectionDisplayComposer.objects);
@@ -69,9 +67,6 @@ export const createInputComposer = ({ events }: World, { gameSurface }: SurfaceC
         selectedUnits,
         followedUnits,
         unitSelectionBox,
-        onSceneControllerActivated(sceneController: SceneController) {
-            unitSelectionBox.activate(sceneController.gameOptions?.allowUnitSelection, sceneController.viewports[0].camera)
-        },
         update(delta: number, elapsed: number) {
             mouseInput.update(delta / 100, elapsed, viewComposer);
             arrowKeyInput.update(delta / 100, elapsed, viewComposer);

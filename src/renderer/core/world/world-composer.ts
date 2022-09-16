@@ -76,7 +76,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
             plugins.native.activateSceneController(sceneController);
             await viewComposer.activateSceneController(sceneController, defaultData);
-            inputComposer.onSceneControllerActivated(sceneController);
+            inputComposer.unitSelectionBox.camera = viewComposer.primaryCamera!;
 
         }
 

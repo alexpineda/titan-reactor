@@ -180,11 +180,8 @@ export interface UserInputCallbacks {
 }
 
 export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & {
+    //TODO MOve this to hidden settings
     gameOptions: {
-        /**
-         * Whether or not to allow user to select units.
-         */
-        allowUnitSelection: boolean;
         /**
          * Audio mode in stereo is classic bw style, 3d is spatial.
          */

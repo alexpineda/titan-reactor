@@ -1,5 +1,4 @@
 import { Unit } from "@core/unit";
-import { Surface } from "@image/canvas";
 import { inverse } from "@utils/function-utils";
 import Janitor from "@utils/janitor";
 import { canOnlySelectOne } from "@utils/unit-utils";
@@ -7,6 +6,7 @@ import { VisualSelectionBox } from ".";
 import { Camera, Object3D, PerspectiveCamera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 import { IterableSet } from "@utils/iterable-set";
+import { MouseInput } from "./mouse-input";
 
 const typeIdSort = (a: Unit, b: Unit) => {
     return a.typeId - b.typeId;
@@ -22,24 +22,21 @@ export enum UnitSelectionStatus {
     Hovering
 }
 
-export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
+export const createUnitSelectionBox = (mouse: MouseInput, units: IterableSet<Unit>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
     const janitor = new Janitor;
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
     const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"));
 
-    let mouseIsDown = false;
-    let enabled = true;
+    let _selectActivated = false;
+    let _enabled = true;
     let _status = UnitSelectionStatus.None;
 
-    const _selectDown = (event: PointerEvent) => {
-        if (event.button !== 0 || !enabled) return;
-        mouseIsDown = true;
-        selectionBox.startPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1,
-            - (event.clientY / window.innerHeight) * 2 + 1,
-            0.5);
+    const _selectDown = () => {
+        if (mouse.move.z !== 0 || !_enabled) return;
+        _selectActivated = true;
+        selectionBox.startPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
-        visualBox.start(event.clientX, event.clientY);
+        visualBox.start(mouse.clientX, mouse.clientY);
     };
 
     // const hoverUnit = throttle((event: PointerEvent) => {
@@ -51,18 +48,17 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
     //     }
     // }, 100);
 
-    const _selectMove = (event: PointerEvent) => {
-        if (!enabled) return;
+    const _selectMove = () => {
+        if (!_enabled) return;
 
-        if (mouseIsDown) {
+        if (_selectActivated) {
 
-            selectionBox.endPoint.set(
-                (event.clientX / window.innerWidth) * 2 - 1,
-                - (event.clientY / window.innerHeight) * 2 + 1,
-                0.5);
+            selectionBox.endPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
-            visualBox.end(event.clientX, event.clientY);
+            visualBox.end(mouse.clientX, mouse.clientY);
+
             _status = UnitSelectionStatus.Dragging;
+
         } else {
             // hoverUnit(event)
         }
@@ -95,17 +91,17 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
         }
     };
 
-    const _selectUp = (event: PointerEvent) => {
-        if (!mouseIsDown || !enabled) return;
+    const _selectUp = () => {
+        if (!_selectActivated || !_enabled) return;
 
-        mouseIsDown = false;
+        _selectActivated = false;
         visualBox.clear();
         _status = UnitSelectionStatus.None;
 
         let draft: Unit[] = [];
 
-        if (!visualBox.isMinDragSize(event.clientX, event.clientY)) {
-            const unit = getUnitFromMouseIntersect(_mouse.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
+        if (!visualBox.isMinDragSize(mouse.clientX, mouse.clientY)) {
+            const unit = getUnitFromMouseIntersect(_mouse.set(mouse.move.x, mouse.move.y));
             if (unit) {
                 draft.push(unit);
             } else {
@@ -114,10 +110,7 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
             }
         } else {
 
-            selectionBox.endPoint.set(
-                (event.clientX / window.innerWidth) * 2 - 1,
-                - (event.clientY / window.innerHeight) * 2 + 1,
-                0.5);
+            selectionBox.endPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
             const allSelected = selectionBox.select();
             for (let i = 0; i < allSelected.length; i++) {
@@ -157,33 +150,28 @@ export const createUnitSelectionBox = (units: IterableSet<Unit>, scene: Scene, o
         get status() {
             return _status;
         },
-        listen(gameSurface: Surface) {
-
-            janitor.addEventListener(gameSurface.canvas, 'pointerup', _selectUp);
-            janitor.addEventListener(gameSurface.canvas, "pointerdown", _selectDown);
-            janitor.addEventListener(gameSurface.canvas, 'pointermove', _selectMove);
-
-            return janitor;
-
-        },
-
-        activate(value: boolean, camera: Camera) {
+        set camera(camera: Camera) {
             selectionBox.camera = camera;
-            visualBox.enabled = value;
-            if (!value) {
-                units.clear();
-            }
-            enabled = value;
         },
         set enabled(value: boolean) {
             visualBox.enabled = value;
-            enabled = value;
+            _enabled = value;
+            _selectActivated = value && _selectActivated;
         },
         get enabled() {
-            return enabled;
+            return _enabled;
         },
-        isActive() {
-            return mouseIsDown;
+        get isActive() {
+            return _selectActivated;
+        },
+        update() {
+            if (mouse.clicked) {
+                _selectDown();
+            } else if (mouse.released) {
+                _selectUp();
+            } else {
+                _selectMove();
+            }
         }
     }
 

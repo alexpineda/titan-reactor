@@ -93,11 +93,19 @@ export class MouseInput {
 
     }
 
+    get clientX() {
+        return this.#clientX;
+    }
+
+    get clientY() {
+        return this.#clientY;
+    }
+
     get released() {
         return this.#released;
     }
 
-    get position() {
+    get move() {
         return this.#mouse;
     }
 

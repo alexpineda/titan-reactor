@@ -319,7 +319,6 @@ export default class PluginAddon extends SceneController implements SceneControl
 
 // REQUIRED
 gameOptions = {
-    allowUnitSelection: false,
     audio: "3d" as const,
 }
 

@@ -10,7 +10,6 @@ import { World, WorldEvents } from "./world";
 import fragmentShader from "../../render/minimap-frag.glsl";
 import vertexShader from "../../render/minimap-vert.glsl";
 import { ViewComposer } from "./view-composer";
-import throttle from "lodash.throttle";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
@@ -128,45 +127,36 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
     const mapV = new Vector2(map.size[0], map.size[1]);
 
-    const throttledMinimapUpdate = throttle(() => {
-        rayCast.setFromCamera(_mousePositionCopy, minimapMaterial.camera);
-
-        _intersects.length = 0;
-        minimap.matrixWorld.copy(minimapMaterial.localMatrix);
-        minimap.raycast(rayCast, _intersects);
-
-        inputs.unitSelectionBox.enabled = _intersects.length === 0;
-
-        if (_intersects.length && _intersects[0].uv) {
-            if (_mousePositionCopy.z === -1) {
-                minimapMaterial.uniforms.uOpacity.value = Math.max(settings.getState().minimap.opacity * 1.5);
-                minimapMaterial.uniformsNeedUpdate = true;
-            } else {
-                viewComposer.onMinimapDragUpdate(_intersects[0].uv.set(_intersects[0].uv.x, 1 - _intersects[0].uv.y).subScalar(0.5).multiply(mapV), !!_mouseClicked, _mousePositionCopy.z);
-            }
-
-        }
-        _copiesNeedUpdate = true;
-
-    }, 100);
-
-    const _mousePositionCopy = new Vector3();
-    let _mouseClicked = false;
-    let _copiesNeedUpdate = true;
-
     return {
         overlayGroup,
         update(delta: number) {
 
-            cursorMaterial.update(delta, inputs.mouse.position, inputs.unitSelectionBox.status);
+            cursorMaterial.update(delta, inputs.mouse.move, inputs.unitSelectionBox.status);
 
-            if (settings.getState().minimap.interactive && settings.getState().minimap.enabled && !inputs.unitSelectionBox.isActive) {
-                if (_copiesNeedUpdate) {
-                    _mousePositionCopy.copy(inputs.mouse.position);
-                    _mouseClicked = !!inputs.mouse.clicked;
-                    _copiesNeedUpdate = false;
+            inputs.unitSelectionBox.enabled = _intersects.length === 0 ? settings.getState().input.unitSelection : false;
+            inputs.unitSelectionBox.update()
+
+            if (inputs.unitSelectionBox.isActive) return;
+            if (!(settings.getState().minimap.interactive && settings.getState().minimap.enabled)) {
+                return;
+            }
+
+            rayCast.setFromCamera(inputs.mouse.move, minimapMaterial.camera);
+
+            _intersects.length = 0;
+            minimap.matrixWorld.copy(minimapMaterial.localMatrix);
+            minimap.raycast(rayCast, _intersects);
+
+            inputs.unitSelectionBox.enabled = _intersects.length === 0;
+
+            if (_intersects.length && _intersects[0].uv) {
+                if (inputs.mouse.move.z === -1) {
+                    minimapMaterial.uniforms.uOpacity.value = Math.max(settings.getState().minimap.opacity * 1.5);
+                    minimapMaterial.uniformsNeedUpdate = true;
+                } else {
+                    viewComposer.onMinimapDragUpdate(_intersects[0].uv.set(_intersects[0].uv.x, 1 - _intersects[0].uv.y).subScalar(0.5).multiply(mapV), !!inputs.mouse.clicked, inputs.mouse.move.z);
                 }
-                throttledMinimapUpdate();
+
             }
 
         },
