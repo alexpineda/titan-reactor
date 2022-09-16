@@ -8,7 +8,8 @@ import { renderComposer } from "@render/render-composer";
 import settingsStore from "@stores/settings-store";
 import Janitor from "@utils/janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
-import { Assets, Settings } from "common/types";
+import { Settings } from "common/types";
+import { Assets } from "@image/assets";
 import { PerspectiveCamera, Vector3 } from "three";
 import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
@@ -175,8 +176,8 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
                     }
                 }
 
-                v.updateCamera(settings.getState().game.dampingFactor, delta);
-                v.shakeStart(elapsed, settings.getState().game.cameraShakeStrength);
+                v.updateCamera(settings.getState().input.dampingFactor, delta);
+                v.shakeStart(elapsed, settings.getState().input.cameraShakeStrength);
                 postProcessingBundle.updateCamera(v.camera)
                 renderComposer.setBundlePasses(postProcessingBundle);
                 renderComposer.render(delta, v.viewport);

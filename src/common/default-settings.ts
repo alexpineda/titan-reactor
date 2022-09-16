@@ -10,19 +10,26 @@ export const defaultSettingsV6: SettingsV6 = {
     assets: "",
     plugins: "",
   },
-  assets: {
-    preload: false,
-  },
+
   audio: {
     global: 0.5,
     music: 0.5,
     sound: 0.5,
     playIntroSounds: true,
   },
-  game: {
+  minimap: {
+    enabled: true,
+    mode: "3d",
+    position: [0, 0],
+    scale: 1,
+    opacity: 1,
+    rotation: [0, 0, 0],
+    softEdges: true,
+    interactive: true,
+    drawCamera: true,
+  },
+  input: {
     sceneController: "@titan-reactor-plugins/camera-standard",
-    minimapSize: 1,
-    minimapEnabled: true,
     sandBoxMode: false,
     dampingFactor: 0.15,
     cameraShakeStrength: 1,
@@ -41,6 +48,7 @@ export const defaultSettingsV6: SettingsV6 = {
   graphics: {
     pixelRatio: 1,
     useHD2: "force",
+    preload: false,
   },
   postprocessing: {
     anisotropy: 0,

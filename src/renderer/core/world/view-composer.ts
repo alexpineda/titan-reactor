@@ -1,5 +1,4 @@
 import { mixer } from "@audio/main-mixer";
-import { ReactiveSessionVariables } from "@core/world/reactive-session-variables";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import * as log from "@ipc/log";
 import { SceneController } from "@plugins/plugin-system-native";
@@ -30,7 +29,7 @@ const empty: GameViewPort[] = [];
 
 export type ViewComposer = ReturnType<typeof createViewComposer>;
 
-export const createViewComposer = ({ gameSurface }: SurfaceComposer, sessionApi: ReactiveSessionVariables) => {
+export const createViewComposer = ({ gameSurface }: SurfaceComposer) => {
 
     let activating = false;
 
@@ -167,9 +166,6 @@ export const createViewComposer = ({ gameSurface }: SurfaceComposer, sessionApi:
                 viewport.height = gameSurface.bufferHeight;
                 viewport.aspect = gameSurface.aspect;
             };
-
-            sessionApi.sessionVars.game.minimapSize.setToDefault();
-            sessionApi.sessionVars.game.minimapEnabled.setToDefault();
 
             await inputHandler.onEnterScene(prevData);
             sceneController = inputHandler;

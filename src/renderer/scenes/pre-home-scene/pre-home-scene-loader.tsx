@@ -1,6 +1,6 @@
 import sceneStore from "@stores/scene-store";
 import settingsStore from "@stores/settings-store";
-import loadAndParseAssets from "@image/assets";
+import { createAssets } from "@image/assets";
 import * as log from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
@@ -10,6 +10,7 @@ import Janitor from "@utils/janitor";
 import path from "path";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
+import gameStore from "@stores/game-store";
 
 let _lastErrorMessage = "";
 
@@ -39,7 +40,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     return settingsStore().errors.length === 0;
   });
 
-  await loadAndParseAssets(settings.data);
+  gameStore().setAssets(await createAssets(settings.data));
 
   await preloadIntro();
 

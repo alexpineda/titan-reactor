@@ -20,17 +20,17 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
     janitor.mop(document.body.appendChild(gameSurface.canvas));
 
-    gameStore().setDimensions(gameSurface.getMinimapDimensions(settingsStore().data.game.minimapSize));
+    gameStore().setDimensions(gameSurface.getMinimapDimensions(settingsStore().data.minimap.scale));
 
     const _sceneResizeHandler = () => {
         console.log("resize handler");
         gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
 
-        const rect = gameSurface.getMinimapDimensions(settings.getState().game.minimapSize);
+        const rect = gameSurface.getMinimapDimensions(settings.getState().minimap.scale);
 
         gameStore().setDimensions({
             minimapWidth: rect.minimapWidth,
-            minimapHeight: settings.getState().game.minimapEnabled ? rect.minimapHeight : 0,
+            minimapHeight: settings.getState().minimap.enabled ? rect.minimapHeight : 0,
         });
 
         cssScene.setSize(gameSurface.width, gameSurface.height);

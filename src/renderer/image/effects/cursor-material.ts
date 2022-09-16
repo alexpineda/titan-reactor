@@ -1,5 +1,5 @@
 import { UnitSelectionStatus } from "@input";
-import { Assets } from "common/types";
+import { Assets } from "@image/assets";
 import { ShaderMaterial, Texture, Vector2 } from "three";
 import { LegacyGRP } from "..";
 

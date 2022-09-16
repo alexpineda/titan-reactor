@@ -37,9 +37,9 @@ export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins
             "Exclusively (Lower Memory)": "force",
         }
     },
-    "assets.preload": {
+    "graphics.preload": {
         label: "Preload Assets",
-        value: settings.assets.preload,
+        value: settings.graphics.preload,
     },
     ...getUtilConfig(settings.utilities),
     ...fromNestedToSessionLevaConfig(settings, plugins, maxAnisotropy, maxAntiAlias)
@@ -55,12 +55,17 @@ export const fromnNestedToSessionLevaField = (
 
 export const fromNestedToSessionLevaConfig = (settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
     ...getAudioConfig(settings.audio),
-    ...getGameConfig(settings.game, plugins.filter((p) => p.isSceneController)),
+    ...getMinimapConfig(settings.minimap),
+    ...getInputConfig(settings.input, plugins.filter((p) => p.isSceneController)),
     ...getPostProcessingConfig(settings.postprocessing, maxAnisotropy, maxAntiAlias),
     ...getPostProcessing3DConfig(settings.postprocessing3d, maxAnisotropy, maxAntiAlias),
 });
 
-const getUtilConfig = (util: SettingsMeta["data"]["utilities"]) => ({
+type UtilConfig = {
+    [key in `utilities.${keyof SettingsMeta["data"]["utilities"]}`]?: any;
+}
+
+const getUtilConfig = (util: SettingsMeta["data"]["utilities"]): UtilConfig => ({
     "utilities.sanityCheckReplayCommands": {
         label: "Sanity Check Replay Commands (and rewrite command buffer overflows)",
         value: util.sanityCheckReplayCommands,
@@ -88,7 +93,11 @@ const getUtilConfig = (util: SettingsMeta["data"]["utilities"]) => ({
     }
 });
 
-const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]) => ({
+type DirectoryConfig = {
+    [key in `directories.${keyof SettingsMeta["data"]["directories"]}`]?: any;
+}
+
+const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]): DirectoryConfig => ({
     "directories.starcraft": {
         label: "Starcraft",
         value: directories.starcraft,
@@ -111,56 +120,98 @@ const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]) =>
     },
 });
 
-const getGameConfig = (game: SettingsMeta["data"]["game"], sceneControllers: PluginMetaData[]) => ({
-    "game.minimapSize": {
+type MinimapConfig = {
+    [key in `minimap.${keyof SettingsMeta["data"]["minimap"]}`]?: any;
+}
+
+const getMinimapConfig = (minimap: SettingsMeta["data"]["minimap"]): MinimapConfig => ({
+    "minimap.scale": {
         label: "Minimap Size % Height",
-        min: 0.5,
-        max: 1.5,
+        min: 1,
+        max: 20,
         step: 0.1,
-        value: game.minimapSize,
+        value: minimap.scale,
     },
-    "game.minimapEnabled": {
+    "minimap.enabled": {
         label: "Minimap Visible",
-        value: game.minimapEnabled,
+        value: minimap.enabled,
     },
-    "game.sandBoxMode": {
+    "minimap.position": {
+        label: "Minimap Position",
+        value: minimap.position,
+        step: 0.5,
+    },
+    "minimap.rotation": {
+        label: "Minimap Rotation",
+        value: minimap.rotation,
+        step: 0.01,
+        min: -Math.PI,
+        max: Math.PI,
+    },
+    "minimap.opacity": {
+        label: "Minimap Opacity",
+        value: minimap.opacity,
+        min: 0,
+        max: 1,
+        step: 0.1
+    },
+    "minimap.softEdges": {
+        label: "Minimap Soft Edges",
+        value: minimap.softEdges,
+    },
+    "minimap.interactive": {
+        label: "Interactive",
+        value: minimap.interactive,
+    },
+});
+
+type InputConfig = {
+    [key in `input.${keyof SettingsMeta["data"]["input"]}`]?: any;
+}
+
+const getInputConfig = (input: SettingsMeta["data"]["input"], sceneControllers: PluginMetaData[]): InputConfig => ({
+    "input.sandBoxMode": {
         label: "Sandbox Mode",
-        value: game.sandBoxMode,
+        value: input.sandBoxMode,
     },
-    "game.sceneController": {
+    "input.sceneController": {
         label: "Scene Controller (Default)",
-        value: game.sceneController,
+        value: input.sceneController,
         options: sceneControllers
             .reduce((m, p) => ({ ...m, [p.description ?? p.name]: p.name }), {}),
     },
-    "game.dampingFactor": {
+    "input.dampingFactor": {
         label: "Camera Movement Damping",
-        value: game.dampingFactor,
+        value: input.dampingFactor,
         min: 0.01,
         max: 0.1,
         step: 0.01,
     },
-    "game.zoomLevels": {
+    "input.zoomLevels": {
         label: "Camera Zoom Levels",
-        value: game.zoomLevels,
+        value: input.zoomLevels,
     },
-    "game.rotateSpeed": {
+    "input.rotateSpeed": {
         label: "Camera Rotate Speed",
-        value: game.rotateSpeed,
+        value: input.rotateSpeed,
     },
-    "game.movementSpeed": {
+    "input.movementSpeed": {
         label: "Camera Movement Speed",
-        value: game.movementSpeed,
+        value: input.movementSpeed,
     },
-    "game.cameraShakeStrength": {
+    "input.cameraShakeStrength": {
         label: "Camera Shake Strength",
-        value: game.cameraShakeStrength,
+        value: input.cameraShakeStrength,
         min: 0,
         max: 1,
     },
 });
 
-const getAudioConfig = (audio: SettingsMeta["data"]["audio"]) => ({
+type AudioConfig = {
+    [key in `audio.${keyof SettingsMeta["data"]["audio"]}`]?: any;
+}
+
+const getAudioConfig = (audio: SettingsMeta["data"]["audio"]): AudioConfig => ({
     "audio.global": {
         label: "Global Volume",
         value: audio.global,
@@ -188,8 +239,11 @@ const getAudioConfig = (audio: SettingsMeta["data"]["audio"]) => ({
     }
 });
 
+type PostProcessingConfig = {
+    [key in `postprocessing.${keyof SettingsMeta["data"]["postprocessing"]}`]?: any;
+}
 
-export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["postprocessing"], maxAnisotropy: number, maxAntiAlias: number) => ({
+export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["postprocessing"], maxAnisotropy: number, maxAntiAlias: number): PostProcessingConfig => ({
 
     "postprocessing.anisotropy": {
         label: "Anisotropy",
@@ -242,8 +296,11 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
     },
 });
 
+type PostProcessingConfig3D = {
+    [key in `postprocessing3d.${keyof SettingsMeta["data"]["postprocessing3d"]}`]?: any;
+}
 
-const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postprocessing3d"], maxAnisotropy: number, maxAntiAlias: number) => ({
+const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postprocessing3d"], maxAnisotropy: number, maxAntiAlias: number): PostProcessingConfig3D => ({
     "postprocessing3d.anisotropy": {
         label: "Anisotropy",
         value: postprocessing3d.anisotropy,

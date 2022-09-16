@@ -22,7 +22,7 @@ import { sanityCheckCommands, writeCommands } from "@process-replay/write-comman
 import { detectMeleeObservers } from "@utils/replay-utils";
 import { preloadMapUnitsAndSprites } from "@utils/preload-map-units-and-sprites";
 import { SceneState } from "./scene";
-import { Assets } from "common/types";
+import { Assets } from "@image/assets";
 import gameStore from "@stores/game-store";
 import { waitForTruthy } from "@utils/wait-for";
 import { music } from "@audio/music";
@@ -102,7 +102,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
   // wait for initial assets to load
-  if (settingsStore().data.assets.preload) {
+  if (settingsStore().data.graphics.preload) {
     await preloadMapUnitsAndSprites(assets, map, replay);
   }
 

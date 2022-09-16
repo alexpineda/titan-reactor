@@ -10,7 +10,7 @@ import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
-import { Assets } from "common/types";
+import { Assets } from "@image/assets";
 import processStore, { useProcessStore } from "@stores/process-store";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { normalizePluginConfiguration } from "@utils/function-utils"

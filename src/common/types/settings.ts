@@ -95,9 +95,6 @@ export type SettingsV6 = {
         assets: string;
         plugins: string;
     },
-    assets: {
-        preload: boolean;
-    },
     audio: {
         global: number;
         music: number;
@@ -107,11 +104,21 @@ export type SettingsV6 = {
     graphics: {
         pixelRatio: number;
         useHD2: string;
+        preload: boolean;
     },
-    game: {
+    minimap: {
+        mode: "2d" | "3d";
+        position: [number, number];
+        rotation: [number, number, number];
+        scale: number;
+        enabled: boolean;
+        opacity: number;
+        softEdges: boolean;
+        interactive: boolean;
+        drawCamera: boolean;
+    },
+    input: {
         sceneController: string;
-        minimapSize: number;
-        minimapEnabled: boolean;
         sandBoxMode: boolean;
         dampingFactor: number;
         movementSpeed: number;
@@ -177,4 +184,4 @@ export type SettingsMeta = {
     isCascStorage: boolean;
 };
 
-export type SessionSettingsData = Pick<Settings, "audio" | "game" | "postprocessing" | "postprocessing3d">;
+export type SessionSettingsData = Pick<Settings, "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d">;

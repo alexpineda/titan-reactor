@@ -1,6 +1,4 @@
 varying vec2 vUv;
-// uniform vec2 uPosition;
-// uniform vec2 uScale;
 uniform vec2 uResolution;
 uniform vec2 uMapResolution;
 uniform mat4 uMatrix;

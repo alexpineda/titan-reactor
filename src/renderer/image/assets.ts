@@ -10,7 +10,7 @@ import {
     readCascFile,
 } from "@utils/casclib";
 
-import { loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
+import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
 import gameStore from "@stores/game-store";
 import processStore, { Process } from "@stores/process-store";
@@ -40,7 +40,11 @@ const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
     }
 }
 
-export default async (settings: Settings) => {
+
+export type Assets = Awaited<ReturnType<typeof createAssets>>;
+export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
+
+export const createAssets = async (settings: Settings) => {
 
     processStore().start(Process.AtlasPreload, 999);
 
@@ -62,6 +66,13 @@ export default async (settings: Settings) => {
     const sdAnim = parseAnim(sdAnimBuf);
 
     const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
+
+    const minimapConsole = {
+        clock: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareRight.DDS")),
+        square: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareFull.DDS")),
+    }
+    console.log("minimapConsole", minimapConsole.clock.image.width, minimapConsole.clock.image.height)
+    console.log("minimapConsole", minimapConsole.square.image.width, minimapConsole.square.image.height)
 
     const envEXRAssetFilename = path.join(
         settings.directories.assets,
@@ -155,6 +166,7 @@ export default async (settings: Settings) => {
             const glb = await loadGlbAtlas(
                 glbFileName(glbRefImageId),
                 // use grp frames for convenience since we might fake being another image for re-use
+                // and we'll need access to those original frames in order to manipulate things
                 bwDat.grps[glbRefImageId].frames,
                 imageDat,
                 envMap,
@@ -167,7 +179,7 @@ export default async (settings: Settings) => {
 
     }
 
-    if (settings.assets.preload) {
+    if (settings.graphics.preload) {
 
         log.info(`@load-assets/atlas: preload`);
         const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
@@ -197,11 +209,12 @@ export default async (settings: Settings) => {
         "back.png",
     ], res)) as CubeTexture;
 
-    gameStore().setAssets({
+    return {
         bwDat,
         atlases,
         selectionCircles: selectionCirclesHD,
         ...await generateAllIcons(readCascFile),
+        minimapConsole,
         envMap,
         loadImageAtlas: (imageId: number) => {
             loadImageAtlas(imageId);
@@ -216,8 +229,7 @@ export default async (settings: Settings) => {
             loadingHD2.clear();
             glbExists.clear();
         }
-    });
-    processStore().complete(Process.AtlasPreload);
+    }
 };
 
 export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) => {

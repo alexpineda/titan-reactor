@@ -1,4 +1,5 @@
-import { Assets, OpenBW } from "common/types";
+import { OpenBW } from "common/types";
+import { Assets } from "@image/assets";
 import Janitor from "@utils/janitor";
 import { createPluginsAndMacroSession } from "./create-plugin-session";
 import { createReactiveSessionVariables } from "./reactive-session-variables";
@@ -55,7 +56,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
     let frameResetRequested = false;
 
     const surfaceComposer = janitor.mop(createSurfaceComposer(world));
-    const viewComposer = createViewComposer(surfaceComposer, settings);
+    const viewComposer = createViewComposer(surfaceComposer);
     const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
     const inputComposer = janitor.mop(createInputComposer(world, surfaceComposer, sceneComposer, viewComposer, assets));
     const overlayComposer = createOverlayComposer(world, sceneComposer, surfaceComposer, inputComposer, assets);
@@ -100,8 +101,8 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
         if (viewComposer.activeSceneController) {
 
-            if (rhs.game?.sceneController && rhs.game.sceneController !== viewComposer.activeSceneController.name) {
-                setTimeout(() => setSceneController(settings.game.sceneController), 0);
+            if (rhs.input?.sceneController && rhs.input.sceneController !== viewComposer.activeSceneController.name) {
+                setTimeout(() => setSceneController(settings.input.sceneController), 0);
             }
 
             if (viewComposer.primaryRenderMode3D && rhs.postprocessing3d) {
@@ -123,7 +124,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
         assets,
         exitScene() {
             setTimeout(() => {
-                settings.sessionVars.game.sceneController.setToDefault();
+                settings.sessionVars.input.sceneController.setToDefault();
             }, 0)
         },
         sandboxApi,
@@ -154,7 +155,7 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
             gameLoopComposer.onUpdate(this.update.bind(this));
 
             janitor.on(ipcRenderer, RELOAD_PLUGINS, async () => {
-                await this.activate(true, settings.getState().game.sceneController)
+                await this.activate(true, settings.getState().input.sceneController)
             });
 
         },
@@ -178,6 +179,9 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
 
             this.onRender(0, 0);
             renderComposer.getWebGLRenderer().compile(sceneComposer.scene, viewComposer.primaryCamera!);
+
+            events.emit("resize", surfaceComposer.gameSurface);
+            events.emit("settings-changed", { settings: settings.getState(), rhs: settings.getState() });
 
             gameLoopComposer.start();
 

@@ -9,7 +9,8 @@ export const v5tov6 = (oldSettings: PreviousSettings): PreviousSettings => {
     const settings: Settings = {
         ...oldSettings,
         version: 6,
-        game: defaultSettingsV6.game,
+        input: defaultSettingsV6.input,
+        minimap: defaultSettingsV6.minimap,
         postprocessing: defaultSettingsV6.postprocessing,
         postprocessing3d: defaultSettingsV6.postprocessing3d,
         graphics: defaultSettingsV6.graphics,

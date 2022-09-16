@@ -43,7 +43,9 @@ const getSessionSettingsField = (settingsData: SessionSettingsData, path: string
 
 }
 
-const validAppSettingsPaths = ["audio.", "game.", "postprocessing.", "postprocessing3d."];
+type ValidAppSessionPath = `${keyof SessionSettingsData}.`;
+const validAppSettingsPaths: ValidAppSessionPath[] = ["audio.", "input.", "postprocessing.", "postprocessing3d.", "minimap."];
+
 const isValidkey = (key: string) => {
     for (const path of validAppSettingsPaths) {
         if (key.startsWith(path)) {
@@ -67,9 +69,10 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
     const janitor = new Janitor();
     const initialSettings = settingsStore().data;
 
-    const store = {
+    const store: { [key in keyof SessionSettingsData]: SessionSettingsData[key] } = {
         audio: initialSettings.audio,
-        game: initialSettings.game,
+        input: initialSettings.input,
+        minimap: initialSettings.minimap,
         postprocessing: initialSettings.postprocessing,
         postprocessing3d: initialSettings.postprocessing3d,
     };
@@ -91,7 +94,8 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
         Object.assign(store, {
             audio: settings.data.audio,
-            game: settings.data.game,
+            minimap: settings.data.minimap,
+            input: settings.data.input,
             postprocessing: settings.data.postprocessing,
             postprocessing3d: settings.data.postprocessing3d,
         });
@@ -115,10 +119,13 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
         if (isValidkey(key)) {
             const settingsKey = key.split(".");
             lSet<SessionVariables>(acc, settingsKey, defineSessionProperty(value, settingsKey));
-            lSet<SessionVariables>(acc, [...settingsKey.slice(0, -1), `get${[...settingsKey.slice(-1)][0].slice(0, 1).toUpperCase()}${settingsKey.slice(-1)[0].slice(1)}`], () => lGet(store, settingsKey));
+            console.log([...settingsKey.slice(0, -1), `get${settingsKey.map(t => t[0].toUpperCase() + t.slice(1)).join("")}`]);
+            lSet<SessionVariables>(acc, [`get${settingsKey.map(t => t[0].toUpperCase() + t.slice(1)).join("")}`], () => lGet(store, settingsKey));
         }
         return acc;
     }, {})) as SessionVariables;
+
+    console.log(sessionVars);
 
     const getRawValue = (path: string[]) => lGet(store, path);
 

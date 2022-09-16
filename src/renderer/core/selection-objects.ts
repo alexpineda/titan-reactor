@@ -2,10 +2,11 @@ import { SelectionCircle } from "@core/selection-circle";
 import { SelectionBars } from "@core/selection-bars";
 import range from "common/utils/range";
 import { Camera, Group, Vector3 } from "three";
-import { Assets, SpriteDAT, SpriteType } from "common/types";
+import { SpriteDAT, SpriteType } from "common/types";
 import { Unit } from "@core";
 import { SpriteEntities } from "@core/sprite-entities";
 import Janitor from "@utils/janitor";
+import { Assets } from "@image/assets";
 
 export class SelectionObject extends Group {
 

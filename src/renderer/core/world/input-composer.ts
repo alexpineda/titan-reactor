@@ -10,7 +10,7 @@ import { SceneComposer } from "./scene-composer";
 import { createUnitSelectionBox } from "@input/create-unit-selection";
 import { IterableSet } from "@utils/iterable-set";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
-import { Assets } from "common/types";
+import { Assets } from "@image/assets";
 import { SceneController } from "@plugins/plugin-system-native";
 import { World } from "./world";
 

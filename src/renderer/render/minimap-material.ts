@@ -1,9 +1,9 @@
 import { FogOfWar } from "@core/fogofwar";
 import { Unit } from "@core/unit";
 import { unitTypes } from "common/enums";
-import { UnitDAT } from "common/types";
+import { Settings, UnitDAT } from "common/types";
 import { floor32 } from "common/utils/conversions";
-import { Color, Euler, Matrix4, OrthographicCamera, PerspectiveCamera, Quaternion, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
+import { Color, Euler, Matrix4, MeshBasicMaterial, OrthographicCamera, PerspectiveCamera, Quaternion, Shader, ShaderChunk, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
 import fragmentShader from "./minimap-frag.glsl";
 import vertexShader from "./minimap-vert.glsl";
 
@@ -29,12 +29,22 @@ export class MinimapMaterial extends ShaderMaterial {
 
     camera: PerspectiveCamera | OrthographicCamera = new PerspectiveCamera(45, 1, 0.1, 100);
 
-    updateMatrix() {
+    applyViewMatrix(out: Matrix4, scale: Vector3, position: Vector3, rotation: Euler) {
 
         this.camera.position.set(0, 0, 1);
         this.camera.updateProjectionMatrix();
-        this.#modelMatrix.compose(this.#position, (new Quaternion()).setFromEuler(this.#rotation), this.#scale);
-        this.#modelMatrix.multiplyMatrices(this.camera.projectionMatrixInverse, this.#modelMatrix);
+        out.compose(position, (new Quaternion()).setFromEuler(rotation), scale);
+        out.multiplyMatrices(this.camera.projectionMatrixInverse, out);
+
+    }
+
+    updateMatrix() {
+
+        this.applyViewMatrix(this.#modelMatrix, this.#scale, this.#position, this.#rotation);
+        // this.camera.position.set(0, 0, 1);
+        // this.camera.updateProjectionMatrix();
+        // this.#modelMatrix.compose(this.#position, (new Quaternion()).setFromEuler(this.#rotation), this.#scale);
+        // this.#modelMatrix.multiplyMatrices(this.camera.projectionMatrixInverse, this.#modelMatrix);
 
     }
 
@@ -60,6 +70,7 @@ export class MinimapMaterial extends ShaderMaterial {
         uMapResolution: { value: new Vector2() },
         uResolution: { value: new Vector2() },
         uOpacity: { value: 1 },
+        uSoftEdges: { value: 0 },
         uMatrix: { value: this.#modelMatrix },
     }
 
@@ -87,6 +98,15 @@ export class MinimapMaterial extends ShaderMaterial {
         this.transparent = true;
 
 
+    }
+
+    set mode(val: Settings["minimap"]["mode"]) {
+        if (val === "3d") {
+            this.camera = new PerspectiveCamera(45, 1, 0.1, 100);
+        } else {
+            this.camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 100);
+        }
+        this.camera.position.set(0, 0, 1);
     }
 
     update(fogOfWarBuffer: Uint8Array, creepImage: ImageData, fogOfWarOpacity: number) {
@@ -167,6 +187,14 @@ export class MinimapMaterial extends ShaderMaterial {
             }
 
         }
+    }
+
+}
+
+export class IgnoreCameraBasicMaterial extends MeshBasicMaterial {
+
+    override onBeforeCompile(shader: Shader): void {
+        shader.fragmentShader = shader.fragmentShader.replace("#include <project_vertex>", "gl_Position = modelMatrix * vec4( transformed, 1.0 );");
     }
 
 }

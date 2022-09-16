@@ -6,7 +6,7 @@ import {
 import { Effect, BlendFunction } from "postprocessing";
 import fragmentShader from "./cursor.frag";
 import vertexShader from "./cursor.vert";
-import { Assets } from "common/types";
+import { Assets } from "@image/assets";
 import { LegacyGRP } from "..";
 
 export class CursorEffect extends Effect {

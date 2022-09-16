@@ -96,11 +96,13 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
     const pluginVars = plugins.reduce((acc, plugin) => {
 
         Object.entries(plugin.rawConfig).forEach(([key, value]) => {
+
             if (key !== "system") {
                 const compKey = [plugin.name, key];
                 lSet(acc, compKey, definePluginVar(plugin)(value as FieldDefinition, compKey));
-                lSet(acc, [...compKey.slice(0, -1), `get${[...compKey.slice(-1)][0].slice(0, 1).toUpperCase()}${compKey.slice(-1)[0].slice(1)}`], () => lGet(acc, compKey));
+                lSet(acc, [plugin.name, `get${key[0].toUpperCase() + key.slice(1)}`], () => lGet(acc, compKey));
             }
+
         });
 
         // callables

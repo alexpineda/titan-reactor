@@ -2,7 +2,7 @@ import Chk from "bw-chk";
 import loadScm from "@utils/load-scm";
 import * as log from "@ipc/log";
 import processStore, { Process } from "@stores/process-store";
-import { Assets, OpenBW } from "common/types";
+import { OpenBW } from "common/types";
 import { waitForTruthy } from "@utils/wait-for";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { useReplayAndMapStore } from "@stores";
@@ -19,6 +19,7 @@ import { BasePlayer } from "@core/players";
 import { playerColors } from "common/enums";
 import { raceToString } from "@utils/string-utils";
 import { music } from "@audio/music";
+import { Assets } from "@image/assets";
 
 const updateWindowTitle = (title: string) => {
   document.title = `Titan Reactor - ${title}`;
@@ -51,7 +52,7 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
   // wait for initial assets to load
-  if (settingsStore().data.assets.preload) {
+  if (settingsStore().data.graphics.preload) {
     await preloadMapUnitsAndSprites(assets, map);
   }
 

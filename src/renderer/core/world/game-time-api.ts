@@ -1,7 +1,7 @@
 import { BasePlayer } from "@core/players";
 import BaseScene from "@render/base-scene";
 import Chk from "bw-chk";
-import { Assets } from "common/types";
+import { Assets } from "@image/assets";
 import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "renderer/camera/game-viewport";
 import { Color, Scene } from "three";

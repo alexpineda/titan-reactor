@@ -34,8 +34,8 @@ export const createOpenBWComposer = ({ events, openBW, reset, fogOfWar }: World,
     };
 
     events.on("settings-changed", ({ rhs }) => {
-        if (rhs.game?.sandBoxMode !== undefined) {
-            if (openBW.setSandboxMode(rhs.game.sandBoxMode) === undefined) {
+        if (rhs.input?.sandBoxMode !== undefined) {
+            if (openBW.setSandboxMode(rhs.input.sandBoxMode) === undefined) {
                 return false;
             }
         }
