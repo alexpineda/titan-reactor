@@ -20,7 +20,8 @@ export class CursorMaterial extends ShaderMaterial {
 
             uniform vec2 uArrowSize;
             uniform vec2 uResolution;
-
+            uniform float uCursorSize;
+            
             uniform vec2 uFrame;
             uniform float uTime;
 
@@ -33,7 +34,7 @@ export class CursorMaterial extends ShaderMaterial {
                 vFrame = vec2(mod(frame, uFrame.x) / uFrame.x, floor(frame / uFrame.y) / uFrame.y);
 
                 vec2 res = (uArrowSize / uResolution) / uFrame;
-                vec2 pos2d = position.xy * res * 2. + uCursorPosition;
+                vec2 pos2d = position.xy * res * uCursorSize + uCursorPosition;
 
                 gl_Position = vec4(pos2d, position.z, 1.);
 
@@ -80,6 +81,7 @@ export class CursorMaterial extends ShaderMaterial {
         uFrame: { value: new Vector2() },
         uGraphicOffset: { value: new Vector2() },
         uTime: { value: 0 },
+        uCursorSize: { value: 1 },
     }
 
     #setCursor(cursor: LegacyGRP) {

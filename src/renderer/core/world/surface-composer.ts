@@ -8,7 +8,7 @@ import { World } from "./world";
 
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
-export const createSurfaceComposer = ({ map, settings, events }: World) => {
+export const createSurfaceComposer = ({ map, events }: World) => {
 
     const janitor = new Janitor();
 
@@ -23,15 +23,10 @@ export const createSurfaceComposer = ({ map, settings, events }: World) => {
     gameStore().setDimensions(gameSurface.getMinimapDimensions(settingsStore().data.minimap.scale));
 
     const _sceneResizeHandler = () => {
-        console.log("resize handler");
+
+        console.log("oldsize", gameSurface.bufferWidth, gameSurface.bufferHeight, gameSurface.width, gameSurface.height);
         gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
-
-        const rect = gameSurface.getMinimapDimensions(settings.getState().minimap.scale);
-
-        gameStore().setDimensions({
-            minimapWidth: rect.minimapWidth,
-            minimapHeight: settings.getState().minimap.enabled ? rect.minimapHeight : 0,
-        });
+        console.log("newsize", gameSurface.bufferWidth, gameSurface.bufferHeight, gameSurface.width, gameSurface.height);
 
         cssScene.setSize(gameSurface.width, gameSurface.height);
 

@@ -10,6 +10,8 @@ import { World, WorldEvents } from "./world";
 import fragmentShader from "../../render/minimap-frag.glsl";
 import vertexShader from "../../render/minimap-vert.glsl";
 import { ViewComposer } from "./view-composer";
+import gameStore from "@stores/game-store";
+import settingsStore from "@stores/settings-store";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
@@ -84,8 +86,18 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
     events.on("resize", (surface) => {
 
-        console.log("overlay:resize", surface)
+        console.log("overlay:resize", surface);
+
         applySettings({ settings: settings.getState(), rhs: {} });
+
+        const rect = gameSurface.getMinimapDimensions(settings.getState().minimap.scale);
+
+        // TODO: send transform matrix as well
+        gameStore().setDimensions({
+            minimapWidth: rect.minimapWidth,
+            minimapHeight: settings.getState().minimap.enabled ? rect.minimapHeight : 0,
+        });
+
     })
 
     function applySettings({ settings, rhs }: WorldEvents["settings-changed"]) {
@@ -116,6 +128,7 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
         // minimapConsoleMaterial.uniformsNeedUpdate = true;
 
         cursorMaterial.uniforms.uResolution.value.set(gameSurface.bufferWidth, gameSurface.bufferHeight);
+        cursorMaterial.uniforms.uCursorSize.value = settingsStore().data.graphics.cursorSize;
         cursorMaterial.uniformsNeedUpdate = true;
 
     }
