@@ -73,18 +73,25 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
     events.on("image-destroyed", (image) => {
 
         postProcessingBundle.removeBloomSelection(image);
-        if (postProcessingBundle.debugSelection)
+
+        if (postProcessingBundle.debugSelection) {
+
             postProcessingBundle.debugSelection.delete(image);
+
+        }
 
     });
 
     events.on("image-created", (image) => {
 
         postProcessingBundle.addBloomSelection(image);
+
         if (image instanceof Image3D && postProcessingBundle.options3d) {
+
             image.material.envMapIntensity = postProcessingBundle.options3d.envMap;
             image.castShadow = !ignoreCastShadow.includes(assets.refId(image.dat.index));
-            image.receiveShadow = !ignoreRecieveShadow.includes(assets.refId(image.dat.index));;
+            image.receiveShadow = !ignoreRecieveShadow.includes(assets.refId(image.dat.index));
+
         }
 
     });
@@ -117,7 +124,9 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
     const imageBufferView = new ImageBufferView(openBW);
 
     return Object.freeze({
+
         changeRenderMode,
+
         updatePostProcessingOptions(options: Settings["postprocessing"] | Settings["postprocessing3d"]) {
 
             if (shallow(postProcessingBundle.options, options) === false) {
@@ -125,16 +134,19 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
             }
 
         },
+
         dispose() {
 
             janitor.dispose();
 
         },
+
         onFrameReset() {
 
             postProcessingBundle.clearBloomSelection();
 
         },
+
         render(delta: number, elapsed: number) {
 
             // global won't use camera so we can set it to any

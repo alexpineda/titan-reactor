@@ -92,15 +92,7 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
     // keep the session up to date with user changed settings
     useSettingsStore.subscribe(settings => {
 
-        Object.assign(store, {
-            audio: settings.data.audio,
-            minimap: settings.data.minimap,
-            input: settings.data.input,
-            postprocessing: settings.data.postprocessing,
-            postprocessing3d: settings.data.postprocessing3d,
-        });
-
-        events.emit("settings-changed", { settings: store, rhs: {} });
+        mergeRootSession(settings.data);
 
     });
 

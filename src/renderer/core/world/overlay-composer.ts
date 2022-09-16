@@ -133,6 +133,7 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
         }
 
         minimapMaterial.scale.set(settings.minimap.scale, settings.minimap.scale, 1);
+        minimapMaterial.scale.divide(gameSurface.screenAspect);
         minimapMaterial.position.set(settings.minimap.position[0], -settings.minimap.position[1], 0);
 
         minimapMaterial.uniforms.uOpacity.value = settings.minimap.opacity;
@@ -161,6 +162,7 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
     });
 
     const mapV = new Vector2(map.size[0], map.size[1]);
+
     const mapAspectF = map.size[0] / map.size[1];
     const mapAspect = new Vector2(mapAspectF > 1.0 ? 1.0 / mapAspectF : 1.0, mapAspectF < 1.0 ? mapAspectF : 1.0);
     const bounds = new Vector2(0.5 - 0.5 * mapAspect.y, 0.5 - 0.5 * mapAspect.x);

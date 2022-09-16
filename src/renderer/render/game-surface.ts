@@ -1,6 +1,9 @@
 import { GameAspect } from "common/types";
+import { Vector3 } from "three";
 import { Surface } from "../image";
 import { MinimapDimensions } from "./minimap-dimensions";
+
+const _aspect = new Vector3();
 
 export class GameSurface extends Surface {
   top = 0;
@@ -13,6 +16,7 @@ export class GameSurface extends Surface {
   #shouldHavePointerLock = false;
 
   constructor(mapWidth: number, mapHeight: number) {
+
     super();
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
@@ -24,6 +28,7 @@ export class GameSurface extends Surface {
   }
 
   override setDimensions(screenWidth: number, screenHeight: number, pixelRatio: number) {
+
     const gameAspect = GameAspect.Fit;
 
     const maxWidth = screenWidth;
@@ -67,6 +72,7 @@ export class GameSurface extends Surface {
         pixelRatio
       );
     }
+
   }
 
   get pointerLockLost() {
@@ -74,24 +80,44 @@ export class GameSurface extends Surface {
   }
 
   togglePointerLock(val: boolean) {
+
     if (val) {
+
       this.requestPointerLock();
+
     } else {
+
       this.exitPointerLock();
+
     }
+
   }
 
   requestPointerLock() {
+
     this.#shouldHavePointerLock = true;
     this.canvas.requestPointerLock();
+
   }
 
   exitPointerLock() {
+
     this.#shouldHavePointerLock = false;
     document.exitPointerLock();
+
+  }
+
+  get screenAspect() {
+
+    const screenAspectF = this.bufferWidth / this.bufferHeight;
+
+    // fyi this is inversed aspect ratio y,x
+    return _aspect.set(screenAspectF < 1.0 ? screenAspectF : 1.0, screenAspectF > 1.0 ? 1.0 / screenAspectF : 1.0, 1);
+
   }
 
   getMinimapDimensions(minimapScale: number): MinimapDimensions {
+
     const max = Math.max(this.#mapWidth, this.#mapHeight);
     const wAspect = this.#mapWidth / max;
     const hAspect = this.#mapHeight / max;
@@ -101,10 +127,13 @@ export class GameSurface extends Surface {
       minimapWidth: Math.floor(minimapSize * wAspect),
       minimapHeight: Math.floor(minimapSize * hAspect)
     };
+
   }
 
   override dispose() {
+
     this.canvas.remove();
+
   }
 }
 
