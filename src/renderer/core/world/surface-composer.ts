@@ -2,20 +2,19 @@ import GameSurface from "@render/game-surface";
 import gameStore from "@stores/game-store";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import Janitor from "@utils/janitor";
+import { Borrowed } from "@utils/object-utils";
 import debounce from "lodash.debounce";
 import { CssScene } from "./css-scene";
 import { World } from "./world";
 
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
-export const createSurfaceComposer = ({ map, events }: World) => {
+export const createSurfaceComposer = (world: Borrowed<World>) => {
 
     const janitor = new Janitor();
-
-
     const cssScene = new CssScene();
 
-    const gameSurface = janitor.mop(new GameSurface(map.size[0], map.size[1]));
+    const gameSurface = janitor.mop(new GameSurface(world.map!.size[0], world.map!.size[1]));
 
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
     janitor.mop(document.body.appendChild(gameSurface.canvas));
@@ -24,13 +23,11 @@ export const createSurfaceComposer = ({ map, events }: World) => {
 
     const _sceneResizeHandler = () => {
 
-        console.log("oldsize", gameSurface.bufferWidth, gameSurface.bufferHeight, gameSurface.width, gameSurface.height);
         gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
-        console.log("newsize", gameSurface.bufferWidth, gameSurface.bufferHeight, gameSurface.width, gameSurface.height);
 
         cssScene.setSize(gameSurface.width, gameSurface.height);
 
-        events.emit("resize", gameSurface);
+        world.events!.emit("resize", gameSurface);
     };
 
     const sceneResizeHandler = debounce(() => {
@@ -59,7 +56,7 @@ export const createSurfaceComposer = ({ map, events }: World) => {
     return {
         cssScene,
         gameSurface,
-        dispose() {
+        dispose: () => {
             janitor.dispose();
         },
         resize,

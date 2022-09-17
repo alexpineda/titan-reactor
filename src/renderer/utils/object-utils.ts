@@ -17,23 +17,24 @@ export function mix(dest: {}, ...sources: {}[]) {
     return dest;
 }
 
-export function mixAll(dest: {}, ...sources: {}[]) {
-    if (sources[0] === null) {
-        return;
-    }
-    for (const source of sources) {
-        const props = Object.keys(source)
-        for (const prop of props) {
-            const descriptor = Object.getOwnPropertyDescriptor(source, prop)
-            if (descriptor) {
-                Object.defineProperty(dest, prop, descriptor)
-            } else {
-                log.error(`mix: property ${prop} not found in source`)
-            }
+export type Borrowed<T> = { [key in keyof T]: T[key] | undefined };
+
+export function borrow<T extends { [key: string]: any }>(source: T): Borrowed<T> {
+
+    const result = {} as Borrowed<T>;
+
+    for (const key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+            const element = source[key];
+            const ref = new WeakRef(element);
+            Object.defineProperty(result, key, {
+                get: () => ref.deref(),
+            });
         }
-        mixAll(dest, Object.getPrototypeOf(source))
     }
-    return dest;
+
+    return result;
+
 }
 
 // https://stackoverflow.com/questions/60400066/how-to-enumerate-discover-getters-and-setters-in-javascript
@@ -46,21 +47,6 @@ const getPropertyDescriptor = (source: {}, prop: string): null | undefined | Pro
         return getPropertyDescriptor(Object.getPrototypeOf(source), prop)
     }
     return descriptor;
-}
-
-export function mixOnly(dest: {}, source: {}, props: string[], alias: Record<string, string> = {}) {
-    for (const prop of props) {
-        const descriptor = getPropertyDescriptor(source, prop)
-        if (descriptor) {
-            Object.defineProperty(dest, alias[prop] ?? prop, {
-                ...descriptor,
-                enumerable: true
-            })
-        } else {
-            log.error(`mixOnly: property ${prop} not found in source`)
-        }
-    }
-    return dest;
 }
 
 Object3D.prototype.copy = function (source: Object3D, recursive = true) {

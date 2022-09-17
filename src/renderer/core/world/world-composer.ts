@@ -26,11 +26,11 @@ import { createViewComposer } from "./view-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World, WorldEvents } from "./world";
 import { mixer } from "@audio/main-mixer";
+import { borrow } from "@utils/object-utils";
 
 export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, players: BasePlayer[], commands: CommandsStream) => {
 
     const janitor = new Janitor();
-
     const events = janitor.mop(new TypeEmitter<WorldEvents>());
     const settings = janitor.mop(createReactiveSessionVariables(events));
     const plugins = await createPluginsAndMacroSession(events, settings, openBW);
@@ -49,15 +49,17 @@ export const createWorld = async (openBW: OpenBW, assets: Assets, map: Chk, play
         settings,
         janitor,
         events,
-        reset() {
+        reset: () => {
             frameResetRequested = true;
         }
     }
     let frameResetRequested = false;
 
-    const surfaceComposer = janitor.mop(createSurfaceComposer(world));
-    const viewComposer = createViewComposer(world, surfaceComposer);
-    const inputComposer = createInputComposer(world, surfaceComposer, viewComposer);
+    const _b = borrow;
+
+    const surfaceComposer = janitor.mop(createSurfaceComposer(_b(world)));
+    const viewComposer = createViewComposer(_b(world), surfaceComposer);
+    const inputComposer = janitor.mop(createInputComposer(surfaceComposer, viewComposer));
     const sceneComposer = janitor.mop(await createSceneComposer(world, viewComposer, assets));
     const overlayComposer = createOverlayComposer(world, sceneComposer, surfaceComposer, inputComposer, viewComposer, assets);
     const postProcessingComposer = janitor.mop(createPostProcessingComposer(world, sceneComposer, surfaceComposer, viewComposer, overlayComposer, assets));

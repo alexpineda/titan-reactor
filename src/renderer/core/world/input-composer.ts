@@ -3,11 +3,14 @@ import { ArrowKeyInput } from "@input/arrow-key-input";
 import { SurfaceComposer } from "./surface-composer";
 import { ViewComposer } from "./view-composer";
 import { World } from "./world";
+import { Borrowed } from "@utils/object-utils";
+import Janitor from "@utils/janitor";
 
 export type InputComposer = ReturnType<typeof createInputComposer>;
 
-export const createInputComposer = ({ janitor }: World, { gameSurface }: SurfaceComposer, viewComposer: ViewComposer) => {
+export const createInputComposer = ({ gameSurface }: SurfaceComposer, viewComposer: ViewComposer) => {
 
+    const janitor = new Janitor()
     const mouseInput = janitor.mop(new MouseInput(document.body));
     const arrowKeyInput = janitor.mop(new ArrowKeyInput(document.body));
     gameSurface.canvas.style.cursor = "none";
@@ -23,6 +26,7 @@ export const createInputComposer = ({ janitor }: World, { gameSurface }: Surface
         resetState() {
             mouseInput.reset();
         },
+        dispose: () => janitor.dispose(),
         inputGameTimeApi: {
             // get followedUnitsPosition() {
             //   if (!hasFollowedUnits()) {

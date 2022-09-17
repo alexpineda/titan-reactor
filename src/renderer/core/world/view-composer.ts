@@ -2,6 +2,7 @@ import { mixer } from "@audio/main-mixer";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import * as log from "@ipc/log";
 import { SceneController } from "@plugins/plugin-system-native";
+import { Borrowed } from "@utils/object-utils";
 import { DamageType, Explosion } from "common/enums";
 import { SceneInputHandler, UserInputCallbacks } from "common/types";
 import { easeCubicIn } from "d3-ease";
@@ -30,7 +31,7 @@ const empty: GameViewPort[] = [];
 
 export type ViewComposer = ReturnType<typeof createViewComposer>;
 
-export const createViewComposer = ({ events }: World, { gameSurface }: SurfaceComposer) => {
+export const createViewComposer = (world: Borrowed<World>, { gameSurface }: SurfaceComposer) => {
 
     let activating = false;
 
@@ -45,7 +46,7 @@ export const createViewComposer = ({ events }: World, { gameSurface }: SurfaceCo
 
     const viewports = () => sceneController?.viewports ?? empty;
 
-    events.on("resize", (surface) => {
+    world.events!.on("resize", (surface) => {
         for (const viewport of viewports()) {
             viewport.width = surface.bufferWidth;
             viewport.height = surface.bufferHeight;
