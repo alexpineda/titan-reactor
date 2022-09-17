@@ -1,7 +1,7 @@
 import { CMDS } from "@process-replay/commands/commands";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { Replay } from "@process-replay/parse-replay";
-import processStore, { Process } from "@stores/process-store";
+import processStore from "@stores/process-store";
 import { calculateImagesFromSpritesIscript } from "@utils/images-from-iscript";
 import Chk from "bw-chk";
 import { Assets } from "@image/assets";
@@ -27,10 +27,11 @@ export const preloadMapUnitsAndSprites = async (assets: Assets, map: Chk, replay
     const allSprites = [...preloadCommandUnits, ...unitSprites, ...new Set(map.sprites.map(s => s.spriteId))];
     const allImages = calculateImagesFromSpritesIscript(assets.bwDat, allSprites);
 
-    processStore().start(Process.AtlasPreload, allImages.length);
+    const preload = processStore().create("preload", allImages.length);
 
-    await Promise.all(allImages.map((imageId) => assets.loadImageAtlasAsync(imageId).then(() => processStore().increment(Process.AtlasPreload))));
-    processStore().complete(Process.AtlasPreload);
+    await Promise.all(allImages.map((imageId) => assets.loadImageAtlasAsync(imageId).then(() => preload.increment())));
+
+    preload.complete();
 
 
 }

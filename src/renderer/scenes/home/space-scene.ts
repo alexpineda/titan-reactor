@@ -31,7 +31,7 @@ import CameraControls from "camera-controls";
 import * as THREE from "three";
 import Janitor from "@utils/janitor";
 import gameStore from "@stores/game-store";
-import processStore, { Process } from "@stores/process-store";
+import processStore from "@stores/process-store";
 import { createBattleLights, distantStars } from "./stars";
 import { createBattleCruiser } from "./battlecruiser";
 import { createAsteroids } from "./asteroids";
@@ -131,7 +131,7 @@ let fireTexture: Texture;
 // })
 
 export const preloadIntro = async () => {
-    const { increment, complete } = processStore().start(Process.AtlasPreload, 4);
+    const { increment } = processStore().create("intro", 4);
 
     //TODO submit to types
     //@ts-ignore
@@ -150,7 +150,7 @@ export const preloadIntro = async () => {
 
     battleLights.load(fireTexture);
 
-    complete();
+    increment();
 };
 
 let mouse = new Vector3();

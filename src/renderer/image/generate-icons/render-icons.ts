@@ -2,7 +2,7 @@
 import { OrthographicCamera, Scene, WebGLRenderer } from "three";
 import { createDDSTexture } from "../formats/create-dds-texture";
 
-export default function* (
+export const renderIconsToDataURI = function* (
     renderer: WebGLRenderer,
     fixedWidth: number | null,
     fixedHeight: number | null,

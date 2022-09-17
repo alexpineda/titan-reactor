@@ -1,7 +1,7 @@
 import Chk from "bw-chk";
 import loadScm from "@utils/load-scm";
 import * as log from "@ipc/log";
-import processStore, { Process } from "@stores/process-store";
+import processStore from "@stores/process-store";
 import { OpenBW } from "common/types";
 import { waitForTruthy } from "@utils/wait-for";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
@@ -26,7 +26,8 @@ const updateWindowTitle = (title: string) => {
 }
 export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> => {
 
-  processStore().start(Process.MapInitialization, 3);
+  processStore().clearAll();
+  const process = processStore().create("map", 3);
   log.verbose("loading chk");
 
   const janitor = new Janitor;
@@ -43,18 +44,19 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
   useReplayAndMapStore.setState({ map, mapImage: await createMapImage(map) });
   janitor.mop(() => useReplayAndMapStore.getState().reset())
 
-  processStore().increment(Process.MapInitialization);
+  process.increment();
 
   log.verbose("initializing scene");
 
-  processStore().increment(Process.MapInitialization);
-
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
+
+  process.increment();
 
   // wait for initial assets to load
   if (settingsStore().data.graphics.preload) {
     await preloadMapUnitsAndSprites(assets, map);
   }
+
 
   const disposeScene = await makeGameScene(
     map,
@@ -91,7 +93,7 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
     }
   );
 
-  processStore().complete(Process.MapInitialization);
+  process.complete();
 
   return {
     id: "@map",

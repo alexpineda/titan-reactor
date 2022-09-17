@@ -12,6 +12,7 @@ import { Terrain } from "@core/terrain";
 import { HeightMaps } from "./height-maps/render-height-maps";
 import gameStore from "@stores/game-store";
 import { getTerrainY } from "./get-terrain-y";
+import processStore from "@stores/process-store";
 
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
@@ -31,8 +32,11 @@ export const createTerrainGeometryFromQuartiles = async (
         creepEdgesTexture.texture.anisotropy = anisotropy;
     });
 
+
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;
+
+    const genProcess = processStore().create("generate-geometry", qw * qh);
 
     const tilesX = mapWidth / qw;
     const tilesY = mapHeight / qh;
@@ -177,6 +181,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 0
             );
             terrain.add(terrainQuartile);
+            genProcess.increment();
         }
     }
 
@@ -192,7 +197,7 @@ export const createTerrainGeometryFromQuartiles = async (
         quartileWidth: qw, quartileHeight: qh, tilesX, tilesY
     }
 
-
+    genProcess.complete();
     return terrain;
 };
 export default createTerrainGeometryFromQuartiles;

@@ -15,9 +15,11 @@ import parseDDS from "@image/formats/parse-dds";
 import { parseTMSK } from "@image/formats/parse-tmsk";
 import { Creep } from "@core/creep/creep";
 import Janitor from "@utils/janitor";
+import processStore from "@stores/process-store";
 
 export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
   const janitor = new Janitor();
+  const genProcess = processStore().create("generate-textures", 4);
   const [mapWidth, mapHeight] = chk.size;
 
   const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
@@ -32,7 +34,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
   const { creepGrpSD, paletteWPE: palette, hdTiles, creepGrpHD, tilegroupCV5: tilegroupU16, tileset, megatilesVX4: megatiles, minitilesVR4: minitiles } = tilesetBuffers;
 
   log.verbose(`Generating terrain textures`);
-
+  genProcess.increment();
 
   const renderer = renderComposer.getWebGLRenderer();
 
@@ -47,6 +49,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
     levels,
     renderer
   });
+  genProcess.increment();
 
   const isLowRes = textureResolution === UnitTileScale.SD;
 
@@ -64,6 +67,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
     bitmaps.mapTilesData,
     textureResolution, renderer
   );
+  genProcess.increment();
 
   const effectsTextures = {
     waterNormal1: parseDdsGrpAsTextures(tilesetBuffers.waterNormal1),
@@ -76,6 +80,8 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
       this.waterMask && janitor.dispose(this.waterMask);
     }
   }
+
+  genProcess.complete();
 
   renderComposer.preprocessEnd();
 

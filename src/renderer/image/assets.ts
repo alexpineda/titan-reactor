@@ -13,7 +13,7 @@ import {
 import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
 import gameStore from "@stores/game-store";
-import processStore, { Process } from "@stores/process-store";
+import processStore from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
 import { generateAllIcons } from "./generate-icons/generate-icons";
 import * as log from "../ipc/log"
@@ -46,7 +46,7 @@ export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "r
 
 export const createAssets = async (settings: Settings) => {
 
-    processStore().start(Process.AtlasPreload, 999);
+    const process = processStore().create("assets", 999);
 
     electronFileLoader((file: string) => {
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png") || file.includes(".exr")) {
@@ -185,10 +185,10 @@ export const createAssets = async (settings: Settings) => {
         const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
         const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
 
-        processStore().start(Process.AtlasPreload, preloadImageIds.length);
+        process.add(preloadImageIds.length)
 
         for (const id of preloadImageIds) {
-            processStore().increment(Process.AtlasPreload);
+            process.increment();
             await loadImageAtlas(id);
         }
 

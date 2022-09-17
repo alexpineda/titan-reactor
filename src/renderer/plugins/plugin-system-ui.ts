@@ -3,7 +3,7 @@ import { PluginMetaData, OpenBW } from "common/types";
 import settingsStore from "@stores/settings-store";
 import { useGameStore, useSceneStore, useReplayAndMapStore, SceneStore, ReplayAndMapStore } from "@stores";
 
-import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED, UI_STATE_EVENT_PROGRESS } from "./events";
+import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED } from "./events";
 import { waitForTruthy } from "@utils/wait-for";
 import { DumpedUnit, Unit } from "@core/unit";
 import { StdVector } from "../buffer-view/std-vector";
@@ -11,7 +11,6 @@ import * as enums from "common/enums";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
 import { Assets } from "@image/assets";
-import processStore, { useProcessStore } from "@stores/process-store";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { normalizePluginConfiguration } from "@utils/function-utils"
 
@@ -82,7 +81,6 @@ export type PluginStateMessage = {
     [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>['payload'],
     [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>,
     [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeReplayPosition>,
-    [UI_STATE_EVENT_PROGRESS]: number,
     [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage['payload'],
 }
 
@@ -140,7 +138,6 @@ export class PluginSystemUI {
             [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useSceneStore.getState()).payload,
             [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useReplayAndMapStore.getState()),
             [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
-            [UI_STATE_EVENT_PROGRESS]: processStore().getTotalProgress(),
             [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage.payload,
         })
 
@@ -207,13 +204,6 @@ export class PluginSystemUI {
                 payload: worldPartial(world)
             });
         }));
-
-        this.#janitor.mop(useProcessStore.subscribe((process) => {
-            this.sendMessage({
-                type: UI_STATE_EVENT_PROGRESS,
-                payload: process.getTotalProgress()
-            });
-        }))
 
         this.refresh();
 

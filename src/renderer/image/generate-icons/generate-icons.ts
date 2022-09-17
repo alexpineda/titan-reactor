@@ -2,7 +2,7 @@ import { ReadFile } from "common/types";
 
 import parseDdsGrp from "../formats/parse-dds-grp";
 import generateWireframes from "./generate-wireframes";
-import { generateCursors, generateCursorsDataURI } from "./generate-cursors";
+import { generateCursors } from "./generate-cursors";
 import generateCmdIcons from "./generate-cmds";
 import generateRaceInsetIcons from "./generate-races";
 import generateResourceIcons from "./generate-resources";
@@ -29,11 +29,6 @@ export const generateAllIcons = async (readFile: ReadFile) => {
   const raceInsetIcons = generateRaceInsetIcons(
     renderer,
     parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
-  );
-
-  const arrowIcons = await generateCursorsDataURI(
-    await readFile("cursor/arrow.grp"),
-    palette
   );
 
   const arrowIconsGPU = (await generateCursors(
@@ -84,7 +79,6 @@ export const generateAllIcons = async (readFile: ReadFile) => {
     cmdIcons,
     raceInsetIcons,
     workerIcons,
-    arrowIcons,
     wireframeIcons,
     arrowIconsGPU,
     hoverIconsGPU,

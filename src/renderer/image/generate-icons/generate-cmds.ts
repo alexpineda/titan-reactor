@@ -1,9 +1,9 @@
 
 import { WebGLRenderer } from "three";
-import renderIcons from "./render-icons";
+import { renderIconsToDataURI } from "./render-icons";
 
 export default (renderer: WebGLRenderer, dds: Buffer[]) => {
-    const renderIcon = renderIcons(
+    const renderIcon = renderIconsToDataURI(
         renderer, 64, 64, dds, 0, "#ff0000"
     );
 

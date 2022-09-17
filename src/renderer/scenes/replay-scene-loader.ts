@@ -12,7 +12,7 @@ import { GameTypes } from "common/enums";
 import { openFile } from "@ipc";
 import * as log from "@ipc/log";
 import settingsStore from "@stores/settings-store";
-import processStore, { Process } from "@stores/process-store";
+import processStore from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";
 import Janitor from "@utils/janitor";
 import { useReplayAndMapStore } from "@stores";
@@ -28,7 +28,8 @@ import { music } from "@audio/music";
 
 export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
 
-  processStore().start(Process.ReplayInitialization);
+  processStore().clearAll();
+  const loadProcess = processStore().create("replay", 4);
 
   log.info(`@load-replay/file: ${filepath}`);
 
@@ -42,7 +43,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
     throw new Error("Replays with computer players are not currently supported.");
   }
 
-  processStore().increment(Process.ReplayInitialization);
+  loadProcess.increment();
 
   document.title = "Titan Reactor";
 
@@ -58,6 +59,8 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   }
 
+  loadProcess.increment();
+
   if (replay.version !== Version.titanReactor) {
 
     const chkDowngrader = new ChkDowngrader();
@@ -72,6 +75,8 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
     replay = await parseReplay(replayBuffer);
 
   }
+
+  loadProcess.increment();
 
   replay.header.players = replay.header.players.filter(p => p.isActive);
 
@@ -125,7 +130,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   document.title = `Titan Reactor - ${gameTitle}`;
 
-  processStore().complete(Process.ReplayInitialization);
+  loadProcess.complete();
 
   return {
     id: "@replay",

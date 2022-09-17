@@ -16,7 +16,6 @@ declare module "titan-reactor/host" {
     export const UI_STATE_EVENT_SCREEN_CHANGED = "screen";
     export const UI_STATE_EVENT_WORLD_CHANGED = "world";
     export const UI_STATE_EVENT_UNITS_SELECTED = "units";
-    export const UI_STATE_EVENT_PROGRESS = "progress";
 
     export type SceneInputHandler = NativePlugin & Partial<UserInputCallbacks> & { dispose: () => void; gameOptions: { allowUnitSelection: boolean; audio: "stereo" | "3d"; }; onEnterScene: (prevData: any) => Promise<void>; onExitScene?: ((currentData: any) => any) | undefined; onPostProcessingBundle: (renderPass: any, fogOfWarEffect: any) => { passes?: any[] | undefined; effects?: any[] | undefined; }; }
     export interface PluginMetaData extends PluginPackage {

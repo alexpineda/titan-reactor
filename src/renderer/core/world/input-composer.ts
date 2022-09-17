@@ -2,8 +2,6 @@ import { MouseInput } from "@input/mouse-input";
 import { ArrowKeyInput } from "@input/arrow-key-input";
 import { SurfaceComposer } from "./surface-composer";
 import { ViewComposer } from "./view-composer";
-import { World } from "./world";
-import { Borrowed } from "@utils/object-utils";
 import Janitor from "@utils/janitor";
 
 export type InputComposer = ReturnType<typeof createInputComposer>;
