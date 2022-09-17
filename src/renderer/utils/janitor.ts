@@ -32,7 +32,7 @@ export default class Janitor {
         return this;
     }
 
-    on(nodeEventListener: NodeJS.EventEmitter, event: string, callback: (...args: any[]) => void) {
+    on(nodeEventListener: { on: Function, off: Function }, event: string, callback: (...args: any[]) => void) {
         nodeEventListener.on(event, callback);
         this.mop(() => nodeEventListener.off(event, callback));
     }

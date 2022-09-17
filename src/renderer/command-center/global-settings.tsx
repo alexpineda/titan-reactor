@@ -2,12 +2,12 @@ import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { useSettingsStore } from "@stores/settings-store";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import {
-  fromNestedToLevaSettings,
-  fromLevaConfigToNestedConfig,
+  getAppSettingsInLevaFormat,
+  generateAppSettingsFromLevaFormat,
 } from "common/get-app-settings-leva-config";
 import { useControls, useCreateStore } from "leva";
 import { useState } from "react";
-import { mapConfigToLeva } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder } from "@utils/leva-utils";
 import { renderComposer } from "@render/render-composer";
 import deepMerge from "deepmerge";
 import { createLevaPanel } from "./create-leva-panel";
@@ -18,7 +18,7 @@ export const GlobalSettings = () => {
   const settings = useSettingsStore();
 
   const [state, setState] = useState(
-    fromNestedToLevaSettings(
+    getAppSettingsInLevaFormat(
       settings.data,
       settings.enabledPlugins,
       renderComposer.getWebGLRenderer().capabilities.getMaxAnisotropy(),
@@ -28,27 +28,34 @@ export const GlobalSettings = () => {
     )
   );
 
-  const controls = mapConfigToLeva(state, () => {
-    setState(state);
+  const controls = attachOnChangeAndGroupByFolder({
+    config: state,
+    groupByFolder: false,
+    onChange: () => {
+      setState(state);
 
-    const newSettings = fromLevaConfigToNestedConfig(state);
+      const newSettings = generateAppSettingsFromLevaFormat(state);
 
-    const newState = deepMerge(Object.assign({}, settings.data), newSettings, {
-      arrayMerge: overwriteMerge,
-    });
+      const newState = deepMerge(
+        Object.assign({}, settings.data),
+        newSettings,
+        {
+          arrayMerge: overwriteMerge,
+        }
+      );
 
-    settings.save(newState).then((payload) => {
-      sendWindow(InvokeBrowserTarget.Game, {
-        type: SendWindowActionType.CommitSettings,
-        payload,
+      settings.save(newState).then((payload) => {
+        sendWindow(InvokeBrowserTarget.Game, {
+          type: SendWindowActionType.CommitSettings,
+          payload,
+        });
       });
-    });
+    },
   });
 
   const store = useCreateStore();
-  for (const [folder, config] of controls) {
-    useControls(folder, config, { store });
-  }
+
+  useControls(controls, { store, collapsed: true });
 
   return createLevaPanel(store);
 };

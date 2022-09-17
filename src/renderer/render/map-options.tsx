@@ -1,5 +1,5 @@
 import { defaultGeometryOptions } from "@image/generate-map/default-geometry-options";
-import { mapConfigToLeva } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder } from "@utils/leva-utils";
 import { GeometryOptions } from "common/types";
 import { LevaPanel, useControls, useCreateStore } from "leva";
 import { useState } from "react";
@@ -200,15 +200,15 @@ export const MapViewer = ({
       },
     },
   });
-  const controls = mapConfigToLeva(
-    state,
-    (value: any, key?: string) => {
+  const controls = attachOnChangeAndGroupByFolder({
+    config: state,
+    onChange: (value: any, key?: string) => {
       //@ts-ignore
       setState((state) => ({ ...state, [key!]: { ...state[key!], value } }));
       onChange(toSimple(state));
     },
-    false
-  );
+    overwriteOnChange: false,
+  });
   for (const [folder, config] of controls) {
     useControls(folder, config, { store, collapsed: true });
   }

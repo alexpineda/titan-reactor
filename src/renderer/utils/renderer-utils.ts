@@ -2,8 +2,6 @@ import { version } from "../../../package.json";
 import { renderComposer } from "@render";
 import * as log from "@ipc/log";
 
-export const rendererIsDev = process.env.NODE_ENV === "development";
-
 export const logCapabilities = () => {
     log.info(`@init: titan-reactor ${version}`);
     log.info(`@init: chrome ${process.versions.chrome}`);

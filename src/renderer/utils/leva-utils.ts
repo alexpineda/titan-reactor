@@ -21,7 +21,12 @@ export const mapSingleConfigToLeva = (fieldConfig: any, onChange: (value: any, k
     });
 }
 
-export const mapConfigToLeva = (config: any, onChange: (value: any, key?: string) => void, overwriteOnChange = true) => {
+export const attachOnChangeAndGroupByFolder = ({
+    config,
+    onChange,
+    overwriteOnChange = true,
+    groupByFolder = true
+}: { config: any, onChange: (value: any, key?: string) => void, overwriteOnChange?: boolean, groupByFolder?: boolean }) => {
     const values = [];
     for (const k in config || {}) {
         if (
@@ -36,9 +41,13 @@ export const mapConfigToLeva = (config: any, onChange: (value: any, key?: string
             values.push(obj);
         }
     }
-    const grouped = groupBy(values, "folder");
-    return Object.keys(grouped).map((folder) => [
-        folder,
-        grouped[folder].reduce((acc, v) => ({ ...acc, [v._key]: v }), {}),
-    ]);
+    if (groupByFolder) {
+        const grouped = groupBy(values, "folder");
+        return Object.keys(grouped).map((folder) => [
+            folder,
+            grouped[folder].reduce((acc, v) => ({ ...acc, [v._key]: v }), {}),
+        ]);
+    } else {
+        return values.reduce((acc, v) => ({ ...acc, [v._key]: v }), {});
+    }
 };

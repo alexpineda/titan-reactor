@@ -2,7 +2,7 @@
 import { FieldDefinition, ModifyValueActionEffect, SessionSettingsData, MacroActionHostModifyValue } from "common/types";
 import deepMerge from 'deepmerge';
 import { doActionEffect } from "@macros";
-import { fromNestedToSessionLevaConfig, fromnNestedToSessionLevaField } from "common/get-app-settings-leva-config";
+import { getSessionSettingsInLevaFormat, getSessionSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
 import lGet from "lodash.get";
@@ -32,7 +32,7 @@ const applyEffectToSessionProperty = (mergeRootSession: MergeSessionStore, effec
 
 const getSessionSettingsField = (settingsData: SessionSettingsData, path: string[]) => {
 
-    const field = fromnNestedToSessionLevaField(settingsData, settingsStore().enabledPlugins, path) as FieldDefinition | undefined;
+    const field = getSessionSettingsPropertyInLevaFormat(settingsData, settingsStore().enabledPlugins, path) as FieldDefinition | undefined;
 
     if (field === undefined) {
         log.warning("Session field is no found.");
@@ -79,11 +79,9 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
     const mergeRootSession = async (rhs: DeepPartial<SessionSettingsData>) => {
 
-        console.debug("updating session");
+        const newSettings = deepMerge(store, rhs, { arrayMerge: arrayOverwriteMerge }) as Required<SessionSettingsData>;
 
-        const newSettings = deepMerge<DeepPartial<SessionSettingsData>>(store, rhs, { arrayMerge: arrayOverwriteMerge });
-
-        if (events.emit("settings-changed", { settings: store, rhs }) !== false) {
+        if (events.emit("settings-changed", { settings: newSettings, rhs }) !== false) {
             Object.assign(store, newSettings);
         }
 
@@ -105,7 +103,7 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
     const defineSessionProperty = createReactiveVariable(applyEffectToSessionRoot, (path) => lGet(store, path));
 
-    const sessionSettingsConfig = fromNestedToSessionLevaConfig(settingsStore().data, settingsStore().enabledPlugins);
+    const sessionSettingsConfig = getSessionSettingsInLevaFormat(settingsStore().data, settingsStore().enabledPlugins);
 
     const sessionVars = (Object.entries(sessionSettingsConfig).reduce((acc, [key, value]) => {
         if (isValidkey(key)) {

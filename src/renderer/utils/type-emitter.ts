@@ -9,8 +9,9 @@ export type VoidKeys<Record> = MatchingKeys<Record, void>;
 export class TypeEmitter<T>  {
     #listeners: Map<keyof T, ((v: T[keyof T] | undefined) => void | false)[]> = new Map();
 
-    on<K extends keyof T>(s: K, listener: (v: T[K]) => void): void {
+    on<K extends keyof T>(s: K, listener: (v: T[K]) => void) {
         this.#listeners.set(s, (this.#listeners.get(s) || []).concat(listener));
+        return () => this.off(s, listener);
     }
 
     off<K extends keyof T>(s: K, listener: (v: T[K]) => void): void {

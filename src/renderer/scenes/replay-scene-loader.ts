@@ -17,7 +17,6 @@ import { makeGameScene } from "./game-scene/game-scene";
 import Janitor from "@utils/janitor";
 import { useReplayAndMapStore } from "@stores";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
-import { rendererIsDev } from "@utils/renderer-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { detectMeleeObservers } from "@utils/replay-utils";
 import { preloadMapUnitsAndSprites } from "@utils/preload-map-units-and-sprites";
@@ -67,7 +66,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
     replayBuffer = await writeReplay(replay.rawHeader, rawCmds, chk, replay.limits);
 
-    if (rendererIsDev) {
+    if (process.env.NODE_ENV === "development") {
       fs.writeFileSync(`D:\\last_replay.rep`, replayBuffer);
     }
     replay = await parseReplay(replayBuffer);

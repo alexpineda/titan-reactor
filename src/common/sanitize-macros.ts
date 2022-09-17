@@ -1,4 +1,4 @@
-import { fromNestedToLevaSettingsField } from "common/get-app-settings-leva-config";
+import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
 import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, ModifyValueActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
@@ -74,7 +74,7 @@ const sanitizeMacroConditionComparators = (condition: MacroCondition, settings: 
 const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroCondition, settings: SettingsAndPluginsMeta) => {
 
     if (action.type === MacroActionType.ModifyAppSettings || action.type === "AppSettingsCondition") {
-        let field = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, action.field) as FieldDefinition;
+        let field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.field) as FieldDefinition;
 
         // sane default
         if (field === undefined || action.field.length == 0) {
@@ -189,7 +189,7 @@ export const getMacroActionValidEffects = (
 ): ModifyValueActionEffect[] => {
 
     if (action.type === MacroActionType.ModifyAppSettings) {
-        const field = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, action.field);
+        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.field);
         if (!field) {
             return [];
         }
@@ -230,7 +230,7 @@ export const getMacroConditionValidComparators = (
 ): MacroConditionComparator[] => {
 
     if (condition.type === "AppSettingsCondition") {
-        const field = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, condition.field);
+        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, condition.field);
         if (!field) {
             return [];
         }
@@ -290,7 +290,7 @@ export const getFirstOption = (options: Required<FieldDefinition>["options"]) =>
 
 export const getMacroActionOrConditionLevaConfig = ({ value, field }: MacroConditionAppSetting | MacroActionHostModifyValue, settings: SettingsAndPluginsMeta) => {
 
-    const levaConfig = fromNestedToLevaSettingsField(settings.data, settings.enabledPlugins, field);
+    const levaConfig = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, field);
 
     const displayValue =
         //@ts-ignore

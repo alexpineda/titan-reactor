@@ -13,6 +13,7 @@ import {
 } from "postprocessing";
 import Surface from "../image/canvas/surface";
 import { ColorManagement } from "three/src/math/ColorManagement";
+import { globalEvents } from "./global-events";
 
 
 //@ts-ignore
@@ -55,6 +56,7 @@ export class TitanRenderComposer {
         this.getWebGLRenderer();
     }
 
+    // TODO don't get another renderer if context is lost
     getWebGLRenderer() {
         if (this.#renderer) {
             return this.#renderer;
@@ -68,12 +70,15 @@ export class TitanRenderComposer {
             "webglcontextlost",
             (evt) => {
                 evt.preventDefault();
+                globalEvents.emit("webglcontextlost");
             }
         );
 
         renderer.domElement.addEventListener(
             "webglcontextrestored",
-            () => this.onRestoreContext && this.onRestoreContext())
+            () => {
+                globalEvents.emit("webglcontextrestored");
+            });
 
         this.setSize(this.targetSurface.bufferWidth, this.targetSurface.bufferHeight);
 

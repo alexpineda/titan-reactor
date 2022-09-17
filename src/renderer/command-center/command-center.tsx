@@ -9,7 +9,7 @@ import { PluginMetaData } from "common/types";
 import DetailSheet from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
-import { mapConfigToLeva } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder } from "@utils/leva-utils";
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
@@ -288,8 +288,11 @@ const CommandCenter = () => {
                       <DetailSheet
                         key={plugin.local.id}
                         pluginPackage={plugin.local}
-                        controls={mapConfigToLeva(plugin.local.config, () => {
-                          onChange(plugin.local!.id, plugin.local!.config);
+                        controls={attachOnChangeAndGroupByFolder({
+                          config: plugin.local.config,
+                          onChange: () => {
+                            onChange(plugin.local!.id, plugin.local!.config);
+                          },
                         })}
                         updateAvailable={!!updateVersion}
                       />
@@ -331,8 +334,11 @@ const CommandCenter = () => {
                       <DetailSheet
                         key={plugin.local.id}
                         pluginPackage={plugin.local}
-                        controls={mapConfigToLeva(plugin.local.config, () => {
-                          onChange(plugin.local!.id, plugin.local!.config);
+                        controls={attachOnChangeAndGroupByFolder({
+                          config: plugin.local.config,
+                          onChange: () => {
+                            onChange(plugin.local!.id, plugin.local!.config);
+                          },
                         })}
                       />
                     )}

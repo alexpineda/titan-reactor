@@ -189,11 +189,13 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
             unitSelectionBox.update();
 
             if (unitSelectionBox.isActive || !(settings.getState().minimap.interactive && settings.getState().minimap.enabled)) {
+
                 if (_insideMinimap) {
                     events.emit("minimap-leave");
                     _insideMinimap = false;
                 }
                 return;
+
             }
 
             rayCast.setFromCamera(inputs.mouse.move, minimapMaterial.camera);

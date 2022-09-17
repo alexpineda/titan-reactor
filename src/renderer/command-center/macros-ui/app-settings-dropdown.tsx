@@ -1,5 +1,5 @@
 import settingsStore from "@stores/settings-store";
-import { fromNestedToSessionLevaConfig } from "common/get-app-settings-leva-config";
+import { getSessionSettingsInLevaFormat } from "common/get-app-settings-leva-config";
 import React from "react";
 
 interface Props {
@@ -13,7 +13,7 @@ export const SessionSettingsDropDown = ({
   disabled,
 }: Props) => {
   const settings = settingsStore();
-  const config = fromNestedToSessionLevaConfig(
+  const config = getSessionSettingsInLevaFormat(
     settings.data,
     settings.enabledPlugins
   );

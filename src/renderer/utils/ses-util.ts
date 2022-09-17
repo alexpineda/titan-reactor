@@ -36,7 +36,7 @@ export const createCompartment = (env: {} = {}) => {
 
 export const lockdown_ = () => {
 
-    if (rendererIsDev) {
+    if (process.env.NODE_ENV === "development") {
         window.harden = (x) => x;
 
         // @ts-ignore

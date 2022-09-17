@@ -1,7 +1,7 @@
 import { PluginMetaData, SessionSettingsData, SettingsMeta } from "common/types";
 import lSet from "lodash.set";
 
-export const fromLevaConfigToNestedConfig = (
+export const generateAppSettingsFromLevaFormat = (
     settings: Record<string, { value: any }>
 ) => {
     return Object.entries(settings).reduce((memo, [key, item]) => {
@@ -10,30 +10,30 @@ export const fromLevaConfigToNestedConfig = (
     }, {} as Record<string, any>);
 };
 
-export const fromNestedToLevaSettingsField = (
+export const getAppSettingsPropertyInLevaFormat = (
     settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ) => {
-    const config = fromNestedToLevaSettings(settings, plugins);
+    const config = getAppSettingsInLevaFormat(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
 };
 
-export const fromNestedToLevaSettings = (settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({
+export const getAppSettingsInLevaFormat = (settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({
 
     ...getDirectoryConfig(settings.directories),
     ...getGraphicsConfig(settings.graphics, maxPixelRatio),
     ...getUtilConfig(settings.utilities),
-    ...fromNestedToSessionLevaConfig(settings, plugins, maxAnisotropy, maxAntiAlias)
+    ...getSessionSettingsInLevaFormat(settings, plugins, maxAnisotropy, maxAntiAlias)
 
 });
 
-export const fromnNestedToSessionLevaField = (
+export const getSessionSettingsPropertyInLevaFormat = (
     settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ) => {
-    const config = fromNestedToSessionLevaConfig(settings, plugins);
+    const config = getSessionSettingsInLevaFormat(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
 };
 
-export const fromNestedToSessionLevaConfig = (settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
+export const getSessionSettingsInLevaFormat = (settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
     ...getAudioConfig(settings.audio),
     ...getMinimapConfig(settings.minimap),
     ...getInputConfig(settings.input, plugins.filter((p) => p.isSceneController)),
