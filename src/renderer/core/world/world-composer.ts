@@ -37,11 +37,6 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
     const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
     const fogOfWar = new FogOfWar(map.size[0], map.size[1], openBW, fogOfWarEffect);
 
-    // const global = borrow({
-    //     mixer,
-    //     useSettingsStore
-    // });
-
     const world: World = {
         openBW,
         map,
@@ -59,9 +54,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
     }
     let frameResetRequested = false;
 
-    const _world = borrow(world);
-
-
+    const _world = borrow(world, { refRoot: false });
 
     const gameLoopComposer = createGameLoopComposer(_world);
     const surfaceComposer = createSurfaceComposer(_world);
@@ -69,7 +62,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
     const commandsComposer = createCommandsComposer(_world, commands);
     const viewInputComposer = createViewInputComposer(_world, expose(surfaceComposer, ["gameSurface"]));
     const sandboxApi = createSandboxApi(_world, sceneComposer.pxToWorldInverse);
-    const openBwComposer = createOpenBWComposer(_world, new WeakRef(sceneComposer), new WeakRef(viewInputComposer));
+    const openBwComposer = createOpenBWComposer(_world, borrow(sceneComposer), borrow(viewInputComposer));
 
     const overlayComposer = createOverlayComposer(_world, sceneComposer, new WeakRef(surfaceComposer.gameSurface), (viewInputComposer), assets);
     const postProcessingComposer = createPostProcessingComposer(_world, sceneComposer, viewInputComposer, overlayComposer, assets);

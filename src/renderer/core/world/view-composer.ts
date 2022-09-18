@@ -56,7 +56,6 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
         };
     });
 
-
     return {
         inputs,
         viewportsGameTimeApi: {

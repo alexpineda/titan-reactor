@@ -41,43 +41,39 @@ function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string
     return true;
 }
 
-interface BorrowOptions {
-    ancestors: number;
-    descendents: number;
-    keep: string[];
-    target: {}
+type BorrowOptions = {
+    target?: {},
+    refRoot?: boolean
 }
 
-// Converts property descriptors to WeakRef accessors
-export function borrow<T extends { [key: string]: any }>(source: T, { ancestors, descendents, keep, target }: BorrowOptions = { ancestors: 0, descendents: 0, keep: [], target: {} }): Borrowed<T> {
+// Utility function for creating WeakRefs
+export function borrow<T extends { [key: string]: any }>(source: T, userOptions: BorrowOptions = {}): Borrowed<T> {
 
-    for (const key in source) {
+    const { target, refRoot } = { target: {}, refRoot: true, ...userOptions };
 
-        const descriptor = Object.getOwnPropertyDescriptor(source, key);
+    if (refRoot) {
 
-        if (descriptor) {
+        const ref = new WeakRef(source);
 
-            if (descendents) {
+        for (const key in source) {
 
-                const result = borrow(source[key], { ancestors: 0, descendents: descendents - 1, keep, target });
+            Object.defineProperty(target, key, {
+                enumerable: true,
+                configurable: false,
+                get: () => ref.deref()?.[key]
+            });
 
-                Object.defineProperty(target, key, {
-                    enumerable: true,
-                    configurable: false,
-                    get: () => result,
-                });
+        }
 
-            } else {
+    } else {
+
+        for (const key in source) {
+
+            const descriptor = getPropertyDescriptor(source, key);
+
+            if (descriptor) {
 
                 borrowProperty(descriptor, source, key, target);
-
-            }
-
-        } else {
-
-            if (ancestors > 0 && Object.getPrototypeOf(source)) {
-
-                borrow(Object.getPrototypeOf(source), { ancestors: ancestors - 1, descendents: 0, keep, target });
 
             }
 
@@ -100,9 +96,9 @@ export type ExposeOptions = {
 }
 
 // expose only keys, including prototype chain
-export function expose<T extends { [key: string]: any }, K extends keyof T>(source: T, keys: K[], { asValues }: ExposeOptions = { asValues: true }): Exposed<T, K> {
+export function expose<T, K extends keyof T>(source: T, keys: K[], { asValues }: ExposeOptions = { asValues: false }): Pick<T, K> {
 
-    const result = {} as Exposed<T, K>;
+    const result = {} as Pick<T, K>;
 
     for (const key of keys) {
 

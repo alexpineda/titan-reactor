@@ -16,7 +16,7 @@ import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_PLUGINS_DISPOSED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
-import { globalEvents } from "../../global";
+import { globalEvents } from "@core/global";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 

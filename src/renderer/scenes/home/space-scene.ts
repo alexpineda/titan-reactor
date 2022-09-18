@@ -38,6 +38,8 @@ import { createAsteroids } from "./asteroids";
 import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
+import { Globals } from "@core/global";
+import { Borrowed } from "@utils/object-utils";
 
 CameraControls.install({ THREE: THREE });
 
@@ -169,7 +171,7 @@ export const getSurface = () => introSurface;
 
 let _noiseInstance: WraithNoise;
 
-export async function createWraithScene() {
+export async function createWraithScene(globals: Borrowed<Globals>) {
     const janitor = new Janitor();
 
     _noiseInstance = janitor.mop(createWraithNoise());

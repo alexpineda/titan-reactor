@@ -11,7 +11,7 @@ import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
 import { Borrowed } from "@utils/object-utils";
 
-export const createOpenBWComposer = (world: Borrowed<World>, scene: WeakRef<Pick<SceneComposer, "pxToWorld" | "terrainExtra">>, viewInput: WeakRef<ViewInputComposer>) => {
+export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pick<SceneComposer, "pxToWorld" | "terrainExtra">>, viewInput: Borrowed<ViewInputComposer>) => {
     let _currentFrame = 0;
     let _previousBwFrame = -1;
 
@@ -28,7 +28,7 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: WeakRef<Pick
             const unitTypeId = world.openBW!.HEAP32[addr + 3];
 
             if (world.fogOfWar!.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
-                buildSound(elapsed, x, y, typeId, unitTypeId, scene.deref()!.pxToWorld, viewInput.deref()!.audio!, viewInput.deref()!.primaryViewport!.projectedView, soundChannels);
+                buildSound(elapsed, x, y, typeId, unitTypeId, scene.pxToWorld!, viewInput.audio!, viewInput.primaryViewport!.projectedView, soundChannels);
             }
         }
 
@@ -61,7 +61,7 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: WeakRef<Pick
     const buildCreep = (frame: number) => {
         _tiles.ptrIndex = world.openBW!.getTilesPtr();
         _tiles.itemsCount = world.openBW!.getTilesSize();
-        scene.deref()!.terrainExtra!.creep.generate(_tiles, frame);
+        scene.terrainExtra!.creep.generate(_tiles, frame);
     };
 
     let lastElapsed = 0;
@@ -89,7 +89,6 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: WeakRef<Pick
 
                 buildSounds(_currentFrame);
                 buildCreep(_currentFrame);
-                // updateSelectionGraphics(viewports.primaryViewport.camera, sprites, completedUpgrades, selectedUnits.values());
 
                 _previousBwFrame = _currentFrame;
 
@@ -125,7 +124,7 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: WeakRef<Pick
             },
             playSound: (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
                 if (y !== undefined && volumeOrX !== undefined) {
-                    buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, scene.deref()!.pxToWorld!, viewInput.deref()!.audio!, viewInput.deref()!.primaryViewport!.projectedView, soundChannels);
+                    buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, scene.pxToWorld!, viewInput.audio!, viewInput.primaryViewport!.projectedView, soundChannels);
                 } else {
                     soundChannels.playGlobal(typeId, volumeOrX);
                 }

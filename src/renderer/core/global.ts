@@ -17,13 +17,15 @@ import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { TypeEmitter } from "@utils/type-emitter";
 import { PluginMetaData, SettingsMeta } from "common/types";
-import { MainMixer } from "@audio/main-mixer";
-import { UseStore } from "zustand";
+import { mixer } from "@audio/main-mixer";
+import { useSettingsStore } from "@stores/settings-store";
 
 
-export type Global = {
-    mixer: MainMixer,
-    useSettingsStore: UseStore<SettingsMeta>
+export type Globals = typeof globals;
+
+export const globals = {
+    mixer,
+    useSettingsStore
 }
 
 export interface GlobalEvents {

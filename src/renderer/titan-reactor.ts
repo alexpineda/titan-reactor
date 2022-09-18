@@ -6,7 +6,7 @@ import { lockdown_ } from "@utils/ses-util";
 import "./scenes/home/home-scene";
 import { preHomeSceneLoader } from "./scenes/pre-home-scene/pre-home-scene-loader";
 import { homeSceneLoader } from "./scenes/home/home-scene-loader";
-import { globalEvents } from "./global";
+import { globalEvents } from "./core/global";
 import { openUrl } from "@ipc/dialogs";
 import { mapSceneLoader } from "./scenes/map-scene-loader";
 import { replaySceneLoader } from "./scenes/replay-scene-loader";
@@ -30,7 +30,7 @@ globalEvents.on("unsafe-open-url", payload => {
 
 });
 
-globalEvents.on("load-home-scene", () => sceneStore().execSceneLoader(() => homeSceneLoader()));
+globalEvents.on("load-home-scene", () => sceneStore().execSceneLoader((globals) => homeSceneLoader(globals)));
 
 globalEvents.on("log-message", ({ message, level, server }) => server ? log.log(message, level) : log.logClient(message, level));
 

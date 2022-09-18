@@ -2,8 +2,10 @@ import * as log from "@ipc/log";
 import { withErrorMessage } from "common/utils/with-error-message";
 import create from "zustand";
 import { SceneState } from "../scenes/scene";
+import { borrow, Borrowed } from "@utils/object-utils";
+import { Globals, globals } from "@core/global";
 
-export type SceneLoader = (prevData?: any) => Promise<SceneState> | SceneState;
+export type SceneLoader = (globalsRef: Borrowed<Globals>, prevData?: any) => Promise<SceneState> | SceneState;
 
 export type SceneStore = {
     state: SceneState | null;
@@ -15,7 +17,6 @@ export type SceneStore = {
 };
 
 let _loading = false;
-
 
 export const useSceneStore = create<SceneStore>((set, get) => ({
     state: null,
@@ -41,7 +42,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
         }
 
         try {
-            const state = await loader(prevData);
+            const state = await loader(borrow(globals), prevData);
             oldState && oldState.beforeNext && oldState.beforeNext();
             set({
                 state
