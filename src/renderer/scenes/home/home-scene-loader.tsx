@@ -4,29 +4,20 @@ import { createWraithScene, getSurface } from "./space-scene";
 import { renderComposer, root } from "@render";
 import { waitForSeconds } from "@utils/wait-for";
 import Janitor from "@utils/janitor";
-import { Borrowed } from "@utils/object-utils";
-import { Globals } from "@core/global";
+import { mixer } from "@core/global";
 
-export async function homeSceneLoader(
-  globals: Borrowed<Globals>
-): Promise<SceneState> {
+export async function homeSceneLoader(): Promise<SceneState> {
   const janitor = new Janitor();
-  janitor.mop(await createWraithScene(globals));
+  janitor.mop(await createWraithScene());
 
   await waitForSeconds(1);
   root.render(<Home surface={getSurface().canvas} />);
 
-  const swoosh = globals.mixer!.context.createBufferSource();
-  swoosh.buffer = await globals.mixer!.loadAudioBuffer(
+  const swoosh = mixer!.context.createBufferSource();
+  swoosh.buffer = await mixer!.loadAudioBuffer(
     "casc:Interstitials\\sounds\\scHD_Interstitials_Terran_TR3010.wav"
   );
-  janitor.mop(
-    globals.mixer!.connect(
-      swoosh,
-      globals.mixer!.createGain(0.1),
-      globals.mixer!.intro
-    )
-  );
+  janitor.mop(mixer.connect(swoosh, mixer.createGain(0.1), mixer.intro));
 
   return {
     id: "@home",

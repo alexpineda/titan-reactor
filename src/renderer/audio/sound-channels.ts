@@ -3,7 +3,7 @@ import { AudioListener, Vector3, Audio } from "three";
 import { SoundDAT } from "common/types";
 import range from "common/utils/range";
 import { SoundChannel } from "./sound-channel";
-import { mixer } from "./main-mixer";
+import { MainMixer } from "./main-mixer";
 
 // an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
 export class SoundChannels {
@@ -11,15 +11,22 @@ export class SoundChannels {
   channels: SoundChannel[];
   buffers: Map<number, AudioBuffer> = new Map();
   #loading: Map<number, boolean> = new Map();
+  #mixerRef: WeakRef<MainMixer>;
 
   constructor(
+    mixer: MainMixer,
   ) {
-    this.channels = range(0, this.maxChannels).map(() => new SoundChannel());
+    this.#mixerRef = new WeakRef(mixer);
+    this.channels = range(0, this.maxChannels).map(() => new SoundChannel(mixer));
+  }
+
+  get #mixer() {
+    return this.#mixerRef.deref()!;
   }
 
   async _load(typeId: number) {
     this.#loading.set(typeId, true);
-    const result = await mixer.loadAudioBuffer(typeId);
+    const result = await this.#mixer.loadAudioBuffer(typeId);
     this.#loading.delete(typeId);
     return result
   }
@@ -71,9 +78,9 @@ export class SoundChannels {
       return;
     }
     const buffer = this.buffers.get(typeId) ?? await this._load(typeId);
-    const audio = new Audio(mixer as unknown as AudioListener);
+    const audio = new Audio(this.#mixer as unknown as AudioListener);
 
-    audio.setVolume(volume ?? mixer.soundVolume)
+    audio.setVolume(volume ?? this.#mixer.soundVolume)
     audio.setBuffer(buffer);
     audio.play();
   }

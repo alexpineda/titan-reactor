@@ -24,8 +24,8 @@ import { renderComposer } from "@render/render-composer";
 import { createViewInputComposer } from "./view-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World, WorldEvents } from "./world";
-import { mixer } from "@audio/main-mixer";
 import { borrow, expose } from "@utils/object-utils";
+import { mixer } from "@core/global";
 // import { useSettingsStore } from "@stores/settings-store";
 
 export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: Chk, players: BasePlayer[], commands: CommandsStream) => {

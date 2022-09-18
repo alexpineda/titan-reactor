@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { mixer } from "./main-mixer";
+import { MainMixer } from "./main-mixer";
 
 export class SoundChannel {
   static rolloffFactor = 1;
@@ -23,11 +23,21 @@ export class SoundChannel {
   #stereoPannerPool: StereoPannerNode[] = [];
   #gainPool: GainNode[] = [];
 
+  #mixerRef: WeakRef<MainMixer>;
+
+  constructor(mixer: MainMixer) {
+    this.#mixerRef = new WeakRef(mixer);
+  }
+
+  get #mixer() {
+    return this.#mixerRef.deref()!;
+  }
+
   #getStereoPanner() {
     if (this.#stereoPannerPool.length > 0) {
       return this.#stereoPannerPool.pop() as StereoPannerNode;
     }
-    const panner = mixer.context.createStereoPanner();
+    const panner = this.#mixer.context.createStereoPanner();
     return panner;
   }
 
@@ -35,7 +45,7 @@ export class SoundChannel {
     if (this.#pannerPool.length > 0) {
       return this.#pannerPool.pop() as PannerNode;
     }
-    const panner = mixer.context.createPanner();
+    const panner = this.#mixer.context.createPanner();
     return panner;
   }
 
@@ -43,8 +53,8 @@ export class SoundChannel {
     if (this.#gainPool.length > 0) {
       return this.#gainPool.pop() as GainNode;
     }
-    const gain = mixer.context.createGain();
-    gain.connect(mixer.sound);
+    const gain = this.#mixer.context.createGain();
+    gain.connect(this.#mixer.sound);
     return gain
   }
 
@@ -67,9 +77,9 @@ export class SoundChannel {
     // quick fade in since some sounds are clipping at the start (eg probe harvest)
     const gain = this.#getGain()
     gain.gain.value = 0;
-    gain.gain.linearRampToValueAtTime(Math.min(0.99, this.volume !== null ? this.volume / 100 : 1), mixer.context.currentTime + 0.01);
+    gain.gain.linearRampToValueAtTime(Math.min(0.99, this.volume !== null ? this.volume / 100 : 1), this.#mixer.context.currentTime + 0.01);
 
-    const source = mixer.context.createBufferSource();
+    const source = this.#mixer.context.createBufferSource();
     source.buffer = buffer;
 
     if (this.volume !== null && this.pan !== null) {

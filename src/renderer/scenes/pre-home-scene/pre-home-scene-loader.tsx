@@ -8,9 +8,10 @@ import { PreHomeScene } from "./pre-home-scene";
 import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
 import Janitor from "@utils/janitor";
 import path from "path";
-import { Filter, mixer } from "@audio";
+import { Filter } from "@audio";
 import { SceneState } from "../scene";
 import gameStore from "@stores/game-store";
+import { mixer } from "@core/global";
 
 let _lastErrorMessage = "";
 
@@ -52,7 +53,11 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
   );
 
   janitor.mop(
-    mixer.connect(dropYourSocks, new Filter("bandpass", 50).node, mixer.intro)
+    mixer.connect(
+      dropYourSocks,
+      new Filter(mixer, "bandpass", 50).node,
+      mixer.intro
+    )
   );
 
   dropYourSocks.onended = () => janitor.dispose();

@@ -17,17 +17,14 @@ import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { TypeEmitter } from "@utils/type-emitter";
 import { PluginMetaData, SettingsMeta } from "common/types";
-import { mixer } from "@audio/main-mixer";
-import { useSettingsStore } from "@stores/settings-store";
+import { MainMixer } from "@audio/main-mixer";
+import { Music } from "@audio/music";
+import { AudioListener } from "three";
 
+export const mixer = new MainMixer();
+export const music = new Music(mixer as unknown as AudioListener);
 
-export type Globals = typeof globals;
-
-export const globals = {
-    mixer,
-    useSettingsStore
-}
-
+// todo: stores
 export interface GlobalEvents {
     "webglcontextlost": void;
     "webglcontextrestored": void;

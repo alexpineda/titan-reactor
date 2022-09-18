@@ -1,4 +1,4 @@
-import { mixer } from "@audio/main-mixer";
+import { mixer } from "@core/global";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import * as log from "@ipc/log";
 import { SceneController } from "@plugins/plugin-system-native";

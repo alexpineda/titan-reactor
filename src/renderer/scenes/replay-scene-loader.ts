@@ -24,7 +24,7 @@ import { SceneState } from "./scene";
 import { Assets } from "@image/assets";
 import gameStore from "@stores/game-store";
 import { waitForTruthy } from "@utils/wait-for";
-import { music } from "@audio/music";
+import { music } from "@core/global";
 
 export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
 

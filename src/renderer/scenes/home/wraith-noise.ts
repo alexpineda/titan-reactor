@@ -1,5 +1,5 @@
 import { Filter } from "@audio/filter";
-import { mixer } from "@audio/main-mixer";
+import { mixer } from "@core/global";
 import Janitor from "@utils/janitor";
 import { MathUtils } from "three";
 
@@ -7,14 +7,14 @@ export const createWraithNoise = () => {
     const { source: highNoise, gain: highGain } = mixer.noise();
     const { source: noise, gain } = mixer.noise();
 
-    const lopassFilter = new Filter("lowpass", 10);
+    const lopassFilter = new Filter(mixer, "lowpass", 10);
     noise.detune.value = -800;
     gain.gain.value = 0.5;
 
     highNoise.detune.value = -400;
     highGain.gain.value = 0;
 
-    const highpassFilter = new Filter("highpass", 10);
+    const highpassFilter = new Filter(mixer, "highpass", 10);
     highpassFilter.changeDetune(8000);
 
     const janitor = new Janitor();
@@ -90,7 +90,7 @@ export const playWraithComms = async (rear: number) => {
     );
     sound.detune.value = -200 * rear;
 
-    const filter = new Filter("bandpass", 40);
+    const filter = new Filter(mixer, "bandpass", 40);
     filter.changeQ(3);
     filter.changeGain(2);
 
@@ -111,9 +111,9 @@ export const playRemix = async () => {
     sound.detune.setTargetAtTime(-200, mixer.context.currentTime + 12, 0.01);
 
 
-    const lopass = new Filter("highpass", 60);
+    const lopass = new Filter(mixer, "highpass", 60);
 
-    const filter = new Filter("bandpass", 40);
+    const filter = new Filter(mixer, "bandpass", 40);
     filter.changeQ(4);
     filter.changeGain(4);
 

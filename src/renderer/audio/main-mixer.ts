@@ -181,4 +181,3 @@ export class MainMixer {
   }
 }
 
-export const mixer = new MainMixer();

@@ -10,12 +10,13 @@ import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
 import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
 import { Borrowed } from "@utils/object-utils";
+import { mixer } from "@core/global";
 
 export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pick<SceneComposer, "pxToWorld" | "terrainExtra">>, viewInput: Borrowed<ViewInputComposer>) => {
     let _currentFrame = 0;
     let _previousBwFrame = -1;
 
-    const soundChannels = new SoundChannels();
+    const soundChannels = new SoundChannels(mixer);
 
     const buildSounds = (elapsed: number) => {
 

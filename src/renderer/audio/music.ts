@@ -1,7 +1,5 @@
 import { Audio, AudioListener, AudioLoader } from "three";
 import * as log from "../ipc/log";
-import { mixer } from "./main-mixer";
-
 const rand = (n: number) => Math.floor(Math.random() * n);
 
 export class Music {
@@ -56,5 +54,3 @@ export class Music {
     this.audio.disconnect();
   }
 }
-
-export const music = new Music(mixer as unknown as AudioListener);

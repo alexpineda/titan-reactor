@@ -1,9 +1,15 @@
-import { mixer } from "./main-mixer";
+import { MainMixer } from "./main-mixer";
 
 export class Filter {
     node: BiquadFilterNode;
+    #mixer: WeakRef<MainMixer>
 
-    constructor(type: BiquadFilterType, frequency = 84) {
+    get mixer() {
+        return this.#mixer.deref()!;
+    }
+
+    constructor(mixer: MainMixer, type: BiquadFilterType, frequency = 84) {
+        this.#mixer = new WeakRef(mixer);
         this.node = mixer.context.createBiquadFilter();
         this.node.type = type;
         this.changeFrequency(frequency);
@@ -14,7 +20,7 @@ export class Filter {
         // this helps us perceive the sound as being linear
         this.node.frequency.setValueAtTime(
             Math.pow(2, frequency / 10),
-            mixer.context.currentTime
+            this.mixer.context.currentTime
         );
     }
 
@@ -22,7 +28,7 @@ export class Filter {
     changeDetune(detune: number) {
         this.node.detune.setValueAtTime(
             detune,
-            mixer.context.currentTime
+            this.mixer.context.currentTime
         );
     };
 
@@ -30,7 +36,7 @@ export class Filter {
     changeQ(Q: number) {
         this.node.Q.setValueAtTime(
             Math.pow(10, Q / 10),
-            mixer.context.currentTime
+            this.mixer.context.currentTime
         );
     };
 
@@ -38,7 +44,7 @@ export class Filter {
     changeGain(gain: number) {
         this.node.gain.setValueAtTime(
             gain,
-            mixer.context.currentTime
+            this.mixer.context.currentTime
         );
     };
 }
