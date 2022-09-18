@@ -19,7 +19,7 @@ import { Unit } from "@core/unit";
 import { VisualSelectionBox } from "@input/mouse-selection-box";
 import Janitor from "@utils/janitor";
 import { Borrowed } from "@utils/object-utils";
-import GameSurface from "@render/game-surface";
+import { SurfaceComposer } from "./surface-composer";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
@@ -37,7 +37,7 @@ const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D
 
 };
 
-export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, gameSurface: WeakRef<GameSurface>, views: Borrowed<ViewInputComposer>, assets: Assets) => {
+export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: Borrowed<ViewInputComposer>, assets: Assets) => {
 
     const janitor = new Janitor();
     const overlayGroup = new Scene();
@@ -118,7 +118,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     const ignoreOnMinimap = [unitTypes.darkSwarm, unitTypes.disruptionWeb];
 
-    cursorMaterial.uniforms.uResolution.value.set(gameSurface.deref()!.bufferWidth, gameSurface.deref()!.bufferHeight);
+    cursorMaterial.uniforms.uResolution.value.set(surfaces.gameSurface!.bufferWidth, surfaces.gameSurface!.bufferHeight);
 
     world.events!.on("resize", (surface) => {
 
@@ -126,7 +126,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
         applySettings({ settings: world.settings!.getState(), rhs: {} });
 
-        const rect = gameSurface.deref()!.getMinimapDimensions(world.settings!.getState().minimap.scale);
+        const rect = surfaces.gameSurface!.getMinimapDimensions!(world.settings!.getState().minimap.scale);
 
         // TODO: send transform matrix as well
         gameStore().setDimensions({
@@ -148,7 +148,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
         }
 
         minimapMaterial.scale.set(settings.minimap.scale, settings.minimap.scale, 1);
-        minimapMaterial.scale.divide(gameSurface.deref()!.screenAspect);
+        minimapMaterial.scale.divide(surfaces.gameSurface!.screenAspect);
         minimapMaterial.position.set(settings.minimap.position[0], -settings.minimap.position[1], 0);
 
         minimapMaterial.uniforms.uOpacity.value = settings.minimap.opacity;
@@ -164,7 +164,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
         // minimapConsoleMaterial.worldMatrix.copy(minimapMaterial.worldMatrix);
         // minimapConsoleMaterial.uniformsNeedUpdate = true;
 
-        cursorMaterial.uniforms.uResolution.value.set(gameSurface.deref()!.bufferWidth, gameSurface.deref()!.bufferHeight);
+        cursorMaterial.uniforms.uResolution.value.set(surfaces.gameSurface!.bufferWidth, surfaces.gameSurface!.bufferHeight);
         cursorMaterial.uniforms.uCursorSize.value = settingsStore().data.graphics.cursorSize;
         cursorMaterial.uniformsNeedUpdate = true;
 

@@ -24,7 +24,7 @@ import { renderComposer } from "@render/render-composer";
 import { createViewInputComposer } from "./view-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World, WorldEvents } from "./world";
-import { borrow, expose } from "@utils/object-utils";
+import { borrow, expose, mix } from "@utils/object-utils";
 import { mixer } from "@core/global";
 // import { useSettingsStore } from "@stores/settings-store";
 
@@ -64,7 +64,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
     const sandboxApi = createSandboxApi(_world, sceneComposer.pxToWorldInverse);
     const openBwComposer = createOpenBWComposer(_world, borrow(sceneComposer), borrow(viewInputComposer));
 
-    const overlayComposer = createOverlayComposer(_world, sceneComposer, new WeakRef(surfaceComposer.gameSurface), (viewInputComposer), assets);
+    const overlayComposer = createOverlayComposer(_world, sceneComposer, borrow(surfaceComposer), borrow(viewInputComposer), assets);
     const postProcessingComposer = createPostProcessingComposer(_world, sceneComposer, viewInputComposer, overlayComposer, assets);
 
     events.on("settings-changed", ({ settings }) => mixer.setVolumes(settings.audio));
@@ -121,7 +121,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
     const simpleText = janitor.mop(new SimpleText());
 
-    const gameTimeApi: GameTimeApi = {
+    const gameTimeApi: GameTimeApi = mix({
 
         map,
         assets,
@@ -131,16 +131,17 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
             }, 0)
         },
         sandboxApi,
-        ...surfaceComposer.surfaceGameTimeApi,
-        ...sceneComposer.sceneGameTimeApi,
-        ...openBwComposer.openBWGameTimeApi,
-        ...viewInputComposer.viewportsGameTimeApi,
+
         refreshScene: () => frameResetRequested = true,
         simpleMessage(val: string) {
             simpleText.set(val);
         },
 
-    }
+    },
+        surfaceComposer.surfaceGameTimeApi,
+        sceneComposer.sceneGameTimeApi,
+        openBwComposer.openBWGameTimeApi,
+        viewInputComposer.viewportsGameTimeApi) as GameTimeApi;
 
     console.log(gameTimeApi);
 

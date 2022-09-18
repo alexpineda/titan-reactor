@@ -260,8 +260,11 @@ export const enablePlugins = async (pluginIds: string[]) => {
     const plugins = pluginIds.map(pluginId => {
         const plugin = _disabledPluginPackages.find(plugin => plugin.id === pluginId);
         if (!plugin) {
-            log.info(`@load-plugins/enable: Plugin ${pluginId} not found`);
-        };
+            log.error(`@load-plugins/enable: Plugin ${pluginId} not found`);
+        } else if (plugin.apiVersion !== packagejson.config["titan-reactor-api"]) {
+            log.error(`@load-plugins/enable: Plugin ${pluginId} requires Titan Reactor API version ${plugin.apiVersion} but the current version is ${packagejson.config["titan-reactor-api"]}`);
+            return undefined;
+        }
         return plugin;
     }).filter(plugin => plugin !== undefined) as PluginMetaData[];
 

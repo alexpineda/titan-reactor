@@ -11,7 +11,7 @@ import Janitor from "@utils/janitor";
 import { createReactivePluginApi } from "@core/world/reactive-plugin-variables";
 import { GameTimeApi } from "./game-time-api";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
-import { mix } from "@utils/object-utils";
+import { borrow, mix } from "@utils/object-utils";
 import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
@@ -137,15 +137,15 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
             // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
             macrosComposer.setContainer(
                 mix({
-                    plugins: _session.reactiveApi.pluginVars,
-                    settings: sessionApi.sessionVars
-                },
-                    gameTimeApi));
+                    api: borrow(gameTimeApi),
+                    plugins: borrow(_session.reactiveApi.pluginVars),
+                    settings: borrow(sessionApi.sessionVars)
+                }));
 
             this.native.injectApi(
                 mix({
                     settings: sessionApi.sessionVars
-                }, gameTimeApi));
+                }, borrow(gameTimeApi, { refRoot: false, retainGetters: true })));
 
         },
         get native() {

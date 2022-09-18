@@ -1,4 +1,5 @@
 import * as log from "@ipc/log";
+import { withErrorMessage } from "common/utils/with-error-message";
 import { Object3D } from "three";
 
 // https://zellwk.com/blog/copy-properties-of-one-object-to-another-object/
@@ -19,22 +20,50 @@ export function mix(dest: {}, ...sources: {}[]) {
 
 export type Borrowed<T> = { [key in keyof T]: T[key] | undefined };
 
-function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string, result: any) {
+function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string, result: any, retainGetters: boolean) {
 
 
     if (descriptor.get) {
 
-        throw new Error("borrowProperty: getters not supported yet")
+        // danger zone 
+        if (retainGetters) {
+
+            try {
+                Object.defineProperty(result, key, {
+                    enumerable: true,
+                    configurable: false,
+                    get: () => descriptor.get!()
+                });
+
+                log.warning(`borrowing getter ${key}`);
+
+            } catch (e) {
+
+                log.error(withErrorMessage(e, `borrow: failed to borrow getter ${key} from source`));
+
+            }
+
+        } else {
+
+            throw new Error("borrowProperty: getters not supported")
+
+        }
 
     } else if (descriptor.value !== undefined) {
 
-        const ref = new WeakRef(source[key]);
+        try {
+            const ref = new WeakRef(source[key]);
 
-        Object.defineProperty(result, key, {
-            enumerable: true,
-            configurable: false,
-            get: () => ref.deref(),
-        });
+            Object.defineProperty(result, key, {
+                enumerable: true,
+                configurable: false,
+                get: () => ref.deref(),
+            });
+
+
+        } catch (e) {
+            log.error(withErrorMessage(e, `borrowProperty ${key}`));
+        }
 
     }
 
@@ -43,13 +72,14 @@ function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string
 
 type BorrowOptions = {
     target?: {},
-    refRoot?: boolean
+    refRoot?: boolean,
+    retainGetters?: boolean
 }
 
 // Utility function for creating WeakRefs
 export function borrow<T extends { [key: string]: any }>(source: T, userOptions: BorrowOptions = {}): Borrowed<T> {
 
-    const { target, refRoot } = { target: {}, refRoot: true, ...userOptions };
+    const { target, refRoot, retainGetters } = { target: {}, refRoot: true, retainGetters: false, ...userOptions };
 
     if (refRoot) {
 
@@ -73,7 +103,7 @@ export function borrow<T extends { [key: string]: any }>(source: T, userOptions:
 
             if (descriptor) {
 
-                borrowProperty(descriptor, source, key, target);
+                borrowProperty(descriptor, source, key, target, retainGetters);
 
             }
 

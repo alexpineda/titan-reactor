@@ -131,6 +131,7 @@ let fireTexture: Texture;
 // })
 
 export const preloadIntro = async () => {
+
     const { increment } = processStore().create("intro", 4);
 
     //TODO submit to types
@@ -151,6 +152,7 @@ export const preloadIntro = async () => {
     battleLights.load(fireTexture);
 
     increment();
+
 };
 
 let mouse = new Vector3();

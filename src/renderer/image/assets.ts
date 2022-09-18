@@ -46,7 +46,7 @@ export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "r
 
 export const createAssets = async (settings: Settings) => {
 
-    const process = processStore().create("assets", 999);
+    const process = processStore().create("assets", 5);
 
     electronFileLoader((file: string) => {
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png") || file.includes(".exr")) {
@@ -61,11 +61,16 @@ export const createAssets = async (settings: Settings) => {
     log.verbose("@load-assets/dat");
     const bwDat = await loadDATFiles(readCascFile);
 
+    process.increment();
+
+
     log.verbose("@load-assets/images");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
 
     const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
+
+    process.increment();
 
     const minimapConsole = {
         clock: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareRight.DDS")),
@@ -80,6 +85,8 @@ export const createAssets = async (settings: Settings) => {
     )
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
     const envMap = await loadEnvironmentMap(envMapFilename);
+
+    process.increment();
 
     const refId = (id: number) => {
         if (sdAnim?.[id]?.refId !== undefined) {
@@ -196,6 +203,8 @@ export const createAssets = async (settings: Settings) => {
 
     await loadImageAtlas(imageTypes.warpInFlash);
 
+    process.increment();
+
     const loader = new CubeTextureLoader();
     const rootPath = path.join(__static, "skybox", "sparse");
     loader.setPath(rootPath);
@@ -208,6 +217,8 @@ export const createAssets = async (settings: Settings) => {
         "front.png",
         "back.png",
     ], res)) as CubeTexture;
+
+    process.complete();
 
     return {
         bwDat,

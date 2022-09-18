@@ -57,12 +57,10 @@
         "mac": {
             "category": "The Advanced Observing App"
         },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ]
+        "extraResources": [{
+            "from": "bundled",
+            "to": "bundled"
+        }]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",
@@ -179,6 +177,6 @@
         "@types/react-dom": "18.0.6"
     },
     "config": {
-        "titan-reactor-api": "2.0.0"
+        "titan-reactor-api": "3.0.0"
     }
 }
