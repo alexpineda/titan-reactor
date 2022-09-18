@@ -10,8 +10,13 @@ export class ThingyBufferView
     implements ThingyStruct {
 
     protected _address = 0;
-    protected _bw: OpenBW;
     protected _sprite?: SpritesBufferView;
+
+    #bwRef: WeakRef<OpenBW>;
+
+    protected get _bw() {
+        return this.#bwRef.deref()!;
+    }
 
     get address() {
         return this._address;
@@ -23,7 +28,7 @@ export class ThingyBufferView
     }
 
     constructor(bw: OpenBW) {
-        this._bw = bw;
+        this.#bwRef = new WeakRef(bw);
         // this._sprite = new SpritesBufferView(bw);
     }
 

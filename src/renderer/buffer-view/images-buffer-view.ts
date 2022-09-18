@@ -13,7 +13,7 @@ export class ImageBufferView
   }
 
   get #bw() {
-    return this._bw.deref();
+    return this._bw.deref()!;
   }
 
   constructor(bw: OpenBW) {
@@ -26,48 +26,48 @@ export class ImageBufferView
   }
 
   get index() {
-    return this.#bw!.HEAPU32[this._index32 + 2];
+    return this.#bw.HEAPU32[this._index32 + 2];
   }
 
   get typeId() {
-    const addr = this.#bw!.HEAPU32[this._index32 + 3];
-    return this.#bw!.HEAP32[addr >> 2];
+    const addr = this.#bw.HEAPU32[this._index32 + 3];
+    return this.#bw.HEAP32[addr >> 2];
   }
 
   get modifier() {
-    return this.#bw!.HEAP32[this._index32 + 4];
+    return this.#bw.HEAP32[this._index32 + 4];
   }
 
   get modifierData1() {
-    return this.#bw!.HEAP32[this._index32 + 5];
+    return this.#bw.HEAP32[this._index32 + 5];
   }
 
   get modifierData2() {
-    return this.#bw!.HEAP32[this._index32 + 6];
+    return this.#bw.HEAP32[this._index32 + 6];
   }
 
   get frameIndex() {
-    return this.#bw!.HEAPU32[this._index32 + 7];
+    return this.#bw.HEAPU32[this._index32 + 7];
   }
 
   get frameIndexBase() {
-    return this.#bw!.HEAPU32[this._index32 + 8];
+    return this.#bw.HEAPU32[this._index32 + 8];
   }
 
   get frameIndexOffset() {
-    return this.#bw!.HEAPU32[this._index32 + 9];
+    return this.#bw.HEAPU32[this._index32 + 9];
   }
 
   get flags() {
-    return this.#bw!.HEAP32[this._index32 + 10];
+    return this.#bw.HEAP32[this._index32 + 10];
   }
 
   get x() {
-    return this.#bw!.HEAP32[this._index32 + 11];
+    return this.#bw.HEAP32[this._index32 + 11];
   }
 
   get y() {
-    return this.#bw!.HEAP32[this._index32 + 12];
+    return this.#bw.HEAP32[this._index32 + 12];
   }
 
   get iscript() {
@@ -75,7 +75,7 @@ export class ImageBufferView
   }
 
   get nextNode() {
-    return this.#bw!.HEAPU32[this._index32];
+    return this.#bw.HEAPU32[this._index32];
   }
 
   *[Symbol.iterator]() {
