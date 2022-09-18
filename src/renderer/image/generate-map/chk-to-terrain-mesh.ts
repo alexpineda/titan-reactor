@@ -1,10 +1,11 @@
-import type Chk from "bw-chk";
 import { GeometryOptions, UnitTileScale } from "common/types";
+
 import {
   createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect
 } from ".";
 
 import * as log from "@ipc";
+
 import { getTilesetBuffers } from "./get-tileset-buffers";
 
 import * as sd from "./sd";
@@ -17,12 +18,11 @@ import { Creep } from "@core/creep/creep";
 import Janitor from "@utils/janitor";
 import processStore from "@stores/process-store";
 
-export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
+export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tileset: number, tiles: Buffer, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
+
   const janitor = new Janitor();
   const genProcess = processStore().create("generate-textures", 4);
-  const [mapWidth, mapHeight] = chk.size;
-
-  const tilesetBuffers = await getTilesetBuffers(chk.tileset, chk._tiles);
+  const tilesetBuffers = await getTilesetBuffers(tileset, tiles);
   const bitmaps = await extractBitmaps(mapWidth, mapHeight, tilesetBuffers);
   const dataTextures = await createDataTextures({
     blendNonWalkableBase: geomOptions.blendNonWalkableBase,
@@ -31,7 +31,7 @@ export async function chkToTerrainMesh(chk: Chk, textureResolution: UnitTileScal
 
   const levels = transformLevelConfiguration(geomOptions.elevationLevels, geomOptions.normalizeLevels);
 
-  const { creepGrpSD, paletteWPE: palette, hdTiles, creepGrpHD, tilegroupCV5: tilegroupU16, tileset, megatilesVX4: megatiles, minitilesVR4: minitiles } = tilesetBuffers;
+  const { creepGrpSD, paletteWPE: palette, hdTiles, creepGrpHD, tilegroupCV5: tilegroupU16, megatilesVX4: megatiles, minitilesVR4: minitiles } = tilesetBuffers;
 
   log.verbose(`Generating terrain textures`);
   genProcess.increment();

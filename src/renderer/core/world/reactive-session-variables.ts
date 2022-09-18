@@ -88,11 +88,11 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
     }
 
     // keep the session up to date with user changed settings
-    useSettingsStore.subscribe(settings => {
+    janitor.mop(useSettingsStore.subscribe(settings => {
 
         mergeRootSession(settings.data);
 
-    });
+    }));
 
 
     function applyEffectToSessionRoot(effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {
@@ -109,13 +109,10 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
         if (isValidkey(key)) {
             const settingsKey = key.split(".");
             lSet<SessionVariables>(acc, settingsKey, defineSessionProperty(value, settingsKey));
-            console.log([...settingsKey.slice(0, -1), `get${settingsKey.map(t => t[0].toUpperCase() + t.slice(1)).join("")}`]);
             lSet<SessionVariables>(acc, [`get${settingsKey.map(t => t[0].toUpperCase() + t.slice(1)).join("")}`], () => lGet(store, settingsKey));
         }
         return acc;
     }, {})) as SessionVariables;
-
-    console.log(sessionVars);
 
     const getRawValue = (path: string[]) => lGet(store, path);
 
@@ -132,5 +129,7 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
     const getState = () => store;
 
-    return { getRawValue, sessionVars, mutate, getState, dispose: () => janitor.dispose(), events };
+    events.on("dispose", () => janitor.dispose());
+
+    return { getRawValue, sessionVars, mutate, getState };
 }

@@ -17,6 +17,7 @@
     "isolatedModules": false,
     "strictPropertyInitialization": true,
     "forceConsistentCasingInFileNames": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
 
     "noUnusedLocals": true,
     "noUnusedParameters": true,

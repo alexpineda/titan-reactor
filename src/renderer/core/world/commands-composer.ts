@@ -1,10 +1,20 @@
 import CommandsStream from "@process-replay/commands/commands-stream";
+import { Borrowed } from "@utils/object-utils";
+import { World } from "./world";
 
-export const createCommandsComposer = (commandsStream: CommandsStream) => {
+export const createCommandsComposer = (world: Borrowed<World>, commandsStream: CommandsStream) => {
 
     let cmds = commandsStream.generate();
     const _commandsThisFrame: any[] = [];
     let cmd = cmds.next();
+
+
+    world.events!.on("frame-reset", () => {
+
+        cmds = commandsStream.generate();
+        cmd = cmds.next();
+
+    });
 
     return {
         get commandsThisFrame() {
@@ -28,10 +38,6 @@ export const createCommandsComposer = (commandsStream: CommandsStream) => {
                 cmd = cmds.next();
 
             }
-        },
-        onFrameReset() {
-            cmds = commandsStream.generate();
-            cmd = cmds.next();
         }
     }
 }

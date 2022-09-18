@@ -250,7 +250,7 @@ import { PluginBase } from "titan-reactor/host";
 export default class Plugin extends PluginBase {
     
     // onSceneReady fires when everything is loaded but before the first frame is run
-    async onSceneReady() {
+    async onPluginsReady() {
       
     }
 
@@ -264,8 +264,7 @@ export default class Plugin extends PluginBase {
     }
 
     
-    // when the game is over, get rid of any unneeded object references to the previous game!
-    onSceneDisposed() {
+    onPluginsDisposed() {
 
     }
 
@@ -278,11 +277,6 @@ export default class Plugin extends PluginBase {
 
     }
 
-
-    dispose() {
-      // user disabled your plugin 
-    }
-    
 }
 ```
 

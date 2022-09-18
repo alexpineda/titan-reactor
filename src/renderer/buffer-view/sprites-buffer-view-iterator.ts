@@ -3,17 +3,22 @@ import { IntrusiveList } from "./intrusive-list";
 import { SpritesBufferView } from "./sprites-buffer-view";
 
 export class SpritesBufferViewIterator {
-    #openBW: OpenBW;
+    #openBWRef: WeakRef<OpenBW>;
     #sprites: SpritesBufferView;
+
+    get #openBW() {
+        return this.#openBWRef.deref();
+    }
+
     constructor(openBW: OpenBW) {
-        this.#openBW = openBW;
+        this.#openBWRef = new WeakRef(openBW);
         this.#sprites = new SpritesBufferView(openBW);
     }
 
     *[Symbol.iterator]() {
-        const spriteList = new IntrusiveList(this.#openBW.HEAPU32);
-        const spriteTileLineSize = this.#openBW.getSpritesOnTileLineSize();
-        const spritetileAddr = this.#openBW.getSpritesOnTileLineAddress();
+        const spriteList = new IntrusiveList(this.#openBW!.HEAPU32);
+        const spriteTileLineSize = this.#openBW!.getSpritesOnTileLineSize();
+        const spritetileAddr = this.#openBW!.getSpritesOnTileLineAddress();
         for (let l = 0; l < spriteTileLineSize; l++) {
             spriteList.addr = spritetileAddr + (l << 3)
             for (const spriteAddr of spriteList) {

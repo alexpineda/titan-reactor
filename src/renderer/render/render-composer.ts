@@ -13,7 +13,7 @@ import {
 } from "postprocessing";
 import Surface from "../image/canvas/surface";
 import { ColorManagement } from "three/src/math/ColorManagement";
-import { globalEvents } from "./global-events";
+import { globalEvents } from "../global";
 
 
 //@ts-ignore
@@ -42,7 +42,7 @@ const createWebGLRenderer = () => {
 
 export class TitanRenderComposer {
     #renderer?: WebGLRenderer;
-    #targetSurface = new Surface();
+    #surfaceRef = new WeakRef(new Surface());
     onRestoreContext?: () => void;
     composer = new EffectComposer(undefined, {
         frameBufferType: HalfFloatType,
@@ -80,8 +80,6 @@ export class TitanRenderComposer {
                 globalEvents.emit("webglcontextrestored");
             });
 
-        this.setSize(this.targetSurface.bufferWidth, this.targetSurface.bufferHeight);
-
         return renderer;
     }
 
@@ -100,16 +98,12 @@ export class TitanRenderComposer {
         lastPass.renderToScreen = true;
     }
 
-    get targetSurface() {
-        return this.#targetSurface;
-    }
-
     set targetSurface(surface: Surface) {
-        this.#targetSurface = surface;
+        this.#surfaceRef = new WeakRef(surface);
         this.#renderer?.setViewport(
             new Vector4(0, 0, surface.bufferWidth, surface.bufferHeight)
         );
-        this.setSize(this.#targetSurface.bufferWidth, this.#targetSurface.bufferHeight);
+        this.setSize(surface.bufferWidth, surface.bufferHeight);
     }
 
     render(delta: number, viewport?: Vector4) {
@@ -131,16 +125,18 @@ export class TitanRenderComposer {
 
     renderBuffer() {
         const renderer = this.getWebGLRenderer();
-        this.#targetSurface.ctx.drawImage(
+        const surface = this.#surfaceRef.deref();
+
+        surface!.ctx.drawImage(
             renderer.domElement,
             0,
-            renderer.domElement.height - this.#targetSurface.bufferHeight,
-            this.#targetSurface.bufferWidth,
-            this.#targetSurface.bufferHeight,
+            renderer.domElement.height - surface!.bufferHeight,
+            surface!.bufferWidth,
+            surface!.bufferHeight,
             0,
             0,
-            this.#targetSurface.bufferWidth,
-            this.#targetSurface.bufferHeight
+            surface!.bufferWidth,
+            surface!.bufferHeight
         );
     }
 

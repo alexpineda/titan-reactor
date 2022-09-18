@@ -19,18 +19,111 @@ export function mix(dest: {}, ...sources: {}[]) {
 
 export type Borrowed<T> = { [key in keyof T]: T[key] | undefined };
 
-export function borrow<T extends { [key: string]: any }>(source: T): Borrowed<T> {
+function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string, result: any) {
 
-    const result = {} as Borrowed<T>;
+
+    if (descriptor.get) {
+
+        throw new Error("borrowProperty: getters not supported yet")
+
+    } else if (descriptor.value !== undefined) {
+
+        const ref = new WeakRef(source[key]);
+
+        Object.defineProperty(result, key, {
+            enumerable: true,
+            configurable: false,
+            get: () => ref.deref(),
+        });
+
+    }
+
+    return true;
+}
+
+interface BorrowOptions {
+    ancestors: number;
+    descendents: number;
+    keep: string[];
+    target: {}
+}
+
+// Converts property descriptors to WeakRef accessors
+export function borrow<T extends { [key: string]: any }>(source: T, { ancestors, descendents, keep, target }: BorrowOptions = { ancestors: 0, descendents: 0, keep: [], target: {} }): Borrowed<T> {
 
     for (const key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-            const element = source[key];
-            const ref = new WeakRef(element);
-            Object.defineProperty(result, key, {
-                get: () => ref.deref(),
-            });
+
+        const descriptor = Object.getOwnPropertyDescriptor(source, key);
+
+        if (descriptor) {
+
+            if (descendents) {
+
+                const result = borrow(source[key], { ancestors: 0, descendents: descendents - 1, keep, target });
+
+                Object.defineProperty(target, key, {
+                    enumerable: true,
+                    configurable: false,
+                    get: () => result,
+                });
+
+            } else {
+
+                borrowProperty(descriptor, source, key, target);
+
+            }
+
+        } else {
+
+            if (ancestors > 0 && Object.getPrototypeOf(source)) {
+
+                borrow(Object.getPrototypeOf(source), { ancestors: ancestors - 1, descendents: 0, keep, target });
+
+            }
+
         }
+
+    }
+
+    return target as Borrowed<T>;
+
+}
+
+export function weak<T extends {}>(o: T) {
+    return new WeakRef(o);
+}
+
+export type Exposed<T, K extends keyof T> = { [key in K]: T[K] };
+
+export type ExposeOptions = {
+    asValues: boolean;
+}
+
+// expose only keys, including prototype chain
+export function expose<T extends { [key: string]: any }, K extends keyof T>(source: T, keys: K[], { asValues }: ExposeOptions = { asValues: true }): Exposed<T, K> {
+
+    const result = {} as Exposed<T, K>;
+
+    for (const key of keys) {
+
+        if (asValues) {
+
+            Object.defineProperty(result, key, {
+                configurable: false,
+                enumerable: true,
+                value: source[key]
+            })
+
+        } else {
+
+            Object.defineProperty(result, key, {
+                configurable: false,
+                enumerable: true,
+                get: () => source[key],
+            })
+
+        }
+
     }
 
     return result;

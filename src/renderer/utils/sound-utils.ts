@@ -3,9 +3,9 @@ import { SoundDAT } from "common/types";
 import gameStore from "@stores/game-store";
 import { SoundChannels } from "@audio/sound-channels";
 import { mixer } from "@audio/main-mixer";
-import ProjectedCameraView from "renderer/camera/projected-camera-view";
+import { ProjectedCameraView } from "renderer/camera/projected-camera-view";
 import { PxToWorld } from "common/utils/conversions";
-import { ViewComposer } from "@core/world/view-composer";
+import { ViewInputComposer } from "@core/world/view-composer";
 
 export const MinPlayVolume = 10;
 
@@ -51,7 +51,7 @@ const SoundPlayMaxDistance = 100;
 let _soundCoords = new Vector3;
 let _soundDat: SoundDAT;
 
-export function buildSound(elapsed: number, x: number, y: number, typeId: number, unitTypeId: number, pxToWorld: PxToWorld, audio: ViewComposer["audio"], projectedView: ProjectedCameraView, soundChannels: SoundChannels) {
+export function buildSound(elapsed: number, x: number, y: number, typeId: number, unitTypeId: number, pxToWorld: PxToWorld, audio: ViewInputComposer["audio"], projectedView: ProjectedCameraView, soundChannels: SoundChannels) {
     const assets = gameStore().assets!;
     _soundDat = assets.bwDat.sounds[typeId];
     pxToWorld.xyz(x, y, _soundCoords);

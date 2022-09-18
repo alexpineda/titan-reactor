@@ -1,7 +1,6 @@
 
 import { Vector2, Vector3 } from "three";
 import Janitor from "../utils/janitor";
-import { UserInputCallbacks } from "common/types";
 
 const passive = { passive: true };
 
@@ -113,11 +112,20 @@ export class MouseInput {
         return this.#clicked;
     }
 
-    update(delta: number, elapsed: number, callbacks: UserInputCallbacks) {
+    get screenDrag() {
+        return this.#screenDrag;
+    }
 
-        callbacks.onCameraMouseUpdate(delta, elapsed, this.#mouseScrollY, this.#screenDrag, this.#lookAt, this.#mouse, this.#clientX, this.#clientY, this.#clicked, this.#modifiers);
+    get mouseScrollY() {
+        return this.#mouseScrollY;
+    }
 
+    get modifiers() {
+        return this.#modifiers;
+    }
 
+    get lookAt() {
+        return this.#lookAt;
     }
 
     reset() {

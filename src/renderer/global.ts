@@ -17,7 +17,14 @@ import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { TypeEmitter } from "@utils/type-emitter";
 import { PluginMetaData, SettingsMeta } from "common/types";
+import { MainMixer } from "@audio/main-mixer";
+import { UseStore } from "zustand";
 
+
+export type Global = {
+    mixer: MainMixer,
+    useSettingsStore: UseStore<SettingsMeta>
+}
 
 export interface GlobalEvents {
     "webglcontextlost": void;

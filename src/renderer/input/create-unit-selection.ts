@@ -1,12 +1,13 @@
 import { Unit } from "@core/unit";
 import { inverse } from "@utils/function-utils";
-import Janitor from "@utils/janitor";
 import { canOnlySelectOne } from "@utils/unit-utils";
-import { VisualSelectionBox } from ".";
 import { Camera, Object3D, PerspectiveCamera, Raycaster, Scene, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
-import { IterableSet } from "@utils/iterable-set";
-import { MouseInput } from "./mouse-input";
+import { World } from "@core/world/world";
+import { Borrowed } from "@utils/object-utils";
+import { ViewInputComposer } from "@core/world/view-composer";
+
+const MIN_DRAG_SIZE = 0.01;
 
 const typeIdSort = (a: Unit, b: Unit) => {
     return a.typeId - b.typeId;
@@ -14,7 +15,7 @@ const typeIdSort = (a: Unit, b: Unit) => {
 const _hasAnyUnit = (unit: Unit) => !unit.extras.dat.isBuilding;
 const _selectRayCaster = new Raycaster();
 let _unit: Unit | null;
-let _mouse = new Vector2();
+let _mouseV = new Vector2();
 
 export enum UnitSelectionStatus {
     None,
@@ -22,21 +23,20 @@ export enum UnitSelectionStatus {
     Hovering
 }
 
-export const createUnitSelectionBox = (mouse: MouseInput, units: IterableSet<Unit>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
-    const janitor = new Janitor;
+//TODO: weaken scene handle
+export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef<ViewInputComposer["inputs"]["mouse"]>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
-    const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"));
 
     let _selectActivated = false;
     let _enabled = true;
     let _status = UnitSelectionStatus.None;
 
-    const _selectDown = () => {
+    const _selectDown = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
         if (mouse.move.z !== 0 || !_enabled) return;
         _selectActivated = true;
         selectionBox.startPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
-        visualBox.start(mouse.clientX, mouse.clientY);
+        world.events!.emit("unit-selection-start");
     };
 
     // const hoverUnit = throttle((event: PointerEvent) => {
@@ -48,14 +48,14 @@ export const createUnitSelectionBox = (mouse: MouseInput, units: IterableSet<Uni
     //     }
     // }, 100);
 
-    const _selectMove = () => {
+    const _selectMove = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
         if (!_enabled) return;
 
         if (_selectActivated) {
 
             selectionBox.endPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
-            visualBox.end(mouse.clientX, mouse.clientY);
+            world.events!.emit("unit-selection-move");
 
             _status = UnitSelectionStatus.Dragging;
 
@@ -91,38 +91,49 @@ export const createUnitSelectionBox = (mouse: MouseInput, units: IterableSet<Uni
         }
     };
 
-    const _selectUp = () => {
+    const _selectUp = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
         if (!_selectActivated || !_enabled) return;
 
         _selectActivated = false;
-        visualBox.clear();
+
         _status = UnitSelectionStatus.None;
 
         let draft: Unit[] = [];
 
-        if (!visualBox.isMinDragSize(mouse.clientX, mouse.clientY)) {
-            const unit = getUnitFromMouseIntersect(_mouse.set(mouse.move.x, mouse.move.y));
+        if (!(Math.abs(mouse.move.x - selectionBox.startPoint.x) > MIN_DRAG_SIZE &&
+            Math.abs(mouse.move.y - selectionBox.startPoint.y) > MIN_DRAG_SIZE)) {
+
+            const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.move.x, mouse.move.y));
+
             if (unit) {
                 draft.push(unit);
             } else {
-                units.clear();
+                world.events!.emit("unit-selection-end", []);
                 return;
             }
+
         } else {
 
             selectionBox.endPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
             const allSelected = selectionBox.select();
+
             for (let i = 0; i < allSelected.length; i++) {
+
                 _unit = onGetUnit(allSelected[i]);
+
                 if (_unit && !draft.includes(_unit)) {
                     draft.push(_unit);
                 }
+
             }
 
             const onlyUnits = draft.filter(_hasAnyUnit);
+
             if (onlyUnits.length > 0 && onlyUnits.length !== draft.length) {
+
                 draft = onlyUnits;
+
             }
 
             // since egg has no cmd icon, dont allow multi select unless they are all the same in which case just select one
@@ -142,7 +153,7 @@ export const createUnitSelectionBox = (mouse: MouseInput, units: IterableSet<Uni
 
         draft.sort(typeIdSort).splice(12);
 
-        units.set(draft);
+        world.events!.emit("unit-selection-end", draft);
 
     }
 
@@ -154,7 +165,7 @@ export const createUnitSelectionBox = (mouse: MouseInput, units: IterableSet<Uni
             selectionBox.camera = camera;
         },
         set enabled(value: boolean) {
-            visualBox.enabled = value;
+            world.events!.emit("unit-selection-enabled", value);
             _enabled = value;
             _selectActivated = value && _selectActivated;
         },
@@ -165,12 +176,16 @@ export const createUnitSelectionBox = (mouse: MouseInput, units: IterableSet<Uni
             return _selectActivated;
         },
         update() {
-            if (mouse.clicked) {
-                _selectDown();
-            } else if (mouse.released) {
-                _selectUp();
+            const mouse = mouseRef.deref();
+
+            if (!mouse) return;
+
+            if (mouse!.clicked) {
+                _selectDown(mouse);
+            } else if (mouse!.released) {
+                _selectUp(mouse);
             } else {
-                _selectMove();
+                _selectMove(mouse);
             }
         }
     }

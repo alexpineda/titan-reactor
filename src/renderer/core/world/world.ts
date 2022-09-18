@@ -9,6 +9,8 @@ import { BasePlayer, FogOfWar, FogOfWarEffect, ImageBase } from "..";
 import { PluginsAndMacroSession } from "./create-plugin-session";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
 
+// do not put anything performance sensitive here as these are synchronous.
+// image created/destroyed is already pushing it
 export interface WorldEvents {
     "unit-created": Unit;
     "unit-killed": Unit;
@@ -26,6 +28,13 @@ export interface WorldEvents {
     "resize": GameSurface;
     "minimap-enter": void;
     "minimap-leave": void;
+    "unit-selection-start": void;
+    "unit-selection-move": void;
+    "unit-selection-end": Unit[];
+    "unit-selection-enabled": boolean;
+    "scene-exit": string;
+    "scene-enter": string;
+    "dispose": void;
 }
 
 export type World = {

@@ -13,26 +13,25 @@ import { Assets } from "@image/assets";
 import { PerspectiveCamera, Vector3 } from "three";
 import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
-import { ViewComposer } from "@core/world/view-composer";
+import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
-import { SurfaceComposer } from "./surface-composer";
 import { OverlayComposer } from "./overlay-composer";
+import { Borrowed } from "@utils/object-utils";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
 const ignoreCastShadow = [347, 349, 351];
 
-export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW, events, reset }: World, { scene, images, sprites, terrain }: SceneComposer, { gameSurface }: SurfaceComposer, viewportsComposer: ViewComposer, overlayComposer: OverlayComposer, assets: Assets) => {
+export const createPostProcessingComposer = (world: Borrowed<World>, { scene, images, sprites, terrain }: SceneComposer, viewportsComposer: ViewInputComposer, overlayComposer: OverlayComposer, assets: Assets) => {
     const janitor = new Janitor();
 
     const postProcessingBundle = janitor.mop(
         new PostProcessingBundler(
-            gameSurface,
             new PerspectiveCamera,
             scene,
             overlayComposer.overlayGroup,
             settingsStore().data.postprocessing,
-            fogOfWarEffect)
+            world.fogOfWarEffect!)
     );
 
     const updatePostProcessingOptions = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
@@ -70,9 +69,7 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
 
     }
 
-    events.on("image-destroyed", (image) => {
-
-        postProcessingBundle.removeBloomSelection(image);
+    world.events!.on("image-destroyed", (image) => {
 
         if (postProcessingBundle.debugSelection) {
 
@@ -82,7 +79,7 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
 
     });
 
-    events.on("image-created", (image) => {
+    world.events!.on("image-created", (image) => {
 
         postProcessingBundle.addBloomSelection(image);
 
@@ -96,20 +93,9 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
 
     });
 
-    renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
-
-    events.on("resize", (gameSurface) => {
-
-        console.log("postprocessing:resize");
-
-        renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
-
-
-    })
-
     const changeRenderMode = (renderMode3D: boolean) => {
 
-        const postprocessing = renderMode3D ? settings.getState().postprocessing3d : settings.getState().postprocessing;
+        const postprocessing = renderMode3D ? world.settings!.getState().postprocessing3d : world.settings!.getState().postprocessing;
 
         terrain.setTerrainQuality(renderMode3D, postprocessing.anisotropy);
         scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
@@ -120,8 +106,10 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
     }
 
     const _target = new Vector3();
-    const spritesIterator = new SpritesBufferViewIterator(openBW);
-    const imageBufferView = new ImageBufferView(openBW);
+    const spritesIterator = new SpritesBufferViewIterator(world.openBW!);
+    const imageBufferView = new ImageBufferView(world.openBW!);
+
+    world.events!.on("dispose", () => janitor.dispose());
 
     return Object.freeze({
 
@@ -135,28 +123,15 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
 
         },
 
-        dispose() {
-
-            janitor.dispose();
-
-        },
-
-        onFrameReset() {
-
-            postProcessingBundle.clearBloomSelection();
-
-        },
-
         render(delta: number, elapsed: number) {
 
-            // global won't use camera so we can set it to any
             for (const v of viewportsComposer.activeViewports()) {
 
                 if (v === viewportsComposer.primaryViewport) {
 
                     if (v.needsUpdate) {
                         changeRenderMode(v.renderMode3D);
-                        reset();
+                        world.reset!();
                         v.needsUpdate = false;
                     }
 
@@ -182,15 +157,15 @@ export const createPostProcessingComposer = ({ settings, fogOfWarEffect, openBW,
                             const image = images.get(imageBuffer.index);
 
                             if (image instanceof ImageHD) {
-                                applyViewportToFrameOnImageHD(imageBuffer, image, v);
+                                applyViewportToFrameOnImageHD(imageBuffer, image, v.renderMode3D, v.camera.userData.direction);
                             }
 
                         }
                     }
                 }
 
-                v.updateCamera(settings.getState().input.dampingFactor, delta);
-                v.shakeStart(elapsed, settings.getState().input.cameraShakeStrength);
+                v.updateCamera(world.settings!.getState().input.dampingFactor, delta);
+                v.shakeStart(elapsed, world.settings!.getState().input.cameraShakeStrength);
                 postProcessingBundle.updateCamera(v.camera)
                 renderComposer.setBundlePasses(postProcessingBundle);
                 renderComposer.render(delta, v.viewport);

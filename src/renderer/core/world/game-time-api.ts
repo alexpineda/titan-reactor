@@ -4,7 +4,7 @@ import Chk from "bw-chk";
 import { Assets } from "@image/assets";
 import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "renderer/camera/game-viewport";
-import { Color, Scene } from "three";
+import { Color } from "three";
 import { createSandboxApi } from "@openbw/sandbox-api";
 
 export interface GameTimeApi {
@@ -14,7 +14,6 @@ export interface GameTimeApi {
     secondViewport: GameViewPort
     simpleMessage(message: string): void;
     scene: BaseScene;
-    cssScene: Scene;
     assets: Assets;
     map: Chk;
     toggleFogOfWarByPlayerId(playerId: number): void;

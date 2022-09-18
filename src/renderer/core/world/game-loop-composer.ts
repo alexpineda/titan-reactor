@@ -1,6 +1,8 @@
 import { renderComposer } from "@render/render-composer";
+import { Borrowed } from "@utils/object-utils";
+import { World } from "./world";
 
-export const createGameLoopComposer = () => {
+export const createGameLoopComposer = (world: Borrowed<World>) => {
 
     let delta = 0;
     let lastElapsed = 0;
@@ -15,6 +17,10 @@ export const createGameLoopComposer = () => {
 
     };
 
+    world.events!.on('dispose', () => {
+        renderComposer.getWebGLRenderer().setAnimationLoop(null);
+    })
+
     return {
 
         get delta() {
@@ -28,11 +34,7 @@ export const createGameLoopComposer = () => {
         },
         onUpdate(val: (delta: number, elapsed: number) => void) {
             _onUpdate = val;
-        },
-        dispose() {
-            this.stop();
         }
-
 
     }
 }

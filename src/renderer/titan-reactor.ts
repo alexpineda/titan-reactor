@@ -6,7 +6,7 @@ import { lockdown_ } from "@utils/ses-util";
 import "./scenes/home/home-scene";
 import { preHomeSceneLoader } from "./scenes/pre-home-scene/pre-home-scene-loader";
 import { homeSceneLoader } from "./scenes/home/home-scene-loader";
-import { globalEvents } from "@render/global-events";
+import { globalEvents } from "./global";
 import { openUrl } from "@ipc/dialogs";
 import { mapSceneLoader } from "./scenes/map-scene-loader";
 import { replaySceneLoader } from "./scenes/replay-scene-loader";
@@ -17,13 +17,17 @@ import { mixer } from "@audio/main-mixer";
 import * as log from "@ipc/log";
 
 globalEvents.on("command-center-save-settings", payload => {
+
   useSettingsStore.setState(payload);
   mixer.setVolumes(payload.data.audio);
+
 });
 
 // deprecate?
 globalEvents.on("unsafe-open-url", payload => {
+
   openUrl(payload);
+
 });
 
 globalEvents.on("load-home-scene", () => sceneStore().execSceneLoader(() => homeSceneLoader()));
@@ -31,13 +35,17 @@ globalEvents.on("load-home-scene", () => sceneStore().execSceneLoader(() => home
 globalEvents.on("log-message", ({ message, level, server }) => server ? log.log(message, level) : log.logClient(message, level));
 
 globalEvents.on("load-map-file", async (map) => {
+
   await sceneStore().execSceneLoader(interstitialSceneLoader);
   sceneStore().execSceneLoader(() => mapSceneLoader(map), interstitialSceneLoader);
+
 });
 
 globalEvents.on("load-replay-file", async (replay: string) => {
+
   await sceneStore().execSceneLoader(interstitialSceneLoader);
   sceneStore().execSceneLoader(() => replaySceneLoader(replay), interstitialSceneLoader);
+
 });
 
 globalEvents.on("load-iscriptah", async () => sceneStore().execSceneLoader(() => createIScriptahScene()));

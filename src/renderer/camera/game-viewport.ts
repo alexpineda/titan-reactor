@@ -3,7 +3,7 @@ import { getDirection32 } from "@utils/camera-utils";
 import CameraControls from "camera-controls";
 import { MathUtils, OrthographicCamera, PerspectiveCamera, Vector2, Vector3, Vector4 } from "three";
 import CameraShake from "./camera-shake";
-import ProjectedCameraView from "./projected-camera-view";
+import { ProjectedCameraView } from "./projected-camera-view";
 
 const _target = new Vector3;
 
@@ -16,7 +16,7 @@ export class GameViewPort {
     projectedView = new ProjectedCameraView();
     orbit: CameraControls;
     viewport = new Vector4(0, 0, 300, 200);
-    cameraShake = new CameraShake;
+    cameraShake = new CameraShake();
     shakeCalculation = {
         frequency: new Vector3(10, 20, 7.5),
         duration: new Vector3(1000, 1000, 1000),
@@ -70,19 +70,23 @@ export class GameViewPort {
 
         this.#isPrimary = isPrimaryViewport;
         this.enabled = isPrimaryViewport;
-        this.reset();
+        this.reset(true);
     }
 
-    reset() {
-        this.orbit?.dispose();
+    reset(firstRun = false) {
+        if (firstRun) {
+            this.orbit?.dispose();
+            this.orbit = new CameraControls(this.camera, this.#surface.canvas);
+        }
 
-        this.orbit = new CameraControls(this.camera, this.#surface.canvas);
         this.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
         this.orbit.setLookAt(0, 50, 0, 0, 0, 0, false);
+
+        this.cameraShake = new CameraShake();
 
         this.needsUpdate = true;
         return this.orbit;
@@ -177,43 +181,37 @@ export class GameViewPort {
     }
 
     update() {
+        const surfaceWidth = this.#surface.bufferWidth;
+        const surfaceHeight = this.#surface.bufferHeight;
 
         if (this.center) {
             const x = this.center.x - this.width / 2;
-            const y = this.surfaceHeight - this.center.y - (this.height / 2);
+            const y = surfaceHeight - this.center.y - (this.height / 2);
 
-            this.viewport.set(MathUtils.clamp(x, this.#width / 2, this.surfaceWidth - this.#width / 2), MathUtils.clamp(y, this.height / 2, this.surfaceHeight - this.height / 2), this.width, this.height);
+            this.viewport.set(MathUtils.clamp(x, this.#width / 2, surfaceWidth - this.#width / 2), MathUtils.clamp(y, this.height / 2, surfaceHeight - this.height / 2), this.width, this.height);
         } else {
             let x = 0, y = 0;
 
             if (isNumber(this.left) && !isNumber(this.right)) {
                 x = this.left;
             } else if (isNumber(this.right) && !isNumber(this.left)) {
-                x = this.surfaceWidth - this.width - this.right;
+                x = surfaceWidth - this.width - this.right;
             } else if (isNumber(this.left) && isNumber(this.right)) {
                 x = this.left;
-                this.width = this.surfaceWidth - this.left - this.right;
+                this.width = surfaceWidth - this.left - this.right;
             }
 
             if (isNumber(this.bottom) && !isNumber(this.top)) {
                 y = this.bottom;
             } else if (isNumber(this.top) && !isNumber(this.bottom)) {
-                y = this.surfaceHeight - this.height - this.top;
+                y = surfaceHeight - this.height - this.top;
             } else if (isNumber(this.bottom) && isNumber(this.top)) {
                 y = this.bottom;
-                this.height = this.surfaceWidth - this.bottom - this.top;
+                this.height = surfaceWidth - this.bottom - this.top;
             }
 
             this.viewport.set(x, y, this.width, this.height);
         }
-    }
-
-    get surfaceWidth() {
-        return this.#surface.bufferWidth;
-    }
-
-    get surfaceHeight() {
-        return this.#surface.bufferHeight;
     }
 
     get aspect() {

@@ -4,7 +4,7 @@ export class ImageBufferView
   implements ImageStruct {
 
   _address = 0;
-  _bw: OpenBW;
+  _bw: WeakRef<OpenBW>;
   #iscriptState: IScriptBufferView;
 
   get(address: number) {
@@ -12,8 +12,12 @@ export class ImageBufferView
     return this;
   }
 
+  get #bw() {
+    return this._bw.deref();
+  }
+
   constructor(bw: OpenBW) {
-    this._bw = bw;
+    this._bw = new WeakRef(bw);
     this.#iscriptState = new IScriptBufferView(bw);
   }
 
@@ -22,48 +26,48 @@ export class ImageBufferView
   }
 
   get index() {
-    return this._bw.HEAPU32[this._index32 + 2];
+    return this.#bw!.HEAPU32[this._index32 + 2];
   }
 
   get typeId() {
-    const addr = this._bw.HEAPU32[this._index32 + 3];
-    return this._bw.HEAP32[addr >> 2];
+    const addr = this.#bw!.HEAPU32[this._index32 + 3];
+    return this.#bw!.HEAP32[addr >> 2];
   }
 
   get modifier() {
-    return this._bw.HEAP32[this._index32 + 4];
+    return this.#bw!.HEAP32[this._index32 + 4];
   }
 
   get modifierData1() {
-    return this._bw.HEAP32[this._index32 + 5];
+    return this.#bw!.HEAP32[this._index32 + 5];
   }
 
   get modifierData2() {
-    return this._bw.HEAP32[this._index32 + 6];
+    return this.#bw!.HEAP32[this._index32 + 6];
   }
 
   get frameIndex() {
-    return this._bw.HEAPU32[this._index32 + 7];
+    return this.#bw!.HEAPU32[this._index32 + 7];
   }
 
   get frameIndexBase() {
-    return this._bw.HEAPU32[this._index32 + 8];
+    return this.#bw!.HEAPU32[this._index32 + 8];
   }
 
   get frameIndexOffset() {
-    return this._bw.HEAPU32[this._index32 + 9];
+    return this.#bw!.HEAPU32[this._index32 + 9];
   }
 
   get flags() {
-    return this._bw.HEAP32[this._index32 + 10];
+    return this.#bw!.HEAP32[this._index32 + 10];
   }
 
   get x() {
-    return this._bw.HEAP32[this._index32 + 11];
+    return this.#bw!.HEAP32[this._index32 + 11];
   }
 
   get y() {
-    return this._bw.HEAP32[this._index32 + 12];
+    return this.#bw!.HEAP32[this._index32 + 12];
   }
 
   get iscript() {
@@ -71,7 +75,7 @@ export class ImageBufferView
   }
 
   get nextNode() {
-    return this._bw.HEAPU32[this._index32];
+    return this.#bw!.HEAPU32[this._index32];
   }
 
   *[Symbol.iterator]() {

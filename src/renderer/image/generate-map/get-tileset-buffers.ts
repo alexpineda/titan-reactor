@@ -1,13 +1,15 @@
 import { readCascFile } from "@utils/casclib";
-import { TilesetBuffers } from "common/types";
+// import { TilesetBuffers } from "common/types";
 
 // platform, install
 const noWaterMasks = [1, 2];
 
+export type TilesetBuffers = Awaited<ReturnType<typeof getTilesetBuffers>>;
+
 export const getTilesetBuffers = async (
   tileset: number,
   tilesBuffer: Buffer
-): Promise<TilesetBuffers> => {
+) => {
   const tilesets = [
     "badlands",
     "platform",
@@ -76,7 +78,6 @@ export const getTilesetBuffers = async (
     minitilesFlagsVF4,
     minitilesVR4,
     paletteWPE,
-    tileset,
     hdTiles,
     tilegroupCV5: tilegroupU16,
     creepGrpSD,

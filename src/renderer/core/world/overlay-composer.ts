@@ -3,13 +3,11 @@ import { MinimapMaterial } from "@render/minimap-material";
 import { unitTypes } from "common/enums";
 import { Assets } from "@image/assets";
 import { Intersection, Mesh, Object3D, PlaneBufferGeometry, Raycaster, Scene, Vector2 } from "three";
-import { InputComposer } from "./input-composer";
 import { SceneComposer } from "./scene-composer";
-import { SurfaceComposer } from "./surface-composer";
 import { World, WorldEvents } from "./world";
 import fragmentShader from "../../render/minimap-frag.glsl";
 import vertexShader from "../../render/minimap-vert.glsl";
-import { ViewComposer } from "./view-composer";
+import { ViewInputComposer } from "./view-composer";
 import gameStore from "@stores/game-store";
 import settingsStore from "@stores/settings-store";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
@@ -18,6 +16,10 @@ import { ImageHD } from "@core/image-hd";
 import { Image3D } from "@core/image-3d";
 import { canSelectUnit } from "@utils/unit-utils";
 import { Unit } from "@core/unit";
+import { VisualSelectionBox } from "@input/mouse-selection-box";
+import Janitor from "@utils/janitor";
+import { Borrowed } from "@utils/object-utils";
+import GameSurface from "@render/game-surface";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
@@ -35,13 +37,25 @@ const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D
 
 };
 
-export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, { gameSurface }: SurfaceComposer, inputs: InputComposer, viewComposer: ViewComposer, assets: Assets) => {
+export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, gameSurface: WeakRef<GameSurface>, views: Borrowed<ViewInputComposer>, assets: Assets) => {
 
+    const janitor = new Janitor();
     const overlayGroup = new Scene();
 
-    const unitSelectionBox = createUnitSelectionBox(inputs.mouse, selectedUnits, scene, _getSelectionUnit(images));
+    const unitSelectionBox = createUnitSelectionBox(world, new WeakRef(views.inputs!.mouse), scene, _getSelectionUnit(images));
     const selectionDisplayComposer = createSelectionDisplayComposer(assets);
     scene.add(...selectionDisplayComposer.objects);
+
+    const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"));
+
+    world.events!.on("unit-selection-start", () => visualBox.start(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
+
+    world.events!.on("unit-selection-move", () => visualBox.end(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
+
+    world.events!.on("unit-selection-end", () => visualBox.clear());
+
+    world.events!.on("unit-selection-enabled", (value) => visualBox.enabled = value);
+
 
     const cursorMaterial = new CursorMaterial(assets);
     const cursorGraphics = new Mesh(new PlaneBufferGeometry(1, 1), cursorMaterial);
@@ -68,16 +82,16 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
         module.hot.accept("@render/minimap-material", () => {
 
-            minimapMaterial = new MinimapMaterial(map.size[0], map.size[1], terrainExtra.dataTextures.sdMap);
+            minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.dataTextures.sdMap);
             minimap.material = minimapMaterial;
-            applySettings({ settings: settings.getState(), rhs: {} });
+            applySettings({ settings: world.settings!.getState(), rhs: {} });
 
         });
 
     }
 
-    let minimapMaterial = new MinimapMaterial(map.size[0], map.size[1], terrainExtra.dataTextures.sdMap);
-    minimapMaterial.mode = settings.getState().minimap.mode;
+    let minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.dataTextures.sdMap);
+    minimapMaterial.mode = world.settings!.getState().minimap.mode;
 
     const minimap = new Mesh(new PlaneBufferGeometry(1, 1), minimapMaterial);
     minimap.frustumCulled = false;
@@ -85,6 +99,7 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
     minimap.matrixAutoUpdate = false;
 
     const rayCast = new Raycaster();
+    const [mapWidth, mapHeight] = world.map!.size;
 
     // const minimapConsoleMaterial = new BasicOverlayMaterial(assets.minimapConsole.square);
     // const minimapConsole = new Mesh(new PlaneBufferGeometry(1, 1), minimapConsoleMaterial);
@@ -103,20 +118,20 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
     const ignoreOnMinimap = [unitTypes.darkSwarm, unitTypes.disruptionWeb];
 
-    cursorMaterial.uniforms.uResolution.value.set(gameSurface.bufferWidth, gameSurface.bufferHeight);
+    cursorMaterial.uniforms.uResolution.value.set(gameSurface.deref()!.bufferWidth, gameSurface.deref()!.bufferHeight);
 
-    events.on("resize", (surface) => {
+    world.events!.on("resize", (surface) => {
 
         console.log("overlay:resize", surface);
 
-        applySettings({ settings: settings.getState(), rhs: {} });
+        applySettings({ settings: world.settings!.getState(), rhs: {} });
 
-        const rect = gameSurface.getMinimapDimensions(settings.getState().minimap.scale);
+        const rect = gameSurface.deref()!.getMinimapDimensions(world.settings!.getState().minimap.scale);
 
         // TODO: send transform matrix as well
         gameStore().setDimensions({
             minimapWidth: rect.minimapWidth,
-            minimapHeight: settings.getState().minimap.enabled ? rect.minimapHeight : 0,
+            minimapHeight: world.settings!.getState().minimap.enabled ? rect.minimapHeight : 0,
         });
 
     })
@@ -133,7 +148,7 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
         }
 
         minimapMaterial.scale.set(settings.minimap.scale, settings.minimap.scale, 1);
-        minimapMaterial.scale.divide(gameSurface.screenAspect);
+        minimapMaterial.scale.divide(gameSurface.deref()!.screenAspect);
         minimapMaterial.position.set(settings.minimap.position[0], -settings.minimap.position[1], 0);
 
         minimapMaterial.uniforms.uOpacity.value = settings.minimap.opacity;
@@ -149,81 +164,83 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
         // minimapConsoleMaterial.worldMatrix.copy(minimapMaterial.worldMatrix);
         // minimapConsoleMaterial.uniformsNeedUpdate = true;
 
-        cursorMaterial.uniforms.uResolution.value.set(gameSurface.bufferWidth, gameSurface.bufferHeight);
+        cursorMaterial.uniforms.uResolution.value.set(gameSurface.deref()!.bufferWidth, gameSurface.deref()!.bufferHeight);
         cursorMaterial.uniforms.uCursorSize.value = settingsStore().data.graphics.cursorSize;
         cursorMaterial.uniformsNeedUpdate = true;
 
     }
 
-    events.on("settings-changed", ({ settings, rhs }) => {
+    world.events!.on("settings-changed", ({ settings, rhs }) => {
 
         applySettings({ settings, rhs });
 
     });
 
-    const mapV = new Vector2(map.size[0], map.size[1]);
+    const mapV = new Vector2(mapWidth, mapHeight);
 
-    const mapAspectF = map.size[0] / map.size[1];
+    const mapAspectF = mapWidth / mapHeight;
     const mapAspect = new Vector2(mapAspectF > 1.0 ? 1.0 / mapAspectF : 1.0, mapAspectF < 1.0 ? mapAspectF : 1.0);
     const bounds = new Vector2(0.5 - 0.5 * mapAspect.y, 0.5 - 0.5 * mapAspect.x);
 
     let _insideMinimap = false;
 
     //test events
-    events.on("minimap-enter", () => {
-        minimapMaterial.uniforms.uOpacity.value = Math.max(settings.getState().minimap.opacity + 0.5);
+    world.events!.on("minimap-enter", () => {
+        minimapMaterial.uniforms.uOpacity.value = Math.max(world.settings!.getState().minimap.opacity + 0.5);
     });
 
-    events.on("minimap-leave", () => {
-        minimapMaterial.uniforms.uOpacity.value = settings.getState().minimap.opacity;
+    world.events!.on("minimap-leave", () => {
+        minimapMaterial.uniforms.uOpacity.value = world.settings!.getState().minimap.opacity;
     });
+
+    world.events!.on("dispose", () => janitor.dispose());
 
     return {
         overlayGroup,
         unitSelectionBox,
         update(delta: number) {
 
-            cursorMaterial.update(delta, inputs.mouse.move, unitSelectionBox.status);
+            cursorMaterial.update(delta, views.inputs!.mouse.move, unitSelectionBox.status);
 
-            unitSelectionBox.enabled = _intersects.length === 0 ? settings.getState().input.unitSelection : false;
+            unitSelectionBox.enabled = _intersects.length === 0 ? world.settings!.getState().input.unitSelection : false;
             unitSelectionBox.update();
 
-            if (unitSelectionBox.isActive || !(settings.getState().minimap.interactive && settings.getState().minimap.enabled)) {
+            if (unitSelectionBox.isActive || !(world.settings!.getState().minimap.interactive && world.settings!.getState().minimap.enabled)) {
 
                 if (_insideMinimap) {
-                    events.emit("minimap-leave");
+                    world.events!.emit("minimap-leave");
                     _insideMinimap = false;
                 }
                 return;
 
             }
 
-            rayCast.setFromCamera(inputs.mouse.move, minimapMaterial.camera);
+            rayCast.setFromCamera(views.inputs!.mouse.move, minimapMaterial.camera);
 
             _intersects.length = 0;
             minimap.matrixWorld.copy(minimapMaterial.localMatrix);
             minimap.raycast(rayCast, _intersects);
 
             if (_insideMinimap && _intersects.length === 0) {
-                events.emit("minimap-leave");
+                world.events!.emit("minimap-leave");
             } else if (!_insideMinimap && _intersects.length > 0) {
-                events.emit("minimap-enter");
+                world.events!.emit("minimap-enter");
             }
 
             unitSelectionBox.enabled = _insideMinimap = _intersects.length === 0;
 
-            minimapMaterial.uniforms.uOpacity.value = settings.getState().minimap.opacity;
+            minimapMaterial.uniforms.uOpacity.value = world.settings!.getState().minimap.opacity;
 
             if (_intersects.length && _intersects[0].uv) {
 
-                minimapMaterial.uniforms.uOpacity.value = Math.min(1, settings.getState().minimap.opacity + 0.1);
+                minimapMaterial.uniforms.uOpacity.value = Math.min(1, world.settings!.getState().minimap.opacity + 0.1);
 
                 const uv = _intersects[0].uv;
 
                 uv.set((uv.x - bounds.x) / mapAspect.y, (uv.y - bounds.y) / mapAspect.x);
 
-                if (inputs.mouse.move.z > -1) {
-                    viewComposer.onMinimapDragUpdate(uv.set(uv.x, 1 - uv.y).subScalar(0.5).multiply(mapV), !!inputs.mouse.clicked, inputs.mouse.move.z);
+                if (views.inputs!.mouse.move.z > -1) {
+                    views.onMinimapDragUpdate!(uv.set(uv.x, 1 - uv.y).subScalar(0.5).multiply(mapV), !!views.inputs!.mouse.clicked, views.inputs!.mouse.move.z);
                 }
 
             }
@@ -232,13 +249,13 @@ export const createOverlayComposer = ({ map, fogOfWar, events, settings }: World
 
         onFrame(completedUpgrades: number[][]) {
 
-            selectionDisplayComposer.update(viewComposer.primaryCamera!, sprites, completedUpgrades, selectedUnits.toArray());
+            selectionDisplayComposer.update(views.primaryCamera!, sprites, completedUpgrades, selectedUnits.toArray());
 
-            minimapMaterial.update(fogOfWar.buffer, terrainExtra.creep.minimapImageData, fogOfWar.effect.opacity);
+            minimapMaterial.update(world.fogOfWar!.buffer, terrainExtra.creep.minimapImageData, world.fogOfWar!.effect.opacity);
 
             for (const unit of units) {
                 if (!ignoreOnMinimap.includes(unit.typeId)) {
-                    minimapMaterial.buildUnitMinimap(unit, assets.bwDat.units[unit.typeId], fogOfWar, getPlayerColor)
+                    minimapMaterial.buildUnitMinimap(unit, assets.bwDat.units[unit.typeId], world.fogOfWar!, getPlayerColor)
                 }
             }
 

@@ -2,12 +2,14 @@ import { mixer } from "@audio/main-mixer";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import * as log from "@ipc/log";
 import { SceneController } from "@plugins/plugin-system-native";
+import Janitor from "@utils/janitor";
 import { Borrowed } from "@utils/object-utils";
 import { DamageType, Explosion } from "common/enums";
 import { SceneInputHandler, UserInputCallbacks } from "common/types";
 import { easeCubicIn } from "d3-ease";
 import { Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
+import { createInputComposer } from "./input-composer";
 import { World } from "./world";
 
 // frequency, duration, strength multiplier
@@ -29,25 +31,25 @@ const bulletStrength = {
 
 const empty: GameViewPort[] = [];
 
-export type ViewComposer = ReturnType<typeof createViewComposer>;
+export type ViewInputComposer = ReturnType<typeof createViewInputComposer>;
 
-export const createViewComposer = (world: Borrowed<World>, { gameSurface }: SurfaceComposer) => {
+export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }: Pick<SurfaceComposer, "gameSurface">) => {
 
     let activating = false;
 
-    let sceneController: SceneController | null = null;
+    let sceneController: WeakRef<SceneController> | null = null;
+    const getSceneController = () => sceneController ? sceneController.deref() : null;
+    const getViewports = () => getSceneController()?.viewports ?? empty;
 
     const _target = new Vector3();
     const _position = new Vector3();
     const _audioPositon = new Vector3();
 
-    // viewports.externalOnExitScene = (sceneController) => macros.callFromHook("onExitScene", sceneController);
-    // viewports.aspect = gameSurface.aspect;
-
-    const viewports = () => sceneController?.viewports ?? empty;
+    const janitor = new Janitor()
+    const inputs = janitor.mop(createInputComposer());
 
     world.events!.on("resize", (surface) => {
-        for (const viewport of viewports()) {
+        for (const viewport of getViewports()) {
             viewport.width = surface.bufferWidth;
             viewport.height = surface.bufferHeight;
             viewport.aspect = surface.aspect;
@@ -56,20 +58,35 @@ export const createViewComposer = (world: Borrowed<World>, { gameSurface }: Surf
 
 
     return {
+        inputs,
         viewportsGameTimeApi: {
             get viewport() {
-                return viewports()[0];
+                return getViewports()[0];
             },
             get secondViewport() {
-                return viewports()[1];
+                return getViewports()[1];
             },
             changeRenderMode(renderMode3D?: boolean) {
-                viewports()[0]!.renderMode3D = renderMode3D ?? !viewports()[0]!.renderMode3D;
+                getViewports()[0]!.renderMode3D = renderMode3D ?? !getViewports()[0]!.renderMode3D;
             },
+            ...inputs.inputGameTimeApi,
         },
         update(delta: number, elapsed: number) {
 
-            this.onUpdateAudioMixerLocation(delta, elapsed);
+            const sceneController = getSceneController();
+
+            if (!sceneController) return;
+
+            sceneController.onCameraMouseUpdate && sceneController.onCameraMouseUpdate(delta / 100, elapsed, inputs.mouse.mouseScrollY, inputs.mouse.screenDrag, inputs.mouse.lookAt, inputs.mouse.move, inputs.mouse.clientX, inputs.mouse.clientY, inputs.mouse.clicked, inputs.mouse.modifiers);
+
+            sceneController.onCameraKeyboardUpdate && sceneController.onCameraKeyboardUpdate(delta / 100, elapsed, inputs.keyboard.vector);
+
+            if (sceneController?.onUpdateAudioMixerLocation) {
+                sceneController.viewport.orbit.getTarget(_target);
+                sceneController.viewport.orbit.getPosition(_position);
+                _audioPositon.copy(sceneController.onUpdateAudioMixerLocation!(delta, elapsed, _target, _position));
+                mixer.updateFromVector3(_audioPositon, delta);
+            }
 
             for (const viewport of this.activeViewports()) {
 
@@ -81,26 +98,24 @@ export const createViewComposer = (world: Borrowed<World>, { gameSurface }: Surf
             }
         },
 
-        onUpdateAudioMixerLocation(delta: number, elapsed: number) {
-            if (sceneController?.onUpdateAudioMixerLocation) {
-                this.primaryViewport!.orbit.getTarget(_target);
-                this.primaryViewport!.orbit.getPosition(_position);
-                _audioPositon.copy(sceneController.onUpdateAudioMixerLocation(delta, elapsed, _target, _position));
-                mixer.updateFromVector3(_audioPositon, delta);
-            }
-            return _audioPositon;
+        resetInputState() {
+            inputs.resetState();
         },
 
         get viewports() {
-            return viewports();
+            return getViewports();
         },
 
-        get activeSceneController() {
-            return sceneController;
+        get getSceneController() {
+            return getSceneController();
+        },
+
+        deactivate() {
+            sceneController = null;
         },
 
         *activeViewports() {
-            for (const viewport of this.viewports) {
+            for (const viewport of getViewports()) {
                 if (viewport.enabled) {
                     yield viewport;
                 }
@@ -109,7 +124,7 @@ export const createViewComposer = (world: Borrowed<World>, { gameSurface }: Surf
 
         get numActiveViewports() {
             let count = 0;
-            for (const viewport of this.viewports) {
+            for (const viewport of getViewports()) {
                 if (viewport.enabled) {
                     count++;
                 }
@@ -118,36 +133,26 @@ export const createViewComposer = (world: Borrowed<World>, { gameSurface }: Surf
         },
 
         get audio(): SceneInputHandler["gameOptions"]["audio"] | null {
+
+            const sceneController = getSceneController();
+
             return sceneController?.gameOptions?.audio ?? null;
-        },
 
-        onCameraKeyboardUpdate(...args: Parameters<UserInputCallbacks["onCameraKeyboardUpdate"]>) {
-            // if (this.externalOnCameraKeyboardUpdate!(...args) === false) {
-            //     return;
-            // }
-            sceneController?.onCameraKeyboardUpdate && sceneController.onCameraKeyboardUpdate(...args);
-        },
-
-        onCameraMouseUpdate(...args: Parameters<UserInputCallbacks["onCameraMouseUpdate"]>) {
-            // if (this.externalOnCameraMouseUpdate!(...args) === false) {
-            //     return;
-            // }
-            sceneController?.onCameraMouseUpdate && sceneController.onCameraMouseUpdate(...args);
         },
 
         onMinimapDragUpdate(...args: Parameters<UserInputCallbacks["onMinimapDragUpdate"]>) {
-            // if (this.externalOnMinimapDragUpdate!(...args) === false) {
-            //     return;
-            // }
+
+            const sceneController = getSceneController();
+
             sceneController?.onMinimapDragUpdate && sceneController.onMinimapDragUpdate(...args);
         },
 
-        async activateSceneController(inputHandler: SceneController | null, firstRunData?: any) {
-            if (inputHandler === null) {
+        async activate(newController: SceneController | null, firstRunData?: any) {
+            if (newController === null) {
                 sceneController = null;
                 return;
             }
-            if (inputHandler === undefined) {
+            if (newController === undefined) {
                 log.warning("GameViewportsDirector.activate: inputHandler is undefined");
                 return;
             }
@@ -156,35 +161,44 @@ export const createViewComposer = (world: Borrowed<World>, { gameSurface }: Surf
             }
             activating = true;
             let prevData: any = firstRunData ?? this.generatePrevData();
-            if (sceneController && sceneController.onExitScene) {
-                prevData = sceneController.onExitScene(prevData);
+            const prevSceneController = getSceneController();
+
+            if (prevSceneController?.onExitScene) {
+                try {
+                    world.events!.emit("scene-exit", prevSceneController?.name);
+                    prevData = prevSceneController.onExitScene!(prevData);
+                } catch (e) {
+                    log.error(e);
+                }
             }
-            // this.externalOnExitScene && this.externalOnExitScene(sceneController?.name);
+
             sceneController = null;
             gameSurface.togglePointerLock(false);
 
-            if (inputHandler.viewports.length === 0) {
-                inputHandler.viewports = [
+            if (newController.viewports.length === 0) {
+                newController.viewports = [
                     new GameViewPort(gameSurface, true),
                     new GameViewPort(gameSurface, false),
                 ]
             }
 
-            for (const viewport of inputHandler.viewports) {
+            for (const viewport of newController.viewports) {
                 viewport.reset();
                 viewport.width = gameSurface.bufferWidth;
                 viewport.height = gameSurface.bufferHeight;
                 viewport.aspect = gameSurface.aspect;
             };
 
-            await inputHandler.onEnterScene(prevData);
-            sceneController = inputHandler;
+            await newController.onEnterScene(prevData);
+            sceneController = new WeakRef(newController);
+
+            world.events!.emit("scene-enter", newController.name);
 
             activating = false;
         },
 
         get primaryViewport(): GameViewPort | undefined {
-            return viewports()[0];
+            return getViewports()[0];
         },
 
         set aspect(val: number) {
@@ -196,7 +210,7 @@ export const createViewComposer = (world: Borrowed<World>, { gameSurface }: Surf
         },
 
         get sceneController() {
-            return this.activeSceneController;
+            return this.getSceneController;
         },
 
         get primaryCamera() {
@@ -212,7 +226,7 @@ export const createViewComposer = (world: Borrowed<World>, { gameSurface }: Surf
         },
 
         generatePrevData() {
-            return this.viewports.length ? viewports()[0].generatePrevData() : null;
+            return this.viewports.length ? getViewports()[0].generatePrevData() : null;
         },
 
         doShakeCalculation(explosionType: Explosion, damageType: DamageType, spritePos: Vector3) {

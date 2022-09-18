@@ -112,7 +112,6 @@ declare module "titan-reactor/host" {
         readonly viewports: GameViewPort[];
         simpleMessage(message: string): void;
         scene: BaseScene;
-        cssScene: Scene;
         assets: Assets;
         toggleFogOfWarByPlayerId(playerId: number): void;
         unitsIterator(): IterableIterator<Unit>;

@@ -114,7 +114,7 @@ export class PluginSystemNative {
     #nativePlugins: PluginBase[] = [];
     #uiPlugins: PluginSystemUI;
     #janitor = new Janitor;
-    #activeSceneInputHandler?: SceneInputHandler;
+    #sceneController?: SceneInputHandler;
 
     #hooks: Record<string, Hook> = createDefaultHooks();
     #permissions: Map<string, Record<string, boolean>> = new Map();
@@ -211,7 +211,7 @@ export class PluginSystemNative {
     }
 
     activateSceneController(plugin: SceneController | undefined) {
-        this.#activeSceneInputHandler = plugin;
+        this.#sceneController = plugin;
         if (plugin) {
             this.externalHookListener("onEnterScene", plugin.name);
         }
@@ -294,7 +294,7 @@ export class PluginSystemNative {
 
     isRegularPluginOrActiveSceneController(plugin: NativePlugin) {
 
-        return !plugin.isSceneController || this.#activeSceneInputHandler === plugin;
+        return !plugin.isSceneController || this.#sceneController === plugin;
 
     }
 

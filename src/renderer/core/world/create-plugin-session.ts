@@ -15,8 +15,8 @@ import { mix } from "@utils/object-utils";
 import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
-import { globalEvents } from "@render/global-events";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_PLUGINS_DISPOSED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
+import { globalEvents } from "../../global";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
@@ -122,6 +122,12 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
     events.on("frame-reset", () =>
         _session.nativePlugins.callHook(HOOK_ON_FRAME_RESET));
 
+    events.on("dispose", () => {
+        _session.nativePlugins.callHook(HOOK_ON_PLUGINS_DISPOSED);
+        macrosComposer.dispose();
+        _session.dispose();
+    });
+
 
     return {
         activate(gameTimeApi: GameTimeApi, sessionApi: ReactiveSessionVariables) {
@@ -147,10 +153,6 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
         },
         get ui() {
             return _session.uiPlugins;
-        },
-        dispose() {
-            macrosComposer.dispose();
-            _session.dispose();
         },
         async reload() {
             await (settingsStore().load());

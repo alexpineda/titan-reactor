@@ -1,5 +1,4 @@
-import { TilesetBuffers } from "common/types";
-
+import { TilesetBuffers } from "./get-tileset-buffers";
 
 export type MapBitmaps = {
   mapTilesData: Uint16Array;

@@ -7,6 +7,7 @@ export type MatchingKeys<
 export type VoidKeys<Record> = MatchingKeys<Record, void>;
 
 export class TypeEmitter<T>  {
+
     #listeners: Map<keyof T, ((v: T[keyof T] | undefined) => void | false)[]> = new Map();
 
     on<K extends keyof T>(s: K, listener: (v: T[K]) => void) {
@@ -25,7 +26,6 @@ export class TypeEmitter<T>  {
             }
         }
     }
-
 
     dispose() {
         this.#listeners.clear();

@@ -3,7 +3,6 @@ import gameStore from "@stores/game-store";
 import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsHidden } from "@utils/image-utils";
 import { getAngle } from "@utils/unit-utils";
-import { GameViewPort } from "../camera/game-viewport";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
 import { ImageHDInstanced } from "./image-hd-instanced";
@@ -50,14 +49,14 @@ export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image
 let _frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
 let _needsUpdateFrame = false;
 
-export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, image: ImageHD, viewport: GameViewPort) => {
+export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, image: ImageHD, renderMode3D: boolean, direction: number) => {
 
     imageTypeId = gameStore().assets!.refId(imageBuffer.typeId);
 
 
     // if (image.material.depthTest !== viewport.renderMode3D) {
 
-    image.material.depthTest = viewport.renderMode3D;
+    image.material.depthTest = renderMode3D;
     image.material.depthWrite = false;
 
     // }
@@ -65,7 +64,7 @@ export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, imag
     if (imageHasDirectionalFrames(imageBuffer)) {
 
         //TODO: applyCameraDirectionToImageFrameOffset?
-        _frameInfo = applyCameraDirectionToImageFrame(viewport.camera.userData.direction, imageBuffer);
+        _frameInfo = applyCameraDirectionToImageFrame(direction, imageBuffer);
 
     } else {
 
@@ -74,7 +73,7 @@ export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, imag
 
     }
 
-    if (viewport.renderMode3D && spriteModelEffects.images[imageTypeId]) {
+    if (renderMode3D && spriteModelEffects.images[imageTypeId]) {
 
         for (const effect of spriteModelEffects.images[imageTypeId]) {
             switch (effect.type) {

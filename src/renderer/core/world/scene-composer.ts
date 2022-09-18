@@ -20,69 +20,80 @@ import { drawFunctions, unitTypes } from "common/enums";
 import { ImageStruct, UnitTileScale } from "common/types";
 import { Assets } from "@image/assets";
 import { floor32, makePxToWorld } from "common/utils/conversions";
-import { ViewComposer } from "@core/world/view-composer";
 import { Color, MathUtils, Vector3 } from "three";
 import { createPlayersGameTimeApi } from "./players-api";
 import { World } from "./world";
 import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/iterable-set";
+import { Borrowed } from "@utils/object-utils";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
 
 // Primarily concerned about converting OpenBW state to three objects and animations
-export const createSceneComposer = async ({ map, players: basePlayers, openBW, fogOfWar, events }: World, viewports: ViewComposer, assets: Assets) => {
+export const createSceneComposer = async (world: Borrowed<World>, assets: Assets) => {
 
     const janitor = new Janitor();
 
     const { terrain, ...terrainExtra } = janitor.mop(await chkToTerrainMesh(
-        map, UnitTileScale.HD,
+        ...world.map!.size, world.map!.tileset, world.map!._tiles, UnitTileScale.HD,
     ));
 
-    const pxToWorld = makePxToWorld(map.size[0], map.size[1], terrain.getTerrainY);
+    const pxToWorld = makePxToWorld(...world.map!.size, terrain.getTerrainY);
 
-    const players = new Players(basePlayers);
+    const players = new Players(world.players!);
 
     const startLocations =
-        map.units.filter((u) => u.unitId === unitTypes.startLocation)
+        world.map!.units.filter((u) => u.unitId === unitTypes.startLocation)
             .sort((a, b) => a.player - b.player)
             .map(location => pxToWorld.xyz(location.x, location.y, new Vector3()));
 
     const getPlayerColor = (playerId: number) => players.get(playerId)?.color ?? white;
 
     const units = new UnitEntities();
-    units.externalOnClearUnits = () => events.emit("units-cleared");
-    units.externalOnCreateUnit = (unit) => events.emit("unit-created", unit);
+    units.externalOnClearUnits = () => world.events!.emit("units-cleared");
+    units.externalOnCreateUnit = (unit) => world.events!.emit("unit-created", unit);
 
-    openBW.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
+    world.openBW!.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
 
-    const scene = janitor.mop(new BaseScene(map.size[0], map.size[1], terrain, assets.skyBox, assets.envMap));
+    const scene = janitor.mop(new BaseScene(...world.map!.size, terrain, assets.skyBox, assets.envMap));
     const sprites = janitor.mop(new SpriteEntities());
     const images = janitor.mop(new ImageEntities());
-    images.onCreateImage = (image) => events.emit("image-created", image);
-    images.onFreeImage = (image) => events.emit("image-destroyed", image);
+    images.onCreateImage = (image) => world.events!.emit("image-created", image);
+    images.onFreeImage = (image) => world.events!.emit("image-destroyed", image);
 
     scene.add(sprites.group);
 
-    const followedUnits = new IterableSet<Unit>((units) => events.emit("followed-units-changed", units));
-    const selectedUnits = new IterableSet<Unit>((units) => events.emit("selected-units-changed", units));
+    const followedUnits = new IterableSet<Unit>((units) => world.events!.emit("followed-units-changed", units));
+    const selectedUnits = new IterableSet<Unit>((units) => world.events!.emit("selected-units-changed", units));
 
-    events.on("units-cleared", () => {
+    world.events!.on("unit-selection-end", units => {
+        selectedUnits.set(units);
+    })
+
+    world.events!.on("units-cleared", () => {
         selectedUnits.clear();
         followedUnits.clear();
     });
 
-    events.on("unit-killed", (unit) => {
+    world.events!.on("unit-killed", (unit) => {
         selectedUnits.delete(unit);
         followedUnits.delete(unit);
     });
 
-    events.on("unit-destroyed", (unit) => {
+    world.events!.on("unit-destroyed", (unit) => {
         selectedUnits.delete(unit);
         followedUnits.delete(unit);
     });
 
-    const unitsBufferViewIterator = new UnitsBufferViewIterator(openBW);
+    world.events!.on("frame-reset", () => {
+        images.clear();
+        sprites.clear();
+        units.clear();
+        sprites.group.clear();
+    })
+
+    const unitsBufferViewIterator = new UnitsBufferViewIterator(world.openBW!);
 
     const buildUnit = (unitData: UnitsBufferView) => {
         const unit = units.getOrCreate(unitData);
@@ -111,37 +122,12 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
 
     let unit: Unit | undefined;
 
-    const buildUnits = (
-    ) => {
-
-        for (const unitId of killedUnitIterator(openBW)) {
-            unit = units.get(unitId);
-            if (unit) {
-                units.free(unit);
-                events.emit("unit-killed", unit);
-            }
-        }
-
-        for (const unitId of destroyedUnitsIterator(openBW)) {
-            unit = units.get(unitId);
-            if (unit) {
-                units.free(unit);
-                events.emit("unit-destroyed", unit);
-            }
-        }
-
-        for (const unit of unitsBufferViewIterator) {
-            buildUnit(unit);
-        }
-
-    }
-
-    const spritesIterator = new SpritesBufferViewIterator(openBW);
-    const imageBufferView = new ImageBufferView(openBW);
+    const spritesIterator = new SpritesBufferViewIterator(world.openBW!);
+    const imageBufferView = new ImageBufferView(world.openBW!);
 
     let _spriteY = 0;
 
-    const buildSprite = (spriteData: SpritesBufferView, delta: number) => {
+    const buildSprite = (spriteData: SpritesBufferView, delta: number, renderMode3D: boolean, direction: number) => {
 
         const unit = sprites.getUnit(spriteData.index);
         let sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
@@ -154,9 +140,9 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
         sprite.visible = !spriteIsHidden(spriteData) && (
             spriteData.owner === 11 ||
             imageIsDoodad(dat.image) ||
-            fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y)));
+            world.fogOfWar!.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y)));
 
-        sprite.renderOrder = viewports.primaryViewport!.renderMode3D ? 0 : spriteSortOrder(spriteData);
+        sprite.renderOrder = renderMode3D ? 0 : spriteSortOrder(spriteData);
 
         _spriteY = spriteData.extYValue + (spriteData.extFlyOffset * 1);
         _spriteY = _spriteY * terrain.geomOptions.maxTerrainHeight + 0.1;
@@ -172,6 +158,8 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
         sprite.updateMatrix();
         sprite.matrixWorld.copy(sprite.matrix);
 
+        // const groundY = terrain.getTerrainY(sprite.position.x, sprite.position.y);
+
         let imageCounter = 1;
         overlayEffectsMainImage.image = null
 
@@ -184,7 +172,7 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
             }
 
             // only draw shadow if main image is not 3d
-            const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || image.dat.drawFunction === drawFunctions.rleShadow && !viewports.primaryViewport?.renderMode3D;
+            const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || image.dat.drawFunction === drawFunctions.rleShadow && !renderMode3D;
 
             image.visible = sprite.visible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
             image.matrixWorldNeedsUpdate = false;
@@ -236,7 +224,7 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
 
             if (image instanceof ImageHD) {
 
-                applyViewportToFrameOnImageHD(imageData, image, viewports.primaryViewport!);
+                applyViewportToFrameOnImageHD(imageData, image, renderMode3D, direction);
                 applyOverlayEffectsToImageHD(imageData, image);
 
             } else if (image instanceof Image3D) {
@@ -258,24 +246,7 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
 
     }
 
-    const buildSprites = (delta: number) => {
-
-
-        for (const spriteIndex of deletedSpritesIterator(openBW)) {
-            sprites.free(spriteIndex);
-        }
-
-        for (const imageIndex of deletedImageIterator(openBW)) {
-            images.free(imageIndex);
-        }
-
-        for (const sprite of spritesIterator) {
-
-            buildSprite(sprite, delta);
-
-        }
-
-    };
+    world.events!.on("dispose", () => janitor.dispose());
 
     return Object.freeze({
         images,
@@ -287,30 +258,54 @@ export const createSceneComposer = async ({ map, players: basePlayers, openBW, f
         terrain,
         terrainExtra,
         pxToWorld,
-        pxToWorldInverse: makePxToWorld(map.size[0], map.size[1], terrain.getTerrainY, true),
+        pxToWorldInverse: makePxToWorld(...world.map!.size, terrain.getTerrainY, true),
         startLocations,
         players,
         getPlayerColor,
-        onFrame(delta: number) {
+        onFrame(delta: number, renderMode3D: boolean, direction: number) {
 
-            fogOfWar.onFrame(players.getVisionFlag());
+            world.fogOfWar!.onFrame(players.getVisionFlag());
 
-            buildUnits();
-            buildSprites(delta);
+            for (const unitId of killedUnitIterator(world.openBW!)) {
+                unit = units.get(unitId);
+                if (unit) {
+                    units.free(unit);
+                    world.events!.emit("unit-killed", unit);
+                }
+            }
+
+            for (const unitId of destroyedUnitsIterator(world.openBW!)) {
+                unit = units.get(unitId);
+                if (unit) {
+                    units.free(unit);
+                    world.events!.emit("unit-destroyed", unit);
+                }
+            }
+
+            for (const unit of unitsBufferViewIterator) {
+                buildUnit(unit);
+            }
+
+            for (const spriteIndex of deletedSpritesIterator(world.openBW!)) {
+                sprites.free(spriteIndex);
+            }
+
+            for (const imageIndex of deletedImageIterator(world.openBW!)) {
+                images.free(imageIndex);
+            }
+
+            for (const sprite of spritesIterator) {
+
+                buildSprite(sprite, delta, renderMode3D, direction);
+
+            }
 
         },
-        onFrameReset() {
-            images.clear();
-            sprites.clear();
-            units.clear();
-            sprites.group.clear();
-        },
-        dispose: () => janitor.dispose(),
         resetImageCache() {
             images.dispose();
         },
         sceneGameTimeApi: {
-            ...createPlayersGameTimeApi(players, basePlayers, fogOfWar),
+            ...createPlayersGameTimeApi(players, world.players!, world.fogOfWar!),
             pxToWorld,
             scene
         }

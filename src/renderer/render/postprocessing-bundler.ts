@@ -1,5 +1,4 @@
 import { FogOfWarEffect } from "@core/fogofwar";
-import { Surface } from "@image/canvas";
 import { Settings } from "common/types";
 import { BlendFunction, BloomEffect, BrightnessContrastEffect, CopyPass, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
 import { Camera, Object3D, OrthographicCamera, PerspectiveCamera, Scene, Vector3 } from "three";
@@ -41,7 +40,6 @@ export class PostProcessingBundler {
     #prevVersion = 0;
     #version = 0;
     #effectivePasses: EffectivePasses = EffectivePasses.None;
-    #surface: Surface;
     camera: Camera;
     scene: Scene;
     options: Settings["postprocessing"] | Settings["postprocessing3d"];
@@ -63,7 +61,7 @@ export class PostProcessingBundler {
 
     #outlineEffect?: OutlineEffect;
 
-    constructor(surface: Surface, camera: Camera, scene: Scene, overlayScene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
+    constructor(camera: Camera, scene: Scene, overlayScene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
 
         this.camera = camera;
         this.scene = scene;
@@ -78,10 +76,6 @@ export class PostProcessingBundler {
         this.#overlayPass.ignoreBackground = true;
 
         this.#fogOfWarEffect = fogOfWar;
-
-        this.#surface = surface;
-        renderComposer.targetSurface = surface;
-
 
     }
 
@@ -138,6 +132,8 @@ export class PostProcessingBundler {
             this.#bloomEffect = createBloomEffect(this.scene, this.camera, this.options.bloom, true);
             if (this.#bloomEffect instanceof SelectiveBloomEffect) {
                 this.#bloomEffect.ignoreBackground = true;
+                // dummy object
+                this.#bloomEffect!.selection.add(new Object3D());
                 if (this.#depthOfFieldEffect) {
                     pass2.push(this.#bloomEffect);
                 } else {
@@ -201,9 +197,6 @@ export class PostProcessingBundler {
             }
             this.#passes.push(this.#overlayPass);
             this.#passes.push(new CopyPass());
-            renderComposer.setSize(this.#surface.bufferWidth, this.#surface.bufferHeight);
-
-
         }
         return this.#passes;
     }
@@ -233,21 +226,11 @@ export class PostProcessingBundler {
     }
 
     addBloomSelection(object: Object3D) {
-        if (this.#bloomEffect instanceof SelectiveBloomEffect) {
-            this.#bloomEffect!.selection.add(object);
-        }
-    }
 
-    removeBloomSelection(object: Object3D) {
         if (this.#bloomEffect instanceof SelectiveBloomEffect) {
-            this.#bloomEffect!.selection.delete(object);
+            object.layers.enable(this.#bloomEffect.selection.layer);
         }
-    }
 
-    clearBloomSelection() {
-        if (this.#bloomEffect instanceof SelectiveBloomEffect) {
-            this.#bloomEffect!.selection.clear();
-        }
     }
 
     dispose() {

@@ -46,24 +46,6 @@ export interface TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMateri
   }
 }
 
-export type TilesetBuffers = {
-  mapTiles: Uint16Array;
-  megatilesVX4: Uint32Array;
-  minitilesFlagsVF4: Uint16Array;
-  minitilesVR4: Uint8Array;
-  paletteWPE: Uint8Array;
-  tileset: number;
-  tilegroupCV5: Uint16Array;
-  hdTiles: Buffer;
-  creepGrpSD: Buffer;
-  creepGrpHD: Buffer;
-  waterMask: Buffer | null;
-  waterNormal1: Buffer;
-  waterNormal2: Buffer;
-  noise: Buffer;
-  tileMask: Buffer | null;
-};
-
 export type EffectsTextures = {
   waterNormal1: CompressedTexture[],
   waterNormal2: CompressedTexture[],

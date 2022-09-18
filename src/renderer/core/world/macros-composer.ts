@@ -3,7 +3,7 @@ import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
 import Janitor from "@utils/janitor";
 import { createCompartment } from "@utils/ses-util";
-import { globalEvents } from "@render/global-events";
+import { globalEvents } from "../../global";
 
 export type MacrosComposer = ReturnType<typeof createMacrosComposer>;
 

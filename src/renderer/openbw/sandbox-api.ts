@@ -1,5 +1,7 @@
 import { UnitsBufferView } from "@buffer-view/units-buffer-view";
-import { OpenBW, UnitStruct } from "common/types";
+import { World } from "@core/world/world";
+import { Borrowed } from "@utils/object-utils";
+import { UnitStruct } from "common/types";
 import { PxToWorld } from "common/utils/conversions";
 
 const identityPxToWorld: PxToWorld = {
@@ -11,16 +13,18 @@ const identityPxToWorld: PxToWorld = {
 
 export type SandboxAPI = ReturnType<typeof createSandboxApi>;
 
-export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld) => {
+export const createSandboxApi = (world: Borrowed<World>, pxToWorldInverse: PxToWorld) => {
 
     const sandBoxBufferViews = {
-        units: new UnitsBufferView(openBW)
+        units: new UnitsBufferView(world.openBW!)
     };
 
     const getUnitId = (unitOrId: UnitStruct | number) => typeof unitOrId === "number" ? unitOrId : unitOrId.id;
 
     let _useWorldCoordinates = true;
     const coords = () => _useWorldCoordinates ? pxToWorldInverse : identityPxToWorld;
+
+    const sandboxGaurd = () => world.openBW!.isSandboxMode() === false;
 
     return ({
 
@@ -34,16 +38,16 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld) =>
 
         createUnit(unitTypeId: number, playerId: number, x: number, y: number) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return null;
             }
 
             console.log(unitTypeId, playerId, coords().x(x), coords().y(y));
-            const unitAddress = openBW._create_unit(unitTypeId, playerId, coords().x(x), coords().y(y));
+            const unitAddress = world.openBW!._create_unit(unitTypeId, playerId, coords().x(x), coords().y(y));
             if (unitAddress === 0) {
 
-                if (openBW.getLastErrorMessage()) {
-                    console.error(openBW.getLastErrorMessage());
+                if (world.openBW!.getLastErrorMessage()) {
+                    console.error(world.openBW!.getLastErrorMessage());
                 }
 
                 return null;
@@ -55,81 +59,81 @@ export const createSandboxApi = (openBW: OpenBW, pxToWorldInverse: PxToWorld) =>
 
         killUnit(unitOrId: UnitStruct | number) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            return openBW.get_util_funcs().kill_unit(getUnitId(unitOrId));
+            return world.openBW!.get_util_funcs().kill_unit(getUnitId(unitOrId));
 
         },
 
         removeUnit(unitOrId: UnitStruct | number) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            openBW.get_util_funcs().remove_unit(getUnitId(unitOrId));
+            world.openBW!.get_util_funcs().remove_unit(getUnitId(unitOrId));
 
         },
 
         orderUnitAttackMove(unitOrId: UnitStruct | number, targetUnitOrId?: UnitStruct | number | null, x: number = 0, y: number = 0) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            openBW.get_util_funcs().issue_command(getUnitId(unitOrId), 0, targetUnitOrId ? getUnitId(targetUnitOrId) : 0, coords().x(x), coords().y(y), 0);
+            world.openBW!.get_util_funcs().issue_command(getUnitId(unitOrId), 0, targetUnitOrId ? getUnitId(targetUnitOrId) : 0, coords().x(x), coords().y(y), 0);
 
         },
 
         orderUnitAttackUnit(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x: number = 0, y: number = 0) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            openBW.get_util_funcs().issue_command(getUnitId(unitOrId), 1, targetUnitOrId ? getUnitId(targetUnitOrId) : 0, coords().x(x), coords().y(y), 0);
+            world.openBW!.get_util_funcs().issue_command(getUnitId(unitOrId), 1, targetUnitOrId ? getUnitId(targetUnitOrId) : 0, coords().x(x), coords().y(y), 0);
 
         },
 
         orderUnitMove(unitOrId: UnitStruct | number, x: number = 0, y: number = 0) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            openBW.get_util_funcs().issue_command(getUnitId(unitOrId), 2, 0, coords().x(x), coords().y(y), 0);
+            world.openBW!.get_util_funcs().issue_command(getUnitId(unitOrId), 2, 0, coords().x(x), coords().y(y), 0);
 
         },
 
         orderUnitBuild(unitOrId: UnitStruct | number, unitType: number, x: number, y: number) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            openBW.get_util_funcs().issue_command(getUnitId(unitOrId), 3, 0, coords().x(x), coords().y(y), unitType);
+            world.openBW!.get_util_funcs().issue_command(getUnitId(unitOrId), 3, 0, coords().x(x), coords().y(y), unitType);
 
         },
 
         orderUnitTrain(unitOrId: UnitStruct | number, unitType: number) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            openBW.get_util_funcs().issue_command(getUnitId(unitOrId), 4, 0, 0, 0, unitType);
+            world.openBW!.get_util_funcs().issue_command(getUnitId(unitOrId), 4, 0, 0, 0, unitType);
 
         },
 
         orderUnitRightClick(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x: number = 0, y: number = 0) {
 
-            if (!openBW.isSandboxMode()) {
+            if (sandboxGaurd()) {
                 return;
             }
 
-            openBW.get_util_funcs().issue_command(getUnitId(unitOrId), 5, targetUnitOrId ? getUnitId(targetUnitOrId) : 0, coords().x(x), coords().y(y), 0);
+            world.openBW!.get_util_funcs().issue_command(getUnitId(unitOrId), 5, targetUnitOrId ? getUnitId(targetUnitOrId) : 0, coords().x(x), coords().y(y), 0);
 
         },
     })
