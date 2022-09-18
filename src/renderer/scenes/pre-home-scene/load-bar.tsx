@@ -1,4 +1,5 @@
 import { useProcessStore } from "@stores/process-store";
+import { useEffect, useRef } from "react";
 
 interface LoadBarProps {
   color: string;
@@ -7,12 +8,20 @@ interface LoadBarProps {
 }
 
 export const LoadBar = ({ color, thickness, style }: LoadBarProps) => {
-  const progress = useProcessStore((state) => state.getTotalProgress());
+  const divRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    return useProcessStore.subscribe((store) => {
+      if (!divRef.current) return;
+      divRef.current.style.transform = `scaleX(${store.getTotalProgress()})`;
+    });
+  }, []);
+
   return (
     <div
+      ref={divRef}
       style={{
         background: color,
-        transform: `scaleX(${progress})`,
         height: `${thickness}px`,
         width: "100%",
         ...style,

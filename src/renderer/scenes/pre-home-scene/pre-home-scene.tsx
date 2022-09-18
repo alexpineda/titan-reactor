@@ -31,7 +31,6 @@ ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
 
 export const PreHomeScene = () => {
   const error = useSceneStore((state) => state.error);
-  const progress = useProcessStore((state) => state.getTotalProgress());
 
   const isStarCraftDirectoryError =
     error && error.message.toLowerCase().includes("starcraft directory");
@@ -51,10 +50,12 @@ export const PreHomeScene = () => {
   ) : null;
 
   useEffect(() => {
-    const b = (1 - progress) * 0.2;
-    //@ts-ignore
-    document.body.style.backdropFilter = `blur(20px) grayscale(0.2) contrast(0.5) brightness(${b})`;
-  }, [progress]);
+    return useProcessStore.subscribe((store) => {
+      const b = (1 - store.getTotalProgress()) * 0.2;
+      //@ts-ignore
+      document.body.style.backdropFilter = `blur(20px) grayscale(0.2) contrast(0.5) brightness(${b})`;
+    });
+  }, []);
 
   useEffect(() => {
     //@ts-ignore

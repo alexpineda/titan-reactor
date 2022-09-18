@@ -123,7 +123,6 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
     const gameTimeApi: GameTimeApi = {
 
-        type: "replay",
         map,
         assets,
         exitScene() {
@@ -142,6 +141,8 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         },
 
     }
+
+    console.log(gameTimeApi);
 
     return {
 

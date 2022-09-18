@@ -8,7 +8,6 @@ import { Color } from "three";
 import { createSandboxApi } from "@openbw/sandbox-api";
 
 export interface GameTimeApi {
-    type: "replay" | "game" | "live",
     sandboxApi: ReturnType<typeof createSandboxApi> | undefined,
     viewport: GameViewPort;
     secondViewport: GameViewPort
