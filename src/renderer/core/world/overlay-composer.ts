@@ -184,15 +184,6 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     let _insideMinimap = false;
 
-    //test events
-    world.events!.on("minimap-enter", () => {
-        minimapMaterial.uniforms.uOpacity.value = Math.max(world.settings!.getState().minimap.opacity + 0.5);
-    });
-
-    world.events!.on("minimap-leave", () => {
-        minimapMaterial.uniforms.uOpacity.value = world.settings!.getState().minimap.opacity;
-    });
-
     world.events!.on("dispose", () => janitor.dispose());
 
     return {
@@ -222,18 +213,17 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
             minimap.raycast(rayCast, _intersects);
 
             if (_insideMinimap && _intersects.length === 0) {
+                _insideMinimap = false;
                 world.events!.emit("minimap-leave");
             } else if (!_insideMinimap && _intersects.length > 0) {
+                _insideMinimap = true;
                 world.events!.emit("minimap-enter");
             }
 
-            unitSelectionBox.enabled = _insideMinimap = _intersects.length === 0;
+            unitSelectionBox.enabled = _intersects.length === 0;
 
-            minimapMaterial.uniforms.uOpacity.value = world.settings!.getState().minimap.opacity;
 
             if (_intersects.length && _intersects[0].uv) {
-
-                minimapMaterial.uniforms.uOpacity.value = Math.min(1, world.settings!.getState().minimap.opacity + 0.1);
 
                 const uv = _intersects[0].uv;
 

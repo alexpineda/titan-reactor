@@ -95,6 +95,9 @@ function transformVertex(vertexPosition: Vector3, mvPosition: Vector3, scale: Ve
   vertexPosition.applyMatrix4(_viewWorldMatrix);
 
 }
+
+const _uv = new Vector2();
+
 export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInstancedMaterial> implements ImageBase {
   isImage3d = false;
   isInstanced = false;
@@ -329,11 +332,26 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     if (distance < raycaster.near || distance > raycaster.far) return;
 
+
+    Triangle.getUV(_intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, _uv);
+
+    const x = _uv.x - 0.5;
+    const y = _uv.y - 0.5;
+
+    const intersectQuad = (
+      x > this.geometry.attributes.position.array[0] &&
+      x < this.geometry.attributes.position.array[3] &&
+      y > this.geometry.attributes.position.array[1] &&
+      y < this.geometry.attributes.position.array[7]
+    );
+
+    if (!intersectQuad) return;
+
     intersects.push({
 
       distance: distance,
       point: _intersectPoint.clone(),
-      uv: Triangle.getUV(_intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2()),
+      uv: _uv,
       face: null,
       object: this
 

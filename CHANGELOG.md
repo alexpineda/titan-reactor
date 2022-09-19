@@ -4,7 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 ## [Unreleased]
+
+## [0.6.4]
+
+## Added
+
+- New post processing and post processing 3d options
+- New minimap & minimap options
+- Macros now show cute little keyboard preview ^^
+- New macro trigger - mouse click
+- New graphics settings (HD2 options)
+- Cursor is now animated and has cursor size option
+
+## Changed
+- Lots of internal refactoring in preparation for sandbox mode and 3d models
+- Moved camera damping/rotation speed options to global settings
+- Additional error handling
+- Camera starts at a player location
+- Map viewer now uses OpenBW so all images/units/sprites should work
+
+## Fixed
+- Default macros automatically install on first run
+- App no longer needs a full reload on initial plugin install
+- Bullet tracking is now more precise
+
+
 
 ## [0.6.0]
 
@@ -163,7 +189,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit selection / unit boxing for the time being.
 
 
-[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.0...HEAD
+[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.4...HEAD
+[0.6.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.0...v0.6.4
 [0.6.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.3...v0.6.0
 [0.5.3]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.1...v0.5.2

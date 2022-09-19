@@ -38,7 +38,10 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
   await waitForTruthy(() => {
     makeErrorScene(settingsStore().errors);
-    return settingsStore().errors.length === 0;
+    return (
+      settingsStore().errors.length === 0 &&
+      settingsStore().initialInstall === false
+    );
   });
 
   gameStore().setAssets(await createAssets(settings.data));

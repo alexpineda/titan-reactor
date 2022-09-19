@@ -18,6 +18,7 @@ export const useSettingsStore = create<SettingsStore>((set: SetState<SettingsSto
   enabledPlugins: [],
   disabledPlugins: [],
   pluginsMetadata: [],
+  initialInstall: false,
   set: async (settings) => {
     set((state) => ({ data: { ...state.data, ...settings } }));
   },

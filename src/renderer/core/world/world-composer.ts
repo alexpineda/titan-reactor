@@ -178,7 +178,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
             }
 
-            plugins.activate(gameTimeApi, settings);
+            plugins.activate(gameTimeApi, settings, events);
 
             await setSceneController(sceneController, targetData);
 

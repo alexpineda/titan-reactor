@@ -63,7 +63,6 @@ export const createAssets = async (settings: Settings) => {
 
     process.increment();
 
-
     log.verbose("@load-assets/images");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);

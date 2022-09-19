@@ -45,7 +45,10 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
     const startLocations =
         world.map!.units.filter((u) => u.unitId === unitTypes.startLocation)
-            .sort((a, b) => a.player - b.player)
+            .map(location => pxToWorld.xyz(location.x, location.y, new Vector3()));
+
+    const playerStartLocations =
+        world.map!.units.filter((u) => u.unitId === unitTypes.startLocation && world.players!.find((p) => p.id === u.player))
             .map(location => pxToWorld.xyz(location.x, location.y, new Vector3()));
 
     const getPlayerColor = (playerId: number) => players.get(playerId)?.color ?? white;
@@ -260,6 +263,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         pxToWorld,
         pxToWorldInverse: makePxToWorld(...world.map!.size, terrain.getTerrainY, true),
         startLocations,
+        playerStartLocations,
         players,
         getPlayerColor,
         onFrame(delta: number, renderMode3D: boolean, direction: number) {

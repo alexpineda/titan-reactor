@@ -29,7 +29,7 @@ void main() {
     unitsColor = vec4(unitsColor.rgb + vec3(1.0 - uOpacity), unitsColor.a);
     
     result = mix(result, unitsColor, unitsColor.a * uOpacity);
-    result = mix(result, fogColor, fogColor.a * fogOfWarOpacity * uOpacity );
+    result = mix(result, fogColor, fogColor.a * fogOfWarOpacity * uOpacity * 1.2 );
     result = mix(result, resourcesColor, resourcesColor.a * uOpacity * uOpacity);
 
     result = mix(vec4(0.0, 0.0, 0.0, result.a), result,  step(bounds.x, vUv.x) * step(bounds.y, vUv.y) * step(bounds.x, 1.-vUv.x) * step(bounds.y, 1.-vUv.y));

@@ -14,7 +14,7 @@ export class Macros {
     macros: Macro[] = [];
     #macroAlreadyExecuted: Set<Macro> = new Set();
 
-    #meta: {
+    meta: {
         hotkeyMacros: Macro[];
         mouseMacros: Macro[];
         hookMacros: Macro[];
@@ -59,7 +59,7 @@ export class Macros {
             const candidates: Macro[] = [];
             testCombo.set(e);
 
-            for (const macro of this.#meta.hotkeyMacros) {
+            for (const macro of this.meta.hotkeyMacros) {
                 if (this.#macroAlreadyExecuted.has(macro)) {
                     continue;
                 }
@@ -97,7 +97,7 @@ export class Macros {
 
         const _mouseListener = (e: MouseEvent) => {
             const candidates: Macro[] = [];
-            for (const macro of this.#meta.mouseMacros) {
+            for (const macro of this.meta.mouseMacros) {
                 const trigger = macro.trigger as MouseTrigger;
                 if (trigger.value.test(e) && this.#testMacroConditions(macro, e)) {
                     candidates.push(macro);
@@ -216,7 +216,7 @@ export class Macros {
      */
     callFromHook(hookName: string, pluginName?: string, ...context: any[]) {
         const candidates: Macro[] = [];
-        for (const macro of this.#meta.hookMacros) {
+        for (const macro of this.meta.hookMacros) {
             if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName) && this.#testMacroConditions(macro, context)) {
                 candidates.push(macro);
             }
@@ -270,13 +270,13 @@ export class Macros {
             return newMacro;
         });
 
-        this.#meta.hookMacros = this.macros.filter((m) => m.trigger instanceof MacroHookTrigger).sort((a, b) => {
+        this.meta.hookMacros = this.macros.filter((m) => m.trigger instanceof MacroHookTrigger).sort((a, b) => {
             return a.trigger.weight - b.trigger.weight;
         });
 
-        this.#meta.hotkeyMacros = this.macros.filter((m) => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight)
+        this.meta.hotkeyMacros = this.macros.filter((m) => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight)
 
-        this.#meta.mouseMacros = this.macros.filter((m) => m.trigger instanceof MouseTrigger);
+        this.meta.mouseMacros = this.macros.filter((m) => m.trigger instanceof MouseTrigger);
     }
 }
 

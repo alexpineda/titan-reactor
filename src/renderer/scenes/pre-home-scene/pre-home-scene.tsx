@@ -1,8 +1,6 @@
 // import { showFolderDialog } from "@ipc";
 import { useProcessStore } from "@stores/process-store";
 import { useSceneStore } from "@stores/scene-store";
-import { ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
-import { ipcRenderer } from "electron";
 import { useEffect } from "react";
 import { imbateamLogo } from "@image/assets/imbateam";
 import titanReactorLogo from "@image/assets/logo.png";
@@ -10,7 +8,7 @@ import { LoadBar } from "./load-bar";
 import "./styles.css";
 import { GlobalErrorState } from "../error-state";
 import { showFolderDialog } from "@ipc/dialogs";
-import settingsStore from "@stores/settings-store";
+import settingsStore, { useSettingsStore } from "@stores/settings-store";
 
 const styleCenterText = {
   position: "absolute",
@@ -24,13 +22,9 @@ const styleCenterText = {
   flexDirection: "column",
 };
 
-let _firstInstall = false;
-ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
-  _firstInstall = true;
-});
-
 export const PreHomeScene = () => {
   const error = useSceneStore((state) => state.error);
+  const initialInstall = useSettingsStore((state) => state.initialInstall);
 
   const isStarCraftDirectoryError =
     error && error.message.toLowerCase().includes("starcraft directory");
@@ -80,17 +74,17 @@ export const PreHomeScene = () => {
         flexDirection: "column",
       }}
     >
-      {error && !_firstInstall && (
+      {error && !initialInstall && (
         <GlobalErrorState error={error} action={action} />
       )}
-      {!error && !_firstInstall && (
+      {!error && !initialInstall && (
         //@ts-ignore
         <div style={styleCenterText}>
           <div>{imbateamLogo}</div>
           <LoadBar color="white" thickness={20} style={{ marginTop: "20px" }} />
         </div>
       )}
-      {_firstInstall && (
+      {initialInstall && (
         //@ts-ignore
         <div style={styleCenterText}>
           <p style={{ fontSize: "var(--font-size-6)" }}>

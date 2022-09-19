@@ -6,6 +6,7 @@ import {
     GO_TO_START_PAGE,
     LOG_MESSAGE,
     ON_PLUGINS_ENABLED,
+    ON_PLUGINS_INITIAL_INSTALL,
     ON_PLUGINS_INITIAL_INSTALL_ERROR,
     OPEN_ISCRIPTAH,
     OPEN_MAP_DIALOG,
@@ -20,6 +21,7 @@ import { PluginMetaData, SettingsMeta } from "common/types";
 import { MainMixer } from "@audio/main-mixer";
 import { Music } from "@audio/music";
 import { AudioListener } from "three";
+import { useSettingsStore } from "@stores/settings-store";
 
 export const mixer = new MainMixer();
 export const music = new Music(mixer as unknown as AudioListener);
@@ -113,6 +115,10 @@ ipcRenderer.on(DISABLE_PLUGIN, (_, pluginId: string) => globalEvents.emit("comma
 ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL_ERROR, () => globalEvents.emit("initial-install-error-plugins"));
 
 ipcRenderer.on(SERVER_API_FIRE_MACRO, (_: IpcRendererEvent, macroId: string) => globalEvents.emit("exec-macro", macroId));
+
+ipcRenderer.on(ON_PLUGINS_INITIAL_INSTALL, () => {
+    useSettingsStore.setState({ initialInstall: true });
+});
 
 ipcRenderer.on(SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
     type: SendWindowActionType.ManualMacroTrigger,

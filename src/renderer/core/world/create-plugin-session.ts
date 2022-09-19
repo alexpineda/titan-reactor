@@ -126,12 +126,15 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
         _session.nativePlugins.callHook(HOOK_ON_PLUGINS_DISPOSED);
         macrosComposer.dispose();
         _session.dispose();
+        _undoInject();
     });
 
+    let _undoInject = () => { };
 
     return {
-        activate(gameTimeApi: GameTimeApi, sessionApi: ReactiveSessionVariables) {
+        activate(gameTimeApi: GameTimeApi, sessionApi: ReactiveSessionVariables, events: TypeEmitter<WorldEvents>) {
 
+            _undoInject();
 
             // macros unsafe api additionally allows access to plugin configurations
             // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
@@ -139,13 +142,15 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
                 mix({
                     api: borrow(gameTimeApi),
                     plugins: borrow(_session.reactiveApi.pluginVars),
-                    settings: borrow(sessionApi.sessionVars)
+                    settings: borrow(sessionApi.sessionVars),
+                    events
                 }));
 
-            this.native.injectApi(
+            _undoInject = this.native.injectApi(
                 mix({
-                    settings: sessionApi.sessionVars
-                }, borrow(gameTimeApi, { refRoot: false, retainGetters: true })));
+                    settings: sessionApi.sessionVars,
+                    events
+                }, gameTimeApi));
 
         },
         get native() {
@@ -155,6 +160,7 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
             return _session.uiPlugins;
         },
         async reload() {
+            _undoInject();
             await (settingsStore().load());
             _session.dispose();
             _session = await create();

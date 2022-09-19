@@ -60,7 +60,7 @@ export const createReactiveVariable = (applyEffect: ApplyEffect, getValue: (path
         /**
          * Reset the value of the property to the default.
          */
-        setToDefault: () => apply(ModifyValueActionEffect.SetToDefault),
+        reset: () => apply(ModifyValueActionEffect.SetToDefault),
         /**
          * Reset the value of the property to the default.
          */

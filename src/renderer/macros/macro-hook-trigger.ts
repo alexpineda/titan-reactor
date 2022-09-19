@@ -6,7 +6,7 @@ export interface MacroHookTriggerDTO {
 }
 
 export class MacroHookTrigger implements MacroTrigger {
-    type = TriggerType.Hotkey;
+    type = TriggerType.GameHook;
     hookName: string;
     pluginName?: string;
 
@@ -17,11 +17,8 @@ export class MacroHookTrigger implements MacroTrigger {
 
     serialize() {
         return {
-            type: this.type,
-            value: {
-                hookName: this.hookName,
-                pluginName: this.pluginName,
-            }
+            hookName: this.hookName,
+            pluginName: this.pluginName,
         }
     }
 
@@ -29,8 +26,8 @@ export class MacroHookTrigger implements MacroTrigger {
         return this.hookName === hookName && (this.pluginName === undefined || this.pluginName === pluginName);
     }
 
-    static deserialize(dto: MacroTriggerDTO) {
-        return new MacroHookTrigger(dto.value);
+    static deserialize(dto: MacroHookTriggerDTO) {
+        return new MacroHookTrigger(dto);
     };
 
     toString() {

@@ -103,7 +103,7 @@ export type SettingsV6 = {
     },
     graphics: {
         pixelRatio: number;
-        useHD2: string;
+        useHD2: "auto" | "ignore" | "force";
         preload: boolean;
         cursorSize: number;
     },
@@ -180,6 +180,7 @@ export type SettingsMeta = {
     phrases: Record<string, string>;
     enabledPlugins: PluginMetaData[];
     disabledPlugins: PluginMetaData[];
+    initialInstall: boolean;
     /**
      * Whether the starcraft directory is a CASC storage or direct filesystem
      */

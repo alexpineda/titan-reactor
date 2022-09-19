@@ -5,7 +5,7 @@ import path from "path";
 import phrases from "common/phrases";
 import { defaultSettings } from "common/default-settings";
 import fileExists from "common/utils/file-exists";
-import { Settings as SettingsType, SettingsMeta } from "common/types";
+import { MacroDTO, Settings as SettingsType, SettingsMeta } from "common/types";
 
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
@@ -17,6 +17,7 @@ import { findPluginsPath } from "../starcraft/find-plugins-path";
 import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
 import { sanitizeMacros } from "common/sanitize-macros";
+import { defaultMacros } from "./default-macros";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -117,6 +118,7 @@ export class Settings {
       data: { ...this._settings, macros },
       errors,
       isCascStorage,
+      initialInstall: getEnabledPluginPackages().length === 0,
       enabledPlugins: getEnabledPluginPackages(),
       disabledPlugins: getDisabledPluginPackages(),
       phrases: {
@@ -182,7 +184,7 @@ export class Settings {
    */
   async createDefaults(): Promise<SettingsType> {
 
-    const derivedSettings = {
+    return {
       ...defaultSettings,
       language: supportedLanguages.find(s => s === String(getEnvLocale()))
         ??
@@ -193,8 +195,11 @@ export class Settings {
         replays: await findReplaysPath(),
         assets: app.getPath("documents"),
         plugins: await findPluginsPath(),
+      },
+      macros: {
+        revision: 0,
+        macros: defaultMacros as MacroDTO[]
       }
     };
-    return derivedSettings;
   }
 }

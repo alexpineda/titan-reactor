@@ -386,30 +386,30 @@ export class PlayerInfo {
   }
 
   get minerals() {
-    return this.playerData[this._offset + 0];
+    return this.playerData[this._offset + 0] ?? 0;
   }
 
   get vespeneGas() {
-    return this.playerData[this._offset + 1];
+    return this.playerData[this._offset + 1] ?? 0;
   }
   get supply() {
-    return this.playerData[this._offset + 2];
+    return this.playerData[this._offset + 2] ?? 0;
   }
 
   get supplyMax() {
-    return this.playerData[this._offset + 3];
+    return this.playerData[this._offset + 3] ?? 0;
   }
 
   get workerSupply() {
-    return this.playerData[this._offset + 4];
+    return this.playerData[this._offset + 4] ?? 0;
   }
 
   get armySupply() {
-    return this.playerData[this._offset + 5];
+    return this.playerData[this._offset + 5] ?? 0;
   }
 
   get apm() {
-    return this.playerData[this._offset + 6];
+    return this.playerData[this._offset + 6] ?? 0;
   }
 }
 

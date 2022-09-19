@@ -2,7 +2,7 @@ import PackageJson from '@npmcli/package-json';
 import path from "path";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
-import { app, dialog, shell } from 'electron';
+import { shell } from 'electron';
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
@@ -199,9 +199,10 @@ export default async (pluginDirectory: string) => {
             }
             await settings.enablePlugins(enablePluginIds);
             if (enablePluginIds.length > 0) {
-                dialog.showMessageBoxSync({ message: "Plugins successfully installed. Restarting..." });
-                app.relaunch();
-                app.exit();
+                setTimeout(async () => {
+                    await settings.initialize();
+                    browserWindows.main?.webContents.reload();
+                });
             } else {
                 log.error(`@load-plugins/default: Failed to install default plugins`);
                 browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL_ERROR);
@@ -269,6 +270,7 @@ export const enablePlugins = async (pluginIds: string[]) => {
     }).filter(plugin => plugin !== undefined) as PluginMetaData[];
 
     try {
+        //TODO: load plugin??
         await settings.enablePlugins(plugins.map(plugin => plugin.name));
         _disabledPluginPackages = _disabledPluginPackages.filter(otherPlugin => !plugins.includes(otherPlugin));
         _enabledPluginPackages.push(...plugins);

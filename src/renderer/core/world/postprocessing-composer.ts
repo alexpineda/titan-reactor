@@ -10,7 +10,7 @@ import Janitor from "@utils/janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";
-import { PerspectiveCamera, Vector3 } from "three";
+import { Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
 import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewInputComposer } from "@core/world/view-composer";
@@ -79,15 +79,28 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
 
     });
 
+    const addToBloom = (image: Object3D) => {
+
+        if (image instanceof Mesh) {
+            postProcessingBundle.addBloomSelection(image);
+        }
+
+        for (const child of image.children) {
+            addToBloom(child);
+        }
+
+    }
+
     world.events!.on("image-created", (image) => {
 
-        postProcessingBundle.addBloomSelection(image);
+        addToBloom(image);
 
         if (image instanceof Image3D && postProcessingBundle.options3d) {
 
             image.material.envMapIntensity = postProcessingBundle.options3d.envMap;
             image.castShadow = !ignoreCastShadow.includes(assets.refId(image.dat.index));
             image.receiveShadow = !ignoreRecieveShadow.includes(assets.refId(image.dat.index));
+
 
         }
 

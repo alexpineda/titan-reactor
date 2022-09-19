@@ -177,6 +177,6 @@
         "@types/react-dom": "18.0.6"
     },
     "config": {
-        "titan-reactor-api": "3.0.0"
+        "titan-reactor-api": "2.0.0"
     }
 }

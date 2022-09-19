@@ -33,7 +33,7 @@ export async function makeGameScene(
 
   worldComposer.init();
 
-  await worldComposer.activate(false, settingsStore().data.input.sceneController, { target: worldComposer.sceneComposer.startLocations[0] });
+  await worldComposer.activate(false, settingsStore().data.input.sceneController, { target: worldComposer.sceneComposer.playerStartLocations[0] ?? worldComposer.sceneComposer.startLocations[0] });
 
   return () => {
 
