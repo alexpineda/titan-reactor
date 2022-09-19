@@ -127,7 +127,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         assets,
         exitScene() {
             setTimeout(() => {
-                settings.sessionVars.input.sceneController.setToDefault();
+                settings.sessionVars.input.sceneController.reset();
             }, 0)
         },
         sandboxApi,

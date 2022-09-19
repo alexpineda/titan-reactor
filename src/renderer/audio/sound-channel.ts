@@ -124,4 +124,3 @@ export class SoundChannel {
   }
 
 }
-export default SoundChannel;

@@ -11,6 +11,8 @@ export class TypeEmitter<T>  {
     #listeners: Map<keyof T, ((v: T[keyof T] | undefined) => void | false)[]> = new Map();
 
     on<K extends keyof T>(s: K, listener: (v: T[K]) => void) {
+        //TODO: fixme
+        //@ts-ignore
         this.#listeners.set(s, (this.#listeners.get(s) || []).concat(listener));
         return () => this.off(s, listener);
     }

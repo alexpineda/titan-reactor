@@ -30,8 +30,6 @@
 
 ### Requirements
 - A purchased copy of Starcraft Remastered
-- Microsoft Windows
-- Suggested 4GB Ram
 
 ### Downloads
 - Available via the [Releases Page](https://github.com/imbateam-gg/titan-reactor/releases)
@@ -52,15 +50,18 @@ Replay information is not transmitted anywhere. Plugins may request permission t
 
 *Using node 16 and yarn*
 
-`git lfs fetch --all`
+`git lfs install`
+
+`git lfs fetch`
 
 `yarn install`
 
 and then
 
-`yarn dev`
+`yarn dev` or `yarn dist`
 
 The OpenBW wasm files are included (via git lfs). If you wish to build them yourself [visit the openbw fork repository](https://github.com/imbateam-gg/openbw).
+
 
 ### Legal
 

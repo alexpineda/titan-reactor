@@ -118,7 +118,7 @@ export class Settings {
       data: { ...this._settings, macros },
       errors,
       isCascStorage,
-      initialInstall: getEnabledPluginPackages().length === 0,
+      initialInstall: false,
       enabledPlugins: getEnabledPluginPackages(),
       disabledPlugins: getDisabledPluginPackages(),
       phrases: {

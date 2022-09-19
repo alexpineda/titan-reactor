@@ -33,15 +33,11 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
   const janitor = new Janitor();
 
-  //TODO: use some sort of state machien
   const settings = await settingsStore().load();
 
   await waitForTruthy(() => {
     makeErrorScene(settingsStore().errors);
-    return (
-      settingsStore().errors.length === 0 &&
-      settingsStore().initialInstall === false
-    );
+    return settingsStore().errors.length === 0;
   });
 
   gameStore().setAssets(await createAssets(settings.data));

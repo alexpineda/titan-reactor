@@ -17,7 +17,7 @@ export const MacroCustomHookOptions = ({
     "onEnterScene",
     "onExitScene",
   ].map((value) => ({ value, label: value }));
-  const trigger = MacroHookTrigger.deserialize(macro.trigger);
+  const trigger = MacroHookTrigger.deserialize(macro.trigger.value);
   const [selectedPlugin, setSelectedPlugin] = useState<string>(
     trigger.pluginName ?? ""
   );

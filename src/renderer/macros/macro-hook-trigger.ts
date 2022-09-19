@@ -1,4 +1,4 @@
-import { MacroTrigger, MacroTriggerDTO, TriggerType } from "common/types";
+import { MacroTrigger, TriggerType } from "common/types";
 
 export interface MacroHookTriggerDTO {
     hookName: string;

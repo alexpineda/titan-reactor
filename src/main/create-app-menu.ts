@@ -4,8 +4,7 @@ import getUserDataPath from "./get-user-data-path";
 import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton"
-import { CLEAR_ASSET_CACHE, OPEN_ISCRIPTAH, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
-import { spawn } from "child_process";
+import { CLEAR_ASSET_CACHE, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import electronIsDev from "electron-is-dev";
 
 const settingsPath = path.join(getUserDataPath(), "settings.json");
@@ -53,7 +52,7 @@ export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
         {
           label: "View Raw Settings (settings.json)",
           click: function () {
-            spawn('C:\\windows\\notepad.exe', [settingsPath]);
+            shell.openPath(settingsPath);
           },
         },
         { type: "separator" },
@@ -101,12 +100,12 @@ export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
         ...(electronIsDev ? [
           { type: "separator" },
           { role: "toggledevtools" },
-          {
-            label: "&IScriptah - Animation Viewer",
-            click: function () {
-              browserWindows.main!.webContents.send(OPEN_ISCRIPTAH);
-            },
-          }] : []),
+          // {
+          //   label: "&IScriptah - Animation Viewer",
+          //   click: function () {
+          //     browserWindows.main!.webContents.send(OPEN_ISCRIPTAH);
+          //   },
+        ] : []),
         { type: "separator" },
         {
           label: "Clear Asset Cache",

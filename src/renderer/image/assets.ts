@@ -46,7 +46,7 @@ export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "r
 
 export const createAssets = async (settings: Settings) => {
 
-    const process = processStore().create("assets", 5);
+    const assetProcess = processStore().create("assets", 5);
 
     electronFileLoader((file: string) => {
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png") || file.includes(".exr")) {
@@ -61,7 +61,7 @@ export const createAssets = async (settings: Settings) => {
     log.verbose("@load-assets/dat");
     const bwDat = await loadDATFiles(readCascFile);
 
-    process.increment();
+    assetProcess.increment();
 
     log.verbose("@load-assets/images");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
@@ -69,7 +69,7 @@ export const createAssets = async (settings: Settings) => {
 
     const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
 
-    process.increment();
+    assetProcess.increment();
 
     const minimapConsole = {
         clock: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareRight.DDS")),
@@ -85,7 +85,7 @@ export const createAssets = async (settings: Settings) => {
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
     const envMap = await loadEnvironmentMap(envMapFilename);
 
-    process.increment();
+    assetProcess.increment();
 
     const refId = (id: number) => {
         if (sdAnim?.[id]?.refId !== undefined) {
@@ -191,10 +191,10 @@ export const createAssets = async (settings: Settings) => {
         const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
         const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
 
-        process.add(preloadImageIds.length)
+        assetProcess.add(preloadImageIds.length)
 
         for (const id of preloadImageIds) {
-            process.increment();
+            assetProcess.increment();
             await loadImageAtlas(id);
         }
 
@@ -202,7 +202,7 @@ export const createAssets = async (settings: Settings) => {
 
     await loadImageAtlas(imageTypes.warpInFlash);
 
-    process.increment();
+    assetProcess.increment();
 
     const loader = new CubeTextureLoader();
     const rootPath = path.join(__static, "skybox", "sparse");
@@ -217,7 +217,7 @@ export const createAssets = async (settings: Settings) => {
         "back.png",
     ], res)) as CubeTexture;
 
-    process.complete();
+    assetProcess.complete();
 
     return {
         bwDat,

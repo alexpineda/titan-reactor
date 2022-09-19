@@ -91,6 +91,7 @@ export class SoundChannels {
     const buffer = this.buffers.get(typeId);
 
     if (buffer) {
+
       const channel = this._getAvailableChannel(dat, typeId, unitTypeId);
       if (!channel || elapsed - channel.lastPlayed <= 80) {
         return;
@@ -99,6 +100,7 @@ export class SoundChannels {
       channel.play(elapsed, buffer);
 
     } else {
+
       if (this.#loading.get(typeId)) {
         return;
       }
@@ -114,6 +116,8 @@ export class SoundChannels {
         channel.play(elapsed, buffer);
         this.buffers.set(typeId, buffer);
       })
+
     }
+
   }
 }

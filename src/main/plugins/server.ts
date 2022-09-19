@@ -1,4 +1,4 @@
-import path from "path";
+import path, { normalize } from "path";
 import fs from "fs";
 import express from "express";
 import { transpile } from "../transpile";
@@ -12,6 +12,9 @@ import { getEnabledPluginPackages } from "./load-plugins";
 import * as casclib from "bw-casclib";
 import runtimeHTML from "!!raw-loader!./runtime.html";
 import runtimeJSX from "!!raw-loader!./runtime.tsx";
+
+const BUNDLED_SUBPATH = path.normalize("/bundled/");
+const RESOURCES_PATH = path.normalize(__static);
 
 let _handle: any = null;
 const app = express();
@@ -72,32 +75,39 @@ app.get('*', async function (req, res) {
         return;
     }
 
+    const requestPath = normalize(req.path);
 
-    if (req.path.startsWith("/bundled/")) {
+    //TODO: remove once everything is finalized
+    logService.verbose(`@server: ${requestPath}, ${RESOURCES_PATH}, ${BUNDLED_SUBPATH}`);
 
-        const filepath = path.join(__static, req.path.replace("/bundled/", ""));
+    if (requestPath.startsWith(BUNDLED_SUBPATH)) {
 
-        if (!(filepath.startsWith(__static))) {
+        const filepath = path.normalize(path.join(RESOURCES_PATH, requestPath.replace(BUNDLED_SUBPATH, "")));
+
+        if (!(filepath.startsWith(RESOURCES_PATH))) {
+
             logService.error(`@server/403-forbidden: ${filepath}`);
+
             return res.sendStatus(403);
+
         }
 
         return res.sendFile(filepath);
 
     }
-    else if (req.path.endsWith("runtime.html")) {
+    else if (requestPath.endsWith("runtime.html")) {
         res.setHeader("Content-Type", "text/html");
         return res.send(runtimeHTML);
     }
-    else if (req.path.endsWith("runtime.tsx")) {
+    else if (requestPath.endsWith("runtime.tsx")) {
         const { result } = transpile(runtimeJSX, "runtime.tsx");
         res.setHeader("Content-Type", "application/javascript");
         return res.send(result.outputText);
     }
 
-    const filepath = path.join(settings.get().directories.plugins, req.path);
+    const filepath = path.normalize(path.join(settings.get().directories.plugins, req.path));
 
-    if (!(filepath.startsWith(settings.get().directories.plugins))) {
+    if (!(filepath.startsWith(path.normalize(settings.get().directories.plugins)))) {
         logService.error(`@server/403-forbidden: ${filepath}`);
         return res.sendStatus(403);
     }
@@ -115,7 +125,7 @@ app.get('*', async function (req, res) {
         const plugins = getEnabledPluginPackages();
         let plugin;
         for (const _plugin of plugins) {
-            if (filepath.startsWith(path.join(settings.get().directories.plugins, _plugin.path))) {
+            if (filepath.startsWith(path.normalize(path.join(settings.get().directories.plugins, _plugin.path)))) {
                 plugin = _plugin;
             }
         }

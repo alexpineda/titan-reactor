@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New post processing and post processing 3d options
 - New minimap & minimap options
 - Macros now show cute little keyboard preview ^^
+- New world event system
 - New macro trigger - mouse click
 - New graphics settings (HD2 options)
 - Cursor is now animated and has cursor size option
@@ -24,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Additional error handling
 - Camera starts at a player location
 - Map viewer now uses OpenBW so all images/units/sprites should work
+- Fixed a bug in bw-casclib, allowing mac/linux builds to work now.
 
 ## Fixed
 - Default macros automatically install on first run

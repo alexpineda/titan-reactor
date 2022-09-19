@@ -24,11 +24,13 @@ export const createCompartment = (env: {} = {}) => {
 
     const compartment = new Compartment(mix(
         env,
-        { console: window.harden(console) },
+        { console: harden(console) },
         modules,
-        { Image: window.harden(Image) },
+        { Image: harden(Image) },
     ));
+
     compartment.globalThis.Math = Math;
+
     return compartment;
 
 }
@@ -60,12 +62,12 @@ export const lockdown_ = () => {
             };
         };
     } else {
-        // lockdown({
-        //     localeTaming: "unsafe",
-        //     consoleTaming: "unsafe",
-        //     errorTaming: "unsafe",
-        //     errorTrapping: "none",
-        //     mathTaming: "unsafe",
-        // });
+        lockdown({
+            localeTaming: "unsafe",
+            consoleTaming: "unsafe",
+            errorTaming: "unsafe",
+            errorTrapping: "none",
+            mathTaming: "unsafe",
+        });
     }
 }

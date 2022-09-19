@@ -83,7 +83,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             if (sceneController?.onUpdateAudioMixerLocation) {
                 sceneController.viewport.orbit.getTarget(_target);
                 sceneController.viewport.orbit.getPosition(_position);
-                _audioPositon.copy(sceneController.onUpdateAudioMixerLocation!(delta, elapsed, _target, _position));
+                _audioPositon.copy(sceneController.onUpdateAudioMixerLocation(delta, elapsed, _target, _position));
                 mixer.updateFromVector3(_audioPositon, delta);
             }
 
