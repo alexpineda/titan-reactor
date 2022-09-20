@@ -39,7 +39,6 @@ export class Creep {
       this.creepValuesTexture.needsUpdate = true;
       this.creepEdgesValuesTexture.needsUpdate = true;
 
-      //for minimap
       this.minimapImageData = imageData;
     };
     this._lastFrame = 0;

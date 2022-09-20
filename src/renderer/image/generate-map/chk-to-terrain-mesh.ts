@@ -38,7 +38,7 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
 
   const renderer = renderComposer.getWebGLRenderer();
 
-  //TODO: properly dispose stuff in here
+  //TODO: remove canvas dependency
   const heightMaps = await doHeightMapEffect({
     palette,
     tileset,
@@ -55,7 +55,6 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
 
   renderComposer.preprocessStart();
 
-  //TODO do we dispose the render target texture?
   renderer.clear();
   const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, textureResolution, renderer);
 
@@ -73,6 +72,7 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
   const effectsTextures = {
     waterNormal1: parseDdsGrpAsTextures(tilesetBuffers.waterNormal1),
     waterNormal2: parseDdsGrpAsTextures(tilesetBuffers.waterNormal2),
+    //TODO: fix this
     noise: await parseDDS(tilesetBuffers.noise, false),
     waterMask: tilesetBuffers.waterMask ? parseDdsGrpAsTextures(tilesetBuffers.waterMask) : null,
     tileMask: tilesetBuffers.tileMask ? parseTMSK(tilesetBuffers.tileMask) : null,
@@ -82,6 +82,7 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
     }
   }
   janitor.mop(effectsTextures, "effectsTextures");
+  //TODO: generate water mask
 
   genProcess.complete();
 
@@ -90,7 +91,6 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, heightMaps, textures, effectsTextures);
   janitor.mop(terrain, "terrain");
   janitor.mop(textures.mapQuartiles.flat(), "mapQuartiles");
-
 
   const creep = new Creep(
     mapWidth,

@@ -59,7 +59,6 @@ export const doHeightMapEffect = async ({
         kernelSize: geomOptions.firstBlur
     });
 
-    composer.removeAllPasses();
     composer.addPass(new ClearPass());
 
     const {
@@ -95,6 +94,9 @@ export const doHeightMapEffect = async ({
         composer.render(0);
     }
 
+    for (const pass of composer.passes) {
+        pass.dispose();
+    }
     composer.removeAllPasses();
 
     const ignoreLevels = new Matrix3();

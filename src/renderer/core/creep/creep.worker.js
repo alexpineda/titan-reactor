@@ -68,6 +68,6 @@ onmessage = function ({ data }) {
       edgesData,
       imageData,
     },
-    [creepData.buffer, edgesData.buffer]
+    [creepData.buffer, edgesData.buffer, imageData.data.buffer]
   );
 };
