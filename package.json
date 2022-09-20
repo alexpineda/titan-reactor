@@ -57,6 +57,10 @@
         "mac": {
             "category": "The Advanced Observing App"
         },
+        "linux": {
+            "category": "Game",
+            "icon": "icon256x256.ico"
+        },
         "extraResources": [{
             "from": "bundled",
             "to": "bundled"

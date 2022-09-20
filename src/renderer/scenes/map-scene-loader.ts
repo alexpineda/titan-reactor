@@ -13,7 +13,7 @@ import { makeGameScene } from "./game-scene/game-scene";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { SceneState } from "./scene";
 import settingsStore from "@stores/settings-store";
-import { preloadMapUnitsAndSprites } from "@utils/preload-map-units-and-sprites";
+import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import { PlayerBufferViewIterator, PlayerController } from "@buffer-view/player-buffer-view";
 import { BasePlayer } from "@core/players";
 import { playerColors } from "common/enums";
@@ -54,7 +54,7 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
 
   // wait for initial assets to load
   if (settingsStore().data.graphics.preload) {
-    await preloadMapUnitsAndSprites(assets, map);
+    await preloadMapUnitsAndSpriteFiles(assets, map);
   }
 
 

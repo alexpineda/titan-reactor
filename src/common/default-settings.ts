@@ -44,7 +44,8 @@ export const defaultSettingsV6: SettingsV6 = {
     detectMeleeObservers: false,
     detectMeleeObserversThreshold: 1000,
     alertDesynced: true,
-    alertDesyncedThreshold: 10
+    alertDesyncedThreshold: 10,
+    logLevel: "info",
   },
   graphics: {
     pixelRatio: 1,

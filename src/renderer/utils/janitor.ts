@@ -1,4 +1,5 @@
 import * as log from "@ipc/log";
+import settingsStore from "@stores/settings-store";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { Object3D } from "three";
 import { disposeMesh, Object3DLike } from "./dispose-mesh";
@@ -29,14 +30,28 @@ type SupportedJanitorTypes = Object3D | Disposable | EmptyFn | NodeJS.EventEmitt
 
 export enum JanitorLogLevel {
     None,
-    Janitor,
-    Object,
-    All
+    Info,
+    Verbose,
+    Debug
 }
 
 export class Janitor {
     static #level = 1;
-    static logLevel = JanitorLogLevel.All;
+    static logLevel = JanitorLogLevel.Debug;
+
+    static get defaultLoglevel() {
+        switch (settingsStore().data.utilities.logLevel) {
+            case "debug":
+                return JanitorLogLevel.Debug;
+            case "verbose":
+                return JanitorLogLevel.Verbose;
+            case "info":
+                return JanitorLogLevel.Info;
+            case "warn":
+            case "error":
+                return JanitorLogLevel.None;
+        }
+    }
 
     #trackables = new Set<SupportedJanitorTypes>();
     #label: string | null = null;
@@ -97,16 +112,16 @@ export class Janitor {
 
             if (this.#labels.has(obj)) {
 
-                this.#log(`${prefix} ${this.#labels.get(obj)}`, JanitorLogLevel.Object);
+                this.#log(`${prefix} ${this.#labels.get(obj)}`, JanitorLogLevel.Verbose);
                 this.#labels.delete(obj);
 
             }
 
             if (isObject3DLike(obj)) {
 
-                this.#log(`${prefix} ${obj.type ?? ""} ${obj.name}`, JanitorLogLevel.Object);
+                this.#log(`${prefix} ${obj.type ?? ""} ${obj.name}`, JanitorLogLevel.Verbose);
 
-                disposeMesh(obj, (message: string) => this.#log(`${prefix} ${message}`, JanitorLogLevel.All));
+                disposeMesh(obj, (message: string) => this.#log(`${prefix} ${message}`, JanitorLogLevel.Debug));
 
                 if (obj.children) {
 
@@ -122,7 +137,7 @@ export class Janitor {
 
             } else if (obj?.name) {
 
-                this.#log(`${prefix} ${obj.name}`, JanitorLogLevel.Object);
+                this.#log(`${prefix} ${obj.name}`, JanitorLogLevel.Verbose);
 
             } else if (invalidChildren(obj)) {
 
@@ -166,7 +181,7 @@ export class Janitor {
 
                 if (this.#label !== null) {
 
-                    this.#log(`${prefix} ${this.#label ?? ""} - ${this.#trackables.size} objects`, JanitorLogLevel.Janitor);
+                    this.#log(`${prefix} ${this.#label ?? ""} - ${this.#trackables.size} objects`, JanitorLogLevel.Info);
 
                 }
 
@@ -174,7 +189,7 @@ export class Janitor {
 
                 if (total > 1) {
 
-                    this.#log(`${prefix} ${this.#label ?? ""} - ${total - 1} objects disposed`, JanitorLogLevel.Janitor);
+                    this.#log(`${prefix} ${this.#label ?? ""} - ${total - 1} objects disposed`, JanitorLogLevel.Info);
 
                 }
 
@@ -190,13 +205,13 @@ export class Janitor {
 
             const prefix = "!".repeat(Janitor.#level);
 
-            this.#log(`${prefix} ${this.#label ?? ""} ${objects.length} objects`, JanitorLogLevel.Janitor);
+            this.#log(`${prefix} ${this.#label ?? ""} ${objects.length} objects`, JanitorLogLevel.Info);
 
             const total = this.#disposeAny(objects);
 
             if (total > 1) {
 
-                this.#log(`${prefix} ${this.#label ?? ""} - ${total - 1} objects disposed`, JanitorLogLevel.Janitor);
+                this.#log(`${prefix} ${this.#label ?? ""} - ${total - 1} objects disposed`, JanitorLogLevel.Info);
 
             }
 

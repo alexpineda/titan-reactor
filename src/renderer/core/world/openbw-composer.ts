@@ -11,6 +11,7 @@ import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
 import { Borrowed } from "@utils/object-utils";
 import { mixer } from "@core/global";
+import { Timer } from "@utils/timer";
 
 export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pick<SceneComposer, "pxToWorld" | "terrainExtra">>, viewInput: Borrowed<ViewInputComposer>) => {
     let _currentFrame = 0;
@@ -66,6 +67,7 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
     };
 
     let lastElapsed = 0;
+    const pauseTimer = new Timer();
 
     return {
         completedUpgrades,
@@ -79,6 +81,8 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
 
             lastElapsed = elapsed;
             _currentFrame = world.openBW!.tryCatch(world.openBW!.nextFrame);
+            pauseTimer.update();
+
 
             if (_currentFrame !== _previousBwFrame) {
 
@@ -95,6 +99,11 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
 
                 return true;
 
+            } else if (world.openBW!.isPaused()) {
+                if (pauseTimer.getElapsed() > 42) {
+                    pauseTimer.resetElapsed();
+                    return true;
+                }
             }
 
             return false;

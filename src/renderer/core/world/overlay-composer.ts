@@ -56,7 +56,6 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     world.events!.on("unit-selection-enabled", (value) => visualBox.enabled = value);
 
-
     const cursorMaterial = new CursorMaterial(assets);
     const cursorGraphics = new Mesh(new PlaneBufferGeometry(1, 1), cursorMaterial);
 

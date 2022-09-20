@@ -6,7 +6,7 @@ import { calculateImagesFromSpritesIscript } from "@utils/images-from-iscript";
 import Chk from "bw-chk";
 import { Assets } from "@image/assets";
 
-export const preloadMapUnitsAndSprites = async (assets: Assets, map: Chk, replay?: Replay) => {
+export const preloadMapUnitsAndSpriteFiles = async (assets: Assets, map: Chk, replay?: Replay) => {
 
     const preloadCommandUnits = new Set<number>();
 

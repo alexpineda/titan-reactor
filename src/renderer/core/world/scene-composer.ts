@@ -250,9 +250,11 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
     }
 
     world.events!.on("dispose", () => {
-        Janitor.logLevel = JanitorLogLevel.Object;
+        if (Janitor.logLevel === JanitorLogLevel.Debug) {
+            Janitor.logLevel = JanitorLogLevel.Verbose;
+        }
         janitor.dispose()
-        Janitor.logLevel = JanitorLogLevel.All;
+        Janitor.logLevel = Janitor.defaultLoglevel;
     });
 
     return Object.freeze({

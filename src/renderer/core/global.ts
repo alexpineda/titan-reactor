@@ -22,6 +22,7 @@ import { MainMixer } from "@audio/main-mixer";
 import { Music } from "@audio/music";
 import { AudioListener } from "three";
 import { useSettingsStore } from "@stores/settings-store";
+import { Janitor } from "@utils/janitor";
 
 export const mixer = new MainMixer();
 export const music = new Music(mixer as unknown as AudioListener);
@@ -42,6 +43,7 @@ export interface GlobalEvents {
     "log-message": { message: string, level: LogType, server?: boolean };
     "initial-install-error-plugins": void;
     "exec-macro": string;
+    "document-hidden": boolean;
 }
 
 /**
@@ -140,3 +142,9 @@ if (process.env.NODE_ENV !== "development") {
         globalEvents.emit("log-message", { message: withErrorMessage(error, `${lineno}:${colno} - ${source}`), level: "error" });
     };
 }
+
+document.addEventListener('visibilitychange', () => globalEvents.emit("document-hidden", document.hidden), false);
+
+useSettingsStore.subscribe(() => {
+    Janitor.logLevel = Janitor.defaultLoglevel;
+});

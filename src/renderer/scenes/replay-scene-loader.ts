@@ -19,7 +19,7 @@ import { useReplayAndMapStore } from "@stores";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { detectMeleeObservers } from "@utils/replay-utils";
-import { preloadMapUnitsAndSprites } from "@utils/preload-map-units-and-sprites";
+import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import { SceneState } from "./scene";
 import { Assets } from "@image/assets";
 import gameStore from "@stores/game-store";
@@ -29,8 +29,6 @@ import { renderComposer } from "@render/render-composer"
 
 export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
 
-  renderComposer.getWebGLRenderer().forceContextLoss();
-  renderComposer.getWebGLRenderer().forceContextRestore();
   processStore().clearAll();
   const loadProcess = processStore().create("replay", 4);
 
@@ -110,7 +108,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   // wait for initial assets to load
   if (settingsStore().data.graphics.preload) {
-    await preloadMapUnitsAndSprites(assets, map, replay);
+    await preloadMapUnitsAndSpriteFiles(assets, map, replay);
   }
 
   const disposeScene = await makeGameScene(

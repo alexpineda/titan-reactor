@@ -135,6 +135,7 @@ export type SettingsV6 = {
         detectMeleeObserversThreshold: number,
         alertDesynced: boolean,
         alertDesyncedThreshold: number,
+        logLevel: "debug" | "verbose" | "info" | "warn" | "error",
     },
     plugins: {
         serverPort: number;

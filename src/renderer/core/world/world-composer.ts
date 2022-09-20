@@ -143,8 +143,6 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         openBwComposer.openBWGameTimeApi,
         viewInputComposer.viewportsGameTimeApi) as GameTimeApi;
 
-    console.log(gameTimeApi);
-
     return {
 
         // binding stuff we can' t do before hand

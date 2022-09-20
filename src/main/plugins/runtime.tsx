@@ -563,34 +563,6 @@ const AppWrapper = () => {
 
 const _screenSelector = (store: StateMessage) => store.screen;
 
-const GlobalErrorState = ({ error }: { error: any }) => {
-  return (
-    <div
-      style={{
-        position: "absolute",
-        zIndex: "-999",
-        left: "50%",
-        top: "50%",
-        transform: `translate(-50%, -50%)`,
-        cursor: "wait",
-        color: "#ffeedd",
-        fontFamily: "Conthrax",
-      }}
-    >
-      <p style={{ fontSize: "150%" }}>Uh oh!</p>
-      <p
-        style={{
-          fontFamily: "Inter, sans-serif",
-          color: "#aa6677",
-          fontSize: "150%",
-        }}
-      >
-        {error}
-      </p>
-    </div>
-  );
-};
-
 const PluginComponent = ({
   key,
   JSXElement,
@@ -613,7 +585,7 @@ const orderSort = (a: Component, b: Component) => {
 };
 
 const App = ({ components }: { components: Component[] }) => {
-  const { screen, error } = useStore(_screenSelector)!;
+  const { screen } = useStore(_screenSelector)!;
   const containerDiv = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -660,8 +632,6 @@ const App = ({ components }: { components: Component[] }) => {
         flexDirection: "column",
       }}
     >
-      {error && <GlobalErrorState error={error} />}
-
       <div
         id="top-container"
         style={{
@@ -823,9 +793,14 @@ class ErrorBoundary extends React.Component {
 
 ReactDOM.render(<AppWrapper />, document.body);
 
+const canvas = document.createElement("canvas");
+const offscreen = canvas.transferControlToOffscreen();
+
 window.parent.postMessage(
   {
     type: "system:runtime-ready",
+    payload: offscreen,
   },
-  "*"
+  "*",
+  [offscreen]
 );
