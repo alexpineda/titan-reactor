@@ -1,6 +1,6 @@
 import { PluginMetaData, SettingsMeta } from "common/types";
 import type search from "libnpmsearch";
-import * as log from "@ipc/log"
+import { log } from "@ipc/log"
 import React from "react";
 import {
     deletePlugin,

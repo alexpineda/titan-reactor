@@ -4,7 +4,7 @@ import {
   LinearFilter,
   sRGBEncoding,
 } from "three";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 
 import parseDDS from "./parse-dds";
 

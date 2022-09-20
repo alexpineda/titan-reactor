@@ -1,4 +1,4 @@
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import { MacroActionType, MacrosDTO, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator, MacroActionPluginModifyValue, MacroActionHostModifyValue, SessionSettingsData } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";

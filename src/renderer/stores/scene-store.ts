@@ -1,4 +1,4 @@
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import { withErrorMessage } from "common/utils/with-error-message";
 import create from "zustand";
 import { SceneState } from "../scenes/scene";

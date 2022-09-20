@@ -3,7 +3,7 @@ import { uint8, uint32 } from "./util/alloc";
 import { CMDS } from "./commands/commands";
 import CommandsStream from "./commands/commands-stream";
 import { Replay } from "./parse-replay";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 
 const dumpFrame = (out: BufferList, frame: number, frameBuf: BufferList) => {
   out.append(uint32(frame));

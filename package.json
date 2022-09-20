@@ -2,7 +2,7 @@
     "name": "titan-reactor",
     "productName": "Titan Reactor",
     "version": "0.6.5",
-    "description": "The Advanced Starcraft Broodwar Observing Tool",
+    "description": "An OpenBW Renderer",
     "main": "src/main/index.js",
     "scripts": {
         "build-api-types": "ts-node -T .\\build\\apis\\build-api-types.ts",
@@ -55,7 +55,7 @@
         "appId": "imbateam.titan-reactor",
         "productName": "Titan Reactor",
         "mac": {
-            "category": "The Advanced Observing App"
+            "category": "An OpenBW Renderer"
         },
         "linux": {
             "category": "Game",

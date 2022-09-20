@@ -1,6 +1,6 @@
 import Chk from "bw-chk";
 import loadScm from "@utils/load-scm";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import processStore from "@stores/process-store";
 import { OpenBW } from "common/types";
 import { waitForTruthy } from "@utils/wait-for";

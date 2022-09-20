@@ -1,7 +1,7 @@
 import sceneStore from "@stores/scene-store";
 import settingsStore from "@stores/settings-store";
 import { createAssets } from "@image/assets";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";

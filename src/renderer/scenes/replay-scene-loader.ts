@@ -10,7 +10,7 @@ import Chk from "bw-chk";
 import { OpenBW } from "common/types";
 import { GameTypes } from "common/enums";
 import { openFile } from "@ipc";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import settingsStore from "@stores/settings-store";
 import processStore from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";

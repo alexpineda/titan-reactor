@@ -1,5 +1,5 @@
 import { ModifyValueActionEffect as ActionEffect, FieldDefinition } from "common/types";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 
 const isFiniteV = (...args: any) => {
     for (const arg of args) {

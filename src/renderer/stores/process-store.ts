@@ -1,5 +1,5 @@
 import create from "zustand/vanilla";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import { MathUtils } from "three";
 
 const PROCESS_MAX = 10;

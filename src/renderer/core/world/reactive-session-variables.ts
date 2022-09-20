@@ -7,7 +7,7 @@ import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
 import lGet from "lodash.get";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
-import * as log from "@ipc/log";
+import {log} from "@ipc/log";
 import { Janitor } from "@utils/janitor";
 import { BeforeSet, createReactiveVariable, ReactiveVariable } from "@utils/create-reactive-variable";
 import { WorldEvents } from "./world";

@@ -9,7 +9,7 @@ import { Janitor } from "@utils/janitor";
 import { savePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
-import * as log from "@ipc/log"
+import { log } from "@ipc/log"
 import { normalizePluginConfiguration } from "@utils/function-utils"
 import { GameTimeApi } from "@core/world/game-time-api";
 import { GameViewPort } from "../camera/game-viewport";

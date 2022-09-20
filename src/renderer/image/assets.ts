@@ -16,7 +16,7 @@ import gameStore from "@stores/game-store";
 import processStore from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
 import { generateAllIcons } from "./generate-icons/generate-icons";
-import * as log from "../ipc/log"
+import { log } from "../ipc/log"
 import { loadEnvironmentMap } from "./environment/env-map";
 import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";

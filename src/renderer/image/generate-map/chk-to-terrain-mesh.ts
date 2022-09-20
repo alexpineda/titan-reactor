@@ -4,7 +4,7 @@ import {
   createDataTextures, createTerrainGeometryFromQuartiles, extractBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect
 } from ".";
 
-import * as log from "@ipc";
+import { log } from "@ipc";
 
 import { getTilesetBuffers } from "./get-tileset-buffers";
 

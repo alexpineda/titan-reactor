@@ -14,11 +14,16 @@ export const createDisplacementGeometryQuartile = (
   offX = 0,
   offY = 0,
 ) => {
+
   const geom =
     new PlaneBufferGeometry(width, height, widthSegments, heightSegments);
+
   const ctx = canvas.getContext("2d");
+
   if (!ctx) {
+
     throw new Error("Could not get canvas context");
+
   }
 
   const pos = geom.getAttribute("position");
@@ -49,11 +54,13 @@ export const createDisplacementGeometryQuartile = (
     );
     pos.setXYZ(i, p.x, p.y, p.z);
   }
+
   pos.needsUpdate = true;
 
   const simplifiedGeom = simplifyGeometry(geom, widthSegments, heightSegments);
 
   return simplifiedGeom;
+
 };
 
 function getDisplacement(

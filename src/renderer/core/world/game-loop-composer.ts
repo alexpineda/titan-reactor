@@ -1,4 +1,4 @@
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import { renderComposer } from "@render/render-composer";
 import { Borrowed } from "@utils/object-utils";
 import { World } from "./world";

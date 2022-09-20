@@ -1,4 +1,4 @@
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import settingsStore from "@stores/settings-store";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { Object3D } from "three";

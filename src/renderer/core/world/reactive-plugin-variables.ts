@@ -1,4 +1,4 @@
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { doActionEffect } from "@macros/do-action-effect";
 import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";

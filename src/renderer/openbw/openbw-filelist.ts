@@ -2,7 +2,7 @@
 import fs from "fs";
 import { findFiles } from "@utils/casclib";
 
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 import settingsStore from "@stores/settings-store";
 
 import filepaths from "./extra/filepaths";

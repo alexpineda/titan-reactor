@@ -1,6 +1,6 @@
 import { version } from "../../../package.json";
 import { renderComposer } from "@render";
-import * as log from "@ipc/log";
+import { log } from "@ipc/log";
 
 export const logCapabilities = () => {
     log.info(`@init: titan-reactor ${version}`);
