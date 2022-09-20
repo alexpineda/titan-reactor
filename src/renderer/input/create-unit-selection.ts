@@ -30,13 +30,18 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
     let _selectActivated = false;
     let _enabled = true;
     let _status = UnitSelectionStatus.None;
+    let _selectBoxStarted = false;
 
     const _selectDown = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
-        if (mouse.move.z !== 0 || !_enabled) return;
+        if (mouse.move.z !== 0) return;
         _selectActivated = true;
+        _selectBoxStarted = false;
+        _status = UnitSelectionStatus.None;
+
         selectionBox.startPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
         world.events!.emit("unit-selection-start");
+
     };
 
     // const hoverUnit = throttle((event: PointerEvent) => {
@@ -48,16 +53,32 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
     //     }
     // }, 100);
 
+    const largerThanMinDrag = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
+        return (Math.abs(mouse.move.x - selectionBox.startPoint.x) > MIN_DRAG_SIZE &&
+            Math.abs(mouse.move.y - selectionBox.startPoint.y) > MIN_DRAG_SIZE)
+    }
+
     const _selectMove = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
-        if (!_enabled) return;
 
         if (_selectActivated) {
 
             selectionBox.endPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
-            world.events!.emit("unit-selection-move");
+            if (_selectBoxStarted === false) {
 
-            _status = UnitSelectionStatus.Dragging;
+                if (largerThanMinDrag(mouse)) {
+
+                    _selectBoxStarted = true;
+
+                }
+
+            } else {
+
+                world.events!.emit("unit-selection-move");
+
+                _status = UnitSelectionStatus.Dragging;
+
+            }
 
         } else {
             // hoverUnit(event)
@@ -92,7 +113,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
     };
 
     const _selectUp = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
-        if (!_selectActivated || !_enabled) return;
+        if (!_selectActivated) return;
 
         _selectActivated = false;
 
@@ -100,8 +121,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
         let draft: Unit[] = [];
 
-        if (!(Math.abs(mouse.move.x - selectionBox.startPoint.x) > MIN_DRAG_SIZE &&
-            Math.abs(mouse.move.y - selectionBox.startPoint.y) > MIN_DRAG_SIZE)) {
+        if (!_selectBoxStarted) {
 
             const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.move.x, mouse.move.y));
 
@@ -165,7 +185,9 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
             selectionBox.camera = camera;
         },
         set enabled(value: boolean) {
-            world.events!.emit("unit-selection-enabled", value);
+            if (value !== _enabled) {
+                world.events!.emit("unit-selection-enabled", value);
+            }
             _enabled = value;
             _selectActivated = value && _selectActivated;
         },
@@ -178,7 +200,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
         update() {
             const mouse = mouseRef.deref();
 
-            if (!mouse) return;
+            if (!mouse || !_enabled) return;
 
             if (mouse!.clicked) {
                 _selectDown(mouse);

@@ -6,7 +6,7 @@ import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import { Janitor } from "@utils/janitor";
-import { MouseTrigger } from "./mouse-trigger";
+import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
 
 export class Macros {
     #createGameCompartment?: (context?: any) => Compartment;
@@ -93,22 +93,21 @@ export class Macros {
         janitor.mop(this.#listenForKeyCombos("keydown"), "keydown");
         janitor.mop(this.#listenForKeyCombos("keyup"), "keyup");
 
-        const _mouseListener = (e: MouseEvent) => {
-            const candidates: Macro[] = [];
-            for (const macro of this.meta.mouseMacros) {
-                const trigger = macro.trigger as MouseTrigger;
-                if (trigger.value.test(e) && this.#testMacroConditions(macro, e)) {
-                    candidates.push(macro);
-                }
-            }
+        return janitor;
+    }
 
-            for (const macro of candidates) {
-                this.#execMacro(macro);
+    mouseTrigger(e: MouseTriggerDTO) {
+        const candidates: Macro[] = [];
+        for (const macro of this.meta.mouseMacros) {
+            const trigger = macro.trigger as MouseTrigger;
+            if (trigger.value.test(e) && this.#testMacroConditions(macro, e)) {
+                candidates.push(macro);
             }
         }
 
-        janitor.addEventListener(window, "mousedown", "mousedown", _mouseListener);
-        return janitor;
+        for (const macro of candidates) {
+            this.#execMacro(macro);
+        }
     }
 
     *[Symbol.iterator]() {

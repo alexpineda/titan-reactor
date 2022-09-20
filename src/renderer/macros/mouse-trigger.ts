@@ -6,7 +6,7 @@ export class MouseTriggerValue {
     shiftKey = false;
     button = 0;
 
-    test(e: MouseEvent) {
+    test(e: MouseTriggerDTO) {
         return (
             this.ctrlKey === e.ctrlKey &&
             this.altKey === e.altKey &&

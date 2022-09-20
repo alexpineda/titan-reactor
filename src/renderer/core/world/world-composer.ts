@@ -235,8 +235,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
             this.onRender(delta, elapsed);
 
-            viewInputComposer.resetInputState();
-
+            viewInputComposer.onAfterUpdate();
         },
 
         onRender: (delta: number, elapsed: number) => {

@@ -1,11 +1,12 @@
 import { MouseInput } from "@input/mouse-input";
 import { ArrowKeyInput } from "@input/arrow-key-input";
 import { Janitor } from "@utils/janitor";
-import { expose } from "@utils/object-utils";
+import { Borrowed, expose } from "@utils/object-utils";
+import { World } from "./world";
 
 export type InputComposer = ReturnType<typeof createInputComposer>;
 
-export const createInputComposer = () => {
+export const createInputComposer = (world: Borrowed<World>) => {
 
     const janitor = new Janitor("InputComposer");
     const mouseInput = janitor.mop(new MouseInput(document.body), "mouseInput");
@@ -17,6 +18,13 @@ export const createInputComposer = () => {
         },
         get keyboard() {
             return arrowKeyInput;
+        },
+        update() {
+            if (this.mouse.clicked) {
+                if (world.events!.emit("mouse-click", this.mouse.event) === false) {
+                    this.mouse.interrupted = true;
+                }
+            }
         },
         resetState() {
             mouseInput.reset();

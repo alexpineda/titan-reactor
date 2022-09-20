@@ -4,10 +4,12 @@ import { ReactiveSessionVariables } from "./reactive-session-variables";
 import { Janitor } from "@utils/janitor";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "../global";
+import { WorldEvents } from "./world";
+import { TypeEmitter } from "@utils/type-emitter";
 
 export type MacrosComposer = ReturnType<typeof createMacrosComposer>;
 
-export const createMacrosComposer = (settings: ReactiveSessionVariables) => {
+export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings: ReactiveSessionVariables) => {
 
     const janitor = new Janitor("MacrosComposer");
 
@@ -31,6 +33,11 @@ export const createMacrosComposer = (settings: ReactiveSessionVariables) => {
         }
 
     }), "useSettingsStore.subscribe");
+
+
+    janitor.mop(events.on("mouse-click", (button) => {
+        macros.mouseTrigger(button);
+    }), "mouse-click");
 
     return {
         macros,

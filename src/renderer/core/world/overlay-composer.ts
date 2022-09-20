@@ -190,17 +190,21 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
         unitSelectionBox,
         update(delta: number) {
 
+            unitSelectionBox.enabled = _intersects.length === 0 && !views.inputs!.mouse.interrupted ? world.settings!.getState().input.unitSelection : false;
+
             cursorMaterial.update(delta, views.inputs!.mouse.move, unitSelectionBox.status);
 
-            unitSelectionBox.enabled = _intersects.length === 0 ? world.settings!.getState().input.unitSelection : false;
             unitSelectionBox.update();
 
-            if (unitSelectionBox.isActive || !(world.settings!.getState().minimap.interactive && world.settings!.getState().minimap.enabled)) {
+            if (unitSelectionBox.isActive || !(world.settings!.getState().minimap.interactive && world.settings!.getState().minimap.enabled) || views.inputs!.mouse.interrupted) {
 
                 if (_insideMinimap) {
+
                     world.events!.emit("minimap-leave");
                     _insideMinimap = false;
+
                 }
+
                 return;
 
             }
@@ -220,7 +224,6 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
             }
 
             unitSelectionBox.enabled = _intersects.length === 0;
-
 
             if (_intersects.length && _intersects[0].uv) {
 

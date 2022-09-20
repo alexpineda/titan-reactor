@@ -14,7 +14,7 @@ export type PluginsAndMacroSession = Awaited<ReturnType<typeof createPluginsAndM
 
 export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEvents>, settings: ReactiveSessionVariables, openBW: OpenBW) => {
 
-    const macrosComposer = createMacrosComposer(settings);
+    const macrosComposer = createMacrosComposer(events, settings);
 
     const create = async () => {
 

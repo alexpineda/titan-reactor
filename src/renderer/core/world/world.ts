@@ -1,4 +1,5 @@
 import { Unit } from "@core/unit";
+import { MouseTriggerDTO } from "@macros/mouse-trigger";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import GameSurface from "@render/game-surface";
 import { Janitor } from "@utils/janitor";
@@ -35,6 +36,8 @@ export interface WorldEvents {
     "scene-exit": string;
     "scene-enter": string;
     "dispose": void;
+
+    "mouse-click": MouseTriggerDTO;
 
     //for plugins and macros
     "session-start": void;

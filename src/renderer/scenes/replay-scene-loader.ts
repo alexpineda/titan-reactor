@@ -25,7 +25,6 @@ import { Assets } from "@image/assets";
 import gameStore from "@stores/game-store";
 import { waitForTruthy } from "@utils/wait-for";
 import { music } from "@core/global";
-import { renderComposer } from "@render/render-composer"
 
 export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
 

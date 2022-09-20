@@ -1,6 +1,7 @@
 
 import { Vector2, Vector3 } from "three";
 import { Janitor } from "@utils/janitor";
+import { MouseTriggerDTO } from "@macros/mouse-trigger";
 
 const passive = { passive: true };
 
@@ -20,6 +21,16 @@ export class MouseInput {
     #modifiers = new Vector3(0, 0, 0);
     #clientX = 0;
     #clientY = 0;
+
+    event: MouseTriggerDTO = {
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        button: -1,
+    }
+
+    // whether or not to continue processing mouse input
+    interrupted = false;
 
 
     direction = new Vector3();
@@ -76,6 +87,11 @@ export class MouseInput {
             this.#mouse.x = (evt.clientX / window.innerWidth) * 2 - 1;
             this.#mouse.y = - (evt.clientY / window.innerHeight) * 2 + 1;
             this.#clicked = clicked.copy(this.#mouse);
+
+            this.event.altKey = evt.altKey;
+            this.event.ctrlKey = evt.ctrlKey;
+            this.event.shiftKey = evt.shiftKey;
+            this.event.button = evt.button;
         }
 
         const pointerUp = () => {
@@ -134,6 +150,12 @@ export class MouseInput {
         this.#lookAt.y = 0;
         this.#clicked = undefined;
         this.#released = undefined;
+        this.interrupted = false;
+
+        this.event.altKey = false;
+        this.event.ctrlKey = false;
+        this.event.shiftKey = false;
+        this.event.button = -1;
     }
 
     dispose() {

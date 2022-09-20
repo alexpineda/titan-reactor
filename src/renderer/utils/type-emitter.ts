@@ -1,3 +1,5 @@
+import settingsStore from "@stores/settings-store";
+
 export type MatchingKeys<
     TRecord,
     TMatch,
@@ -22,11 +24,19 @@ export class TypeEmitter<T>  {
     }
 
     emit(s: keyof T, v?: T[keyof T]): void | false {
+
         for (const listener of this.#listeners.get(s) ?? []) {
             if (listener(v) === false) {
                 return false;
             }
         }
+
+        if (settingsStore().data.utilities.logLevel === "debug") {
+            if (!(s as string).startsWith("image") || Math.random() > 0.99) {
+                console.debug(`[TypeEmitter] ${s} emitted`, v);
+            }
+        }
+
     }
 
     dispose() {

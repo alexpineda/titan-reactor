@@ -46,7 +46,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
     const _audioPositon = new Vector3();
 
     const janitor = new Janitor("ViewInputComposer");
-    const inputs = janitor.mop(createInputComposer(), "inputs");
+    const inputs = janitor.mop(createInputComposer(world), "inputs");
 
     world.events!.on("resize", (surface) => {
         for (const viewport of getViewports()) {
@@ -78,9 +78,16 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
 
             const sceneController = getSceneController();
 
-            if (!sceneController) return;
+            if (!sceneController) {
+                inputs.mouse.interrupted = true;
+                return;
+            };
 
-            sceneController.onCameraMouseUpdate && sceneController.onCameraMouseUpdate(delta / 100, elapsed, inputs.mouse.mouseScrollY, inputs.mouse.screenDrag, inputs.mouse.lookAt, inputs.mouse.move, inputs.mouse.clientX, inputs.mouse.clientY, inputs.mouse.clicked, inputs.mouse.modifiers);
+            inputs.update();
+
+            if (!inputs.mouse.interrupted) {
+                sceneController.onCameraMouseUpdate && sceneController.onCameraMouseUpdate(delta / 100, elapsed, inputs.mouse.mouseScrollY, inputs.mouse.screenDrag, inputs.mouse.lookAt, inputs.mouse.move, inputs.mouse.clientX, inputs.mouse.clientY, inputs.mouse.clicked, inputs.mouse.modifiers);
+            }
 
             sceneController.onCameraKeyboardUpdate && sceneController.onCameraKeyboardUpdate(delta / 100, elapsed, inputs.keyboard.vector);
 
@@ -101,7 +108,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             }
         },
 
-        resetInputState() {
+        onAfterUpdate() {
             inputs.resetState();
         },
 
