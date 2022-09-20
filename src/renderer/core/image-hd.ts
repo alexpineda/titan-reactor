@@ -22,7 +22,6 @@ import { ImageBase } from ".";
 import { ImageHDMaterial } from "./image-hd-material";
 import gameStore from "@stores/game-store";
 import { ImageHDInstancedMaterial } from "./image-hd-instanced-material";
-import { disposeMesh } from "@utils/dispose";
 
 const white = new Color(0xffffff);
 const CLOAK_OPACITY = 0.6;
@@ -151,6 +150,8 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     this.matrixAutoUpdate = false;
     this.matrixWorldNeedsUpdate = false;
+
+    this.name = "ImageHD";
   }
 
   protected createMaterial(): ImageHDMaterial | ImageHDInstancedMaterial {
@@ -356,12 +357,6 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
       object: this
 
     });
-
-  }
-
-  dispose() {
-
-    disposeMesh(this);
 
   }
 }

@@ -1,4 +1,4 @@
-import { disposeObject3D } from "@utils/dispose";
+import { Janitor } from "@utils/janitor";
 import { CreepTexture, UnitTileScale } from "common/types";
 import {
   MeshBasicMaterial,
@@ -46,6 +46,7 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
   renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);
 
   const scene = new Scene();
+  scene.name = "creep-ortho-scene";
   const plane = new PlaneBufferGeometry();
 
 
@@ -60,6 +61,7 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
       map: texture,
     });
     const mesh = new Mesh(plane, mat);
+    mesh.name = `creep-${i}`;
     mesh.rotation.x = Math.PI / 2;
     mesh.position.x = x - width / 2 + 0.5;
     mesh.position.z = y - height / 2 + 0.5;
@@ -75,7 +77,7 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
   texture.magFilter = NearestFilter;
   renderer.setRenderTarget(null);
 
-  disposeObject3D(scene);
+  Janitor.trash("ddsCreep", scene);
 
   return { texture, count: width };
 };

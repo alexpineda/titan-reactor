@@ -2,7 +2,7 @@ import { AnimDds, AnimAtlas, UnitTileScale } from "common/types";
 
 import { parseAnim, createDDSTexture } from "../formats";
 import { LinearEncoding, TextureEncoding } from "three";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
     buf.slice(ddsOffset, ddsOffset + size);
@@ -13,7 +13,7 @@ export const loadAnimAtlas = async (
     imageIndex: number,
     scale: Exclude<UnitTileScale, "SD">,
 ): Promise<AnimAtlas> => {
-    const janitor = new Janitor()
+    const janitor = new Janitor("loadAnimAtlas");
 
     const [sprite] = parseAnim(buf);
 
@@ -22,14 +22,14 @@ export const loadAnimAtlas = async (
     }
 
     const ddsBuf = getBufDds(buf, sprite.maps.diffuse);
-    const diffuse = janitor.mop(await createDDSTexture(ddsBuf));
+    const diffuse = janitor.mop(await createDDSTexture(ddsBuf), "diffuse");
 
     const optionalLoad = async (layer: AnimDds, encoding?: TextureEncoding) => {
         if (layer === undefined) {
             return undefined;
         }
         const ddsBuf = getBufDds(buf, layer);
-        return janitor.mop(await createDDSTexture(ddsBuf, encoding));
+        return janitor.mop(await createDDSTexture(ddsBuf, encoding), "layer");
     }
 
     const teammask = await optionalLoad(sprite.maps.teamcolor);

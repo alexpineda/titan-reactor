@@ -1,4 +1,4 @@
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
 import { MapBitmaps } from "./extract-bitmaps";
@@ -116,7 +116,7 @@ export const createDataTextures = async ({
     const w4 = mapWidth * 4;
     const h4 = mapHeight * 4;
 
-    const janitor = new Janitor();
+    const janitor = new Janitor("MapDataTextures");
 
     const sdMap = createDataTexture(bitmaps.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
     const occlussionRoughnessMetallicMap = createDataTexture(bitmaps.occlussionRoughnessMetallic, w32, h32, { format: THREE.RGBAFormat });

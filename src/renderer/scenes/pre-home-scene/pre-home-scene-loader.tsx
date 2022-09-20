@@ -6,7 +6,6 @@ import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
 import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
-import Janitor from "@utils/janitor";
 import path from "path";
 import { Filter } from "@audio";
 import { SceneState } from "../scene";
@@ -31,8 +30,6 @@ const makeErrorScene = (errors: string[]) => {
 export async function preHomeSceneLoader(): Promise<SceneState> {
   root.render(<PreHomeScene />);
 
-  const janitor = new Janitor();
-
   const settings = await settingsStore().load();
 
   await waitForTruthy(() => {
@@ -40,7 +37,12 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     return settingsStore().errors.length === 0;
   });
 
-  gameStore().setAssets(await createAssets(settings.data));
+  gameStore().setAssets(
+    await createAssets(
+      settings.data.directories,
+      settings.data.graphics.preload
+    )
+  );
 
   await preloadIntro();
 
@@ -51,15 +53,13 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     path.join(__static, "drop-your-socks.mp3")
   );
 
-  janitor.mop(
-    mixer.connect(
-      dropYourSocks,
-      new Filter(mixer, "bandpass", 50).node,
-      mixer.intro
-    )
+  const _disconnect = mixer.connect(
+    dropYourSocks,
+    new Filter(mixer, "bandpass", 50).node,
+    mixer.intro
   );
 
-  dropYourSocks.onended = () => janitor.dispose();
+  dropYourSocks.onended = () => _disconnect();
 
   return {
     id: "@loading",

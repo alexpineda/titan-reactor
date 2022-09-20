@@ -44,7 +44,7 @@ const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
 export type Assets = Awaited<ReturnType<typeof createAssets>>;
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
 
-export const createAssets = async (settings: Settings) => {
+export const createAssets = async (directories: Settings["directories"], preload: boolean) => {
 
     const assetProcess = processStore().create("assets", 5);
 
@@ -56,7 +56,7 @@ export const createAssets = async (settings: Settings) => {
         }
     });
 
-    await openCascStorage(settings.directories.starcraft);
+    await openCascStorage(directories.starcraft);
 
     log.verbose("@load-assets/dat");
     const bwDat = await loadDATFiles(readCascFile);
@@ -79,7 +79,7 @@ export const createAssets = async (settings: Settings) => {
     console.log("minimapConsole", minimapConsole.square.image.width, minimapConsole.square.image.height)
 
     const envEXRAssetFilename = path.join(
-        settings.directories.assets,
+        directories.assets,
         "envmap.exr"
     )
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
@@ -99,7 +99,7 @@ export const createAssets = async (settings: Settings) => {
     const glbExists = new Map<number, boolean>();
     const atlases: AnimAtlas[] = [];
     const glbFileName = (imageId: number) => path.join(
-        settings.directories.assets,
+        directories.assets,
         `00${imageId}`.slice(-3) + ".glb"
     )
 
@@ -185,7 +185,7 @@ export const createAssets = async (settings: Settings) => {
 
     }
 
-    if (settings.graphics.preload) {
+    if (preload) {
 
         log.info(`@load-assets/atlas: preload`);
         const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];

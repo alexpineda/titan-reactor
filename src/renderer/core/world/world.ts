@@ -1,12 +1,12 @@
 import { Unit } from "@core/unit";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import GameSurface from "@render/game-surface";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { TypeEmitter } from "@utils/type-emitter";
 import Chk from "bw-chk";
 import { DeepPartial, OpenBW, SessionSettingsData } from "common/types";
 import { BasePlayer, FogOfWar, FogOfWarEffect, ImageBase } from "..";
-import { PluginsAndMacroSession } from "./create-plugin-session";
+import { PluginsAndMacroSession } from "./create-plugins-and-macros-session";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
 
 // do not put anything performance sensitive here as these are synchronous.
@@ -35,6 +35,10 @@ export interface WorldEvents {
     "scene-exit": string;
     "scene-enter": string;
     "dispose": void;
+
+    //for plugins and macros
+    "session-start": void;
+    "session-end": void;
 }
 
 export type World = {

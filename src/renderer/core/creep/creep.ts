@@ -3,7 +3,7 @@ import { TilesBufferView } from "@buffer-view";
 
 //@ts-ignore
 import Worker from "./creep.worker.js";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 
 export class Creep {
   mapWidth: number;
@@ -12,7 +12,7 @@ export class Creep {
   creepEdgesValuesTexture: Texture;
   minimapImageData: ImageData;
   worker: Worker;
-  #janitor = new Janitor();
+  #janitor = new Janitor("Creep");
 
   private _lastFrame = 0;
 
@@ -43,9 +43,9 @@ export class Creep {
       this.minimapImageData = imageData;
     };
     this._lastFrame = 0;
-    this.#janitor.mop(() => this.worker.terminate());
-    this.#janitor.mop(this.creepEdgesValuesTexture);
-    this.#janitor.mop(this.creepValuesTexture);
+    this.#janitor.mop(() => this.worker.terminate(), "worker");
+    this.#janitor.mop(this.creepEdgesValuesTexture, "creepEdgesValuesTexture");
+    this.#janitor.mop(this.creepValuesTexture, "creepValuesTexture");
   }
 
   generate(tiles: TilesBufferView, frame: number) {

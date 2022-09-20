@@ -29,25 +29,28 @@ import {
 import { updateDirection32 } from "./camera";
 import { updateEntities } from "./entities";
 import { SceneState } from "../scene";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { RenderPass } from "postprocessing";
 import { renderComposer } from "@render/render-composer";
 import { root } from "@render/root";
 
 export function createIScriptahScene(): SceneState {
-  const janitor = new Janitor();
+  const janitor = new Janitor("iscriptah-scene-loader");
   const surface = new Surface();
   surface.setDimensions(300, 300, window.devicePixelRatio);
 
   const scene = new Scene();
-  janitor.mop(scene);
+  janitor.mop(scene, "scene");
 
   const camera = new PerspectiveCamera(22, surface.aspect, 1, 256);
   camera.userData.direction = 0;
   camera.position.set(0, 30, 10);
   camera.lookAt(new Vector3());
 
-  const controls = janitor.mop(new OrbitControls(camera, surface.canvas));
+  const controls = janitor.mop(
+    new OrbitControls(camera, surface.canvas),
+    "controls"
+  );
   controls.mouseButtons = {
     LEFT: MOUSE.PAN,
     MIDDLE: MOUSE.DOLLY,
@@ -88,10 +91,11 @@ export function createIScriptahScene(): SceneState {
   janitor.addEventListener(
     transformControls,
     "dragging-changed",
+    "dragging-changed",
     dragChangedHandler
   );
   transformControls.setSpace("local");
-  janitor.mop(transformControls);
+  janitor.mop(transformControls, "transformControls");
 
   scene.add(transformControls);
   const thingies: IScriptSprite[] = [];
@@ -189,7 +193,7 @@ export function createIScriptahScene(): SceneState {
     camera.updateProjectionMatrix();
     renderComposer.setSize(surface.bufferWidth, surface.bufferHeight);
   };
-  janitor.addEventListener(window, "resize", resizeHandler);
+  janitor.addEventListener(window, "resize", "resize", resizeHandler);
   resizeHandler();
 
   // const dispose = () => {
@@ -203,7 +207,10 @@ export function createIScriptahScene(): SceneState {
     effects: [],
   };
   renderComposer.setBundlePasses(postProcessingBundle);
-  janitor.mop(() => renderComposer.getWebGLRenderer().setAnimationLoop(null));
+  janitor.mop(
+    () => renderComposer.getWebGLRenderer().setAnimationLoop(null),
+    "renderLoop"
+  );
 
   let lastTime = 0;
   let delta = 0;

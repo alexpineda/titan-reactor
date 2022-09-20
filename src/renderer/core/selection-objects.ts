@@ -5,7 +5,6 @@ import { Camera, Group, Vector3 } from "three";
 import { SpriteDAT, SpriteType } from "common/types";
 import { Unit } from "@core";
 import { SpriteEntities } from "@core/sprite-entities";
-import Janitor from "@utils/janitor";
 import { Assets } from "@image/assets";
 
 export class SelectionObject extends Group {
@@ -16,6 +15,7 @@ export class SelectionObject extends Group {
     constructor() {
         super();
         this.visible = false;
+        this.name = "SelectionObject";
         this.add(this.#circle);
         this.add(this.#bars);
     }
@@ -64,10 +64,6 @@ export const createSelectionDisplayComposer = (assets: Assets) => {
         objects,
         hideSelections,
         update,
-        dispose() {
-            const janitor = new Janitor();
-            janitor.dispose(this);
-        }
     }
 
 }

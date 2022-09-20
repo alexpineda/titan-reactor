@@ -7,7 +7,7 @@ import gameStore from "@stores/game-store";
 import { isGltfAtlas } from "@utils/image-utils";
 import { IndexedObjectPool } from "@utils/indexed-object-pool";
 import { IterableMap } from "@utils/iteratible-map";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { AnimAtlas } from "common/types";
 
 export class ImageEntities {
@@ -17,18 +17,18 @@ export class ImageEntities {
     #images: IterableMap<number, ImageBase> = new IterableMap();
 
     use3dImages = true;
-    #janitor = new Janitor(true);
+    #janitor = new Janitor("ImageEntities", true);
 
     onCreateImage?: (image: ImageBase) => void;
     onFreeImage?: (image: ImageBase) => void;
 
     constructor() {
-        this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages.all()));
-        this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages3D.all()));
-        this.#janitor.mop(this.#images);
+        this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages.all()), "freeImages");
+        this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages3D.all()), "freeImages3D");
+        this.#janitor.mop(this.#images, "images");
         this.#janitor.mop(() => {
             this.clear();
-        });
+        }, "clear");
     }
 
     #create(imageTypeId: number, atlas: AnimAtlas) {

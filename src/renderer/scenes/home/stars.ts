@@ -26,7 +26,10 @@ export const distantStars = () => {
     const material = new PointsMaterial({ color: 0x888888, sizeAttenuation: false, size: 1.5 });
     material.depthWrite = false;
 
-    return new Points(geometry, material);
+    const stars = new Points(geometry, material);
+    stars.name = "distant-stars";
+
+    return stars;
 }
 
 export const createStarField = () => {

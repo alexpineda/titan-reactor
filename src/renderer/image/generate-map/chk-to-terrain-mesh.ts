@@ -15,12 +15,12 @@ import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
 import { parseTMSK } from "@image/formats/parse-tmsk";
 import { Creep } from "@core/creep/creep";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import processStore from "@stores/process-store";
 
 export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tileset: number, tiles: Buffer, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {
 
-  const janitor = new Janitor();
+  const janitor = new Janitor("chkToTerrainMesh");
   const genProcess = processStore().create("generate-textures", 4);
   const tilesetBuffers = await getTilesetBuffers(tileset, tiles);
   const bitmaps = await extractBitmaps(mapWidth, mapHeight, tilesetBuffers);
@@ -55,6 +55,7 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
 
   renderComposer.preprocessStart();
 
+  //TODO do we dispose the render target texture?
   renderer.clear();
   const creepTexture = isLowRes ? sd.grpToCreepTexture(palette, megatiles, minitiles, tilegroupU16) : hd.ddsToCreepTexture(hdTiles, tilegroupU16, textureResolution, renderer);
 
@@ -80,12 +81,16 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
       this.waterMask && janitor.dispose(this.waterMask);
     }
   }
+  janitor.mop(effectsTextures, "effectsTextures");
 
   genProcess.complete();
 
   renderComposer.preprocessEnd();
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, heightMaps, textures, effectsTextures);
+  janitor.mop(terrain, "terrain");
+  janitor.mop(textures.mapQuartiles.flat(), "mapQuartiles");
+
 
   const creep = new Creep(
     mapWidth,
@@ -93,6 +98,7 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
     dataTextures.creepTextureUniform.value,
     dataTextures.creepEdgesTextureUniform.value
   );
+  janitor.mop(creep, "creep");
 
   return {
     terrain,
@@ -100,12 +106,7 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
     creep,
     heightMaps,
     dispose() {
-      janitor.dispose(
-        creep,
-        terrain,
-        textures.mapQuartiles.flat(),
-        effectsTextures
-      );
+      janitor.dispose();
     }
   }
 }

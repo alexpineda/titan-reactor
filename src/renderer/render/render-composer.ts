@@ -71,6 +71,7 @@ export class TitanRenderComposer {
             (evt) => {
                 evt.preventDefault();
                 globalEvents.emit("webglcontextlost");
+                this.#renderer = undefined;
             }
         );
 

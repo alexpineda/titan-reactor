@@ -4,14 +4,12 @@ import {
   Texture
 } from "three";
 
-import Janitor from "@utils/janitor";
-import { disposeObject3D } from "@utils/dispose";
 import { Terrain } from "@core/terrain";
 import { BorderTiles } from "./border-tiles";
 import { Sunlight } from "./sunlight";
+import { Janitor } from "@utils/janitor";
 
 export class BaseScene extends Scene {
-  #janitor: Janitor;
   #borderTiles: BorderTiles;
   mapWidth: number;
   mapHeight: number;
@@ -32,9 +30,6 @@ export class BaseScene extends Scene {
   ) {
     super();
     this.autoUpdate = false;
-
-    this.#janitor = new Janitor();
-    this.#janitor.mop(this);
 
     this.sunlight = new Sunlight(mapWidth, mapHeight);
     this.add(...this.sunlight.children);
@@ -83,7 +78,7 @@ export class BaseScene extends Scene {
   replaceTerrain(
     terrain: Terrain
   ) {
-    disposeObject3D(this.userData.terrain)
+    Janitor.trash("old terrain", this.userData.terrain)
     this.remove(this.userData.terrain);
     this.addTerrain(terrain);
   }
@@ -94,7 +89,6 @@ export class BaseScene extends Scene {
 
   dispose() {
     this.sunlight.dispose();
-    this.#janitor.dispose();
   }
 }
 export default BaseScene;

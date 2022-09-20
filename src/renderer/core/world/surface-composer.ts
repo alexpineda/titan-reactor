@@ -2,7 +2,7 @@ import GameSurface from "@render/game-surface";
 import { renderComposer } from "@render/render-composer";
 import gameStore from "@stores/game-store";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { Borrowed } from "@utils/object-utils";
 import debounce from "lodash.debounce";
 import { World } from "./world";
@@ -11,12 +11,12 @@ export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
 export const createSurfaceComposer = (world: Borrowed<World>) => {
 
-    const janitor = new Janitor();
-    const gameSurface = janitor.mop(new GameSurface(...world.map!.size));
+    const janitor = new Janitor("SurfaceComposer");
+    const gameSurface = janitor.mop(new GameSurface(...world.map!.size), "GameSurface");
 
     gameSurface.canvas.style.cursor = "none";
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
-    janitor.mop(document.body.appendChild(gameSurface.canvas));
+    janitor.mop(document.body.appendChild(gameSurface.canvas), "appendChild");
 
     renderComposer.targetSurface = gameSurface;
 
@@ -36,7 +36,7 @@ export const createSurfaceComposer = (world: Borrowed<World>) => {
         _sceneResizeHandler()
     }, 100);
 
-    janitor.addEventListener(window, "resize", sceneResizeHandler, {
+    janitor.addEventListener(window, "resize", "sceneResizeHandler", sceneResizeHandler, {
         passive: true,
     })
 
@@ -59,7 +59,7 @@ export const createSurfaceComposer = (world: Borrowed<World>) => {
 
         }
 
-    }));
+    }), "useSettingsStore.subscribe");
 
     const surfaceRef = new WeakRef(gameSurface);
 
@@ -70,6 +70,7 @@ export const createSurfaceComposer = (world: Borrowed<World>) => {
     return {
         gameSurface,
         resize,
+        //TODO should each api surface have a dispose?
         surfaceGameTimeApi: {
             togglePointerLock: (val: boolean) => {
                 const surface = surfaceRef.deref();

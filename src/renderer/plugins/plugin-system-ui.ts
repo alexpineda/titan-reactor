@@ -1,4 +1,4 @@
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { PluginMetaData, OpenBW } from "common/types";
 import settingsStore from "@stores/settings-store";
 import { useGameStore, useSceneStore, useReplayAndMapStore, SceneStore, ReplayAndMapStore } from "@stores";
@@ -87,7 +87,7 @@ export type PluginStateMessage = {
 //TODO: use external hooks for access to state changes
 export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement("iframe");
-    #janitor = new Janitor();
+    #janitor = new Janitor("PluginSystemUI");
     #isRunning = false;
     #dumpUnit: (unit: Unit) => DumpedUnit;
 
@@ -192,23 +192,23 @@ export class PluginSystemUI {
                     payload: game.dimensions
                 });
             }
-        }));
+        }), "dimensions");
 
         this.#janitor.mop(useSceneStore.subscribe((screen) => {
             this.sendMessage(screenChanged(screen));
-        }));
+        }), "screen");
 
         this.#janitor.mop(useReplayAndMapStore.subscribe((world) => {
             this.sendMessage({
                 type: UI_STATE_EVENT_WORLD_CHANGED,
                 payload: worldPartial(world)
             });
-        }));
+        }), "world");
 
         this.refresh();
 
         document.body.appendChild(this.#iframe);
-        this.#janitor.mop(() => document.body.removeChild(this.#iframe));
+        this.#janitor.mop(() => document.body.removeChild(this.#iframe), "iframe");
 
     }
 

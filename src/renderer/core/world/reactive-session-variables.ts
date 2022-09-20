@@ -8,7 +8,7 @@ import lSet from "lodash.set";
 import lGet from "lodash.get";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import * as log from "@ipc/log";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { BeforeSet, createReactiveVariable, ReactiveVariable } from "@utils/create-reactive-variable";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
@@ -66,7 +66,7 @@ export type ReactiveSessionVariables = ReturnType<typeof createReactiveSessionVa
  */
 export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>) => {
 
-    const janitor = new Janitor();
+    const janitor = new Janitor("ReactiveSessionVariables");
     const initialSettings = settingsStore().data;
 
     const store: { [key in keyof SessionSettingsData]: SessionSettingsData[key] } = {
@@ -92,7 +92,7 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
         mergeRootSession(settings.data);
 
-    }));
+    }), "settings-store-subscription");
 
 
     function applyEffectToSessionRoot(effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {

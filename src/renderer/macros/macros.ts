@@ -5,7 +5,7 @@ import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { MouseTrigger } from "./mouse-trigger";
 
 export class Macros {
@@ -40,7 +40,6 @@ export class Macros {
     }
 
     #listenForKeyCombos(type: "keydown" | "keyup") {
-        const janitor = new Janitor();
 
         let testCombo = new KeyCombo;
 
@@ -81,9 +80,8 @@ export class Macros {
 
         }
 
-        janitor.addEventListener(window, type, _keyListener);
-
-        return janitor;
+        window.addEventListener(type, _keyListener);
+        return () => window.removeEventListener(type, _keyListener);
     }
     /**
      * Manages listening to hotkey triggers and executing macros.
@@ -91,9 +89,9 @@ export class Macros {
      */
     listenForKeyCombos() {
 
-        const janitor = new Janitor();
-        janitor.mop(this.#listenForKeyCombos("keydown"));
-        janitor.mop(this.#listenForKeyCombos("keyup"));
+        const janitor = new Janitor("Macros.listenForKeyCombos");
+        janitor.mop(this.#listenForKeyCombos("keydown"), "keydown");
+        janitor.mop(this.#listenForKeyCombos("keyup"), "keyup");
 
         const _mouseListener = (e: MouseEvent) => {
             const candidates: Macro[] = [];
@@ -109,7 +107,7 @@ export class Macros {
             }
         }
 
-        janitor.addEventListener(window, "mousedown", _mouseListener);
+        janitor.addEventListener(window, "mousedown", "mousedown", _mouseListener);
         return janitor;
     }
 

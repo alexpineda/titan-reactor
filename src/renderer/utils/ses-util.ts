@@ -3,7 +3,7 @@ import * as THREE from "three";
 import * as postprocessing from "postprocessing"
 import cameraControls from "camera-controls"
 import * as enums from "common/enums";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { mix } from "./object-utils";
 const STDLIB = {

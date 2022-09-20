@@ -129,6 +129,7 @@ export const createWraiths = () => {
 
             const { model } = await loadGlb(`${__static}/wraith.glb`, envmap);
 
+            model.name = "wraith.glb";
             model.traverse((o: Object3D) => {
                 if (o instanceof Mesh) {
                     o.material = upgradeStandardMaterial(o.material as MeshStandardMaterial);
@@ -214,11 +215,6 @@ export const createWraiths = () => {
             // this.po.color.g = 0.5 + rear * 0.5;
             // this.po.color.b = 0.1 + rear * 0.9;
 
-        },
-        dispose() {
-            for (const wraith of wraiths) {
-                wraith.dispose();
-            }
         },
         get wraiths() {
             return wraiths;

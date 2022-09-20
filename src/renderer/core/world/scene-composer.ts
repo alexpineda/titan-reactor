@@ -13,7 +13,7 @@ import { UnitEntities } from "@core/unit-entities";
 import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
 import BaseScene from "@render/base-scene";
 import { imageIsDoodad, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
-import Janitor from "@utils/janitor";
+import { Janitor, JanitorLogLevel } from "@utils/janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import { unitIsFlying } from "@utils/unit-utils";
 import { drawFunctions, unitTypes } from "common/enums";
@@ -33,11 +33,11 @@ const white = new Color(0xffffff);
 // Primarily concerned about converting OpenBW state to three objects and animations
 export const createSceneComposer = async (world: Borrowed<World>, assets: Assets) => {
 
-    const janitor = new Janitor();
+    const janitor = new Janitor("SceneComposer");
 
     const { terrain, ...terrainExtra } = janitor.mop(await chkToTerrainMesh(
         ...world.map!.size, world.map!.tileset, world.map!._tiles, UnitTileScale.HD,
-    ));
+    ), "terrain");
 
     const pxToWorld = makePxToWorld(...world.map!.size, terrain.getTerrainY);
 
@@ -59,9 +59,9 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
     world.openBW!.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
 
-    const scene = janitor.mop(new BaseScene(...world.map!.size, terrain, assets.skyBox, assets.envMap));
-    const sprites = janitor.mop(new SpriteEntities());
-    const images = janitor.mop(new ImageEntities());
+    const scene = janitor.mop(new BaseScene(...world.map!.size, terrain, assets.skyBox, assets.envMap), "scene");
+    const sprites = janitor.mop(new SpriteEntities(), "sprites");
+    const images = janitor.mop(new ImageEntities(), "images");
     images.onCreateImage = (image) => world.events!.emit("image-created", image);
     images.onFreeImage = (image) => world.events!.emit("image-destroyed", image);
 
@@ -249,7 +249,11 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
     }
 
-    world.events!.on("dispose", () => janitor.dispose());
+    world.events!.on("dispose", () => {
+        Janitor.logLevel = JanitorLogLevel.Object;
+        janitor.dispose()
+        Janitor.logLevel = JanitorLogLevel.All;
+    });
 
     return Object.freeze({
         images,

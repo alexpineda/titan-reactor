@@ -1,4 +1,4 @@
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import CameraControls from "camera-controls";
 import { MathUtils, Object3D, PerspectiveCamera, Vector3 } from "three";
 
@@ -23,7 +23,7 @@ export const createCamera = () => {
     let _polarAngle = 0;
 
     const camera = new PerspectiveCamera(110, 1, 0.1, 100000);
-    const janitor = new Janitor;
+    const janitor = new Janitor("createCamera");
 
     return {
         cameraState: CameraState.RotateAroundWraiths,
@@ -39,7 +39,9 @@ export const createCamera = () => {
                 if (this.cameraState === CameraState.RotateAroundWraiths) {
                     controls.zoomTo(Math.random() * 2 + 1.75);
                 }
-            }, 20000);
+            }, 20000, "zoomToRandom");
+
+            let _timeout: NodeJS.Timeout;
 
             janitor.setInterval(() => {
                 _evolvingCameraState = (++_evolvingCameraState) % evolvingCameraStates.length;
@@ -54,13 +56,15 @@ export const createCamera = () => {
                     controls.zoomTo(2);
                     controls.setLookAt(-4, -23, -36, 0, 0, 0, false);
                 }
-                setTimeout(() => {
+                _timeout = setTimeout(() => {
                     this.cameraState = CameraState.RotateAroundWraiths;
                     controls.setTarget(0, 0, 0);
                     controls.zoomTo(2);
                     controls.setLookAt(_prevPosition.x, _prevPosition.y, _prevPosition.z, 0, 0, 0);
                 }, 10000);
-            }, 90000);
+            }, 90000, "evolveCameraState");
+
+            janitor.mop(() => clearTimeout(_timeout), "clearTimeout");
 
 
             return janitor;

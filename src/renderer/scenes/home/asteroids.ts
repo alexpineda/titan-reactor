@@ -14,6 +14,7 @@ export const createAsteroids = () => {
 
             const { model: asteroid } = await loadGlb(`${__static}/asteroid.glb`, envmap);
 
+            asteroid.name = "asteroid.glb";
             asteroid.traverse((o: Object3D) => {
                 if (o instanceof Mesh) {
                     o.material = upgradeStandardMaterial(o.material as MeshStandardMaterial);

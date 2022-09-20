@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        os: [windows-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
         # os: [macos-latest, ubuntu-latest, windows-latest]
 
     # Steps represent a sequence of tasks that will be executed as part of the job
@@ -49,7 +49,7 @@ jobs:
       - name: Zip Assets
         uses: vimtor/action-zip@v1
         with:
-          files: packages/titan-reactor/dist/win-unpacked
+          files: packages/titan-reactor/dist
           dest: titan-reactor.zip
           
       - name: Generate release tag

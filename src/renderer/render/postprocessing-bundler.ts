@@ -1,4 +1,5 @@
 import { FogOfWarEffect } from "@core/fogofwar";
+import * as log from "@ipc/log";
 import { Settings } from "common/types";
 import { BlendFunction, BloomEffect, BrightnessContrastEffect, CopyPass, DepthOfFieldEffect, Effect, EffectPass, OutlineEffect, OverrideMaterialManager, Pass, RenderPass, SelectiveBloomEffect, ToneMappingEffect, ToneMappingMode } from "postprocessing";
 import { Camera, Object3D, OrthographicCamera, PerspectiveCamera, Scene, Vector3 } from "three";
@@ -186,6 +187,7 @@ export class PostProcessingBundler {
             return emptyPasses;
         }
         if (this.#version !== this.#prevVersion) {
+            this.dispose();
             this.#prevVersion = this.#version;
             this.#passes.length = 0
             this.#passes.push(this.#renderPass);
@@ -234,7 +236,8 @@ export class PostProcessingBundler {
     }
 
     dispose() {
-        this.passes.forEach((pass) => pass.dispose());
+        log.debug('disposing passes');
+        this.#passes.forEach((pass) => pass.dispose());
     }
 
     set needsUpdate(val: boolean) {

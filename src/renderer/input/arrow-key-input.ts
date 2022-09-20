@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { testKeys } from "@utils/key-utils";
 
 const keyForward = "ArrowUp";
@@ -14,7 +14,7 @@ export class ArrowKeyInput {
 
     constructor(el: HTMLElement) {
         this.#el = el;
-        this.#janitor = new Janitor();
+        this.#janitor = new Janitor("ArrowKeyInput");
 
         const keyDown = (e: KeyboardEvent) => {
             if (this.#vector.y == 0) {
@@ -50,8 +50,8 @@ export class ArrowKeyInput {
 
         }
 
-        this.#janitor.addEventListener(this.#el, "keydown", keyDown);
-        this.#janitor.addEventListener(this.#el, "keyup", keyUp);
+        this.#janitor.addEventListener(this.#el, "keydown", "keydown", keyDown);
+        this.#janitor.addEventListener(this.#el, "keyup", "keyup", keyUp);
     }
 
     get vector() {

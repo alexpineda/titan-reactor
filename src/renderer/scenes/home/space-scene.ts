@@ -29,7 +29,7 @@ import {
 } from "three";
 import CameraControls from "camera-controls";
 import * as THREE from "three";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import gameStore from "@stores/game-store";
 import processStore from "@stores/process-store";
 import { createBattleLights, distantStars } from "./stars";
@@ -172,15 +172,15 @@ export const getSurface = () => introSurface;
 let _noiseInstance: WraithNoise;
 
 export async function createWraithScene() {
-    const janitor = new Janitor();
+    const janitor = new Janitor("intro");
 
     _noiseInstance = janitor.mop(createWraithNoise());
     _noiseInstance.start();
 
-    janitor.addEventListener(window, "resize", _sceneResizeHandler, {
+    janitor.addEventListener(window, "resize", "resize", _sceneResizeHandler, {
         passive: true,
     });
-    janitor.addEventListener(window, "mousemove", _mousemove, { passive: true });
+    janitor.addEventListener(window, "mousemove", "mousemove", _mousemove, { passive: true });
 
     _sceneResizeHandler();
 
@@ -190,7 +190,10 @@ export async function createWraithScene() {
 
     wraiths.init();
     scene.add(wraiths.object);
-    janitor.mop(wraiths);
+
+    // janitor.mop(wraiths, "wraiths");
+    janitor.mop(battleCruiser.particles.object);
+    janitor.mop(wraiths.particles.object);
 
     scene.add(distantStars());
 
@@ -202,7 +205,7 @@ export async function createWraithScene() {
 
     janitor.setInterval(() => {
         playRemix();
-    }, 60000 * 3 + Math.random() * 60000 * 10);
+    }, 60000 * 3 + Math.random() * 60000 * 10, "remix");
 
     scene.userData = {
         wraiths: wraiths,
@@ -230,7 +233,7 @@ export async function createWraithScene() {
     controls.mouseButtons.middle = 0;
     controls.mouseButtons.wheel = 0;
 
-    janitor.mop(camera.init(controls, battleCruiser.object));
+    janitor.mop(camera.init(controls, battleCruiser.object), "camera");
 
     const renderPass = janitor.mop(new RenderPass(scene, camera.get()));
     const sunMaterial = new MeshBasicMaterial({
@@ -241,6 +244,7 @@ export async function createWraithScene() {
 
     const sunGeometry = new SphereBufferGeometry(0.75, 32, 32);
     const sun = janitor.mop(new Mesh(sunGeometry, sunMaterial));
+    sun.name = "sun";
     sun.frustumCulled = false;
 
     const godRaysEffect = new GodRaysEffect(camera.get(), sun, {
@@ -300,7 +304,7 @@ export async function createWraithScene() {
     renderComposer.getWebGLRenderer().setAnimationLoop(INTRO_LOOP);
     janitor.mop(() => {
         renderComposer.getWebGLRenderer().setAnimationLoop(null);
-    });
+    }, "renderLoop");
 
     return () => {
         janitor.dispose();

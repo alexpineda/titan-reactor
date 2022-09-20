@@ -6,7 +6,7 @@ import { applyViewportToFrameOnImageHD } from "@core/model-effects";
 import { EffectivePasses, PostProcessingBundler } from "@render/postprocessing-bundler";
 import { renderComposer } from "@render/render-composer";
 import settingsStore from "@stores/settings-store";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";
@@ -23,7 +23,7 @@ const ignoreRecieveShadow = [250, 253, 347, 349, 351];
 const ignoreCastShadow = [347, 349, 351];
 
 export const createPostProcessingComposer = (world: Borrowed<World>, { scene, images, sprites, terrain }: SceneComposer, viewportsComposer: ViewInputComposer, overlayComposer: OverlayComposer, assets: Assets) => {
-    const janitor = new Janitor();
+    const janitor = new Janitor("PostProcessingComposer");
 
     const postProcessingBundle = janitor.mop(
         new PostProcessingBundler(
@@ -31,7 +31,8 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
             scene,
             overlayComposer.overlayGroup,
             settingsStore().data.postprocessing,
-            world.fogOfWarEffect!)
+            world.fogOfWarEffect!),
+        "postProcessingBundle"
     );
 
     const updatePostProcessingOptions = (options: Settings["postprocessing"] | Settings["postprocessing3d"]) => {
@@ -160,6 +161,7 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
                     for (const spriteBuffer of spritesIterator) {
 
                         const object = sprites.get(spriteBuffer.index);
+
                         if (!object || object.visible === false) continue;
 
                         object.renderOrder = v.renderMode3D ? 0 : spriteSortOrder(spriteBuffer);

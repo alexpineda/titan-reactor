@@ -1,7 +1,7 @@
 import { Macros } from "@macros";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "../global";
 
@@ -9,18 +9,18 @@ export type MacrosComposer = ReturnType<typeof createMacrosComposer>;
 
 export const createMacrosComposer = (settings: ReactiveSessionVariables) => {
 
-    const janitor = new Janitor();
+    const janitor = new Janitor("MacrosComposer");
 
     const macros = new Macros(settingsStore().data.macros);
 
-    janitor.mop(macros.listenForKeyCombos());
+    janitor.mop(macros.listenForKeyCombos(), "listenForKeyCombos");
 
     macros.doSessionAction = settings.mutate;
     macros.getSessionProperty = settings.getRawValue;
 
     janitor.mop(globalEvents.on("exec-macro", (macroId) => {
         macros.execMacroById(macroId);
-    }));
+    }), "exec-macro");
 
     janitor.mop(useSettingsStore.subscribe((settings) => {
 
@@ -30,7 +30,7 @@ export const createMacrosComposer = (settings: ReactiveSessionVariables) => {
 
         }
 
-    }));
+    }), "useSettingsStore.subscribe");
 
     return {
         macros,

@@ -2,7 +2,7 @@ import { mixer } from "@core/global";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import * as log from "@ipc/log";
 import { SceneController } from "@plugins/plugin-system-native";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { Borrowed } from "@utils/object-utils";
 import { DamageType, Explosion } from "common/enums";
 import { SceneInputHandler, UserInputCallbacks } from "common/types";
@@ -45,8 +45,8 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
     const _position = new Vector3();
     const _audioPositon = new Vector3();
 
-    const janitor = new Janitor()
-    const inputs = janitor.mop(createInputComposer());
+    const janitor = new Janitor("ViewInputComposer");
+    const inputs = janitor.mop(createInputComposer(), "inputs");
 
     world.events!.on("resize", (surface) => {
         for (const viewport of getViewports()) {
@@ -54,6 +54,10 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             viewport.height = surface.bufferHeight;
             viewport.aspect = surface.aspect;
         };
+    });
+
+    world.events!.on("dispose", () => {
+        janitor.dispose();
     });
 
     return {

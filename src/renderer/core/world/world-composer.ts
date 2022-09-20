@@ -1,7 +1,7 @@
 import { OpenBW } from "common/types";
 import { Assets } from "@image/assets";
-import Janitor from "@utils/janitor";
-import { createPluginsAndMacroSession } from "./create-plugin-session";
+import { Janitor } from "@utils/janitor";
+import { createPluginsAndMacroSession } from "./create-plugins-and-macros-session";
 import { createReactiveSessionVariables } from "./reactive-session-variables";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
@@ -30,11 +30,11 @@ import { mixer } from "@core/global";
 
 export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: Chk, players: BasePlayer[], commands: CommandsStream) => {
 
-    const janitor = new Janitor();
-    const events = janitor.mop(new TypeEmitter<WorldEvents>());
+    const janitor = new Janitor("WorldComposer");
+    const events = janitor.mop(new TypeEmitter<WorldEvents>(), "events");
     const settings = createReactiveSessionVariables(events);
     const plugins = await createPluginsAndMacroSession(events, settings, openBW);
-    const fogOfWarEffect = janitor.mop(new FogOfWarEffect());
+    const fogOfWarEffect = janitor.mop(new FogOfWarEffect(), "FogOfWarEffect");
     const fogOfWar = new FogOfWar(map.size[0], map.size[1], openBW, fogOfWarEffect);
 
     const world: World = {
@@ -96,7 +96,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         sceneComposer.resetImageCache();
         frameResetRequested = true;
 
-    });
+    }, "clear-asset-cache");
 
     events.on("settings-changed", ({ settings, rhs }) => {
 
@@ -119,7 +119,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
     });
 
-    const simpleText = janitor.mop(new SimpleText());
+    const simpleText = janitor.mop(new SimpleText(), "simple-text");
 
     const gameTimeApi: GameTimeApi = mix({
 
@@ -160,7 +160,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
                 await this.activate(true, settings.getState().input.sceneController);
 
-            });
+            }, "reload-plugins");
 
         },
 

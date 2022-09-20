@@ -5,7 +5,7 @@ import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
 import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { savePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
@@ -113,7 +113,7 @@ const VALID_PERMISSIONS = [
 export class PluginSystemNative {
     #nativePlugins: PluginBase[] = [];
     #uiPlugins: PluginSystemUI;
-    #janitor = new Janitor;
+    #janitor = new Janitor("PluginSystemNative");
     #sceneController?: SceneInputHandler;
 
     #hooks: Record<string, Hook> = createDefaultHooks();
@@ -202,7 +202,7 @@ export class PluginSystemNative {
             }
         };
         window.addEventListener("message", _messageListener);
-        this.#janitor.mop(() => { window.removeEventListener("message", _messageListener); });
+        this.#janitor.mop(() => { window.removeEventListener("message", _messageListener); }, "messageListener");
 
     }
 

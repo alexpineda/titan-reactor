@@ -7,8 +7,6 @@ import type { ImageBase } from ".";
 import { standardMaterialToImage3DMaterial } from "@utils/material-utils";
 import { Image3DMaterial } from "./image-3d-material";
 import gameStore from "@stores/game-store";
-import { disposeObject3D } from "@utils/dispose";
-
 
 const white = new Color(0xffffff);
 
@@ -80,6 +78,7 @@ export class Image3D extends Object3D implements ImageBase {
     this.setFrame(0);
 
     this.matrixAutoUpdate = false;
+    this.name = "Image3D";
   }
 
   get dat() {
@@ -168,10 +167,6 @@ export class Image3D extends Object3D implements ImageBase {
 
     return clone;
 
-  }
-
-  dispose() {
-    disposeObject3D(this);
   }
 
 }

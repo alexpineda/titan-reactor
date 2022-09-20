@@ -15,6 +15,7 @@ import {
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures, UnitTileScale } from "common/types";
 import { createCompressedTexture } from "./common";
+import { Janitor, JanitorLogLevel } from "@utils/janitor";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be
@@ -75,6 +76,7 @@ export const createHdQuartiles = (
     for (let qy = 0; qy < quartileStrideH; qy++) {
 
       const quartileScene = new Scene();
+      quartileScene.name = "quartile-ortho-scene";
 
       for (let x = 0; x < quartileWidth; x++) {
         for (let y = 0; y < quartileHeight; y++) {
@@ -92,6 +94,7 @@ export const createHdQuartiles = (
               side: DoubleSide,
             });
             const mesh = new Mesh(plane, mat);
+            mesh.name = "hd-tile";
             quartileScene.add(mesh);
             mesh.position.x = x - quartileWidth / 2 + 0.5;
             mesh.position.z = y - quartileHeight / 2 + 0.5;
@@ -114,6 +117,10 @@ export const createHdQuartiles = (
 
       mapQuartiles[qx][qy] = rt.texture;
       mapQuartiles[qx][qy].encoding = sRGBEncoding;
+
+      Janitor.logLevel = JanitorLogLevel.Janitor;
+      Janitor.trash("quartileScene", quartileScene);
+      Janitor.logLevel = JanitorLogLevel.All;
     }
   }
 

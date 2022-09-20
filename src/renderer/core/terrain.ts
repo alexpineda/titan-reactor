@@ -28,6 +28,7 @@ export class Terrain extends Group {
         this.geomOptions = geomOptions;
         this.getTerrainY = getTerrainY;
         this.#setCreepAnisotropy = setCreepAnisotropy;
+        this.name = "terrain";
 
     }
 

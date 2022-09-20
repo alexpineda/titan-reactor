@@ -1,4 +1,4 @@
-import { disposeObject3D } from "@utils/dispose";
+import { Janitor } from "@utils/janitor";
 import { DDSGrpFrameType, CreepTexture, UnitTileScale } from "common/types";
 import {
   DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget
@@ -77,6 +77,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
   renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);
 
   const scene = new Scene();
+  scene.name = "creep-edges-ortho-scene";
   const plane = new PlaneBufferGeometry();
 
   for (let i = 0; i < creepGrp.length; i++) {
@@ -91,6 +92,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
       map: texture,
       side: DoubleSide,
     }));
+    mesh.name = `creep-edges-${i}`;
     mesh.rotation.x = Math.PI / 2;
     mesh.scale.set(grp.w / PX_PER_TILE_HD, grp.h / PX_PER_TILE_HD, 1);
     mesh.position.x = x - width / 2 + getOffset(grp, i).x;
@@ -109,7 +111,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
 
-  disposeObject3D(scene);
+  Janitor.trash("ddsCreep", scene);
 
   return { texture, count: width };
 };

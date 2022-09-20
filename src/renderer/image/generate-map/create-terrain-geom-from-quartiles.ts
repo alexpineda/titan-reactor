@@ -180,6 +180,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 -(qy * qh + qh / 2) + mapHeight / 2,
                 0
             );
+            terrainQuartile.name = `terrain-${qx}-${qy}`;
             terrain.add(terrainQuartile);
             genProcess.increment();
         }

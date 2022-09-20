@@ -1,6 +1,6 @@
 
 import { Vector2, Vector3 } from "three";
-import Janitor from "../utils/janitor";
+import { Janitor } from "@utils/janitor";
 
 const passive = { passive: true };
 
@@ -85,10 +85,10 @@ export class MouseInput {
             this.#modifiers.set(0, 0, 0);
         }
 
-        this.#janitor.addEventListener(domElement, "pointermove", onMouseMove, passive);
-        this.#janitor.addEventListener(domElement, "pointerdown", pointerDown, passive);
-        this.#janitor.addEventListener(domElement, "pointerup", pointerUp, passive);
-        this.#janitor.addEventListener(domElement, "pointerleave", pointerUp, passive);
+        this.#janitor.addEventListener(domElement, "pointermove", "pointermove", onMouseMove, passive);
+        this.#janitor.addEventListener(domElement, "pointerdown", "pointerdown", pointerDown, passive);
+        this.#janitor.addEventListener(domElement, "pointerup", "pointerup", pointerUp, passive);
+        this.#janitor.addEventListener(domElement, "pointerleave", "pointerleave", pointerUp, passive);
 
     }
 

@@ -17,7 +17,7 @@ import { Image3D } from "@core/image-3d";
 import { canSelectUnit } from "@utils/unit-utils";
 import { Unit } from "@core/unit";
 import { VisualSelectionBox } from "@input/mouse-selection-box";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { Borrowed } from "@utils/object-utils";
 import { SurfaceComposer } from "./surface-composer";
 
@@ -39,14 +39,14 @@ const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D
 
 export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: Borrowed<ViewInputComposer>, assets: Assets) => {
 
-    const janitor = new Janitor();
+    const janitor = new Janitor("OverlayComposer");
     const overlayGroup = new Scene();
 
     const unitSelectionBox = createUnitSelectionBox(world, new WeakRef(views.inputs!.mouse), scene, _getSelectionUnit(images));
     const selectionDisplayComposer = createSelectionDisplayComposer(assets);
     scene.add(...selectionDisplayComposer.objects);
 
-    const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"));
+    const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"), "visualBox");
 
     world.events!.on("unit-selection-start", () => visualBox.start(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
 

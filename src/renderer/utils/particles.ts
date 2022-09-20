@@ -135,6 +135,7 @@ export const defaultUpdate = ({ alpha, size, velocity }: { alpha: FnOrValue<numb
 
 export function createParticles<T extends ParticleSystemDefinition>(_opts: T) {
     const opts = _opts;
+
     const geom = new BufferGeometry();
     const material = new ShaderMaterial({
         blending: AdditiveBlending,
@@ -160,6 +161,7 @@ export function createParticles<T extends ParticleSystemDefinition>(_opts: T) {
     }
 
     const points = new Points(geom, material);
+    points.name = `${opts.id} particles`;
     points.frustumCulled = false;
 
     const onEmit = (particle: ParticleDefinition) => {
@@ -283,7 +285,7 @@ export function createParticles<T extends ParticleSystemDefinition>(_opts: T) {
             updateParticles(camera, d);
             updateGeometry();
 
-        }
+        },
     };
 };
 

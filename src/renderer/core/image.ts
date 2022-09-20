@@ -14,7 +14,6 @@ export interface ImageBase extends Object3D {
   setEmissive?(val: number): void;
   updateImageType(atlas: AnimAtlas): ImageBase;
   setFrame: (frame: number, flip: boolean) => void;
-  dispose(): void;
 
   // for iscript sprite
   readonly unitTileScale: UnitTileScale;

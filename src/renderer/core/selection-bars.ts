@@ -166,6 +166,8 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
     super(_geometry, new SelectionBarMaterial())
 
     this.visible = false;
+    this.name = "SelectionBars";
+
   }
 
   update(

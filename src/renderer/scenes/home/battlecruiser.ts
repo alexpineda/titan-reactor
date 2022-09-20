@@ -27,6 +27,7 @@ export const createBattleCruiser = () => {
                 envmap
             );
             battleCruiser = model;
+            battleCruiser.name = "battlecruiser";
             model.traverse((o: Object3D) => {
                 if (o instanceof Mesh) {
                     o.material = upgradeStandardMaterial(o.material as MeshStandardMaterial);

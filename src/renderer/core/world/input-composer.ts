@@ -1,15 +1,15 @@
 import { MouseInput } from "@input/mouse-input";
 import { ArrowKeyInput } from "@input/arrow-key-input";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { expose } from "@utils/object-utils";
 
 export type InputComposer = ReturnType<typeof createInputComposer>;
 
 export const createInputComposer = () => {
 
-    const janitor = new Janitor()
-    const mouseInput = janitor.mop(new MouseInput(document.body));
-    const arrowKeyInput = janitor.mop(new ArrowKeyInput(document.body));
+    const janitor = new Janitor("InputComposer");
+    const mouseInput = janitor.mop(new MouseInput(document.body), "mouseInput");
+    const arrowKeyInput = janitor.mop(new ArrowKeyInput(document.body), "arrowKeyInput");
 
     return {
         get mouse() {

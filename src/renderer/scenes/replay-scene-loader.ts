@@ -14,7 +14,7 @@ import * as log from "@ipc/log";
 import settingsStore from "@stores/settings-store";
 import processStore from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";
-import Janitor from "@utils/janitor";
+import { Janitor } from "@utils/janitor";
 import { useReplayAndMapStore } from "@stores";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
@@ -25,15 +25,18 @@ import { Assets } from "@image/assets";
 import gameStore from "@stores/game-store";
 import { waitForTruthy } from "@utils/wait-for";
 import { music } from "@core/global";
+import { renderComposer } from "@render/render-composer"
 
 export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
 
+  renderComposer.getWebGLRenderer().forceContextLoss();
+  renderComposer.getWebGLRenderer().forceContextRestore();
   processStore().clearAll();
   const loadProcess = processStore().create("replay", 4);
 
   log.info(`@load-replay/file: ${filepath}`);
 
-  const janitor = new Janitor();
+  const janitor = new Janitor("ReplaySceneLoader");
   const settings = settingsStore().data;
 
   let replayBuffer = await openFile(filepath);
@@ -100,7 +103,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
   log.info(`@load-replay/game-type: ${GameTypes[replay.header.gameType]}`);
 
   useReplayAndMapStore.setState({ replay, map, mapImage: await createMapImage(map) });
-  janitor.mop(() => useReplayAndMapStore.getState().reset())
+  janitor.mop(() => useReplayAndMapStore.getState().reset(), "reset replay and map store");
 
   // wait for initial assets to load
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
