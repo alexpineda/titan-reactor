@@ -119,7 +119,7 @@ app.get('*', async function (req, res) {
 
     if (filepath.endsWith(".jsx") || filepath.endsWith(".tsx")) {
 
-        const { result, transpileErrors } = transpile(fs.readFileSync(filepath, "utf8"), filepath);
+        const { result, transpileErrors } = transpile(fs.readFileSync(filepath, "utf8"), filepath, filepath);
 
         let content = result.outputText;
         const plugins = getEnabledPluginPackages();
