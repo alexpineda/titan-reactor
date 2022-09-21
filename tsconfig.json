@@ -18,6 +18,7 @@
     "strictPropertyInitialization": true,
     "forceConsistentCasingInFileNames": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "noErrorTruncation": true,
 
     "noUnusedLocals": true,
     "noUnusedParameters": true,
