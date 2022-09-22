@@ -25,7 +25,7 @@ module.exports = {
     ecmaVersion: 12,
     sourceType: "module",
   },
-  plugins: ["react", "jest"],
+  plugins: ["react", "jest", "jest-extended"],
   rules: {
     "linebreak-style": ["error", "windows"],
     quotes: ["error", "double"],

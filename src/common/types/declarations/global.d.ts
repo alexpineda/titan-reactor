@@ -1,3 +1,4 @@
+import 'jest-extended';
 declare const __static: string;
 
 declare module "*!worker" {

@@ -21,7 +21,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     error: null,
     execSceneLoader: async (loader: SceneLoader, errorHandler?: SceneLoader, clearError = true) => {
         if (_loading) {
-            console.warn("Scene is already loading");
+            log.warning("Scene is already loading");
         }
         _loading = true;
 
@@ -42,10 +42,10 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
         try {
             const state = await loader(prevData);
             oldState && oldState.beforeNext && oldState.beforeNext();
+            await state.start(oldState?.id);
             set({
                 state
             });
-            await state.start(oldState?.id);
         } catch (err: any) {
             if (err instanceof Error) {
                 log.error(err.stack);
