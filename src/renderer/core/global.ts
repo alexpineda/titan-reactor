@@ -1,5 +1,4 @@
 import { UI_SYSTEM_OPEN_URL } from "@plugins/events";
-import { LogType } from "@ipc";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import {
     DISABLE_PLUGIN,
@@ -16,40 +15,18 @@ import {
 } from "common/ipc-handle-names";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { withErrorMessage } from "common/utils/with-error-message";
-import { TypeEmitter } from "@utils/type-emitter";
-import { PluginMetaData, SettingsMeta } from "common/types";
+import { PluginMetaData } from "common/types";
 import { MainMixer } from "@audio/main-mixer";
 import { Music } from "@audio/music";
 import { AudioListener } from "three";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor, JanitorLogLevel } from "three-janitor";
+import { globalEvents } from "./global-events";
 
 export const mixer = new MainMixer();
 export const music = new Music(mixer as unknown as AudioListener);
 
 // todo: stores
-export interface GlobalEvents {
-    "webglcontextlost": void;
-    "webglcontextrestored": void;
-    "command-center-save-settings": SettingsMeta;
-    "command-center-plugin-config-changed": { pluginId: string, config: any };
-    "command-center-plugins-enabled": PluginMetaData[];
-    "command-center-plugin-disabled": string;
-    "unsafe-open-url": string;
-    "load-home-scene": void;
-    "load-replay-file": string;
-    "load-map-file": string;
-    "load-iscriptah": string;
-    "log-message": { message: string, level: LogType, server?: boolean };
-    "initial-install-error-plugins": void;
-    "exec-macro": string;
-    "document-hidden": boolean;
-}
-
-/**
- * Centralized event emitter for global events.
- */
-export const globalEvents = new TypeEmitter<GlobalEvents>();
 
 window.addEventListener("message", (evt) => evt.data?.type === UI_SYSTEM_OPEN_URL && globalEvents.emit("unsafe-open-url", evt.data.payload));
 

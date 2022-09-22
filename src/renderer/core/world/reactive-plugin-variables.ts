@@ -1,16 +1,14 @@
 import { log } from "@ipc/log";
-import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { macroEffectApply } from "@macros/macro-effect-apply";
 import { createMutateEffectStore } from "@macros/create-mutate-effect-store";
 import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
 import { settingsStore } from "@stores/settings-store";
 import { last } from "@utils/function-utils";
 import { Janitor } from "three-janitor";
-import { SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
 import { FieldDefinition, MutateActionEffect, MacroActionPluginModifyValue } from "common/types";
-import { ipcRenderer } from "electron";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
+import { globalEvents } from "@core/global-events";
 
 type PluginResetStore = {
     [pluginName: string]: {
@@ -34,21 +32,16 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
     }, {}))) as PluginResetStore;
 
     // The user changed a plugin config so update the defaults
-    janitor.on(ipcRenderer, SEND_BROWSER_WINDOW, async (_: any, { type, payload: { pluginId, config } }: {
-        type: SendWindowActionType.PluginConfigChanged
-        payload: SendWindowActionPayload<SendWindowActionType.PluginConfigChanged>
-    }) => {
-        if (type === SendWindowActionType.PluginConfigChanged) {
-            const plugin = plugins.getById(pluginId);
-            if (plugin) {
-                for (const [key, field] of Object.entries(config ?? {})) {
-                    if (key !== "system") {
-                        lSet(defaultValues, [plugin.name, key], (field as FieldDefinition)?.value ?? field);
-                    }
+    janitor.mop(globalEvents.on("command-center-plugin-config-changed", ({ pluginId, config }) => {
+        const plugin = plugins.getById(pluginId);
+        if (plugin) {
+            for (const [key, field] of Object.entries(config ?? {})) {
+                if (key !== "system") {
+                    lSet(defaultValues, [plugin.name, key], (field as FieldDefinition)?.value ?? field);
                 }
             }
         }
-    }, "PluginConfigChanged");
+    }));
 
     const modifyPluginValue = (pluginName: string, fieldKey: string, effect: MutateActionEffect, newValue: any, resetValue: any) => {
 

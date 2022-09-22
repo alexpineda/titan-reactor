@@ -9,7 +9,7 @@ import screenStore from "@stores/scene-store";
 import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { createReactivePluginApi } from "@core/world/reactive-plugin-variables";
-import { globalEvents } from "@core/global";
+import { globalEvents } from "@core/global-events";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 

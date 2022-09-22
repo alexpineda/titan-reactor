@@ -1,6 +1,6 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
-import { log } from "@ipc";
+import { log } from "@ipc/log";
 import { settingsStore } from "@stores/settings-store";
 
 export const readCascFile = (filePath: string, encoding?: BufferEncoding) => {

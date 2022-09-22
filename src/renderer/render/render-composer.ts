@@ -13,7 +13,7 @@ import {
 } from "postprocessing";
 import Surface from "../image/canvas/surface";
 import { ColorManagement } from "three/src/math/ColorManagement";
-import { globalEvents } from "../core/global";
+import { globalEvents } from "../core/global-events";
 
 
 //@ts-ignore

@@ -3,7 +3,7 @@ import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
 import { Janitor } from "three-janitor";
 import { createCompartment } from "@utils/ses-util";
-import { globalEvents } from "../global";
+import { globalEvents } from "../global-events";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
 
