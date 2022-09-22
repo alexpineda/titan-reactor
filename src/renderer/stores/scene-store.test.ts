@@ -2,9 +2,6 @@ import { describe, it, jest } from "@jest/globals";
 import sceneStore, { SceneLoader } from "./scene-store";
 import { log } from "@ipc/log";
 
-jest.useFakeTimers();
-jest.spyOn(global, 'setTimeout');
-
 jest.mock("@ipc/log");
 
 const util = {
@@ -109,6 +106,22 @@ describe("SceneStore", () => {
         await sceneStore().execSceneLoader(nextLoader as SceneLoader);
 
         expect(sceneStore().error).toBe(null);
+
+    });
+
+    it("should call beforeNext after loading next scene but before calling start", async () => {
+
+        const oldState = util.createSceneState({ beforeNext: jest.fn() });
+        const newState = util.createSceneState();
+        const loader = jest.fn(() => oldState);
+        const nextLoader = jest.fn(() => newState);
+
+        await sceneStore().execSceneLoader(loader as SceneLoader);
+        await sceneStore().execSceneLoader(nextLoader as SceneLoader);
+
+        expect(nextLoader.mock.invocationCallOrder[0] < oldState.beforeNext!.mock.invocationCallOrder[0]).toBe(true);
+
+        expect(newState.start.mock.invocationCallOrder[0] > oldState.beforeNext!.mock.invocationCallOrder[0]).toBe(true);
 
     });
 

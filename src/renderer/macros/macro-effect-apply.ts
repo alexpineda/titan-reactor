@@ -10,11 +10,14 @@ const isFiniteV = (...args: any) => {
     return true;
 }
 
-export const doActionEffect = (effect: ActionEffect, field: FieldDefinition, newValue: any, defaultValue: any) => {
-
+export const macroEffectApply = (effect: ActionEffect, field: FieldDefinition, newValue: any, defaultValue: any) => {
     if (field.options) {
-        return getActionEffectOptionsValue(effect, field, newValue, defaultValue);
+        return macroEffectApplyList(effect, field, newValue, defaultValue);
     }
+    return macroEffectApplyNumeric(effect, field, newValue, defaultValue);
+}
+
+export const macroEffectApplyNumeric = (effect: ActionEffect, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
     if (effect === ActionEffect.Increase && field.max !== undefined && isFiniteV(field.step, field.max)) {
         // TODO: multiply by optional new value
@@ -51,7 +54,7 @@ export const doActionEffect = (effect: ActionEffect, field: FieldDefinition, new
     return field;
 }
 
-export const getActionEffectOptionsValue = (effect: ActionEffect, field: FieldDefinition, newValue: any, defaultVAlue: any) => {
+export const macroEffectApplyList = (effect: ActionEffect, field: FieldDefinition, newValue: any, defaultVAlue: any) => {
 
     let options = Array.isArray(field.options) ? field.options : Object.values(field.options!);
 

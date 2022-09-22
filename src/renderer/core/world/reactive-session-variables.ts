@@ -1,7 +1,8 @@
 
 import { FieldDefinition, ModifyValueActionEffect, SessionSettingsData, MacroActionHostModifyValue } from "common/types";
 import deepMerge from 'deepmerge';
-import { doActionEffect } from "@macros";
+import { macroEffectApply } from "@macros";
+import { BeforeSet, createMacroEffectAdapter, MacroEffectVariable } from "@macros/create-macro-effect-adapter";
 import { getSessionSettingsInLevaFormat, getSessionSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
@@ -9,7 +10,6 @@ import lGet from "lodash.get";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { log } from "@ipc/log";
 import { Janitor } from "three-janitor";
-import { BeforeSet, createReactiveVariable, ReactiveVariable } from "@utils/create-reactive-variable";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
 import { arrayOverwriteMerge } from "@utils/object-utils";
@@ -18,7 +18,7 @@ export type MergeSessionStore = (rhs: DeepPartial<SessionSettingsData>) => void;
 
 const applyEffectToSessionProperty = (mergeRootSession: MergeSessionStore, effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue: any, resetValue: any, beforeSet?: (newValue: any, field: FieldDefinition) => boolean | void) => {
 
-    let value = doActionEffect(effect, field, newValue, resetValue);
+    let value = macroEffectApply(effect, field, newValue, resetValue);
 
     if (beforeSet && beforeSet(value, field) === false) {
         return;
@@ -56,7 +56,7 @@ const isValidkey = (key: string) => {
 
 export type SessionVariables = {
     [K in keyof SessionSettingsData]: {
-        [T in keyof SessionSettingsData[K]]: ReactiveVariable
+        [T in keyof SessionSettingsData[K]]: MacroEffectVariable
     };
 }
 
@@ -101,14 +101,14 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
     }
 
-    const defineSessionProperty = createReactiveVariable(applyEffectToSessionRoot, (path) => lGet(store, path));
+    const createVariable = createMacroEffectAdapter(applyEffectToSessionRoot, (path) => lGet(store, path));
 
     const sessionSettingsConfig = getSessionSettingsInLevaFormat(settingsStore().data, settingsStore().enabledPlugins);
 
     const sessionVars = (Object.entries(sessionSettingsConfig).reduce((acc, [key, value]) => {
         if (isValidkey(key)) {
             const settingsKey = key.split(".");
-            lSet<SessionVariables>(acc, settingsKey, defineSessionProperty(value, settingsKey));
+            lSet<SessionVariables>(acc, settingsKey, createVariable(value, settingsKey));
             lSet<SessionVariables>(acc, [`get${settingsKey.map(t => t[0].toUpperCase() + t.slice(1)).join("")}`], () => lGet(store, settingsKey));
         }
         return acc;

@@ -1,6 +1,7 @@
 import { log } from "@ipc/log";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
-import { doActionEffect } from "@macros/do-action-effect";
+import { macroEffectApply } from "@macros/macro-effect-apply";
+import { createMacroEffectAdapter } from "@macros/create-macro-effect-adapter";
 import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
 import settingsStore from "@stores/settings-store";
 import { last } from "@utils/function-utils";
@@ -10,7 +11,6 @@ import { FieldDefinition, ModifyValueActionEffect, MacroActionPluginModifyValue 
 import { ipcRenderer } from "electron";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
-import { createReactiveVariable } from "@utils/create-reactive-variable";
 
 type PluginResetStore = {
     [pluginName: string]: {
@@ -70,7 +70,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
         }
 
         //TODO: copy config to new config so onConfigChanged works properly
-        plugin.setConfig(fieldKey, doActionEffect(effect, field, newValue, resetValue), false);
+        plugin.setConfig(fieldKey, macroEffectApply(effect, field, newValue, resetValue), false);
         plugins.hook_onConfigChanged(plugin.id, plugin.rawConfig);
 
         return {
@@ -91,7 +91,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
     const getRawValue = (name: string, field: string[]) => lGet(plugins.getByName(name)?.rawConfig ?? {}, field);
 
-    const definePluginVar = (plugin: PluginBase) => createReactiveVariable(applyEffectFromMethod(plugin.name), (path) => getRawValue(plugin.name, last(path)));
+    const definePluginVar = (plugin: PluginBase) => createMacroEffectAdapter(applyEffectFromMethod(plugin.name), (path) => getRawValue(plugin.name, last(path)));
 
     const pluginVars = plugins.reduce((acc, plugin) => {
 
