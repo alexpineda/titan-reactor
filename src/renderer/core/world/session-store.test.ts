@@ -60,6 +60,22 @@ describe("SessionStore", () => {
 
     });
 
+    it("should merge deep", () => {
+
+        const sourceOfTruth = {
+            foo: {
+                bar: "baz"
+            }
+        };
+        const store = createSessionStore({ sourceOfTruth });
+
+        expect(store.merge({ foo: { bar: "foo" } }));
+
+        expect(store.getValue(["foo", "bar"])).toBe("foo");
+        expect(store.getResetValue(["foo", "bar"])).toBe("baz");
+
+    });
+
     it("should merge if validate is true", () => {
 
         const sourceOfTruth = {

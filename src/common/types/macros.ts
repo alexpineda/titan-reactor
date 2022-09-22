@@ -1,19 +1,9 @@
+import { FieldTarget, Mutation } from "./mutations";
+
 export enum MacroActionSequence {
     AllSync = "AllSync",
     SingleAlternate = "SingleAlternate",
     SingleRandom = "SingleRandom",
-}
-
-export enum MutationInstruction {
-    SetToDefault = "SetToDefault",
-    Set = "Set",
-    Toggle = "Toggle",
-    Increase = "Increase",
-    Decrease = "Decrease",
-    IncreaseCycle = "IncreaseCycle",
-    DecreaseCycle = "DecreaseCycle",
-    Min = "Min",
-    Max = "Max",
 }
 
 export enum MacroActionType {
@@ -37,23 +27,16 @@ export enum MacroConditionComparator {
     LessThanOrEquals = "LessThanOrEquals",
 }
 
-export type MacroConditionAppSetting = {
+export type MacroConditionAppSetting = FieldTarget & {
     type: MacroConditionType.AppSettingsCondition,
     id: string;
-    field: string[];
-    value?: any;
-
     comparator: MacroConditionComparator;
     error?: MacroActionConfigurationError;
 }
 
-export type MacroConditionPluginSetting = {
+export type MacroConditionPluginSetting = FieldTarget & {
     type: MacroConditionType.PluginSettingsCondition,
     id: string;
-    pluginName: string;
-    field: string[];
-    value?: any;
-
     comparator: MacroConditionComparator;
     error?: MacroActionConfigurationError;
 }
@@ -83,26 +66,9 @@ export enum MacroActionConfigurationErrorType {
     InvalidMacro = "InvalidMacro",
 }
 
-export type FieldDefinition = {
-    value: any;
-    step?: number;
-    min?: number;
-    max?: number;
-    options?: any[] | {};
-}
-
-export type Mutation = {
-    path: string[];
-    value: any;
-    instruction: MutationInstruction;
-}
-
-export type MacroActionHostModifyValue = {
+export type MacroActionHostModifyValue = Mutation & {
     type: MacroActionType.ModifyAppSettings;
-    field: string[];
-    value?: any;
     id: string;
-    effect: MutationInstruction;
     error?: MacroActionConfigurationError;
 }
 
@@ -113,14 +79,9 @@ export type MacroActionGameTimeApiCallMethod = {
     error?: MacroActionConfigurationError;
 }
 
-export type MacroActionPluginModifyValue = {
+export type MacroActionPluginModifyValue = Mutation & {
     type: MacroActionType.ModifyPluginSettings;
-    pluginName: string;
-    field: string[];
-    value?: any;
-
     id: string;
-    effect: MutationInstruction;
     error?: MacroActionConfigurationError;
 }
 

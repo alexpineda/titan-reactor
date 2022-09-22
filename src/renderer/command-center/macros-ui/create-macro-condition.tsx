@@ -31,15 +31,14 @@ export const CreateMacroCondition = ({
       onCreate({
         id: generateUUID(),
         type: conditionType,
-        field: defaultAppSettingsField,
+        path: defaultAppSettingsField,
         comparator: MacroConditionComparator.Equals,
       });
     } else if (conditionType === MacroConditionType.PluginSettingsCondition) {
       onCreate({
         id: generateUUID(),
         type: conditionType,
-        field: defaultPluginSettingsField,
-        pluginName: defaultPluginName,
+        path: [defaultPluginName, ...defaultPluginSettingsField],
         comparator: MacroConditionComparator.Equals,
       });
     } else if (conditionType === MacroConditionType.FunctionCondition) {

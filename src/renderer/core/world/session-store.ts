@@ -18,11 +18,14 @@ export function createSessionStore<T extends Record<string, any>>({ sourceOfTrut
     const getResetValue = (path: string[]) => lGet(sourceOfTruth, path);
 
     const merge = (rhs: DeepPartial<T>) => {
+
         const result = deepMerge(store, rhs, { arrayMerge: arrayOverwriteMerge }) as Required<T>;
+
         if (validateMerge === undefined || validateMerge(result, rhs)) {
             Object.assign(store, result);
             onUpdate && onUpdate(store, rhs);
         }
+
     }
 
     const getValue = (path: string[]) => lGet(store, path);

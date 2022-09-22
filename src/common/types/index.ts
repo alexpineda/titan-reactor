@@ -14,3 +14,4 @@ export * from "./structs";
 export * from "./macros";
 export * from "./utils";
 export * from "./trigger";
+export * from "./mutations";

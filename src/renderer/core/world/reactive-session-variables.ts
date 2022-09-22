@@ -77,11 +77,7 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
     const mutate = async (action: MacroActionHostModifyValue) => {
 
-        mutation.mutate({
-            path: action.field,
-            value: action.value,
-            instruction: action.effect,
-        });
+        mutation.mutate(action);
 
     }
 

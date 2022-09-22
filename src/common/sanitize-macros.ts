@@ -1,5 +1,6 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, MutationInstruction, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { FieldDefinition, MutationInstruction } from "./types/mutations";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
@@ -49,14 +50,11 @@ const sanitizeMacroCondition = (condition: MacroCondition, settings: SettingsAnd
 const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
     if (action.type === MacroActionType.ModifyAppSettings || action.type === MacroActionType.ModifyPluginSettings) {
 
-        const validEffects = getMacroActionValidEffects(action, settings);
-        if (!validEffects.includes(action.effect)) {
-            action.effect = validEffects[0];
+        const validInstructions = getValidMutationInstructions(action, settings);
+        if (!validInstructions.includes(action.instruction)) {
+            action.instruction = validInstructions[0];
         }
 
-        if (action.effect !== MutationInstruction.Set && action.effect !== MutationInstruction.Toggle) {
-            delete action.value;
-        }
     }
 }
 
@@ -74,14 +72,14 @@ const sanitizeMacroConditionComparators = (condition: MacroCondition, settings: 
 const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroCondition, settings: SettingsAndPluginsMeta) => {
 
     if (action.type === MacroActionType.ModifyAppSettings || action.type === "AppSettingsCondition") {
-        let field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.field) as FieldDefinition;
+        let field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.path) as FieldDefinition;
 
         // sane default
-        if (field === undefined || action.field.length == 0) {
+        if (field === undefined || action.path.length == 0) {
             return;
         }
 
-        const assignProperValue = action.type === MacroActionType.ModifyAppSettings && action.effect === MutationInstruction.Set || action.type === "AppSettingsCondition";
+        const assignProperValue = action.type === MacroActionType.ModifyAppSettings && action.instruction === MutationInstruction.Set || action.type === "AppSettingsCondition";
         if (assignProperValue) {
             if (action.value === undefined) {
                 if (field.options) {
@@ -99,16 +97,16 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             }
         }
     } else if (action.type === MacroActionType.ModifyPluginSettings || action.type === "PluginSettingsCondition") {
-        const plugin = settings.enabledPlugins.find((p) => p.name === action.pluginName);
+        const plugin = settings.enabledPlugins.find((p) => p.name === action.path[0]);
         if (!plugin) {
             action.error = {
                 type: MacroActionConfigurationErrorType.MissingPlugin,
-                message: `Missing plugin ${action.pluginName}`,
+                message: `Missing plugin ${action.path[0]}`,
             }
             return;
         }
 
-        if (!action.field || action.field.length === 0) {
+        if (!action.path || action.path.length === 0) {
             let replaced: string | undefined;
             if (plugin.externMethods.length) {
                 replaced = plugin.externMethods[0];
@@ -116,7 +114,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
                 replaced = Object.keys(plugin.config!).find(k => k !== "system");
             }
             if (replaced) {
-                action.field = [replaced]
+                action.path = [replaced]
             }
             // failed to properly assign a field even though the config is available and/or plugins methods are available
             else if (getPluginConfigFields(plugin.config).length || plugin.externMethods.length) {
@@ -129,17 +127,17 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             return;
         }
 
-        if (action.field[0].startsWith("externMethod") && !plugin.externMethods.includes(action.field[0])) {
-            action.error = {
-                type: MacroActionConfigurationErrorType.MissingField,
-                message: `Missing field for plugin ${action.pluginName} ${action.field[0]}`,
-            }
-            return;
-        }
+        // if (action.field[0].startsWith("externMethod") && !plugin.externMethods.includes(action.field[0])) {
+        //     action.error = {
+        //         type: MacroActionConfigurationErrorType.MissingField,
+        //         message: `Missing field for plugin ${action.pluginName} ${action.field[0]}`,
+        //     }
+        //     return;
+        // }
 
-        const checkField = action.type === MacroActionType.ModifyPluginSettings && action.effect === MutationInstruction.Set || action.type === "PluginSettingsCondition";
+        const checkField = action.type === MacroActionType.ModifyPluginSettings && action.instruction === MutationInstruction.Set || action.type === "PluginSettingsCondition";
         if (checkField) {
-            const field = plugin.config?.[action.field[0] as keyof typeof plugin] ?? { value: null };
+            const field = plugin.config?.[action.path[1] as keyof typeof plugin] ?? { value: null };
             if (action.value === undefined) {
                 if (field.options) {
                     action.value = getFirstOption(field.options);
@@ -183,13 +181,13 @@ export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number"
 };
 
 
-export const getMacroActionValidEffects = (
+export const getValidMutationInstructions = (
     action: MacroAction,
     settings: SettingsAndPluginsMeta
 ): MutationInstruction[] => {
 
     if (action.type === MacroActionType.ModifyAppSettings) {
-        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.field);
+        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.path);
         if (!field) {
             return [];
         }
@@ -204,12 +202,12 @@ export const getMacroActionValidEffects = (
     } else if (action.type === MacroActionType.CallGameTimeApi) {
         return [];
     } else if (action.type === MacroActionType.ModifyPluginSettings) {
-        const plugin = settings.enabledPlugins.find((p) => p.name === action.pluginName);
+        const plugin = settings.enabledPlugins.find((p) => p.name === action.path[0]);
         if (!plugin) {
             return [];
         }
 
-        const field = plugin.config?.[action.field[0] as keyof typeof plugin];
+        const field = plugin.config?.[action.path[1] as keyof typeof plugin];
         if (field === undefined) {
             return [];
         }
@@ -230,7 +228,7 @@ export const getMacroConditionValidComparators = (
 ): MacroConditionComparator[] => {
 
     if (condition.type === "AppSettingsCondition") {
-        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, condition.field);
+        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, condition.path);
         if (!field) {
             return [];
         }
@@ -246,12 +244,12 @@ export const getMacroConditionValidComparators = (
         // all of them, eg. same as number
         return getMacroConditionValueValidComparitors("number");
     } else if (condition.type === "PluginSettingsCondition") {
-        const plugin = settings.enabledPlugins.find((p) => p.name === condition.pluginName);
+        const plugin = settings.enabledPlugins.find((p) => p.name === condition.path[0]);
         if (!plugin) {
             return [];
         }
 
-        const field = plugin.config?.[condition.field[0] as keyof typeof plugin];
+        const field = plugin.config?.[condition.path[1] as keyof typeof plugin];
         if (field === undefined) {
             return [];
         }
@@ -288,9 +286,9 @@ export const getFirstOption = (options: Required<FieldDefinition>["options"]) =>
     return !Array.isArray(options) ? Object.values(options)[0] : options[0];
 }
 
-export const getMacroActionOrConditionLevaConfig = ({ value, field }: MacroConditionAppSetting | MacroActionHostModifyValue, settings: SettingsAndPluginsMeta) => {
+export const getMacroActionOrConditionLevaConfig = ({ value, path }: MacroConditionAppSetting | MacroActionHostModifyValue, settings: SettingsAndPluginsMeta) => {
 
-    const levaConfig = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, field);
+    const levaConfig = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, path);
 
     const displayValue =
         //@ts-ignore

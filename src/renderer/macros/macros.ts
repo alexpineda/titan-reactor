@@ -26,8 +26,8 @@ export class Macros {
 
     doSessionAction?: (action: MacroActionHostModifyValue) => void;
     doPluginAction?: (action: MacroActionPluginModifyValue) => void;
-    getSessionProperty?: (field: string[]) => SessionSettingsData;
-    getPluginProperty?: (pluginName: string, field: string[]) => any;
+    getSessionProperty?: (path: string[]) => SessionSettingsData;
+    getPluginProperty?: (path: string[]) => any;
 
     constructor(macros?: MacrosDTO) {
         if (macros) {
@@ -141,10 +141,9 @@ export class Macros {
         for (const condition of macro.conditions) {
             let value: any;
             if (condition.type === MacroConditionType.AppSettingsCondition) {
-                value = this.getSessionProperty!(condition.field);
+                value = this.getSessionProperty!(condition.path);
             } else if (condition.type === MacroConditionType.PluginSettingsCondition) {
-                value = this.getPluginProperty!(condition.pluginName, condition.field);
-            } else {
+                value = this.getPluginProperty!(condition.path);
                 const c = this.#createGameCompartment!(context);
                 try {
                     value = c.globalThis.Function(condition.value)();

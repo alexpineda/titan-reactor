@@ -56,11 +56,11 @@ export const MacrosPanel = () => {
 
   const updateMacroActionEffect = (
     action: MacroActionHostModifyValue | MacroActionPluginModifyValue,
-    effect: MutationInstruction
+    instruction: MutationInstruction
   ) => {
     updateMacroAction({
       ...action,
-      effect,
+      instruction,
     });
   };
 

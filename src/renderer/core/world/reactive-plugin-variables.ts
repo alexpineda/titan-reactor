@@ -23,8 +23,9 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
     const janitor = new Janitor("ReactivePluginApi");
 
+
     // set the default values for user with reset()
-    const defaultValues = JSON.parse(JSON.stringify(plugins.reduce((acc, plugin) => {
+    const sourceOfTruth = JSON.parse(JSON.stringify(plugins.reduce((acc, plugin) => {
         for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
             lSet(acc, [plugin.name, key], (field as FieldDefinition)?.value ?? field);
         }
@@ -37,7 +38,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
         if (plugin) {
             for (const [key, field] of Object.entries(config ?? {})) {
                 if (key !== "system") {
-                    lSet(defaultValues, [plugin.name, key], (field as FieldDefinition)?.value ?? field);
+                    lSet(sourceOfTruth, [plugin.name, key], (field as FieldDefinition)?.value ?? field);
                 }
             }
         }
@@ -76,15 +77,15 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
     const applyEffectFromMethod = (pluginName: string) => (effect: MutationInstruction, path: string[], newValue: any) => {
 
-        const resetValue = lGet(defaultValues, path);
+        const resetValue = lGet(sourceOfTruth, path);
 
         modifyPluginValue(pluginName, last(path), effect, newValue, resetValue);
 
     }
 
-    const getRawValue = (name: string, field: string[]) => lGet(plugins.getByName(name)?.rawConfig ?? {}, field);
+    const getRawValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
 
-    const definePluginVar = (plugin: PluginBase) => createMutateEffectStore(applyEffectFromMethod(plugin.name), (path: string[]) => getRawValue(plugin.name, last(path)));
+    const definePluginVar = (plugin: PluginBase) => createMutateEffectStore(applyEffectFromMethod(plugin.name), (path: string[]) => getRawValue(path));
 
     const vars = plugins.reduce((acc, plugin) => {
 
@@ -110,9 +111,9 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
     const mutate = (action: MacroActionPluginModifyValue) => {
 
-        const resetValue = lGet(defaultValues, [action.pluginName, ...action.field]);
+        const resetValue = lGet(sourceOfTruth, action.path);
 
-        return modifyPluginValue(action.pluginName, action.field[0], action.effect, action.value, resetValue);
+        return modifyPluginValue(action.path[0], action.path[1], action.instruction, action.value, resetValue);
 
     }
 

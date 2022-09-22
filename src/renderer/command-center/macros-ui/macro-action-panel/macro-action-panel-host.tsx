@@ -28,18 +28,18 @@ export const MacroActionPanelHost = (
         onChange={(evt) => {
           updateMacroAction({
             ...action,
-            field: evt.target.value.split("."),
-            effect: MutationInstruction.SetToDefault,
+            path: evt.target.value.split("."),
+            instruction: MutationInstruction.SetToDefault,
             value: undefined,
           });
         }}
-        value={action.field.join(".")}
+        value={action.path.join(".")}
         disabled={viewOnly}
       />
       <ErrorBoundary message="Error with effects">
         <MacroActionEffectSelector {...props} />
       </ErrorBoundary>
-      {viewOnly && action.effect === MutationInstruction.Set && (
+      {viewOnly && action.instruction === MutationInstruction.Set && (
         <p
           style={{
             background: "var(--green-0)",
@@ -53,8 +53,8 @@ export const MacroActionPanelHost = (
         </p>
       )}
 
-      {(action.effect === MutationInstruction.Set ||
-        action.effect === MutationInstruction.Toggle) &&
+      {(action.instruction === MutationInstruction.Set ||
+        action.instruction === MutationInstruction.Toggle) &&
         !viewOnly &&
         action.value !== undefined &&
         levaConfig !== undefined && (

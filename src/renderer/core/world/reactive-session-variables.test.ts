@@ -96,9 +96,9 @@ describe("ReactiveSessionVariables", () => {
         vars.mutate({
             id: "test",
             type: MacroActionType.ModifyAppSettings,
-            field: ["audio", "music"],
+            path: ["audio", "music"],
             value: 0.5,
-            effect: MutationInstruction.Set
+            instruction: MutationInstruction.Set
         });
 
         expect(vars.getState()).toStrictEqual({

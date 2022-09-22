@@ -14,7 +14,7 @@ export const MacroActionPanelPlugin = (
 ) => {
   const { action, pluginsMetadata, updateMacroAction, viewOnly } = props;
 
-  const plugin = pluginsMetadata.find((p) => p.name === action.pluginName);
+  const plugin = pluginsMetadata.find((p) => p.name === action.path[0]);
 
   if (!plugin) {
     throw new Error(`This action has either no plugin configuration or an invalid plugin
@@ -22,7 +22,7 @@ export const MacroActionPanelPlugin = (
               disabled.`);
   }
 
-  const field = plugin.config?.[action.field[0] as keyof typeof plugin.config];
+  const field = plugin.config?.[action.path[1] as keyof typeof plugin.config];
 
   return (
     <>
@@ -41,13 +41,12 @@ export const MacroActionPanelPlugin = (
             onChange={(evt) => {
               updateMacroAction({
                 ...action,
-                pluginName: evt.target.value,
-                field: [],
+                path: [evt.target.value],
                 value: undefined,
-                effect: MutationInstruction.SetToDefault,
+                instruction: MutationInstruction.SetToDefault,
               });
             }}
-            value={action.pluginName}
+            value={action.path[0]}
             disabled={viewOnly}
           >
             {pluginsMetadata.map((pluginMetadata) => (
@@ -63,12 +62,12 @@ export const MacroActionPanelPlugin = (
             onChange={(evt) => {
               updateMacroAction({
                 ...action,
-                field: [evt.target.value],
+                path: [action.path[0], evt.target.value],
                 value: undefined,
-                effect: MutationInstruction.SetToDefault,
+                instruction: MutationInstruction.SetToDefault,
               });
             }}
-            value={action.field[0]}
+            value={action.path[1]}
             disabled={viewOnly}
           >
             {plugin.config &&
@@ -88,7 +87,7 @@ export const MacroActionPanelPlugin = (
           <MacroActionEffectSelector {...props} />
         </ErrorBoundary>
 
-        {viewOnly && action.effect === MutationInstruction.Set && (
+        {viewOnly && action.instruction === MutationInstruction.Set && (
           <p
             style={{
               background: "var(--green-0)",
@@ -102,7 +101,7 @@ export const MacroActionPanelPlugin = (
           </p>
         )}
       </div>
-      {action.effect === MutationInstruction.Set &&
+      {action.instruction === MutationInstruction.Set &&
         !viewOnly &&
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>

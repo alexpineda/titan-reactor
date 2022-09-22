@@ -16,11 +16,11 @@ export const createDefaultMacros = () => {
       [{
         id: generateUUID(),
         type: MacroActionType.ModifyAppSettings,
-        field: [
+        path: [
           "game",
           "sceneController"
         ],
-        effect: MutationInstruction.Set,
+        instruction: MutationInstruction.Set,
         value: "@titan-reactor-plugins/camera-battle"
       }],
       MacroActionSequence.AllSync,
@@ -28,7 +28,7 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroConditionType.AppSettingsCondition,
-          field: [
+          path: [
             "game",
             "sceneController"
           ],
@@ -47,11 +47,11 @@ export const createDefaultMacros = () => {
       [{
         id: generateUUID(),
         type: MacroActionType.ModifyAppSettings,
-        field: [
+        path: [
           "game",
           "sceneController"
         ],
-        effect: MutationInstruction.Set,
+        instruction: MutationInstruction.Set,
         value: "@titan-reactor-plugins/camera-standard"
       }],
       MacroActionSequence.AllSync,
@@ -59,7 +59,7 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroConditionType.AppSettingsCondition,
-          field: [
+          path: [
             "game",
             "sceneController"
           ],
@@ -105,8 +105,8 @@ export const createDefaultMacros = () => {
       [{
         id: generateUUID(),
         type: MacroActionType.ModifyAppSettings,
-        field: ["game", "sceneController"],
-        effect: MutationInstruction.IncreaseCycle
+        path: ["game", "sceneController"],
+        instruction: MutationInstruction.IncreaseCycle
       }],
       MacroActionSequence.SingleAlternate
     )
@@ -128,16 +128,16 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
-          field: ["audio", "music"],
+          path: ["audio", "music"],
 
-          effect: MutationInstruction.SetToDefault,
+          instruction: MutationInstruction.SetToDefault,
 
         },
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
-          field: ["audio", "music"],
-          effect: MutationInstruction.Min,
+          path: ["audio", "music"],
+          instruction: MutationInstruction.Min,
         },
       ],
       MacroActionSequence.SingleAlternate
@@ -159,14 +159,14 @@ export const createDefaultMacros = () => {
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
-          field: ["audio", "sound"],
-          effect: MutationInstruction.SetToDefault,
+          path: ["audio", "sound"],
+          instruction: MutationInstruction.SetToDefault,
         },
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
-          field: ["audio", "sound"],
-          effect: MutationInstruction.Min,
+          path: ["audio", "sound"],
+          instruction: MutationInstruction.Min,
         },
       ],
       MacroActionSequence.SingleAlternate

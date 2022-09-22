@@ -31,16 +31,15 @@ export const CreateMacroAction = ({
       onCreate({
         id: generateUUID(),
         type: actionType,
-        field: defaultAppSettingsField,
-        effect: MutationInstruction.SetToDefault,
+        path: defaultAppSettingsField,
+        instruction: MutationInstruction.SetToDefault,
       });
     } else if (actionType === MacroActionType.ModifyPluginSettings) {
       onCreate({
         id: generateUUID(),
         type: actionType,
-        field: defaultPluginSettingsField,
-        effect: MutationInstruction.SetToDefault,
-        pluginName: defaultPluginName,
+        path: [defaultPluginName, ...defaultPluginSettingsField],
+        instruction: MutationInstruction.SetToDefault,
       });
     } else if (actionType === MacroActionType.CallGameTimeApi) {
       onCreate({

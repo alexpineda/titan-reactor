@@ -4,7 +4,7 @@ import {
   MacroActionPluginModifyValue,
   MutationInstruction,
 } from "common/types";
-import { getMacroActionValidEffects } from "common/sanitize-macros";
+import { getValidMutationInstructions } from "common/sanitize-macros";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { useSettingsStore } from "@stores";
 
@@ -16,7 +16,7 @@ export const MacroActionEffectSelector = ({
   action: MacroActionHostModifyValue | MacroActionPluginModifyValue;
 }) => {
   const settings = useSettingsStore();
-  const validEffects = getMacroActionValidEffects(action, settings);
+  const validEffects = getValidMutationInstructions(action, settings);
 
   return (
     <select
@@ -26,7 +26,7 @@ export const MacroActionEffectSelector = ({
           evt.target.value as MutationInstruction
         );
       }}
-      value={action.effect}
+      value={action.instruction}
       disabled={viewOnly}
     >
       {validEffects.map((key) => (

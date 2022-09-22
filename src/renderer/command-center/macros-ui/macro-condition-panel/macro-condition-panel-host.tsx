@@ -31,12 +31,12 @@ export const MacroConditionPanelHost = (
         onChange={(evt) => {
           updateMacroCondition({
             ...condition,
-            field: evt.target.value.split("."),
+            path: evt.target.value.split("."),
             comparator: MacroConditionComparator.Equals,
             value: undefined,
           });
         }}
-        value={condition.field.join(".")}
+        value={condition.path.join(".")}
         disabled={viewOnly}
       />
       <ErrorBoundary message="Error with comparators">
