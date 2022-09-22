@@ -1,5 +1,5 @@
 import sceneStore from "@stores/scene-store";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { createAssets } from "@image/assets";
 import { log } from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";

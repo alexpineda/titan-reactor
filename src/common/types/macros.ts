@@ -4,7 +4,7 @@ export enum MacroActionSequence {
     SingleRandom = "SingleRandom",
 }
 
-export enum ModifyValueActionEffect {
+export enum MutateActionEffect {
     SetToDefault = "SetToDefault",
     Set = "Set",
     Toggle = "Toggle",
@@ -91,12 +91,19 @@ export type FieldDefinition = {
     options?: any[] | {};
 }
 
+export type MutateAction = {
+    type: "boolean" | "string" | "number" | "vector" | "list";
+    path: string[];
+    value: any;
+    effect: MutateActionEffect;
+}
+
 export type MacroActionHostModifyValue = {
     type: MacroActionType.ModifyAppSettings;
     field: string[];
     value?: any;
     id: string;
-    effect: ModifyValueActionEffect;
+    effect: MutateActionEffect;
     error?: MacroActionConfigurationError;
 }
 
@@ -114,7 +121,7 @@ export type MacroActionPluginModifyValue = {
     value?: any;
 
     id: string;
-    effect: ModifyValueActionEffect;
+    effect: MutateActionEffect;
     error?: MacroActionConfigurationError;
 }
 

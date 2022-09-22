@@ -5,7 +5,7 @@ import { ImageHD } from "@core/image-hd";
 import { applyViewportToFrameOnImageHD } from "@core/model-effects";
 import { EffectivePasses, PostProcessingBundler } from "@render/postprocessing-bundler";
 import { renderComposer } from "@render/render-composer";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";

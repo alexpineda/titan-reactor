@@ -1,7 +1,7 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
 import { log } from "@ipc";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 
 export const readCascFile = (filePath: string, encoding?: BufferEncoding) => {
   return fsPromises.readFile(path.join(settingsStore().data.directories.starcraft, filePath), encoding);

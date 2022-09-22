@@ -1,9 +1,6 @@
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { getMacroActionOrConditionLevaConfig } from "common/sanitize-macros";
-import {
-  ModifyValueActionEffect,
-  MacroActionHostModifyValue,
-} from "common/types";
+import { MutateActionEffect, MacroActionHostModifyValue } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
 import { MacroActionEffectSelector } from "./macro-action-effect-selector";
@@ -32,7 +29,7 @@ export const MacroActionPanelHost = (
           updateMacroAction({
             ...action,
             field: evt.target.value.split("."),
-            effect: ModifyValueActionEffect.SetToDefault,
+            effect: MutateActionEffect.SetToDefault,
             value: undefined,
           });
         }}
@@ -42,7 +39,7 @@ export const MacroActionPanelHost = (
       <ErrorBoundary message="Error with effects">
         <MacroActionEffectSelector {...props} />
       </ErrorBoundary>
-      {viewOnly && action.effect === ModifyValueActionEffect.Set && (
+      {viewOnly && action.effect === MutateActionEffect.Set && (
         <p
           style={{
             background: "var(--green-0)",
@@ -56,8 +53,8 @@ export const MacroActionPanelHost = (
         </p>
       )}
 
-      {(action.effect === ModifyValueActionEffect.Set ||
-        action.effect === ModifyValueActionEffect.Toggle) &&
+      {(action.effect === MutateActionEffect.Set ||
+        action.effect === MutateActionEffect.Toggle) &&
         !viewOnly &&
         action.value !== undefined &&
         levaConfig !== undefined && (

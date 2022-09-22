@@ -1,5 +1,5 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, ModifyValueActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
+import { FieldDefinition, MacroAction, MacroActionConfigurationErrorType, MutateActionEffect, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
 
 type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
@@ -54,7 +54,7 @@ const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPl
             action.effect = validEffects[0];
         }
 
-        if (action.effect !== ModifyValueActionEffect.Set && action.effect !== ModifyValueActionEffect.Toggle) {
+        if (action.effect !== MutateActionEffect.Set && action.effect !== MutateActionEffect.Toggle) {
             delete action.value;
         }
     }
@@ -81,7 +81,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             return;
         }
 
-        const assignProperValue = action.type === MacroActionType.ModifyAppSettings && action.effect === ModifyValueActionEffect.Set || action.type === "AppSettingsCondition";
+        const assignProperValue = action.type === MacroActionType.ModifyAppSettings && action.effect === MutateActionEffect.Set || action.type === "AppSettingsCondition";
         if (assignProperValue) {
             if (action.value === undefined) {
                 if (field.options) {
@@ -137,7 +137,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             return;
         }
 
-        const checkField = action.type === MacroActionType.ModifyPluginSettings && action.effect === ModifyValueActionEffect.Set || action.type === "PluginSettingsCondition";
+        const checkField = action.type === MacroActionType.ModifyPluginSettings && action.effect === MutateActionEffect.Set || action.type === "PluginSettingsCondition";
         if (checkField) {
             const field = plugin.config?.[action.field[0] as keyof typeof plugin] ?? { value: null };
             if (action.value === undefined) {
@@ -161,23 +161,23 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number" | "string") => {
     if (valueType === "boolean") {
         return [
-            ModifyValueActionEffect.SetToDefault,
-            ModifyValueActionEffect.Set,
-            ModifyValueActionEffect.Toggle,
+            MutateActionEffect.SetToDefault,
+            MutateActionEffect.Set,
+            MutateActionEffect.Toggle,
         ];
     } else if (valueType === "number") {
         return [
-            ModifyValueActionEffect.SetToDefault,
-            ModifyValueActionEffect.Set,
-            ModifyValueActionEffect.Increase,
-            ModifyValueActionEffect.IncreaseCycle,
-            ModifyValueActionEffect.Decrease,
-            ModifyValueActionEffect.DecreaseCycle,
-            ModifyValueActionEffect.Min,
-            ModifyValueActionEffect.Max,
+            MutateActionEffect.SetToDefault,
+            MutateActionEffect.Set,
+            MutateActionEffect.Increase,
+            MutateActionEffect.IncreaseCycle,
+            MutateActionEffect.Decrease,
+            MutateActionEffect.DecreaseCycle,
+            MutateActionEffect.Min,
+            MutateActionEffect.Max,
         ];
     } else if (valueType === "string") {
-        return [ModifyValueActionEffect.SetToDefault, ModifyValueActionEffect.Set];
+        return [MutateActionEffect.SetToDefault, MutateActionEffect.Set];
     }
     return [];
 };
@@ -186,7 +186,7 @@ export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number"
 export const getMacroActionValidEffects = (
     action: MacroAction,
     settings: SettingsAndPluginsMeta
-): ModifyValueActionEffect[] => {
+): MutateActionEffect[] => {
 
     if (action.type === MacroActionType.ModifyAppSettings) {
         const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.field);

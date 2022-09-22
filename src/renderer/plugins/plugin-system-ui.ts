@@ -1,6 +1,6 @@
 import { Janitor } from "three-janitor";
 import { PluginMetaData, OpenBW } from "common/types";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { useGameStore, useSceneStore, useReplayAndMapStore, SceneStore, ReplayAndMapStore } from "@stores";
 
 import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED } from "./events";

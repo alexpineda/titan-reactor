@@ -1,5 +1,5 @@
 import { generateUUID } from "three/src/math/MathUtils";
-import { ModifyValueActionEffect, MacroActionSequence, MacroActionType, MacroConditionComparator, MacroConditionType } from "common/types"
+import { MutateActionEffect, MacroActionSequence, MacroActionType, MacroConditionComparator, MacroConditionType } from "common/types"
 import { HotkeyTrigger, Macro, Macros } from "@macros";
 import { MouseTrigger } from "@macros/mouse-trigger";
 
@@ -20,7 +20,7 @@ export const createDefaultMacros = () => {
           "game",
           "sceneController"
         ],
-        effect: ModifyValueActionEffect.Set,
+        effect: MutateActionEffect.Set,
         value: "@titan-reactor-plugins/camera-battle"
       }],
       MacroActionSequence.AllSync,
@@ -51,7 +51,7 @@ export const createDefaultMacros = () => {
           "game",
           "sceneController"
         ],
-        effect: ModifyValueActionEffect.Set,
+        effect: MutateActionEffect.Set,
         value: "@titan-reactor-plugins/camera-standard"
       }],
       MacroActionSequence.AllSync,
@@ -106,7 +106,7 @@ export const createDefaultMacros = () => {
         id: generateUUID(),
         type: MacroActionType.ModifyAppSettings,
         field: ["game", "sceneController"],
-        effect: ModifyValueActionEffect.IncreaseCycle
+        effect: MutateActionEffect.IncreaseCycle
       }],
       MacroActionSequence.SingleAlternate
     )
@@ -130,14 +130,14 @@ export const createDefaultMacros = () => {
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "music"],
 
-          effect: ModifyValueActionEffect.SetToDefault,
+          effect: MutateActionEffect.SetToDefault,
 
         },
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "music"],
-          effect: ModifyValueActionEffect.Min,
+          effect: MutateActionEffect.Min,
         },
       ],
       MacroActionSequence.SingleAlternate
@@ -160,13 +160,13 @@ export const createDefaultMacros = () => {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "sound"],
-          effect: ModifyValueActionEffect.SetToDefault,
+          effect: MutateActionEffect.SetToDefault,
         },
         {
           id: generateUUID(),
           type: MacroActionType.ModifyAppSettings,
           field: ["audio", "sound"],
-          effect: ModifyValueActionEffect.Min,
+          effect: MutateActionEffect.Min,
         },
       ],
       MacroActionSequence.SingleAlternate

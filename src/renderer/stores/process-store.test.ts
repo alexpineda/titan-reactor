@@ -3,8 +3,6 @@ import processStore from "./process-store";
 
 jest.mock("@ipc/log");
 
-
-
 describe("ProcessStore", () => {
 
     beforeEach(() => {

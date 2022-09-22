@@ -1,13 +1,13 @@
 
-import { FieldDefinition, ModifyValueActionEffect, SessionSettingsData, MacroActionHostModifyValue } from "common/types";
+import { FieldDefinition, MutateActionEffect, SessionSettingsData, MacroActionHostModifyValue } from "common/types";
 import deepMerge from 'deepmerge';
-import { macroEffectApply } from "@macros";
-import { BeforeSet, createMacroEffectAdapter, MacroEffectVariable } from "@macros/create-macro-effect-adapter";
+import { macroEffectApply } from "@macros/macro-effect-apply";
+import { BeforeSet, createMutateEffectStore, MacroEffectVariable } from "@macros/create-mutate-effect-store";
 import { getSessionSettingsInLevaFormat, getSessionSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
 import { DeepPartial } from "common/types";
 import lSet from "lodash.set";
 import lGet from "lodash.get";
-import settingsStore, { useSettingsStore } from "@stores/settings-store";
+import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { log } from "@ipc/log";
 import { Janitor } from "three-janitor";
 import { WorldEvents } from "./world";
@@ -16,7 +16,7 @@ import { arrayOverwriteMerge } from "@utils/object-utils";
 
 export type MergeSessionStore = (rhs: DeepPartial<SessionSettingsData>) => void;
 
-const applyEffectToSessionProperty = (mergeRootSession: MergeSessionStore, effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue: any, resetValue: any, beforeSet?: (newValue: any, field: FieldDefinition) => boolean | void) => {
+const applyEffectToSessionProperty = (mergeRootSession: MergeSessionStore, effect: MutateActionEffect, path: string[], field: FieldDefinition, newValue: any, resetValue: any, beforeSet?: (newValue: any, field: FieldDefinition) => boolean | void) => {
 
     let value = macroEffectApply(effect, field, newValue, resetValue);
 
@@ -95,17 +95,17 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
     }), "settings-store-subscription");
 
 
-    function applyEffectToSessionRoot(effect: ModifyValueActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {
+    function applyEffectToSessionRoot(effect: MutateActionEffect, path: string[], field: FieldDefinition, newValue?: any, beforeSet?: BeforeSet) {
 
         applyEffectToSessionProperty(mergeRootSession, effect, path, field, newValue, lGet(settingsStore().data, path), beforeSet);
 
     }
 
-    const createVariable = createMacroEffectAdapter(applyEffectToSessionRoot, (path) => lGet(store, path));
+    const createVariable = createMutateEffectStore(applyEffectToSessionRoot, (path: string[]) => lGet(store, path));
 
     const sessionSettingsConfig = getSessionSettingsInLevaFormat(settingsStore().data, settingsStore().enabledPlugins);
 
-    const sessionVars = (Object.entries(sessionSettingsConfig).reduce((acc, [key, value]) => {
+    const vars = (Object.entries(sessionSettingsConfig).reduce((acc, [key, value]) => {
         if (isValidkey(key)) {
             const settingsKey = key.split(".");
             lSet<SessionVariables>(acc, settingsKey, createVariable(value, settingsKey));
@@ -129,7 +129,5 @@ export const createReactiveSessionVariables = (events: TypeEmitter<WorldEvents>)
 
     const getState = () => store;
 
-    events.on("dispose", () => janitor.dispose());
-
-    return { getRawValue, sessionVars, mutate, getState };
+    return { getRawValue, vars, mutate, getState, dispose: () => janitor.dispose() };
 }

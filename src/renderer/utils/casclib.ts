@@ -1,6 +1,6 @@
 import * as casclibDisk from "./casclib-disk";
 import * as casclib from "bw-casclib";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 let _storageHandle: any;
 
 export const readCascFile = async (filePath: string): Promise<Buffer> => {

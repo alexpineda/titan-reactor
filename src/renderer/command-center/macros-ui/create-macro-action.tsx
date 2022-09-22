@@ -1,7 +1,7 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import {
   MacroAction,
-  ModifyValueActionEffect,
+  MutateActionEffect,
   MacroActionType,
   PluginMetaData,
 } from "common/types";
@@ -32,14 +32,14 @@ export const CreateMacroAction = ({
         id: generateUUID(),
         type: actionType,
         field: defaultAppSettingsField,
-        effect: ModifyValueActionEffect.SetToDefault,
+        effect: MutateActionEffect.SetToDefault,
       });
     } else if (actionType === MacroActionType.ModifyPluginSettings) {
       onCreate({
         id: generateUUID(),
         type: actionType,
         field: defaultPluginSettingsField,
-        effect: ModifyValueActionEffect.SetToDefault,
+        effect: MutateActionEffect.SetToDefault,
         pluginName: defaultPluginName,
       });
     } else if (actionType === MacroActionType.CallGameTimeApi) {

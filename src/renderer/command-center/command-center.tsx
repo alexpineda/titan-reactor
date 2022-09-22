@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
 import { savePluginsConfig } from "@ipc/plugins";
-import settingsStore, { useSettingsStore } from "@stores/settings-store";
+import { useSettingsStore, settingsStore } from "@stores/settings-store";
 import { PluginMetaData } from "common/types";
 import DetailSheet from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";

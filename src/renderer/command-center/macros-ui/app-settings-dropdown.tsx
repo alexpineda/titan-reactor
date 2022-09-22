@@ -1,4 +1,4 @@
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { getSessionSettingsInLevaFormat } from "common/get-app-settings-leva-config";
 import React from "react";
 

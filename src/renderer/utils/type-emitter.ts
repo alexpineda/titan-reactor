@@ -1,4 +1,4 @@
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 
 export type MatchingKeys<
     TRecord,

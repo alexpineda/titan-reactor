@@ -8,7 +8,7 @@ import { LoadBar } from "./load-bar";
 import "./styles.css";
 import { GlobalErrorState } from "../error-state";
 import { showFolderDialog } from "@ipc/dialogs";
-import settingsStore, { useSettingsStore } from "@stores/settings-store";
+import { settingsStore, useSettingsStore } from "@stores/settings-store";
 
 const styleCenterText = {
   position: "absolute",

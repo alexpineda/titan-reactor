@@ -11,7 +11,7 @@ import { OpenBW } from "common/types";
 import { GameTypes } from "common/enums";
 import { openFile } from "@ipc";
 import { log } from "@ipc/log";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import processStore from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";
 import { Janitor } from "three-janitor";

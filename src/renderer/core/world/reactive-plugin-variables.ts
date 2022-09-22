@@ -1,13 +1,13 @@
 import { log } from "@ipc/log";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { macroEffectApply } from "@macros/macro-effect-apply";
-import { createMacroEffectAdapter } from "@macros/create-macro-effect-adapter";
+import { createMutateEffectStore } from "@macros/create-mutate-effect-store";
 import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { last } from "@utils/function-utils";
 import { Janitor } from "three-janitor";
 import { SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
-import { FieldDefinition, ModifyValueActionEffect, MacroActionPluginModifyValue } from "common/types";
+import { FieldDefinition, MutateActionEffect, MacroActionPluginModifyValue } from "common/types";
 import { ipcRenderer } from "electron";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
@@ -50,7 +50,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
         }
     }, "PluginConfigChanged");
 
-    const modifyPluginValue = (pluginName: string, fieldKey: string, effect: ModifyValueActionEffect, newValue: any, resetValue: any) => {
+    const modifyPluginValue = (pluginName: string, fieldKey: string, effect: MutateActionEffect, newValue: any, resetValue: any) => {
 
         const plugin = plugins.getByName(pluginName);
 
@@ -81,7 +81,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
     }
 
 
-    const applyEffectFromMethod = (pluginName: string) => (effect: ModifyValueActionEffect, path: string[], newValue: any) => {
+    const applyEffectFromMethod = (pluginName: string) => (effect: MutateActionEffect, path: string[], newValue: any) => {
 
         const resetValue = lGet(defaultValues, path);
 
@@ -91,9 +91,9 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
     const getRawValue = (name: string, field: string[]) => lGet(plugins.getByName(name)?.rawConfig ?? {}, field);
 
-    const definePluginVar = (plugin: PluginBase) => createMacroEffectAdapter(applyEffectFromMethod(plugin.name), (path) => getRawValue(plugin.name, last(path)));
+    const definePluginVar = (plugin: PluginBase) => createMutateEffectStore(applyEffectFromMethod(plugin.name), (path: string[]) => getRawValue(plugin.name, last(path)));
 
-    const pluginVars = plugins.reduce((acc, plugin) => {
+    const vars = plugins.reduce((acc, plugin) => {
 
         Object.entries(plugin.rawConfig).forEach(([key, value]) => {
 
@@ -126,7 +126,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
     return {
         getRawValue,
         mutate,
-        pluginVars,
+        vars,
         dispose: () => janitor.dispose(),
     }
 }

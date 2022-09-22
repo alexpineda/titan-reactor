@@ -7,7 +7,7 @@ import { TypeEmitter } from "@utils/type-emitter";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_PLUGINS_DISPOSED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { createPluginSession } from "./create-plugin-session";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { OpenBW } from "common/types";
 
 export type PluginsAndMacroSession = Awaited<ReturnType<typeof createPluginsAndMacroSession>>;
@@ -69,14 +69,14 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
             macrosComposer.setContainer(
                 mix({
                     api: borrow(gameTimeApi),
-                    plugins: borrow(_session.reactiveApi.pluginVars),
-                    settings: borrow(sessionApi.sessionVars),
+                    plugins: borrow(_session.reactiveApi.vars),
+                    settings: borrow(sessionApi.vars),
                     events
                 }));
 
             _undoInject = this.native.injectApi(
                 mix({
-                    settings: sessionApi.sessionVars,
+                    settings: sessionApi.vars,
                     events
                 }, gameTimeApi));
 

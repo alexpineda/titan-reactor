@@ -8,7 +8,7 @@ import {
   MacroCondition,
   MacroDTO,
   MacrosDTO,
-  ModifyValueActionEffect,
+  MutateActionEffect,
 } from "common/types";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
@@ -56,7 +56,7 @@ export const MacrosPanel = () => {
 
   const updateMacroActionEffect = (
     action: MacroActionHostModifyValue | MacroActionPluginModifyValue,
-    effect: ModifyValueActionEffect
+    effect: MutateActionEffect
   ) => {
     updateMacroAction({
       ...action,

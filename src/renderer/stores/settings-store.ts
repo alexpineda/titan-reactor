@@ -34,4 +34,4 @@ export const useSettingsStore = create<SettingsStore>((set: SetState<SettingsSto
 
 }));
 
-export default () => useSettingsStore.getState();
+export const settingsStore = () => useSettingsStore.getState();

@@ -9,7 +9,7 @@ import fragmentShader from "../../render/minimap-frag.glsl";
 import vertexShader from "../../render/minimap-vert.glsl";
 import { ViewInputComposer } from "./view-composer";
 import gameStore from "@stores/game-store";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { createUnitSelectionBox } from "@input/create-unit-selection";
 import { ImageHD } from "@core/image-hd";

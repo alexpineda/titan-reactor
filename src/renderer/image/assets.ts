@@ -22,7 +22,7 @@ import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";
 import { imageTypes, unitTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { modelSetFileRefIds } from "@core/model-effects-configuration";
 
 if (module.hot) {

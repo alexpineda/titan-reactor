@@ -6,7 +6,7 @@ import {
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
 import screenStore from "@stores/scene-store";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { createReactivePluginApi } from "@core/world/reactive-plugin-variables";
 import { globalEvents } from "@core/global";

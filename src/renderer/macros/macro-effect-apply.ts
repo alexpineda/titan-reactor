@@ -1,4 +1,4 @@
-import { ModifyValueActionEffect as ActionEffect, FieldDefinition } from "common/types";
+import { MutateActionEffect as ActionEffect, FieldDefinition } from "common/types";
 import { log } from "@ipc/log";
 
 //todo include expected type in fielddefinition
@@ -86,7 +86,6 @@ export const macroEffectApplyNumeric = (effect: ActionEffect, field: FieldDefini
     if (effect === ActionEffect.Increase && Number.isFinite(field.step)) {
         return Math.min(field.value + field.step, max);
     } else if (effect === ActionEffect.Decrease && Number.isFinite(field.step)) {
-        console.log(field.value, field.step);
         return Math.max(field.value - field.step!, min);
     } else if (effect === ActionEffect.IncreaseCycle && Number.isFinite(field.step)) {
         let nv = field.value + field.step;

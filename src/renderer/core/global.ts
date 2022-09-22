@@ -21,7 +21,7 @@ import { PluginMetaData, SettingsMeta } from "common/types";
 import { MainMixer } from "@audio/main-mixer";
 import { Music } from "@audio/music";
 import { AudioListener } from "three";
-import settingsStore, { useSettingsStore } from "@stores/settings-store";
+import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 
 export const mixer = new MainMixer();

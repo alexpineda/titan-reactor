@@ -35,7 +35,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
     const janitor = new Janitor("WorldComposer");
     const events = janitor.mop(new TypeEmitter<WorldEvents>(), "events");
-    const settings = createReactiveSessionVariables(events);
+    const settings = janitor.mop(createReactiveSessionVariables(events));
     const plugins = await createPluginsAndMacroSession(events, settings, openBW);
     const fogOfWarEffect = janitor.mop(new FogOfWarEffect(), "FogOfWarEffect");
     const fogOfWar = new FogOfWar(map.size[0], map.size[1], openBW, fogOfWarEffect);
@@ -130,7 +130,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         assets,
         exitScene() {
             setTimeout(() => {
-                settings.sessionVars.input.sceneController.reset();
+                settings.vars.input.sceneController.reset();
             }, 0)
         },
         sandboxApi,

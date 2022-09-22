@@ -12,7 +12,7 @@ import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 import { makeGameScene } from "./game-scene/game-scene";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { SceneState } from "./scene";
-import settingsStore from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import { PlayerBufferViewIterator, PlayerController } from "@buffer-view/player-buffer-view";
 import { BasePlayer } from "@core/players";
