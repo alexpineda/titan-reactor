@@ -15,7 +15,8 @@ import {
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures, UnitTileScale } from "common/types";
 import { createCompressedTexture } from "./common";
-import { Janitor, JanitorLogLevel } from "@utils/janitor";
+import { Janitor, JanitorLogLevel } from "three-janitor";
+import { getJanitorLogLevel } from "@core/global";
 
 // generates map textures
 // splits up textures into quadrants if a single texture would be
@@ -122,7 +123,7 @@ export const createHdQuartiles = (
         Janitor.logLevel = JanitorLogLevel.Verbose;
       }
       Janitor.trash("quartileScene", quartileScene);
-      Janitor.logLevel = Janitor.defaultLoglevel;
+      Janitor.logLevel = getJanitorLogLevel();
     }
   }
 

@@ -2,7 +2,7 @@ import { Unit } from "@core/unit";
 import { MouseTriggerDTO } from "@macros/mouse-trigger";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import GameSurface from "@render/game-surface";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { TypeEmitter } from "@utils/type-emitter";
 import Chk from "bw-chk";
 import { DeepPartial, OpenBW, SessionSettingsData } from "common/types";

@@ -15,7 +15,7 @@ import { parseDdsGrpAsTextures } from "..";
 import parseDDS from "@image/formats/parse-dds";
 import { parseTMSK } from "@image/formats/parse-tmsk";
 import { Creep } from "@core/creep/creep";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import processStore from "@stores/process-store";
 
 export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tileset: number, tiles: Buffer, textureResolution: UnitTileScale, geomOptions: GeometryOptions = defaultGeometryOptions) {

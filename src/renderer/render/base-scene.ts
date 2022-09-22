@@ -7,7 +7,7 @@ import {
 import { Terrain } from "@core/terrain";
 import { BorderTiles } from "./border-tiles";
 import { Sunlight } from "./sunlight";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 
 export class BaseScene extends Scene {
   #borderTiles: BorderTiles;

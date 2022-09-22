@@ -116,6 +116,7 @@
         "three": "0.143.0",
         "three-gpu-pathtracer": "^0.0.5",
         "three-instanced-uniforms-mesh": "^0.46.0",
+        "three-janitor": "^2.0.1",
         "threejs-shader-materials": "MasatoMakino/threejs-shader-materials",
         "troika-three-utils": "^0.46.0",
         "ts-morph": "^15.1.0",

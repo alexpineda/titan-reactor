@@ -1,4 +1,4 @@
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { CreepTexture, UnitTileScale } from "common/types";
 import {
   MeshBasicMaterial,

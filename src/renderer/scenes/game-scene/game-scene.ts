@@ -9,7 +9,7 @@ import { getOpenBW } from "@openbw";
 import {
   renderComposer
 } from "@render";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
 import settingsStore from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";

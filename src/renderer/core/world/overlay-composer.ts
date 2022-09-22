@@ -17,7 +17,7 @@ import { Image3D } from "@core/image-3d";
 import { canSelectUnit } from "@utils/unit-utils";
 import { Unit } from "@core/unit";
 import { VisualSelectionBox } from "@input/mouse-selection-box";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { Borrowed } from "@utils/object-utils";
 import { SurfaceComposer } from "./surface-composer";
 

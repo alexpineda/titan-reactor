@@ -1,6 +1,6 @@
 import { Filter } from "@audio/filter";
 import { mixer } from "@core/global";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { MathUtils } from "three";
 
 export const createWraithNoise = () => {

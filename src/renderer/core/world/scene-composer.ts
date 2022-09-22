@@ -13,7 +13,7 @@ import { UnitEntities } from "@core/unit-entities";
 import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
 import BaseScene from "@render/base-scene";
 import { imageIsDoodad, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
-import { Janitor, JanitorLogLevel } from "@utils/janitor";
+import { Janitor, JanitorLogLevel } from "three-janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import { unitIsFlying } from "@utils/unit-utils";
 import { drawFunctions, unitTypes } from "common/enums";
@@ -26,6 +26,7 @@ import { World } from "./world";
 import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/iterable-set";
 import { Borrowed } from "@utils/object-utils";
+import { getJanitorLogLevel } from "@core/global";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
@@ -254,7 +255,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
             Janitor.logLevel = JanitorLogLevel.Verbose;
         }
         janitor.dispose()
-        Janitor.logLevel = Janitor.defaultLoglevel;
+        Janitor.logLevel = getJanitorLogLevel();
     });
 
     return Object.freeze({

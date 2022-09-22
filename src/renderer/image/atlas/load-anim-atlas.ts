@@ -2,7 +2,7 @@ import { AnimDds, AnimAtlas, UnitTileScale } from "common/types";
 
 import { parseAnim, createDDSTexture } from "../formats";
 import { LinearEncoding, TextureEncoding } from "three";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 
 const getBufDds = (buf: Buffer, { ddsOffset, size }: AnimDds) =>
     buf.slice(ddsOffset, ddsOffset + size);

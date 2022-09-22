@@ -14,7 +14,7 @@ import { log } from "@ipc/log";
 import settingsStore from "@stores/settings-store";
 import processStore from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { useReplayAndMapStore } from "@stores";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
@@ -28,7 +28,7 @@ import { music } from "@core/global";
 
 export const replaySceneLoader = async (filepath: string): Promise<SceneState> => {
 
-  processStore().clearAll();
+  processStore().clearCompleted();
   const loadProcess = processStore().create("replay", 4);
 
   log.info(`@load-replay/file: ${filepath}`);

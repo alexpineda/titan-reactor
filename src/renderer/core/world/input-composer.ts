@@ -1,6 +1,6 @@
 import { MouseInput } from "@input/mouse-input";
 import { ArrowKeyInput } from "@input/arrow-key-input";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { Borrowed, expose } from "@utils/object-utils";
 import { World } from "./world";
 

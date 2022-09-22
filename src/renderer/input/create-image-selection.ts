@@ -1,5 +1,5 @@
 import { Surface } from "@image/canvas";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { VisualSelectionBox } from ".";
 import { Object3D, PerspectiveCamera, Scene } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";

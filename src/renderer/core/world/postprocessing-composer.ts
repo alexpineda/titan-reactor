@@ -6,7 +6,7 @@ import { applyViewportToFrameOnImageHD } from "@core/model-effects";
 import { EffectivePasses, PostProcessingBundler } from "@render/postprocessing-bundler";
 import { renderComposer } from "@render/render-composer";
 import settingsStore from "@stores/settings-store";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";

@@ -7,7 +7,7 @@ import { waitForTruthy } from "@utils/wait-for";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { useReplayAndMapStore } from "@stores";
 import gameStore from "@stores/game-store";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 import { makeGameScene } from "./game-scene/game-scene";
 import CommandsStream from "@process-replay/commands/commands-stream";
@@ -26,7 +26,7 @@ const updateWindowTitle = (title: string) => {
 }
 export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> => {
 
-  processStore().clearAll();
+  processStore().clearCompleted();
   const process = processStore().create("map", 3);
   log.verbose("loading chk");
 

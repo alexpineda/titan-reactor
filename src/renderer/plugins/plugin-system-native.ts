@@ -5,7 +5,7 @@ import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
 import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { savePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";

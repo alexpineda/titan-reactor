@@ -21,8 +21,8 @@ import { PluginMetaData, SettingsMeta } from "common/types";
 import { MainMixer } from "@audio/main-mixer";
 import { Music } from "@audio/music";
 import { AudioListener } from "three";
-import { useSettingsStore } from "@stores/settings-store";
-import { Janitor } from "@utils/janitor";
+import settingsStore, { useSettingsStore } from "@stores/settings-store";
+import { Janitor, JanitorLogLevel } from "three-janitor";
 
 export const mixer = new MainMixer();
 export const music = new Music(mixer as unknown as AudioListener);
@@ -145,6 +145,24 @@ if (process.env.NODE_ENV !== "development") {
 
 document.addEventListener('visibilitychange', () => globalEvents.emit("document-hidden", document.hidden), false);
 
+export const getJanitorLogLevel = () => {
+
+    switch (settingsStore().data.utilities.logLevel) {
+        case "debug":
+            return JanitorLogLevel.Debug;
+        case "verbose":
+            return JanitorLogLevel.Verbose;
+        case "info":
+            return JanitorLogLevel.Info;
+        case "warn":
+        case "error":
+    }
+
+    return JanitorLogLevel.None;
+}
+
 useSettingsStore.subscribe(() => {
-    Janitor.logLevel = Janitor.defaultLoglevel;
+
+    Janitor.logLevel = getJanitorLogLevel();
+
 });

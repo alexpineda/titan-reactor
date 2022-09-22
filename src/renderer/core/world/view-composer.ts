@@ -2,7 +2,7 @@ import { mixer } from "@core/global";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import { log } from "@ipc/log";
 import { SceneController } from "@plugins/plugin-system-native";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { Borrowed } from "@utils/object-utils";
 import { DamageType, Explosion } from "common/enums";
 import { SceneInputHandler, UserInputCallbacks } from "common/types";

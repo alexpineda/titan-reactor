@@ -1,6 +1,6 @@
 
 import { Vector2, Vector3 } from "three";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { MouseTriggerDTO } from "@macros/mouse-trigger";
 
 const passive = { passive: true };

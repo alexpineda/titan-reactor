@@ -1,6 +1,6 @@
 import { OpenBW } from "common/types";
 import { Assets } from "@image/assets";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { createPluginsAndMacroSession } from "./create-plugins-and-macros-session";
 import { createReactiveSessionVariables } from "./reactive-session-variables";
 import { ipcRenderer } from "electron";

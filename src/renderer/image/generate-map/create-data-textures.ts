@@ -1,4 +1,4 @@
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
 import { MapBitmaps } from "./extract-bitmaps";

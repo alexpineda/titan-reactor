@@ -100,7 +100,7 @@ app.get('*', async function (req, res) {
         return res.send(runtimeHTML);
     }
     else if (requestPath.endsWith("runtime.tsx")) {
-        const { result } = transpile(runtimeJSX, "runtime.tsx");
+        const { result } = transpile(runtimeJSX, "runtime.tsx", "runtime.tsx");
         res.setHeader("Content-Type", "application/javascript");
         return res.send(result.outputText);
     }

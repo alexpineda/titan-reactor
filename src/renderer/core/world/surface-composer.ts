@@ -2,7 +2,7 @@ import GameSurface from "@render/game-surface";
 import { renderComposer } from "@render/render-composer";
 import gameStore from "@stores/game-store";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { Borrowed } from "@utils/object-utils";
 import debounce from "lodash.debounce";
 import { World } from "./world";

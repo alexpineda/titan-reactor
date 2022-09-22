@@ -4,7 +4,7 @@ import { doActionEffect } from "@macros/do-action-effect";
 import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
 import settingsStore from "@stores/settings-store";
 import { last } from "@utils/function-utils";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
 import { FieldDefinition, ModifyValueActionEffect, MacroActionPluginModifyValue } from "common/types";
 import { ipcRenderer } from "electron";

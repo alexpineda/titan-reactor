@@ -17,6 +17,7 @@ export const doActionEffect = (effect: ActionEffect, field: FieldDefinition, new
     }
 
     if (effect === ActionEffect.Increase && field.max !== undefined && isFiniteV(field.step, field.max)) {
+        // TODO: multiply by optional new value
         return Math.min(field.value + field.step, field.max);
     } else if (effect === ActionEffect.Decrease && field.min !== undefined && isFiniteV(field.step, field.min)) {
         return Math.max(field.value - field.step!, field.min);

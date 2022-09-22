@@ -1,4 +1,4 @@
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { DDSGrpFrameType, CreepTexture, UnitTileScale } from "common/types";
 import {
   DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget

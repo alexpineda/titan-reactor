@@ -7,7 +7,7 @@ import gameStore from "@stores/game-store";
 import { isGltfAtlas } from "@utils/image-utils";
 import { IndexedObjectPool } from "@utils/indexed-object-pool";
 import { IterableMap } from "@utils/iteratible-map";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { AnimAtlas } from "common/types";
 
 export class ImageEntities {

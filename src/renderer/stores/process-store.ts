@@ -11,9 +11,10 @@ export type IncrementalProcess = {
   current: number;
 };
 
+type ProcessWrapper = { id: string, increment: () => void, complete: () => void, add(additiona: number): void };
 export type ProcessStore = {
   processes: IncrementalProcess[];
-  create: (label: string, max?: number) => { id: string, increment: () => void, complete: () => void, add(additiona: number): void };
+  create: (label: string, max: number) => ProcessWrapper;
   increment: (id: string, current?: number) => void;
   forceComplete: (id: string) => void;
   isComplete: (id: string) => boolean;
@@ -21,10 +22,21 @@ export type ProcessStore = {
   getTotalProgress: () => number;
   clearCompleted: () => void;
   clearAll: () => void;
+  addOrCreate: (label: string, max: number) => ProcessWrapper;
+  _createProcessWrapper: (id: string, process: IncrementalProcess) => ProcessWrapper;
 };
+
 
 export const useProcessStore = create<ProcessStore>((set, get) => ({
   processes: [],
+  _createProcessWrapper: (id: string, process: IncrementalProcess) => ({
+    id,
+    increment: () => get().increment(id),
+    complete: () => get().forceComplete(id),
+    add: (additional: number) => {
+      process.max += additional;
+    }
+  }),
   create: (label: string, max = PROCESS_MAX) => {
     const id = MathUtils.generateUUID();
     performance.clearMarks(`process-${id}`);
@@ -44,30 +56,29 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
       processes: [...processes, process],
     }));
 
-    return {
-      id,
-      increment: () => get().increment(id),
-      complete: () => get().forceComplete(id),
-      add: (additional: number) => {
-        process.max += additional;
-      }
+    return get()._createProcessWrapper(id, process);
+  },
+  addOrCreate: (label: string, max: number) => {
+    const existing = get().processes[0];
+    if (existing) {
+      existing.max += max;
+      return get()._createProcessWrapper(existing.id, existing);
+    } else {
+      return get().create(label, max);
     }
   },
+
   increment: (id: string, step = 1) => {
     const process = get().processes.find((p) => p.id === id);
 
     if (process) {
       const next = Math.min(process.current + step, process.max);
 
-      if (process.current >= process.max) {
-        get().forceComplete(id)
-      } else {
-        set((state) => ({
-          processes: (state.processes as IncrementalProcess[]).map(
-            (p) => (p.id === id ? { ...p, current: next } : p)
-          ),
-        }));
-      }
+      set((state) => ({
+        processes: (state.processes as IncrementalProcess[]).map(
+          (p) => (p.id === id ? { ...p, current: next } : p)
+        ),
+      }));
     }
   },
   forceComplete: (id: string, clear = true) => {

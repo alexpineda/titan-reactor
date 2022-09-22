@@ -29,7 +29,7 @@ import {
 } from "three";
 import CameraControls from "camera-controls";
 import * as THREE from "three";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
 import processStore from "@stores/process-store";
 import { createBattleLights, distantStars } from "./stars";
@@ -132,7 +132,7 @@ let fireTexture: Texture;
 
 export const preloadIntro = async () => {
 
-    const { increment } = processStore().create("intro", 4);
+    const { increment, complete } = processStore().addOrCreate("intro", 4);
 
     //TODO submit to types
     //@ts-ignore
@@ -151,7 +151,7 @@ export const preloadIntro = async () => {
 
     battleLights.load(fireTexture);
 
-    increment();
+    complete();
 
 };
 
@@ -203,9 +203,10 @@ export async function createWraithScene() {
 
     scene.add(battleLights.object);
 
-    janitor.setInterval(() => {
+    const playRemixInterval = setInterval(() => {
         playRemix();
-    }, 60000 * 3 + Math.random() * 60000 * 10, "remix");
+    }, 60000 * 3 + Math.random() * 60000 * 10);
+    janitor.add(() => clearInterval(playRemixInterval), "remix");
 
     scene.userData = {
         wraiths: wraiths,

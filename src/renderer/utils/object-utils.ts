@@ -71,13 +71,13 @@ function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string
 }
 
 type BorrowOptions = {
-    target?: {},
+    target?: unknown,
     refRoot?: boolean,
     retainGetters?: boolean
 }
 
 // Utility function for creating WeakRefs
-export function borrow<T extends { [key: string]: any }>(source: T, userOptions: BorrowOptions = {}): Borrowed<T> {
+export function borrow<T extends object>(source: T, userOptions: BorrowOptions = {}): Borrowed<T> {
 
     const { target, refRoot, retainGetters } = { target: {}, refRoot: true, retainGetters: false, ...userOptions };
 
@@ -115,18 +115,18 @@ export function borrow<T extends { [key: string]: any }>(source: T, userOptions:
 
 }
 
-export function weak<T extends {}>(o: T) {
+export function weak<T extends object>(o: T) {
     return new WeakRef(o);
 }
 
-export type Exposed<T, K extends keyof T> = { [key in K]: T[K] };
+export type Exposed<T extends object, K extends keyof T> = { [key in K]: T[K] };
 
 export type ExposeOptions = {
     asValues: boolean;
 }
 
 // expose only keys, including prototype chain
-export function expose<T, K extends keyof T>(source: T, keys: K[], { asValues }: ExposeOptions = { asValues: false }): Pick<T, K> {
+export function expose<T extends object, K extends keyof T>(source: T, keys: K[], { asValues }: ExposeOptions = { asValues: false }): Pick<T, K> {
 
     const result = {} as Pick<T, K>;
 
@@ -157,7 +157,7 @@ export function expose<T, K extends keyof T>(source: T, keys: K[], { asValues }:
 }
 
 // https://stackoverflow.com/questions/60400066/how-to-enumerate-discover-getters-and-setters-in-javascript
-const getPropertyDescriptor = (source: {}, prop: string): null | undefined | PropertyDescriptor => {
+const getPropertyDescriptor = (source: object, prop: string): null | undefined | PropertyDescriptor => {
     if (source === null) {
         return null;
     }

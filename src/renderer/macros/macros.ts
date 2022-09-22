@@ -5,7 +5,7 @@ import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
 
 export class Macros {

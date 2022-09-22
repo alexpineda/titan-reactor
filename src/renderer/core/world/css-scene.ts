@@ -1,4 +1,4 @@
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { Camera, Scene } from "three";
 import { CSS2DRenderer } from "three/examples/jsm/renderers/CSS2DRenderer";
 

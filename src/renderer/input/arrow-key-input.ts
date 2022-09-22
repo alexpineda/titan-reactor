@@ -1,6 +1,6 @@
 import { Vector2 } from "three";
 
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { testKeys } from "@utils/key-utils";
 
 const keyForward = "ArrowUp";

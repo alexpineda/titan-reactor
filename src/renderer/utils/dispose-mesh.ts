@@ -1,6 +1,5 @@
 import { Object3D, Material, Texture, BufferGeometry } from "three";
 
-
 export type Object3DLike = {
   type?: string;
   material?: Material | Material[],

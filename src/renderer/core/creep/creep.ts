@@ -3,7 +3,7 @@ import { TilesBufferView } from "@buffer-view";
 
 //@ts-ignore
 import Worker from "./creep.worker.js";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 
 export class Creep {
   mapWidth: number;

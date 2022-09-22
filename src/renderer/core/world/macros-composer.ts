@@ -1,7 +1,7 @@
 import { Macros } from "@macros";
 import settingsStore, { useSettingsStore } from "@stores/settings-store";
 import { ReactiveSessionVariables } from "./reactive-session-variables";
-import { Janitor } from "@utils/janitor";
+import { Janitor } from "three-janitor";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "../global";
 import { WorldEvents } from "./world";
