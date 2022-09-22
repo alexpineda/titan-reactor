@@ -5,7 +5,7 @@ import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
 import { settingsStore } from "@stores/settings-store";
 import { last } from "@utils/function-utils";
 import { Janitor } from "three-janitor";
-import { FieldDefinition, MutateActionEffect, MacroActionPluginModifyValue } from "common/types";
+import { FieldDefinition, MutationInstruction, MacroActionPluginModifyValue } from "common/types";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
 import { globalEvents } from "@core/global-events";
@@ -43,7 +43,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
         }
     }));
 
-    const modifyPluginValue = (pluginName: string, fieldKey: string, effect: MutateActionEffect, newValue: any, resetValue: any) => {
+    const modifyPluginValue = (pluginName: string, fieldKey: string, effect: MutationInstruction, newValue: any, resetValue: any) => {
 
         const plugin = plugins.getByName(pluginName);
 
@@ -74,7 +74,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
     }
 
 
-    const applyEffectFromMethod = (pluginName: string) => (effect: MutateActionEffect, path: string[], newValue: any) => {
+    const applyEffectFromMethod = (pluginName: string) => (effect: MutationInstruction, path: string[], newValue: any) => {
 
         const resetValue = lGet(defaultValues, path);
 

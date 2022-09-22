@@ -1,5 +1,5 @@
 import { describe, it } from "@jest/globals";
-import { MutateActionEffect } from "common/types";
+import { MutationInstruction } from "common/types";
 import { createMutateEffectStore } from "./create-mutate-effect-store";
 
 const util = {
@@ -54,7 +54,7 @@ describe("CreateReactiveVariable", () => {
 
         variable.value = newValue;
 
-        expect(applyEffect).toBeCalledWith(MutateActionEffect.Set, testPath, field, newValue, undefined);
+        expect(applyEffect).toBeCalledWith(MutationInstruction.Set, testPath, field, newValue);
 
     });
 
@@ -68,19 +68,19 @@ describe("CreateReactiveVariable", () => {
 
         variable.value = null;
 
-        expect(applyEffect).toBeCalledWith(MutateActionEffect.Set, [], convertedField, null, undefined);
+        expect(applyEffect).toBeCalledWith(MutationInstruction.Set, [], convertedField, null);
 
     });
 
     it.each([
-        ["inc", MutateActionEffect.Increase],
-        ["incCycle", MutateActionEffect.IncreaseCycle],
-        ["dec", MutateActionEffect.Decrease],
-        ["decCycle", MutateActionEffect.DecreaseCycle],
-        ["min", MutateActionEffect.Min],
-        ["max", MutateActionEffect.Max],
-        ["reset", MutateActionEffect.SetToDefault],
-        ["toggle", MutateActionEffect.Toggle],
+        ["inc", MutationInstruction.Increase],
+        ["incCycle", MutationInstruction.IncreaseCycle],
+        ["dec", MutationInstruction.Decrease],
+        ["decCycle", MutationInstruction.DecreaseCycle],
+        ["min", MutationInstruction.Min],
+        ["max", MutationInstruction.Max],
+        ["reset", MutationInstruction.SetToDefault],
+        ["toggle", MutationInstruction.Toggle],
     ])("%s should apply %s", (method, effect) => {
         const { createVar, applyEffect } = util.createDummyStore();
 
@@ -90,7 +90,7 @@ describe("CreateReactiveVariable", () => {
 
         variable[method as keyof typeof variable]();
 
-        expect(applyEffect).toBeCalledWith(effect, [], field, undefined, undefined);
+        expect(applyEffect).toBeCalledWith(effect, [], field, undefined);
     });
 
 });

@@ -1,17 +1,15 @@
 import { describe, it } from "@jest/globals";
-import create from "zustand";
 import { createSessionStore } from "./session-store";
-
 
 describe("SessionStore", () => {
 
     it("should create store", () => {
 
-        const sourceOfTruth = create(() => ({
+        const sourceOfTruth = {
 
             foo: "bar"
 
-        }));
+        }
 
         const store = createSessionStore({ sourceOfTruth });
 
@@ -21,9 +19,11 @@ describe("SessionStore", () => {
 
     it("should get value at path", () => {
 
-        const sourceOfTruth = create(() => ({
+        const sourceOfTruth = {
+
             foo: "bar"
-        }));
+
+        }
         const store = createSessionStore({ sourceOfTruth });
 
         expect(store.getValue(["foo"])).toBe("bar");
@@ -32,9 +32,11 @@ describe("SessionStore", () => {
 
     it("should set value at path", () => {
 
-        const sourceOfTruth = create(() => ({
+        const sourceOfTruth = {
+
             foo: "bar"
-        }));
+
+        }
         const store = createSessionStore({ sourceOfTruth });
 
         expect(store.setValue(["foo"], "baz"));
@@ -46,9 +48,9 @@ describe("SessionStore", () => {
 
     it("should merge", () => {
 
-        const sourceOfTruth = create(() => ({
+        const sourceOfTruth = {
             foo: "bar"
-        }));
+        };
         const store = createSessionStore({ sourceOfTruth });
 
         expect(store.merge({ foo: "baz" }));
@@ -60,10 +62,13 @@ describe("SessionStore", () => {
 
     it("should merge if validate is true", () => {
 
-        const sourceOfTruth = create(() => ({
+        const sourceOfTruth = {
             foo: "bar"
-        }));
-        const store = createSessionStore({ sourceOfTruth, validateMutation: () => true });
+        };
+        const store = createSessionStore({
+            sourceOfTruth,
+            validateMerge: () => true
+        });
 
         expect(store.merge({ foo: "baz" }));
 
@@ -74,10 +79,13 @@ describe("SessionStore", () => {
 
     it("should not merge if validate is false", () => {
 
-        const sourceOfTruth = create(() => ({
+        const sourceOfTruth = {
             foo: "bar"
-        }));
-        const store = createSessionStore({ sourceOfTruth, validateMutation: () => false });
+        };
+        const store = createSessionStore({
+            sourceOfTruth,
+            validateMerge: () => false
+        });
 
         expect(store.merge({ foo: "baz" }));
 

@@ -1,4 +1,4 @@
-import { FieldDefinition, MutateActionEffect } from "common/types";
+import { FieldDefinition, MutationInstruction } from "common/types";
 
 
 function isFieldDefinition(value: any): value is FieldDefinition {
@@ -7,18 +7,18 @@ function isFieldDefinition(value: any): value is FieldDefinition {
 
 export type BeforeSet = (newValue: any, field: FieldDefinition) => boolean | void;
 
-export type ApplyEffect = (effect: MutateActionEffect, path: string[], field: FieldDefinition, newValue?: any, resetValue?: any, beforeSet?: BeforeSet) => void;
+export type ApplyMutationInstruction = (effect: MutationInstruction, path: string[], field: FieldDefinition, newValue?: any, resetValue?: any) => void;
 
 //TODO: batching / cacheing
 export const createMutateEffectStore =
-    (applyEffect: ApplyEffect, getValue: (path: string[]) => any) =>
-        (definition: FieldDefinition | {}, path: string[], beforeSet?: BeforeSet) => {
+    (applyEffect: ApplyMutationInstruction, getValue: (path: string[]) => any) =>
+        (definition: FieldDefinition | {}, path: string[]) => {
 
             const field = isFieldDefinition(definition) ? definition : { value: definition };
 
-            const apply = (effect: MutateActionEffect, newValue?: any) => {
+            const apply = (effect: MutationInstruction, newValue?: any) => {
 
-                applyEffect(effect, path, field, newValue, beforeSet);
+                applyEffect(effect, path, field, newValue);
 
             }
 
@@ -33,42 +33,42 @@ export const createMutateEffectStore =
                  * Set value of the property.
                  */
                 set value(newValue: any) {
-                    apply(MutateActionEffect.Set, newValue);
+                    apply(MutationInstruction.Set, newValue);
                 },
                 /**
                  * Increase the value of the property.
                  */
-                inc: () => apply(MutateActionEffect.Increase),
+                inc: () => apply(MutationInstruction.Increase),
                 /**
                  * Increase the value of the property. Loop around if the value is greater than the maximum.
                  */
-                incCycle: () => apply(MutateActionEffect.IncreaseCycle),
+                incCycle: () => apply(MutationInstruction.IncreaseCycle),
                 /**
                  * Decrease the value of the property.
                  */
-                dec: () => apply(MutateActionEffect.Decrease),
+                dec: () => apply(MutationInstruction.Decrease),
                 /**
                  * Decrease the value of the property. Loop around if the value is less than the minimum.
                  */
-                decCycle: () => apply(MutateActionEffect.DecreaseCycle),
+                decCycle: () => apply(MutationInstruction.DecreaseCycle),
                 /**
                  * Set the value of the property to the minimum.
                  */
-                min: () => apply(MutateActionEffect.Min),
+                min: () => apply(MutationInstruction.Min),
                 /**
                  * Set the value of the property to the maximum.
                  */
-                max: () => apply(MutateActionEffect.Max),
+                max: () => apply(MutationInstruction.Max),
                 /**
                  * Reset the value of the property to the default.
                  */
-                reset: () => apply(MutateActionEffect.SetToDefault),
+                reset: () => apply(MutationInstruction.SetToDefault),
                 /**
                  * Reset the value of the property to the default.
                  */
-                toggle: () => apply(MutateActionEffect.Toggle),
+                toggle: () => apply(MutationInstruction.Toggle),
             }
 
         }
 
-export type MacroEffectVariable = ReturnType<ReturnType<typeof createMutateEffectStore>>;
+export type MutationVariable = ReturnType<ReturnType<typeof createMutateEffectStore>>;

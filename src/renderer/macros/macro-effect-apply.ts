@@ -1,7 +1,6 @@
-import { MutateActionEffect as ActionEffect, FieldDefinition } from "common/types";
+import { MutationInstruction as ActionEffect, FieldDefinition } from "common/types";
 import { log } from "@ipc/log";
 
-//todo include expected type in fielddefinition
 export const macroEffectApply = (effect: ActionEffect, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
     if (effect === ActionEffect.SetToDefault && typeof defaultValue === "undefined") {

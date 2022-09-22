@@ -2,7 +2,7 @@ import { spaceOutCapitalLetters } from "@utils/string-utils";
 import {
   MacroActionHostModifyValue,
   MacroActionPluginModifyValue,
-  MutateActionEffect,
+  MutationInstruction,
 } from "common/types";
 import { getMacroActionValidEffects } from "common/sanitize-macros";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
@@ -21,7 +21,10 @@ export const MacroActionEffectSelector = ({
   return (
     <select
       onChange={(evt) => {
-        updateMacroActionEffect(action, evt.target.value as MutateActionEffect);
+        updateMacroActionEffect(
+          action,
+          evt.target.value as MutationInstruction
+        );
       }}
       value={action.effect}
       disabled={viewOnly}

@@ -3,7 +3,7 @@ import { TypeEmitter } from "@utils/type-emitter";
 import { createReactiveSessionVariables } from "./reactive-session-variables";
 import { WorldEvents } from "./world";
 import * as settingsStore from "@stores/settings-store";
-import { MacroActionType, MutateActionEffect } from "common/types";
+import { MacroActionType, MutationInstruction } from "common/types";
 
 jest.mock("@ipc/log");
 jest.mock("@utils/type-emitter");
@@ -98,7 +98,7 @@ describe("ReactiveSessionVariables", () => {
             type: MacroActionType.ModifyAppSettings,
             field: ["audio", "music"],
             value: 0.5,
-            effect: MutateActionEffect.Set
+            effect: MutationInstruction.Set
         });
 
         expect(vars.getState()).toStrictEqual({

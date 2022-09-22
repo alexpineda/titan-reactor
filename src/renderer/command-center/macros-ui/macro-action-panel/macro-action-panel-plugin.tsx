@@ -1,4 +1,7 @@
-import { MutateActionEffect, MacroActionPluginModifyValue } from "common/types";
+import {
+  MutationInstruction,
+  MacroActionPluginModifyValue,
+} from "common/types";
 import { MacroActionEffectSelector } from "./macro-action-effect-selector";
 import { MacroActionModifyValue } from "./macro-action-modify-value";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
@@ -41,7 +44,7 @@ export const MacroActionPanelPlugin = (
                 pluginName: evt.target.value,
                 field: [],
                 value: undefined,
-                effect: MutateActionEffect.SetToDefault,
+                effect: MutationInstruction.SetToDefault,
               });
             }}
             value={action.pluginName}
@@ -62,7 +65,7 @@ export const MacroActionPanelPlugin = (
                 ...action,
                 field: [evt.target.value],
                 value: undefined,
-                effect: MutateActionEffect.SetToDefault,
+                effect: MutationInstruction.SetToDefault,
               });
             }}
             value={action.field[0]}
@@ -85,7 +88,7 @@ export const MacroActionPanelPlugin = (
           <MacroActionEffectSelector {...props} />
         </ErrorBoundary>
 
-        {viewOnly && action.effect === MutateActionEffect.Set && (
+        {viewOnly && action.effect === MutationInstruction.Set && (
           <p
             style={{
               background: "var(--green-0)",
@@ -99,7 +102,7 @@ export const MacroActionPanelPlugin = (
           </p>
         )}
       </div>
-      {action.effect === MutateActionEffect.Set &&
+      {action.effect === MutationInstruction.Set &&
         !viewOnly &&
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>
