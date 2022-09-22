@@ -1,5 +1,15 @@
-// For a detailed explanation regarding each configuration property, visit:
-// https://jestjs.io/docs/en/configuration.html
+const aliases = require("./build/aliases");
+
+console.log(aliases);
+
+const moduleNameMapper = Object.keys(aliases).reduce((acc, alias) => {
+  console.log(alias, aliases[alias]);
+  acc[`${alias}/(.*)$`] = `<rootDir>${aliases[alias].slice(1)}/$1`;
+  return acc;
+}, {});
+
+moduleNameMapper["common/(.*)$"] = "<rootDir>/src/common/$1";
+console.log(moduleNameMapper);
 
 module.exports = {
   // All imported modules in your tests should be mocked automatically
@@ -132,8 +142,19 @@ module.exports = {
   // snapshotSerializers: [],
 
   // The test environment that will be used for testing
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
 
+  preset: "ts-jest",
+
+  testPathIgnorePatterns: ["/dist/", "/node_modules/", "/bundled/"],
+
+  moduleNameMapper,
+
+  //   test: {
+  //     '@ahoopen/core(.*)$': '<rootDir>/packages/./core/src/$1',
+  //     '@ahoopen/utils(.*)$': '<rootDir>/packages/./utils/src/$1',
+  //     '@ahoopen/web(.*)$': '<rootDir>/packages/./web/src/$1'
+  //  },
   // Options that will be passed to the testEnvironment
   // testEnvironmentOptions: {},
 
