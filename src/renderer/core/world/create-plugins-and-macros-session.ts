@@ -6,7 +6,6 @@ import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
 import { HOOK_ON_FRAME_RESET, HOOK_ON_PLUGINS_DISPOSED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { createPluginSession } from "./create-plugin-session";
-import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 import { settingsStore } from "@stores/settings-store";
 import { OpenBW } from "common/types";
 
@@ -18,49 +17,41 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
 
     const create = async () => {
 
-        const session = await createPluginSession(openBW);
+        const pluginSession = await createPluginSession(openBW);
 
-        session.nativePlugins.externalHookListener = (...args) => macrosComposer.macros.callFromHook(...args);
+        pluginSession.nativePlugins.externalHookListener = (...args) => macrosComposer.macros.callFromHook(...args);
 
-        macrosComposer.macros.getPluginProperty = session.reactiveApi.getRawValue;
-        macrosComposer.macros.doPluginAction = (action) => {
-            const result = session.reactiveApi.mutate(action);
-            if (result) {
-                session.uiPlugins.sendMessage({
-                    type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
-                    payload: result
-                });
-            }
-        };
+        macrosComposer.macros.getPluginProperty = pluginSession.store.getValue;
+        macrosComposer.macros.doPluginAction = pluginSession.store.mutate;
 
-        return session;
+        return pluginSession;
 
     }
 
-    let _session = await create();
+    let _pluginSession = await create();
 
-    events.on("completed-upgrade", (upgrade) => _session.nativePlugins.callHook(HOOK_ON_UPGRADE_COMPLETED, upgrade));
-    events.on("completed-tech", (tech) => _session.nativePlugins.callHook(HOOK_ON_TECH_COMPLETED, tech));
-    events.on("unit-created", (unit) => _session.nativePlugins.callHook(HOOK_ON_UNIT_CREATED, unit));
-    events.on("unit-killed", (unit) => _session.nativePlugins.callHook(HOOK_ON_UNIT_KILLED, unit));
+    events.on("completed-upgrade", (upgrade) => _pluginSession.nativePlugins.callHook(HOOK_ON_UPGRADE_COMPLETED, upgrade));
+    events.on("completed-tech", (tech) => _pluginSession.nativePlugins.callHook(HOOK_ON_TECH_COMPLETED, tech));
+    events.on("unit-created", (unit) => _pluginSession.nativePlugins.callHook(HOOK_ON_UNIT_CREATED, unit));
+    events.on("unit-killed", (unit) => _pluginSession.nativePlugins.callHook(HOOK_ON_UNIT_KILLED, unit));
     events.on("selected-units-changed", units => {
-        _session.nativePlugins.callHook(HOOK_ON_UNITS_SELECTED, units);
-        _session.uiPlugins.onUnitsSelected(units);
+        _pluginSession.nativePlugins.callHook(HOOK_ON_UNITS_SELECTED, units);
+        _pluginSession.uiPlugins.onUnitsSelected(units);
     })
     events.on("frame-reset", () =>
-        _session.nativePlugins.callHook(HOOK_ON_FRAME_RESET));
+        _pluginSession.nativePlugins.callHook(HOOK_ON_FRAME_RESET));
 
     events.on("dispose", () => {
-        _session.nativePlugins.callHook(HOOK_ON_PLUGINS_DISPOSED);
+        _pluginSession.nativePlugins.callHook(HOOK_ON_PLUGINS_DISPOSED);
         macrosComposer.dispose();
-        _session.dispose();
+        _pluginSession.dispose();
         _undoInject();
     });
 
     let _undoInject = () => { };
 
     return {
-        activate(gameTimeApi: GameTimeApi, sessionApi: ReactiveSessionVariables, events: TypeEmitter<WorldEvents>) {
+        activate(gameTimeApi: GameTimeApi, sessionSettings: ReactiveSessionVariables, events: TypeEmitter<WorldEvents>) {
 
             _undoInject();
 
@@ -69,29 +60,29 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
             macrosComposer.setContainer(
                 mix({
                     api: borrow(gameTimeApi),
-                    plugins: borrow(_session.reactiveApi.vars),
-                    settings: borrow(sessionApi.vars),
+                    plugins: borrow(_pluginSession.store.vars),
+                    settings: borrow(sessionSettings.vars),
                     events
                 }));
 
             _undoInject = this.native.injectApi(
                 mix({
-                    settings: sessionApi.vars,
+                    settings: sessionSettings.vars,
                     events
                 }, gameTimeApi));
 
         },
         get native() {
-            return _session.nativePlugins;
+            return _pluginSession.nativePlugins;
         },
         get ui() {
-            return _session.uiPlugins;
+            return _pluginSession.uiPlugins;
         },
         async reload() {
             _undoInject();
             await (settingsStore().load());
-            _session.dispose();
-            _session = await create();
+            _pluginSession.dispose();
+            _pluginSession = await create();
         }
     }
 }

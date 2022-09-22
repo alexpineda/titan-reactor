@@ -1,4 +1,4 @@
-import { PluginMetaData, SessionSettingsData, SettingsMeta } from "common/types";
+import { FieldDefinition, PluginMetaData, SessionSettingsData, SettingsMeta } from "common/types";
 import lSet from "lodash.set";
 
 export const generateAppSettingsFromLevaFormat = (
@@ -28,7 +28,7 @@ export const getAppSettingsInLevaFormat = (settings: SettingsMeta["data"], plugi
 
 export const getSessionSettingsPropertyInLevaFormat = (
     settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
-) => {
+): FieldDefinition | undefined => {
     const config = getSessionSettingsInLevaFormat(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
 };

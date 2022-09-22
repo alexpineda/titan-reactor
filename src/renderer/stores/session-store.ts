@@ -7,23 +7,24 @@ import { arrayOverwriteMerge } from "@utils/object-utils";
 
 export type CreateSessionStoreArgs<T extends Record<string, any>> = {
     sourceOfTruth: T;
-    validateMerge?: (newStore: T, rhs: DeepPartial<T>) => boolean;
-    onUpdate?: (newStore: T, rhs: DeepPartial<T>) => void;
+    validateMerge?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => boolean;
+    onUpdate?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => void;
 }
 
 export function createSessionStore<T extends Record<string, any>>({ sourceOfTruth, validateMerge: validateMerge, onUpdate }: CreateSessionStoreArgs<T>): SessionStore<T> {
 
+    const defaults = JSON.parse(JSON.stringify(sourceOfTruth));
     const store = JSON.parse(JSON.stringify(sourceOfTruth));
 
-    const getResetValue = (path: string[]) => lGet(sourceOfTruth, path);
+    const getResetValue = (path: string[]) => lGet(defaults, path);
 
-    const merge = (rhs: DeepPartial<T>) => {
+    const merge = (rhs: DeepPartial<T>, path?: string[], value?: any) => {
 
         const result = deepMerge(store, rhs, { arrayMerge: arrayOverwriteMerge }) as Required<T>;
 
-        if (validateMerge === undefined || validateMerge(result, rhs)) {
+        if (validateMerge === undefined || validateMerge(result, rhs, path, value)) {
             Object.assign(store, result);
-            onUpdate && onUpdate(store, rhs);
+            onUpdate && onUpdate(store, rhs, path, value);
         }
 
     }
@@ -31,7 +32,7 @@ export function createSessionStore<T extends Record<string, any>>({ sourceOfTrut
     const getValue = (path: string[]) => lGet(store, path);
 
     const setValue = (path: string[], value: any) => {
-        merge(lSet<DeepPartial<T>>({}, path, value));
+        merge(lSet<DeepPartial<T>>({}, path, value), path, value);
     }
 
     return {
@@ -40,13 +41,17 @@ export function createSessionStore<T extends Record<string, any>>({ sourceOfTrut
         getValue,
         setValue,
         merge,
+        updateSourceOfTruth: (newSourceOfTruth: DeepPartial<T>) => {
+            Object.assign(defaults, deepMerge(defaults, JSON.parse(JSON.stringify(newSourceOfTruth))));
+        }
     }
 }
 
-export type SessionStore<TStore> = {
-    getState: () => TStore;
+export type SessionStore<T> = {
+    getState: () => T;
     getValue: (path: string[]) => any;
     getResetValue: (path: string[]) => any;
     setValue: (path: string[], value: any) => void;
-    merge: (rhs: DeepPartial<TStore>) => void;
+    merge: (rhs: DeepPartial<T>) => void;
+    updateSourceOfTruth: (newSourceOfTruth: DeepPartial<T>) => void;
 }

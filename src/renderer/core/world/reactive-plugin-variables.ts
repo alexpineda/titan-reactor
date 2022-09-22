@@ -1,99 +1,120 @@
 import { log } from "@ipc/log";
-import { macroEffectApply } from "@macros/macro-effect-apply";
-import { createMutateEffectStore } from "@macros/create-mutate-effect-store";
 import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
 import { settingsStore } from "@stores/settings-store";
-import { last } from "@utils/function-utils";
 import { Janitor } from "three-janitor";
-import { FieldDefinition, MutationInstruction, MacroActionPluginModifyValue } from "common/types";
+import { FieldDefinition } from "common/types";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
 import { globalEvents } from "@core/global-events";
+import { createSessionStore } from "@stores/session-store";
+import { createMutationStore } from "@stores/mutation-store";
+import { PluginSystemUI } from "@plugins/plugin-system-ui";
+import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 
 type PluginResetStore = {
     [pluginName: string]: {
-        [variableName: string]: FieldDefinition | number | boolean | string | number[];
+        [variableName: string]: number | boolean | string | number[];
     };
 }
 
 /**
  * An api that allows the consumer to modify plugin values and have the system respond.
  */
-export const createReactivePluginApi = (plugins: PluginSystemNative) => {
+export const createReactivePluginApi = (plugins: PluginSystemNative, uiPlugins: PluginSystemUI) => {
 
     const janitor = new Janitor("ReactivePluginApi");
 
+    const sessionStore = createSessionStore({
+        sourceOfTruth: plugins.reduce((acc, plugin) => {
+            for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
+                if ((field as FieldDefinition)?.value) {
+                    throw new Error(`Plugin ${plugin.name} has a field ${key} with a value property. This is not allowed.`);
+                }
+                lSet(acc, [plugin.name, key], (field as FieldDefinition).value);
+            }
+            return acc;
+        }, {}) as PluginResetStore,
+        validateMerge: (_, __, path) => {
+            if (path === undefined) {
+                return false;
+            }
+            const plugin = plugins.getByName(path[0]);
 
-    // set the default values for user with reset()
-    const sourceOfTruth = JSON.parse(JSON.stringify(plugins.reduce((acc, plugin) => {
-        for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
-            lSet(acc, [plugin.name, key], (field as FieldDefinition)?.value ?? field);
+            if (!plugin) {
+                log.error(`@validate-merge: Plugin ${path[0]} not found`);
+                return false;
+            }
+
+            if (!plugins.isRegularPluginOrActiveSceneController(plugin)) {
+                return false;
+            }
+
+            const field = plugin.getFieldDefinition(path[1]);
+
+            if (field === undefined) {
+                return false;
+            }
+
+            return true;
+        },
+        onUpdate: (_, __, path, value) => {
+            if (path === undefined) {
+                log.warn("@on-update: path is undefined");
+                return;
+            }
+
+            const plugin = plugins.getByName(path[0]);
+
+            if (!plugin) {
+                log.error(`@on-update: Plugin ${path[0]} not found`);
+                return false;
+            }
+
+            plugins.hook_onConfigChanged(plugin.id, lSet(plugin.rawConfig, [path[1], "value"], value));
+
+            uiPlugins.sendMessage({
+                type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
+                payload: {
+                    pluginId: plugin.id,
+                    config: plugin.config,
+                }
+            });
         }
-        return acc;
-    }, {}))) as PluginResetStore;
+    });
+
+    const getValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
+
+    const store = createMutationStore(sessionStore, getValue);
 
     // The user changed a plugin config so update the defaults
     janitor.mop(globalEvents.on("command-center-plugin-config-changed", ({ pluginId, config }) => {
+
         const plugin = plugins.getById(pluginId);
+
         if (plugin) {
+
             for (const [key, field] of Object.entries(config ?? {})) {
+
                 if (key !== "system") {
-                    lSet(sourceOfTruth, [plugin.name, key], (field as FieldDefinition)?.value ?? field);
+
+                    store.updateSourceOfTruth(lSet({}, [plugin.name, key], (field as FieldDefinition)?.value ?? field));
+
                 }
+
             }
+
         }
+
     }));
 
-    const modifyPluginValue = (pluginName: string, fieldKey: string, effect: MutationInstruction, newValue: any, resetValue: any) => {
-
-        const plugin = plugins.getByName(pluginName);
-
-        if (!plugin) {
-            log.error(`@macro-action: Plugin ${pluginName} not found`);
-            return null;
-        }
-
-        if (!plugins.isRegularPluginOrActiveSceneController(plugin)) {
-            return null;
-        }
-
-        const field = plugin.getRawConfigComponent(fieldKey);
-
-        if (field === undefined) {
-            return null;
-        }
-
-        //TODO: copy config to new config so onConfigChanged works properly
-        plugin.setConfig(fieldKey, macroEffectApply(effect, field, newValue, resetValue), false);
-        plugins.hook_onConfigChanged(plugin.id, plugin.rawConfig);
-
-        return {
-            pluginId: plugin.id,
-            config: plugin.config
-        }
-
-    }
-
-
-    const applyEffectFromMethod = (pluginName: string) => (effect: MutationInstruction, path: string[], newValue: any) => {
-
-        const resetValue = lGet(sourceOfTruth, path);
-
-        modifyPluginValue(pluginName, last(path), effect, newValue, resetValue);
-
-    }
-
-    const getRawValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
-
-    const definePluginVar = (plugin: PluginBase) => createMutateEffectStore(applyEffectFromMethod(plugin.name), (path: string[]) => getRawValue(path));
 
     const vars = plugins.reduce((acc, plugin) => {
 
-        Object.entries(plugin.rawConfig).forEach(([key, value]) => {
+        Object.keys(plugin.rawConfig).forEach((key) => {
 
             if (key !== "system") {
                 const compKey = [plugin.name, key];
-                lSet(acc, compKey, definePluginVar(plugin)(value as FieldDefinition, compKey));
+                lSet(acc, compKey, store.createVariable(compKey));
                 lSet(acc, [plugin.name, `get${key[0].toUpperCase() + key.slice(1)}`], () => lGet(acc, compKey));
             }
 
@@ -108,18 +129,8 @@ export const createReactivePluginApi = (plugins: PluginSystemNative) => {
 
     }, {});
 
-
-    const mutate = (action: MacroActionPluginModifyValue) => {
-
-        const resetValue = lGet(sourceOfTruth, action.path);
-
-        return modifyPluginValue(action.path[0], action.path[1], action.instruction, action.value, resetValue);
-
-    }
-
     return {
-        getRawValue,
-        mutate,
+        ...store,
         vars,
         dispose: () => janitor.dispose(),
     }

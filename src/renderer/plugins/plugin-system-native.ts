@@ -81,7 +81,7 @@ export class PluginBase implements NativePlugin {
      * @param key The configuration key.
      * @returns the leva configuration for a particular field
      */
-    getRawConfigComponent(key: string) {
+    getFieldDefinition(key: string) {
         return this.#config[key];
     }
 

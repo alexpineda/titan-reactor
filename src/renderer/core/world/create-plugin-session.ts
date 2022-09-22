@@ -22,7 +22,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
     const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, uiPlugins), "nativePlugins");
 
     // available to macros and sandbox only
-    const reactiveApi = janitor.mop(createReactivePluginApi(nativePlugins), "reactiveApi");
+    const store = janitor.mop(createReactivePluginApi(nativePlugins, uiPlugins), "reactiveApi");
 
     await uiPlugins.isRunning();
 
@@ -65,7 +65,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
     return {
         nativePlugins,
         uiPlugins,
-        reactiveApi,
+        store,
         dispose() {
             janitor.dispose();
         },

@@ -56,7 +56,7 @@ export interface NativePlugin {
      * Unprocessed configuration data from the package.json.
      * @internal
      */
-    getRawConfigComponent(key: string): any;
+    getFieldDefinition(key: string): any;
 
     /**
      * Allows a plugin to update it's own config key/value store

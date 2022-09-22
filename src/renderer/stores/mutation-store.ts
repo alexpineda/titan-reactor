@@ -1,9 +1,11 @@
 import { FieldDefinition, Mutation, MutationInstruction } from "common/types";
-import { macroEffectApply } from "@macros/macro-effect-apply";
+import { applyMutationInstruction } from "./apply-mutation-instruction";
 import { log } from "@ipc/log";
 import { SessionStore } from "./session-store";
 
-export const createPathVariable = (mutate: (action: Mutation) => void, getValue: (path: string[]) => any) => (path: string[]) => {
+export type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
+
+export const createMutationVariable = (mutate: (action: Mutation) => void, getValue: (path: string[]) => any) => (path: string[]) => {
 
     const _data = {
         value: undefined,
@@ -66,15 +68,20 @@ export const createPathVariable = (mutate: (action: Mutation) => void, getValue:
 
 }
 
-export function createMutationStore<T>(store: SessionStore<T>, getFieldDefinition: (state: T, path: string[]) => FieldDefinition | undefined) {
+export type MutationStore<T> = SessionStore<T> & {
+    mutate: (action: Mutation) => void;
+    createVariable: (path: string[]) => MutationVariable;
+}
 
-    const mutate = (action: Mutation) => {
+export function createMutationStore<T>(store: SessionStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): MutationStore<T> {
 
-        const field = getFieldDefinition(store.getState(), action.path);
+    const mutate = (mutation: Mutation) => {
+
+        const field = getFieldDefinition(mutation.path, store.getState());
 
         if (field) {
 
-            store.setValue(action.path, macroEffectApply(action.instruction, field, action.value, store.getResetValue(action.path)));
+            store.setValue(mutation.path, applyMutationInstruction(mutation.instruction, field, mutation.value, store.getResetValue(mutation.path)));
 
         } else {
 
@@ -85,7 +92,8 @@ export function createMutationStore<T>(store: SessionStore<T>, getFieldDefinitio
     };
 
     return {
+        ...store,
         mutate,
-        createVariable: createPathVariable(mutate, (path) => store.getValue(path))
+        createVariable: createMutationVariable(mutate, (path) => store.getValue(path))
     }
 }

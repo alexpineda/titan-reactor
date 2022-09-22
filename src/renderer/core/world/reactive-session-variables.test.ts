@@ -3,7 +3,7 @@ import { TypeEmitter } from "@utils/type-emitter";
 import { createReactiveSessionVariables } from "./reactive-session-variables";
 import { WorldEvents } from "./world";
 import * as settingsStore from "@stores/settings-store";
-import { MacroActionType, MutationInstruction } from "common/types";
+import { MutationInstruction } from "common/types";
 
 jest.mock("@ipc/log");
 jest.mock("@utils/type-emitter");
@@ -47,9 +47,9 @@ describe("ReactiveSessionVariables", () => {
 
     it("should have initial state", () => {
         const events = new TypeEmitter<WorldEvents>();
-        const vars = createReactiveSessionVariables(events);
+        const session = createReactiveSessionVariables(events);
 
-        expect(vars.getState()).toStrictEqual(initialState.data);
+        expect(session.getState()).toStrictEqual(initialState.data);
 
     });
 
@@ -64,9 +64,9 @@ describe("ReactiveSessionVariables", () => {
         };
 
         const events = new TypeEmitter<WorldEvents>();
-        const vars = createReactiveSessionVariables(events);
+        const session = createReactiveSessionVariables(events);
 
-        expect(vars.getState()).toStrictEqual(initialState.data);
+        expect(session.getState()).toStrictEqual(initialState.data);
 
         callback!({ data: { audio: { music: 1 } } });
 
@@ -83,25 +83,23 @@ describe("ReactiveSessionVariables", () => {
 
     it("getRawValue should return value at path", () => {
         const events = new TypeEmitter<WorldEvents>();
-        const vars = createReactiveSessionVariables(events);
+        const session = createReactiveSessionVariables(events);
 
-        expect(vars.getRawValue(["minimap", "zoom"])).toBe(2);
+        expect(session.getValue(["minimap", "zoom"])).toBe(2);
     });
 
     it("mutate should apply effect", () => {
 
         const events = new TypeEmitter<WorldEvents>();
-        const vars = createReactiveSessionVariables(events);
+        const session = createReactiveSessionVariables(events);
 
-        vars.mutate({
-            id: "test",
-            type: MacroActionType.ModifyAppSettings,
+        session.mutate({
             path: ["audio", "music"],
             value: 0.5,
             instruction: MutationInstruction.Set
         });
 
-        expect(vars.getState()).toStrictEqual({
+        expect(session.getState()).toStrictEqual({
             ...initialState.data,
             audio: { music: 0.5 }
         });

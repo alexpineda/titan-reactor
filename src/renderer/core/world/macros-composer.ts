@@ -18,7 +18,7 @@ export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings:
     janitor.mop(macros.listenForKeyCombos(), "listenForKeyCombos");
 
     macros.doSessionAction = settings.mutate;
-    macros.getSessionProperty = settings.getRawValue;
+    macros.getSessionProperty = settings.getValue;
 
     janitor.mop(globalEvents.on("exec-macro", (macroId) => {
         macros.execMacroById(macroId);
