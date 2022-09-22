@@ -26,9 +26,12 @@ import { TypeEmitter } from "@utils/type-emitter";
 import { World, WorldEvents } from "./world";
 import { borrow, expose, mix } from "@utils/object-utils";
 import { mixer } from "@core/global";
+import processStore from "@stores/process-store";
 // import { useSettingsStore } from "@stores/settings-store";
 
 export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: Chk, players: BasePlayer[], commands: CommandsStream) => {
+
+    processStore().clearAll();
 
     const janitor = new Janitor("WorldComposer");
     const events = janitor.mop(new TypeEmitter<WorldEvents>(), "events");

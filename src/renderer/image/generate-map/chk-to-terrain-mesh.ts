@@ -84,8 +84,6 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
   janitor.mop(effectsTextures, "effectsTextures");
   //TODO: generate water mask
 
-  genProcess.complete();
-
   renderComposer.preprocessEnd();
 
   const terrain = await createTerrainGeometryFromQuartiles(mapWidth, mapHeight, creepTexture, creepEdgesTexture, geomOptions, dataTextures, heightMaps, textures, effectsTextures);

@@ -132,7 +132,7 @@ let fireTexture: Texture;
 
 export const preloadIntro = async () => {
 
-    const { increment, complete } = processStore().addOrCreate("intro", 4);
+    const { increment } = processStore().addOrCreate("intro", 4);
 
     //TODO submit to types
     //@ts-ignore
@@ -150,8 +150,6 @@ export const preloadIntro = async () => {
     await wraiths.load(envmap, fireTexture);
 
     battleLights.load(fireTexture);
-
-    complete();
 
 };
 

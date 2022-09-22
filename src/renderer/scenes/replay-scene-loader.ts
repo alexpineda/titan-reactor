@@ -130,8 +130,6 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   document.title = `Titan Reactor - ${gameTitle}`;
 
-  loadProcess.complete();
-
   return {
     id: "@replay",
     start: () => {

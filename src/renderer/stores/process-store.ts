@@ -11,12 +11,12 @@ export type IncrementalProcess = {
   current: number;
 };
 
-type ProcessWrapper = { id: string, increment: () => void, complete: () => void, add(additiona: number): void };
+type ProcessWrapper = { id: string, increment: () => void, add(additiona: number): void };
+
 export type ProcessStore = {
   processes: IncrementalProcess[];
   create: (label: string, max: number) => ProcessWrapper;
   increment: (id: string, current?: number) => void;
-  forceComplete: (id: string) => void;
   isComplete: (id: string) => boolean;
   isInProgress: (id: string) => boolean;
   getTotalProgress: () => number;
@@ -32,15 +32,12 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
   _createProcessWrapper: (id: string, process: IncrementalProcess) => ({
     id,
     increment: () => get().increment(id),
-    complete: () => get().forceComplete(id),
     add: (additional: number) => {
       process.max += additional;
     }
   }),
   create: (label: string, max = PROCESS_MAX) => {
     const id = MathUtils.generateUUID();
-    performance.clearMarks(`process-${id}`);
-    performance.clearMeasures(`process-${id}`);
     log.verbose("@process/init: " + label);
 
     performance.mark(`process-${id}`);
@@ -61,6 +58,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
   addOrCreate: (label: string, max: number) => {
     const existing = get().processes[0];
     if (existing) {
+      performance.mark(`process-${existing.id}`);
       existing.max += max;
       return get()._createProcessWrapper(existing.id, existing);
     } else {
@@ -79,34 +77,13 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
           (p) => (p.id === id ? { ...p, current: next } : p)
         ),
       }));
-    }
-  },
-  forceComplete: (id: string, clear = true) => {
-    if (get().isComplete(id)) {
-      return;
-    }
-    if (!get().isInProgress(id)) {
-      log.error(`@process/complete: process ${id} is not in progress`);
-      return;
-    }
 
-    const perf = performance.measure(`process-${id}`);
-    performance.clearMarks(`process-${id}`);
-    performance.clearMeasures(`process-${id}`);
-
-    const { label } = get().processes.find((p) => p.id === id)!;
-
-    log.info(`@process/complete: ${label} ${perf.duration}ms`);
-
-    const process = get().processes.find((p) => p.id === id);
-    if (!process) return;
-
-    process.current = process.max;
-
-    if (clear) {
-      set(({ processes }) => ({
-        processes: processes.filter((p) => p.id !== id)
-      }));
+      if (next === process.max) {
+        const perf = performance.measure(`process-${id}`);
+        performance.clearMarks(`process-${id}`);
+        performance.clearMeasures(`process-${id}`);
+        log.info(`@process/complete: ${process.label} ${perf.duration}ms`);
+      }
     }
   },
   clearAll: () => {
@@ -120,7 +97,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
     }));
   },
   isInProgress: (id: string) =>
-    get().processes.some((p) => p.id === id),
+    get().processes.some((p) => p.id === id && p.current < p.max),
   isComplete: (id: string) =>
     get().processes.some((p) => p.id === id && p.current >= p.max),
   getTotalProgress: () => {

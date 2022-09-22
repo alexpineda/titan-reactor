@@ -198,7 +198,6 @@ export const createTerrainGeometryFromQuartiles = async (
         quartileWidth: qw, quartileHeight: qh, tilesX, tilesY
     }
 
-    genProcess.complete();
     return terrain;
 };
 export default createTerrainGeometryFromQuartiles;

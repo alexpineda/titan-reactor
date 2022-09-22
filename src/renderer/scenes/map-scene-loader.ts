@@ -93,8 +93,6 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
     }
   );
 
-  process.complete();
-
   return {
     id: "@map",
     start: () => {
