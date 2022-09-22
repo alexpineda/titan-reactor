@@ -14,7 +14,7 @@ export const log = {
     }
   },
 
-  warning(msg: string) {
+  warn(msg: string) {
     logBoth(msg, "warning");
   },
 

@@ -21,7 +21,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     error: null,
     execSceneLoader: async (loader: SceneLoader, errorHandler?: SceneLoader, clearError = true) => {
         if (_loading) {
-            log.warning("Scene is already loading");
+            log.warn("Scene is already loading");
         }
         _loading = true;
 

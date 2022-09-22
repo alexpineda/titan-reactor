@@ -3,32 +3,34 @@ import processStore from "./process-store";
 
 jest.mock("@ipc/log");
 
-//TODO: fix this hack
-Object.defineProperty(window.performance, 'mark', {
-    configurable: true,
-    value: jest.fn(),
-});
 
-Object.defineProperty(window.performance, 'clearMeasures', {
-    configurable: true,
-    value: jest.fn(),
-});
-
-Object.defineProperty(window.performance, 'clearMarks', {
-    configurable: true,
-    value: jest.fn(),
-});
-
-Object.defineProperty(window.performance, 'measure', {
-    configurable: true,
-    value: jest.fn(() => ({ duration: 100 })),
-});
 
 describe("ProcessStore", () => {
 
     beforeEach(() => {
 
         processStore().clearAll();
+
+        //TODO: fix this hack
+        Object.defineProperty(window.performance, 'mark', {
+            configurable: true,
+            value: jest.fn(),
+        });
+
+        Object.defineProperty(window.performance, 'clearMeasures', {
+            configurable: true,
+            value: jest.fn(),
+        });
+
+        Object.defineProperty(window.performance, 'clearMarks', {
+            configurable: true,
+            value: jest.fn(),
+        });
+
+        Object.defineProperty(window.performance, 'measure', {
+            configurable: true,
+            value: jest.fn(() => ({ duration: 100 })),
+        });
 
     });
 

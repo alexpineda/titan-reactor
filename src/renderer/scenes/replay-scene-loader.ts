@@ -51,10 +51,10 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
 
   if (sanityCheck.length) {
 
-    sanityCheck.forEach((command, i) => i < 10 && log.warning(`@sanity-check/${command.reason}: ${JSON.stringify(command)}`));
+    sanityCheck.forEach((command, i) => i < 10 && log.warn(`@sanity-check/${command.reason}: ${JSON.stringify(command)}`));
 
     if (sanityCheck.length > 10) {
-      log.warning(`@load-replay/sanity-check: ${sanityCheck.length} total invalid commands found`);
+      log.warn(`@load-replay/sanity-check: ${sanityCheck.length} total invalid commands found`);
     }
 
   }

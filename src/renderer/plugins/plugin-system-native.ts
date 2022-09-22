@@ -44,7 +44,7 @@ export class PluginBase implements NativePlugin {
      */
     setConfig(key: string, value: any, persist = true): void {
         if (!(key in this.#config)) {
-            log.warning(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
+            log.warn(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
             return undefined;
         }
 
@@ -153,7 +153,7 @@ export class PluginSystemNative {
                 if (VALID_PERMISSIONS.includes(permission)) {
                     acc[permission] = true;
                 } else {
-                    log.warning(`Invalid permission ${permission} for plugin ${pluginPackage.name}`);
+                    log.warn(`Invalid permission ${permission} for plugin ${pluginPackage.name}`);
                 }
                 return acc;
             }, {});
@@ -170,10 +170,10 @@ export class PluginSystemNative {
 
             plugin.callCustomHook = (name: string, ...args: any[]) => {
                 if (this.#hooks[name] === undefined) {
-                    log.warning(`Plugin ${pluginPackage.name} tried to call hook ${name} but it was not found`);
+                    log.warn(`Plugin ${pluginPackage.name} tried to call hook ${name} but it was not found`);
                 }
                 else if (!this.#hooks[name].isAuthor(pluginPackage.id)) {
-                    log.warning(`Plugin ${pluginPackage.name} tried to call hook ${name} but it is not the author`);
+                    log.warn(`Plugin ${pluginPackage.name} tried to call hook ${name} but it is not the author`);
                 } else if (this.#hooks[name].isAuthor(pluginPackage.id)) {
                     return this.callHook(name, ...args);
                 }

@@ -163,7 +163,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
                 return;
             }
             if (newController === undefined) {
-                log.warning("GameViewportsDirector.activate: inputHandler is undefined");
+                log.warn("GameViewportsDirector.activate: inputHandler is undefined");
                 return;
             }
             if (activating) {

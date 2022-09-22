@@ -35,7 +35,7 @@ const getSessionSettingsField = (settingsData: SessionSettingsData, path: string
     const field = getSessionSettingsPropertyInLevaFormat(settingsData, settingsStore().enabledPlugins, path) as FieldDefinition | undefined;
 
     if (field === undefined) {
-        log.warning("Session field is no found.");
+        log.warn("Session field is no found.");
         return;
     }
 

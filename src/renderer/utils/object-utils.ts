@@ -35,7 +35,7 @@ function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string
                     get: () => descriptor.get!()
                 });
 
-                log.warning(`borrowing getter ${key}`);
+                log.warn(`borrowing getter ${key}`);
 
             } catch (e) {
 
