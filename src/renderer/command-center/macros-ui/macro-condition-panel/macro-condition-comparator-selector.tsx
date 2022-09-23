@@ -1,6 +1,6 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import { MacroConditionComparator } from "common/types";
-import { getMacroConditionValidComparators } from "common/macros/get-macro-condition-comparitors";
+import { getMacroConditionValidComparators } from "common/macros/field-utilities";
 import { useSettingsStore } from "@stores";
 import { MacroConditionPanelProps } from "./macro-condition-panel";
 

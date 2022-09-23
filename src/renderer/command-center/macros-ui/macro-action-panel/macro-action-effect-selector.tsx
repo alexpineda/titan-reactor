@@ -6,7 +6,7 @@ import {
 } from "common/types";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { useSettingsStore } from "@stores";
-import { getAvailableMutationInstructionsForAction } from "common/macros/get-macro-action-instructions";
+import { getAvailableMutationInstructionsForAction } from "common/macros/field-utilities";
 
 export const MacroActionEffectSelector = ({
   action,
