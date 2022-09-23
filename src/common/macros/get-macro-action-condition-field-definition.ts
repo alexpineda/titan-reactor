@@ -1,23 +1,33 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { MacroActionHostModifyValue, MacroConditionAppSetting } from "common/types";
+import { FieldDefinition, MacroActionHostModifyValue, MacroConditionAppSetting } from "common/types";
 import { SettingsAndPluginsMeta } from "./settings-and-plugins-meta";
 
-export const getMacroActionOrConditionLevaConfig = ({ value, path }: MacroConditionAppSetting | MacroActionHostModifyValue, settings: SettingsAndPluginsMeta) => {
+//TODO: refactor, this is a mess
+export type DisplayFieldDefinition = FieldDefinition & {
+    displayValue: any;
+}
+
+export const getMacroActionOrConditionLevaConfig = ({ value, path }: Pick<MacroConditionAppSetting | MacroActionHostModifyValue, "value" | "path">, settings: SettingsAndPluginsMeta): DisplayFieldDefinition => {
 
     const levaConfig = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, path);
 
+    return {
+        ...levaConfig,
+        displayValue: getFieldDefinitionDisplayValue(levaConfig.options, value),
+        value
+    };
+}
+
+export const getFieldDefinitionDisplayValue = (options: any[] | object | undefined, value: any): any => {
+
     const displayValue =
         //@ts-ignore
-        levaConfig?.options && !Array.isArray(levaConfig.options)
+        options && !Array.isArray(options)
             //@ts-ignore
-            ? Object.entries(levaConfig.options).find(
+            ? Object.entries(options).find(
                 ([_, v]) => v === value
             )?.[0] ?? value
             : value;
 
-    return {
-        ...levaConfig,
-        displayValue,
-        value
-    };
+    return displayValue;
 }
