@@ -1,4 +1,4 @@
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionType, MacroCondition, MacrosDTO, TriggerType } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionType, MacroCondition, MacroConditionComparator, MacrosDTO, TriggerType } from "common/types";
 import { FieldDefinition, MutationInstruction } from "../types/mutations";
 import { getAppFieldDefinition, getAvailableMutationInstructionsForAction, SettingsAndPluginsMeta, getMacroConditionValidComparators, isValidTypeOfField } from "./field-utilities";
 
@@ -61,6 +61,7 @@ const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPl
 
     if (action.type === MacroActionType.ModifyAppSettings || action.type === MacroActionType.ModifyPluginSettings) {
 
+        // patch instruction
         const validInstructions = getAvailableMutationInstructionsForAction(action, settings);
 
         if (!validInstructions.includes(action.instruction)) {
@@ -77,11 +78,12 @@ const sanitizeMacroConditionComparators = (condition: MacroCondition, settings: 
 
     if (condition.type === "AppSettingsCondition" || condition.type === "PluginSettingsCondition") {
 
+        // patch comparitor
         const validComparators = getMacroConditionValidComparators(condition, settings);
 
         if (!validComparators.includes(condition.comparator)) {
 
-            condition.comparator = validComparators[0];
+            condition.comparator = MacroConditionComparator.Equals
 
         }
 
@@ -95,29 +97,18 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
         let field = getAppFieldDefinition(settings, action.path);
 
         if (field === null) {
+            action.error = {
+                type: MacroActionConfigurationErrorType.InvalidField,
+                message: "No field definition"
+            }
             return;
         }
 
-        const assignProperValue = action.type === MacroActionType.ModifyAppSettings && action.instruction === MutationInstruction.Set || action.type === "AppSettingsCondition";
+        const patchable = action.type === MacroActionType.ModifyAppSettings && action.instruction === MutationInstruction.Set || action.type === "AppSettingsCondition";
 
-        if (assignProperValue) {
+        if (patchable) {
 
-            if (action.value === undefined) {
-                if (field.options) {
-                    action.value = getFirstOption(field.options);
-                } else {
-                    action.value = field.value;
-                }
-            }
-
-            if (!isValidTypeOfField(typeof action.value)) {
-
-                action.error = {
-                    type: MacroActionConfigurationErrorType.InvalidFieldValue,
-                    message: `Invalid field type: ${JSON.stringify(action)}`
-                }
-
-            }
+            patchValue(action, field);
 
         }
 
@@ -135,6 +126,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
         }
 
+        // patch path
         if (!action.path || action.path.length === 0) {
 
             let replaced: string | undefined;
@@ -171,20 +163,8 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
         if (checkField) {
 
             const field = plugin.config?.[action.path[1] as keyof typeof plugin] ?? { value: null };
-            if (action.value === undefined) {
-                if (field.options) {
-                    action.value = getFirstOption(field.options);
-                } else {
-                    action.value = field.value;
-                }
-            }
 
-            if (!isValidTypeOfField(typeof action.value)) {
-                action.error = {
-                    type: MacroActionConfigurationErrorType.InvalidFieldValue,
-                    message: `Invalid field type: ${typeOfField}`
-                }
-            }
+            patchValue(action, field);
 
         }
     }
@@ -194,5 +174,25 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
 
     return !Array.isArray(options) ? Object.values(options)[0] : options[0];
+
+}
+
+
+const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition) => {
+
+    if (action.value === undefined) {
+        if (field.options) {
+            action.value = getFirstOption(field.options);
+        } else {
+            action.value = field.value;
+        }
+    }
+
+    if (!isValidTypeOfField(typeof action.value)) {
+        action.error = {
+            type: MacroActionConfigurationErrorType.InvalidFieldValue,
+            message: `Invalid field type`
+        }
+    }
 
 }
