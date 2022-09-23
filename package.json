@@ -15,7 +15,6 @@
         "dist": "yarn build && electron-builder",
         "dist:dir": "yarn dist -- --dir -c.compression=store -c.mac.identity=null",
         "dev": "electron-webpack dev",
-        "predev": "clean-dev-win",
         "dist:run": "yarn build && electron dist/main/main.js",
         "lint": "yarn eslint .",
         "clean-dev-win": "taskkill /f /im node.exe",
@@ -61,12 +60,10 @@
             "category": "Game",
             "icon": "icon256x256.ico"
         },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ]
+        "extraResources": [{
+            "from": "bundled",
+            "to": "bundled"
+        }]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",

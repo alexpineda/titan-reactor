@@ -1,5 +1,5 @@
 import { log } from "@ipc/log";
-import { PluginBase, PluginSystemNative } from "@plugins/plugin-system-native";
+import { PluginSystemNative } from "@plugins/plugin-system-native";
 import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { FieldDefinition } from "common/types";
@@ -10,6 +10,7 @@ import { createSessionStore } from "@stores/session-store";
 import { createMutationStore } from "@stores/mutation-store";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
+import { PluginBase } from "@plugins/plugin-base";
 
 type PluginResetStore = {
     [pluginName: string]: {
@@ -20,22 +21,22 @@ type PluginResetStore = {
 /**
  * An api that allows the consumer to modify plugin values and have the system respond.
  */
-export const createReactivePluginApi = (plugins: PluginSystemNative, uiPlugins: PluginSystemUI) => {
+export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins: PluginSystemUI) => {
 
     const janitor = new Janitor("ReactivePluginApi");
 
     const sessionStore = createSessionStore({
         sourceOfTruth: plugins.reduce((acc, plugin) => {
             for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
-                if ((field as FieldDefinition)?.value) {
-                    throw new Error(`Plugin ${plugin.name} has a field ${key} with a value property. This is not allowed.`);
+                if (key !== "system" && (field as FieldDefinition)?.value !== undefined) {
+                    lSet(acc, [plugin.name, key], (field as FieldDefinition).value);
                 }
-                lSet(acc, [plugin.name, key], (field as FieldDefinition).value);
             }
             return acc;
         }, {}) as PluginResetStore,
         validateMerge: (_, __, path) => {
             if (path === undefined) {
+                log.warn("Attempted to set the entire plugin session store. This is not allowed.");
                 return false;
             }
             const plugin = plugins.getByName(path[0]);
@@ -46,6 +47,10 @@ export const createReactivePluginApi = (plugins: PluginSystemNative, uiPlugins: 
             }
 
             if (!plugins.isRegularPluginOrActiveSceneController(plugin)) {
+                return false;
+            }
+
+            if (!plugin.configExists) {
                 return false;
             }
 
@@ -63,14 +68,9 @@ export const createReactivePluginApi = (plugins: PluginSystemNative, uiPlugins: 
                 return;
             }
 
-            const plugin = plugins.getByName(path[0]);
+            const plugin = plugins.getByName(path[0])!;
 
-            if (!plugin) {
-                log.error(`@on-update: Plugin ${path[0]} not found`);
-                return false;
-            }
-
-            plugins.hook_onConfigChanged(plugin.id, lSet(plugin.rawConfig, [path[1], "value"], value));
+            plugins.hook_onConfigChanged(plugin.id, lSet(plugin.rawConfig!, [path[1], "value"], value));
 
             uiPlugins.sendMessage({
                 type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
@@ -79,6 +79,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative, uiPlugins: 
                     config: plugin.config,
                 }
             });
+
         }
     });
 
@@ -97,6 +98,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative, uiPlugins: 
 
                 if (key !== "system") {
 
+                    //TODO: update store as well
                     store.updateSourceOfTruth(lSet({}, [plugin.name, key], (field as FieldDefinition)?.value ?? field));
 
                 }
@@ -110,7 +112,7 @@ export const createReactivePluginApi = (plugins: PluginSystemNative, uiPlugins: 
 
     const vars = plugins.reduce((acc, plugin) => {
 
-        Object.keys(plugin.rawConfig).forEach((key) => {
+        Object.keys(plugin.rawConfig ?? {}).forEach((key) => {
 
             if (key !== "system") {
                 const compKey = [plugin.name, key];

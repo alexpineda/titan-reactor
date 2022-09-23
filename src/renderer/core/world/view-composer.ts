@@ -1,7 +1,6 @@
 import { mixer } from "@core/global";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import { log } from "@ipc/log";
-import { SceneController } from "@plugins/plugin-system-native";
 import { Janitor } from "three-janitor";
 import { Borrowed } from "@utils/object-utils";
 import { DamageType, Explosion } from "common/enums";
@@ -11,6 +10,7 @@ import { Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
 import { createInputComposer } from "./input-composer";
 import { World } from "./world";
+import { SceneController } from "@plugins/scene-controller";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {

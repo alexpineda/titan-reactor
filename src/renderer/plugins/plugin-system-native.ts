@@ -1,4 +1,4 @@
-import { PluginMetaData, NativePlugin, PluginPackage, SceneInputHandler } from "common/types";
+import { PluginMetaData, NativePlugin, SceneInputHandler } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
@@ -6,104 +6,11 @@ import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
-import { savePluginsConfig } from "@ipc/plugins";
 import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import { log } from "@ipc/log"
-import { normalizePluginConfiguration } from "@utils/function-utils"
-import { GameTimeApi } from "@core/world/game-time-api";
-import { GameViewPort } from "../camera/game-viewport";
-
-export interface PluginBase extends NativePlugin, GameTimeApi { };
-export class PluginBase implements NativePlugin {
-    readonly id: string;
-    readonly name: string;
-    isSceneController = false;
-    #config: any = {}
-
-    /**
-     * @internal
-     * Same as config but simplified to [key] = value | [key] = value * factor
-     */
-    #normalizedConfig: any;
-
-    constructor(pluginPackage: PluginPackage) {
-        this.id = pluginPackage.id;
-        this.name = pluginPackage.name;
-        this.config = pluginPackage.config;
-    }
-
-    callCustomHook: (hook: string, ...args: any[]) => any = () => { };
-    sendUIMessage: (message: any) => void = () => { };
-
-    /**
-     * 
-     * @param key The configuration key.
-     * @param value  The configuration value.
-     * @returns 
-     */
-    setConfig(key: string, value: any, persist = true): void {
-        if (!(key in this.#config)) {
-            log.warn(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
-            return undefined;
-        }
-
-        this.#config[key].value = value;
-        if (persist) {
-            savePluginsConfig(this.id, this.#config);
-        }
-    }
-
-    /*
-    * Generates the normalized config object.
-    * Same as config but simplified to [key] = value | [key] = value * factor
-    */
-    refreshConfig() {
-        this.#normalizedConfig = normalizePluginConfiguration(this.#config);
-    }
-
-    /**
-     * Read from the normalized configuration.
-     */
-    get config() {
-        return this.#normalizedConfig;
-    }
-
-    /**
-     * Set the config from unnormalized data (ie leva config schema).
-     */
-    set config(value: any) {
-        this.#config = value;
-        this.refreshConfig();
-    }
-
-    /**
-     * @param key The configuration key.
-     * @returns the leva configuration for a particular field
-     */
-    getFieldDefinition(key: string) {
-        return this.#config[key];
-    }
-
-    get rawConfig() {
-        return this.#config;
-    }
-};
-
-export interface SceneController extends PluginBase, SceneInputHandler {
-    viewports: GameViewPort[];
-};
-
-export class SceneController extends PluginBase {
-    override isSceneController = true;
-    viewports: GameViewPort[] = [];
-    override get viewport() {
-        return this.viewports[0];
-    }
-    override get secondViewport() {
-        return this.viewports[1];
-    }
-}
+import { PluginBase } from "./plugin-base";
+import { SceneController } from "./scene-controller";
 
 const VALID_PERMISSIONS = [
     PERMISSION_REPLAY_COMMANDS,

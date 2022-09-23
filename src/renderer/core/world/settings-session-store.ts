@@ -43,12 +43,12 @@ const partialSettings = (data: Settings) => ({
 });
 
 export type ReactiveSessionVariables = ReturnType<
-    typeof createReactiveSessionVariables
+    typeof createSettingsSessionStore
 >;
 /**
  * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
  */
-export const createReactiveSessionVariables = (
+export const createSettingsSessionStore = (
     events: TypeEmitter<WorldEvents>
 ) => {
     const janitor = new Janitor("ReactiveSessionVariables");

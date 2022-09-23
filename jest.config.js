@@ -1,13 +1,14 @@
 const aliases = require("./build/aliases");
 
 const moduleNameMapper = Object.keys(aliases).reduce((acc, alias) => {
-  acc[`${alias}/(.*)$`] = `<rootDir>${aliases[alias].slice(1)}/$1`;
+  acc[`^${alias}/(.*)$`] = `<rootDir>${aliases[alias].slice(1)}/$1`;
   return acc;
 }, {});
 
 moduleNameMapper["common/(.*)$"] = "<rootDir>/src/common/$1";
 
 module.exports = {
+  testRegex: "(/__tests__/.*|\\.spec|\\.test)\\.(ts|js)$",
   // All imported modules in your tests should be mocked automatically
   automock: false,
 

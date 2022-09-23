@@ -18,6 +18,9 @@ export function createSessionStore<T extends Record<string, any>>({ sourceOfTrut
 
     const getResetValue = (path: string[]) => lGet(defaults, path);
 
+    //TODO: generate path & value if no provided for consistency\
+    // or just do it by default and omit path,value params
+    // would need to be paths[], and values[] though
     const merge = (rhs: DeepPartial<T>, path?: string[], value?: any) => {
 
         const result = deepMerge(store, rhs, { arrayMerge: arrayOverwriteMerge }) as Required<T>;

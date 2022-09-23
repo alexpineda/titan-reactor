@@ -51,7 +51,7 @@ export interface NativePlugin {
      */
     isSceneController: boolean;
 
-    config: any;
+    config: Record<string, any> | undefined;
     /**
      * Unprocessed configuration data from the package.json.
      * @internal

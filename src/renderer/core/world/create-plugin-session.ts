@@ -8,7 +8,7 @@ import { PluginSystemNative } from "@plugins/plugin-system-native";
 import screenStore from "@stores/scene-store";
 import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
-import { createReactivePluginApi } from "@core/world/reactive-plugin-variables";
+import { createPluginSessionStore } from "@core/world/plugin-session-store";
 import { globalEvents } from "@core/global-events";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
@@ -22,7 +22,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
     const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, uiPlugins), "nativePlugins");
 
     // available to macros and sandbox only
-    const store = janitor.mop(createReactivePluginApi(nativePlugins, uiPlugins), "reactiveApi");
+    const store = janitor.mop(createPluginSessionStore(nativePlugins, uiPlugins), "reactiveApi");
 
     await uiPlugins.isRunning();
 

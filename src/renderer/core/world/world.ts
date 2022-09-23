@@ -8,7 +8,7 @@ import Chk from "bw-chk";
 import { DeepPartial, OpenBW, SessionSettingsData } from "common/types";
 import { BasePlayer, FogOfWar, FogOfWarEffect, ImageBase } from "..";
 import { PluginsAndMacroSession } from "./create-plugins-and-macros-session";
-import { ReactiveSessionVariables } from "./reactive-session-variables";
+import { ReactiveSessionVariables } from "./settings-session-store";
 
 // do not put anything performance sensitive here as these are synchronous.
 // image created/destroyed is already pushing it

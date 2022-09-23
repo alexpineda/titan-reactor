@@ -1,5 +1,5 @@
 import { GameTimeApi } from "./game-time-api";
-import { ReactiveSessionVariables } from "./reactive-session-variables";
+import { ReactiveSessionVariables } from "./settings-session-store";
 import { borrow, mix } from "@utils/object-utils";
 import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world";

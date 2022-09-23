@@ -11,8 +11,8 @@ export const throttleFn = (interval: number) => {
     }
 }
 
-export const normalizePluginConfiguration = (config: any) => {
-    const configCopy: any = {};
+export const normalizePluginConfiguration = (config: Record<string, any>) => {
+    const configCopy: Record<string, any> = {};
     Object.keys(config).forEach((key) => {
         if (config[key]?.value !== undefined) {
             if (config[key]?.factor !== undefined) {

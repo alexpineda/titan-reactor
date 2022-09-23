@@ -110,4 +110,44 @@ describe("SessionStore", () => {
 
     });
 
+    it("should copy source of truth", () => {
+
+        const sourceOfTruth = {
+            foo: "bar"
+        };
+        const store = createSessionStore({
+            sourceOfTruth,
+        });
+
+        sourceOfTruth.foo = "baz";
+
+        expect(store.getResetValue(["foo"])).toBe("bar");
+
+        expect(store.getValue(["foo"])).toBe("bar");
+
+    });
+
+    it("should update source of truth", () => {
+
+        const sourceOfTruth = {
+            foo: "bar"
+        };
+        const store = createSessionStore({
+            sourceOfTruth,
+        });
+
+        sourceOfTruth.foo = "baz";
+
+        expect(store.getResetValue(["foo"])).toBe("bar");
+        expect(store.getValue(["foo"])).toBe("bar");
+
+        store.updateSourceOfTruth(sourceOfTruth);
+
+        expect(store.getResetValue(["foo"])).toBe("baz");
+        expect(store.getValue(["foo"])).toBe("bar");
+
+
+
+    });
+
 });

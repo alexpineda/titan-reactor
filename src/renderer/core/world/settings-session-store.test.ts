@@ -1,6 +1,6 @@
 import { describe, it, jest } from "@jest/globals";
 import { TypeEmitter } from "@utils/type-emitter";
-import { createReactiveSessionVariables } from "./reactive-session-variables";
+import { createSettingsSessionStore } from "./settings-session-store";
 import { WorldEvents } from "./world";
 import * as settingsStore from "@stores/settings-store";
 import { MutationInstruction } from "common/types";
@@ -47,7 +47,7 @@ describe("ReactiveSessionVariables", () => {
 
     it("should have initial state", () => {
         const events = new TypeEmitter<WorldEvents>();
-        const session = createReactiveSessionVariables(events);
+        const session = createSettingsSessionStore(events);
 
         expect(session.getState()).toStrictEqual(initialState.data);
 
@@ -64,7 +64,7 @@ describe("ReactiveSessionVariables", () => {
         };
 
         const events = new TypeEmitter<WorldEvents>();
-        const session = createReactiveSessionVariables(events);
+        const session = createSettingsSessionStore(events);
 
         expect(session.getState()).toStrictEqual(initialState.data);
 
@@ -83,7 +83,7 @@ describe("ReactiveSessionVariables", () => {
 
     it("getRawValue should return value at path", () => {
         const events = new TypeEmitter<WorldEvents>();
-        const session = createReactiveSessionVariables(events);
+        const session = createSettingsSessionStore(events);
 
         expect(session.getValue(["minimap", "zoom"])).toBe(2);
     });
@@ -91,7 +91,7 @@ describe("ReactiveSessionVariables", () => {
     it("mutate should apply effect", () => {
 
         const events = new TypeEmitter<WorldEvents>();
-        const session = createReactiveSessionVariables(events);
+        const session = createSettingsSessionStore(events);
 
         session.mutate({
             path: ["audio", "music"],
