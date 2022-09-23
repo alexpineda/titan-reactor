@@ -1,9 +1,9 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionHostModifyValue, MacroActionType, MacroCondition, MacroConditionAppSetting, MacroConditionComparator, MacrosDTO, SettingsMeta, TriggerType } from "common/types";
-import { FieldDefinition, MutationInstruction } from "./types/mutations";
-
-type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
-
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionType, MacroCondition, MacrosDTO, TriggerType } from "common/types";
+import { FieldDefinition, MutationInstruction } from "../types/mutations";
+import { getValidMutationInstructions } from "./get-macro-action-instructions";
+import { getMacroConditionValidComparators } from "./get-macro-condition-comparitors";
+import { SettingsAndPluginsMeta } from "./settings-and-plugins-meta";
 
 const getPluginConfigFields = (config: any) => {
     return Object.keys(config).filter(k => k !== "system")
@@ -156,152 +156,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
     }
 }
 
-export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number" | "string") => {
-    if (valueType === "boolean") {
-        return [
-            MutationInstruction.SetToDefault,
-            MutationInstruction.Set,
-            MutationInstruction.Toggle,
-        ];
-    } else if (valueType === "number") {
-        return [
-            MutationInstruction.SetToDefault,
-            MutationInstruction.Set,
-            MutationInstruction.Increase,
-            MutationInstruction.IncreaseCycle,
-            MutationInstruction.Decrease,
-            MutationInstruction.DecreaseCycle,
-            MutationInstruction.Min,
-            MutationInstruction.Max,
-        ];
-    } else if (valueType === "string") {
-        return [MutationInstruction.SetToDefault, MutationInstruction.Set];
-    }
-    return [];
-};
 
-
-export const getValidMutationInstructions = (
-    action: MacroAction,
-    settings: SettingsAndPluginsMeta
-): MutationInstruction[] => {
-
-    if (action.type === MacroActionType.ModifyAppSettings) {
-        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.path);
-        if (!field) {
-            return [];
-        }
-
-        //@ts-ignore
-        const typeOfField = field?.options ? "number" : typeof field.value;
-        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
-            console.warn(`Unsupported field type: ${typeOfField}`);
-            return [];
-        }
-        return getMacroActionValidModifyEffects(typeOfField);
-    } else if (action.type === MacroActionType.CallGameTimeApi) {
-        return [];
-    } else if (action.type === MacroActionType.ModifyPluginSettings) {
-        const plugin = settings.enabledPlugins.find((p) => p.name === action.path[0]);
-        if (!plugin) {
-            return [];
-        }
-
-        const field = plugin.config?.[action.path[1] as keyof typeof plugin];
-        if (field === undefined) {
-            return [];
-        }
-        const typeOfField = typeof field.value;
-        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
-            console.warn(`Unsupported field type: ${typeOfField}`);
-            return [];
-        }
-        return [...getMacroActionValidModifyEffects(typeOfField)];
-    }
-    return [];
-};
-
-
-export const getMacroConditionValidComparators = (
-    condition: MacroCondition,
-    settings: SettingsAndPluginsMeta
-): MacroConditionComparator[] => {
-
-    if (condition.type === "AppSettingsCondition") {
-        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, condition.path);
-        if (!field) {
-            return [];
-        }
-
-        //@ts-ignore
-        const typeOfField = field?.options ? "number" : typeof field.value;
-        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
-            console.warn(`Unsupported field type: ${typeOfField}`);
-            return [];
-        }
-        return getMacroConditionValueValidComparitors(typeOfField);
-    } else if (condition.type === "FunctionCondition") {
-        // all of them, eg. same as number
-        return getMacroConditionValueValidComparitors("number");
-    } else if (condition.type === "PluginSettingsCondition") {
-        const plugin = settings.enabledPlugins.find((p) => p.name === condition.path[0]);
-        if (!plugin) {
-            return [];
-        }
-
-        const field = plugin.config?.[condition.path[1] as keyof typeof plugin];
-        if (field === undefined) {
-            return [];
-        }
-        const typeOfField = typeof field.value;
-        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
-            console.warn(`Unsupported field type: ${typeOfField}`);
-            return [];
-        }
-        return getMacroConditionValueValidComparitors(typeOfField);
-    }
-    return [];
-};
-
-export const getMacroConditionValueValidComparitors = (valueType: "boolean" | "number" | "string") => {
-    if (valueType === "boolean" || valueType === "string") {
-        return [
-            MacroConditionComparator.Equals,
-            MacroConditionComparator.NotEquals,
-        ];
-    } else if (valueType === "number") {
-        return [
-            MacroConditionComparator.Equals,
-            MacroConditionComparator.NotEquals,
-            MacroConditionComparator.GreaterThan,
-            MacroConditionComparator.GreaterThanOrEquals,
-            MacroConditionComparator.LessThan,
-            MacroConditionComparator.LessThanOrEquals,
-        ];
-    }
-    return [];
-};
-
-export const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
+const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
     return !Array.isArray(options) ? Object.values(options)[0] : options[0];
-}
-
-export const getMacroActionOrConditionLevaConfig = ({ value, path }: MacroConditionAppSetting | MacroActionHostModifyValue, settings: SettingsAndPluginsMeta) => {
-
-    const levaConfig = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, path);
-
-    const displayValue =
-        //@ts-ignore
-        levaConfig?.options && !Array.isArray(levaConfig.options)
-            //@ts-ignore
-            ? Object.entries(levaConfig.options).find(
-                ([_, v]) => v === value
-            )?.[0] ?? value
-            : value;
-
-    return {
-        ...levaConfig,
-        displayValue,
-        value
-    };
 }

@@ -4,9 +4,9 @@ import {
   MacroActionPluginModifyValue,
   MutationInstruction,
 } from "common/types";
-import { getValidMutationInstructions } from "common/sanitize-macros";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { useSettingsStore } from "@stores";
+import { getValidMutationInstructions } from "common/macros/get-macro-action-instructions";
 
 export const MacroActionEffectSelector = ({
   action,

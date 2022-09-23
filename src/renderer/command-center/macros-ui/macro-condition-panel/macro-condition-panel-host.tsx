@@ -1,5 +1,5 @@
 import { settingsStore } from "@stores/settings-store";
-import { getMacroActionOrConditionLevaConfig } from "common/sanitize-macros";
+import { getMacroActionOrConditionLevaConfig } from "common/macros/get-macro-action-condition-field-definition";
 import {
   MacroConditionAppSetting,
   MacroConditionComparator,

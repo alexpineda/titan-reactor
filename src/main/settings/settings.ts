@@ -16,7 +16,7 @@ import loadPlugins, { getDisabledPluginPackages, getEnabledPluginPackages } from
 import { findPluginsPath } from "../starcraft/find-plugins-path";
 import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
-import { sanitizeMacros } from "common/sanitize-macros";
+import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { defaultMacros } from "./default-macros";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
