@@ -6,7 +6,7 @@ import {
 } from "common/types";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { useSettingsStore } from "@stores";
-import { getValidMutationInstructions } from "common/macros/get-macro-action-instructions";
+import { getAvailableMutationInstructionsForAction } from "common/macros/get-macro-action-instructions";
 
 export const MacroActionEffectSelector = ({
   action,
@@ -16,7 +16,10 @@ export const MacroActionEffectSelector = ({
   action: MacroActionHostModifyValue | MacroActionPluginModifyValue;
 }) => {
   const settings = useSettingsStore();
-  const validEffects = getValidMutationInstructions(action, settings);
+  const validInstructions = getAvailableMutationInstructionsForAction(
+    action,
+    settings
+  );
 
   return (
     <select
@@ -29,7 +32,7 @@ export const MacroActionEffectSelector = ({
       value={action.instruction}
       disabled={viewOnly}
     >
-      {validEffects.map((key) => (
+      {validInstructions.map((key) => (
         <option key={key} value={key}>
           {spaceOutCapitalLetters(key)}
         </option>

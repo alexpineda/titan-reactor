@@ -1,7 +1,7 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
 import { MacroAction, MacroActionConfigurationErrorType, MacroActionType, MacroCondition, MacrosDTO, TriggerType } from "common/types";
 import { FieldDefinition, MutationInstruction } from "../types/mutations";
-import { getValidMutationInstructions } from "./get-macro-action-instructions";
+import { getAvailableMutationInstructionsForAction } from "./get-macro-action-instructions";
 import { getMacroConditionValidComparators } from "./get-macro-condition-comparitors";
 import { SettingsAndPluginsMeta } from "./settings-and-plugins-meta";
 
@@ -50,7 +50,7 @@ const sanitizeMacroCondition = (condition: MacroCondition, settings: SettingsAnd
 const sanitizeMacroActionEffects = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
     if (action.type === MacroActionType.ModifyAppSettings || action.type === MacroActionType.ModifyPluginSettings) {
 
-        const validInstructions = getValidMutationInstructions(action, settings);
+        const validInstructions = getAvailableMutationInstructionsForAction(action, settings);
         if (!validInstructions.includes(action.instruction)) {
             action.instruction = validInstructions[0];
         }

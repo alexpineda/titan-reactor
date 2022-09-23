@@ -13,12 +13,12 @@ export const getMacroActionOrConditionLevaConfig = ({ value, path }: Pick<MacroC
 
     return {
         ...levaConfig,
-        displayValue: getFieldDefinitionDisplayValue(levaConfig.options, value),
+        displayValue: getFieldDefinitionDisplayValue(levaConfig?.options, value),
         value
     };
 }
 
-export const getFieldDefinitionDisplayValue = (options: any[] | object | undefined, value: any): any => {
+export const getFieldDefinitionDisplayValue = (options: FieldDefinition["options"], value: any): any => {
 
     const displayValue =
         //@ts-ignore

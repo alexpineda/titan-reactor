@@ -1,8 +1,8 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { MacroAction, MacroActionType, MutationInstruction } from "common/types";
+import { FieldDefinition, MacroAction, MacroActionType, MutationInstruction } from "common/types";
 import { SettingsAndPluginsMeta } from "./settings-and-plugins-meta";
 
-export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number" | "string") => {
+export const getAvailableMutationIntructionsForLiteralType = (valueType: "boolean" | "number" | "string") => {
     if (valueType === "boolean") {
         return [
             MutationInstruction.SetToDefault,
@@ -26,16 +26,40 @@ export const getMacroActionValidModifyEffects = (valueType: "boolean" | "number"
     return [];
 };
 
-
-export const getValidMutationInstructions = (
+export const getAvailableMutationInstructionsForAction = (
     action: MacroAction,
     settings: SettingsAndPluginsMeta
 ): MutationInstruction[] => {
 
-    if (action.type === MacroActionType.ModifyAppSettings) {
-        const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.path);
-        if (!field) {
-            return [];
+    if (action.type === MacroActionType.CallGameTimeApi) {
+        return [];
+    } else {
+
+        let field: FieldDefinition | undefined = undefined;
+
+        // validate path
+        if (action.type === MacroActionType.ModifyAppSettings) {
+
+            field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, action.path);
+
+            if (field === undefined) {
+                return [];
+            }
+
+        } else if (action.type === MacroActionType.ModifyPluginSettings) {
+
+            const plugin = settings.enabledPlugins.find((p) => p.name === action.path[0]);
+
+            if (plugin === undefined) {
+                return [];
+            }
+
+            field = plugin.config?.[action.path[1] as keyof typeof plugin];
+
+            if (field === undefined) {
+                return [];
+            }
+
         }
 
         //@ts-ignore
@@ -44,25 +68,7 @@ export const getValidMutationInstructions = (
             console.warn(`Unsupported field type: ${typeOfField}`);
             return [];
         }
-        return getMacroActionValidModifyEffects(typeOfField);
-    } else if (action.type === MacroActionType.CallGameTimeApi) {
-        return [];
-    } else if (action.type === MacroActionType.ModifyPluginSettings) {
-        const plugin = settings.enabledPlugins.find((p) => p.name === action.path[0]);
-        if (!plugin) {
-            return [];
-        }
-
-        const field = plugin.config?.[action.path[1] as keyof typeof plugin];
-        if (field === undefined) {
-            return [];
-        }
-        const typeOfField = typeof field.value;
-        if (typeOfField !== "boolean" && typeOfField !== "number" && typeOfField !== "string") {
-            console.warn(`Unsupported field type: ${typeOfField}`);
-            return [];
-        }
-        return [...getMacroActionValidModifyEffects(typeOfField)];
+        return getAvailableMutationIntructionsForLiteralType(typeOfField);
     }
-    return [];
+
 };

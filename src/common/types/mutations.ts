@@ -11,11 +11,12 @@ export enum MutationInstruction {
 }
 
 export type FieldDefinition = {
-    value: any;
+    label?: string;
+    value: any;//number | string | boolean | number[];
     step?: number;
     min?: number;
     max?: number;
-    options?: any[] | {};
+    options?: string[] | Record<string, string>;
 }
 
 export type FieldTarget = {

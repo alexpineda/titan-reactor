@@ -12,7 +12,7 @@ export const generateAppSettingsFromLevaFormat = (
 
 export const getAppSettingsPropertyInLevaFormat = (
     settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], fields: string[]
-) => {
+): FieldDefinition | undefined => {
     const config = getAppSettingsInLevaFormat(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
 };
