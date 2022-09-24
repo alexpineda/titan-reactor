@@ -1,5 +1,5 @@
 import { log } from "@ipc/log";
-import { MacroActionType, MacrosDTO, MacroTrigger, TriggerType, MacroConditionType, MacroConditionComparator, MacroActionPluginModifyValue, MacroActionHostModifyValue, SessionSettingsData } from "common/types";
+import { MacroActionType, MacrosDTO, MacroTrigger, TriggerType, MacroConditionType, ConditionComparator, MacroActionPluginModifyValue, MacroActionHostModifyValue, SessionSettingsData } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
@@ -120,18 +120,18 @@ export class Macros {
         this.#createGameCompartment = createCompartment;
     }
 
-    #testCondition(comparator: MacroConditionComparator, a: any, b: any) {
-        if (comparator === MacroConditionComparator.Equals) {
+    #testCondition(comparator: ConditionComparator, a: any, b: any) {
+        if (comparator === ConditionComparator.Equals) {
             return a === b;
-        } else if (comparator === MacroConditionComparator.NotEquals) {
+        } else if (comparator === ConditionComparator.NotEquals) {
             return a !== b;
-        } else if (comparator === MacroConditionComparator.GreaterThan) {
+        } else if (comparator === ConditionComparator.GreaterThan) {
             return a > b;
-        } else if (comparator === MacroConditionComparator.GreaterThanOrEquals) {
+        } else if (comparator === ConditionComparator.GreaterThanOrEquals) {
             return a >= b;
-        } else if (comparator === MacroConditionComparator.LessThan) {
+        } else if (comparator === ConditionComparator.LessThan) {
             return a < b;
-        } else if (comparator === MacroConditionComparator.LessThanOrEquals) {
+        } else if (comparator === ConditionComparator.LessThanOrEquals) {
             return a <= b;
         }
         return false;

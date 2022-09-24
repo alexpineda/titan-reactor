@@ -1,7 +1,7 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import {
   MacroCondition,
-  MacroConditionComparator,
+  ConditionComparator,
   MacroConditionType,
   PluginMetaData,
 } from "common/types";
@@ -32,21 +32,21 @@ export const CreateMacroCondition = ({
         id: generateUUID(),
         type: conditionType,
         path: defaultAppSettingsField,
-        comparator: MacroConditionComparator.Equals,
+        comparator: ConditionComparator.Equals,
       });
     } else if (conditionType === MacroConditionType.PluginSettingsCondition) {
       onCreate({
         id: generateUUID(),
         type: conditionType,
         path: [defaultPluginName, ...defaultPluginSettingsField],
-        comparator: MacroConditionComparator.Equals,
+        comparator: ConditionComparator.Equals,
       });
     } else if (conditionType === MacroConditionType.FunctionCondition) {
       onCreate({
         id: generateUUID(),
         type: conditionType,
         value: "",
-        comparator: MacroConditionComparator.Equals,
+        comparator: ConditionComparator.Equals,
       });
     }
   };

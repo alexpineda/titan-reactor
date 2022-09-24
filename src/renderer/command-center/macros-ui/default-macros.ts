@@ -1,5 +1,5 @@
 import { generateUUID } from "three/src/math/MathUtils";
-import { MutationInstruction, MacroActionSequence, MacroActionType, MacroConditionComparator, MacroConditionType } from "common/types"
+import { MutationInstruction, MacroActionSequence, MacroActionType, ConditionComparator, MacroConditionType } from "common/types"
 import { HotkeyTrigger, Macro, Macros } from "@macros";
 import { MouseTrigger } from "@macros/mouse-trigger";
 
@@ -32,7 +32,7 @@ export const createDefaultMacros = () => {
             "game",
             "sceneController"
           ],
-          comparator: MacroConditionComparator.Equals,
+          comparator: ConditionComparator.Equals,
           value: "@titan-reactor-plugins/camera-standard"
         }
       ]
@@ -63,7 +63,7 @@ export const createDefaultMacros = () => {
             "game",
             "sceneController"
           ],
-          comparator: MacroConditionComparator.Equals,
+          comparator: ConditionComparator.Equals,
           value: "@titan-reactor-plugins/camera-battle"
         }
       ]

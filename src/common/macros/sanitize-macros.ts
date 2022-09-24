@@ -1,4 +1,6 @@
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionType, MacroCondition, MacroConditionComparator, MacrosDTO, TriggerType } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroActionType, MacroCondition, ConditionComparator, MacrosDTO, TriggerType } from "common/types";
+import { withErrorMessage } from "common/utils/with-error-message";
+import { logService } from "main/logger/singleton";
 import { FieldDefinition, MutationInstruction } from "../types/mutations";
 import { getAppFieldDefinition, getAvailableMutationInstructionsForAction, SettingsAndPluginsMeta, getMacroConditionValidComparators, isValidTypeOfField } from "./field-utilities";
 
@@ -9,34 +11,38 @@ const getPluginConfigFields = (config: any) => {
 export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta) => {
     const hotkeys = new Set<string>();
 
-    for (const macro of macros.macros) {
+    try {
+        for (const macro of macros.macros) {
 
-        delete macro.error;
+            delete macro.error;
 
-        if (macro.trigger.type === TriggerType.Hotkey) {
+            if (macro.trigger.type === TriggerType.Hotkey) {
 
-            if (macro.trigger.value) {
-                if (hotkeys.has(macro.trigger.value)) {
-                    macro.error = "Duplicate hotkey";
-                } else {
-                    hotkeys.add(macro.trigger.value);
+                if (macro.trigger.value) {
+                    if (hotkeys.has(macro.trigger.value)) {
+                        macro.error = "Duplicate hotkey";
+                    } else {
+                        hotkeys.add(macro.trigger.value);
+                    }
                 }
+
+            }
+
+            for (const action of macro.actions) {
+
+                sanitizeMacroAction(action, settings);
+
+            }
+
+            for (const condition of macro.conditions) {
+
+                sanitizeMacroCondition(condition, settings);
+
             }
 
         }
-
-        for (const action of macro.actions) {
-
-            sanitizeMacroAction(action, settings);
-
-        }
-
-        for (const condition of macro.conditions) {
-
-            sanitizeMacroCondition(condition, settings);
-
-        }
-
+    } catch (e) {
+        logService.error(withErrorMessage(e, "Failed to sanitize macros"));
     }
     return macros;
 }
@@ -83,7 +89,7 @@ const sanitizeMacroConditionComparators = (condition: MacroCondition, settings: 
 
         if (!validComparators.includes(condition.comparator)) {
 
-            condition.comparator = MacroConditionComparator.Equals
+            condition.comparator = ConditionComparator.Equals
 
         }
 
@@ -104,6 +110,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
             return;
         }
 
+        // how do we know if its patchable?
         const patchable = action.type === MacroActionType.ModifyAppSettings && action.instruction === MutationInstruction.Set || action.type === "AppSettingsCondition";
 
         if (patchable) {
@@ -136,7 +143,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
                 replaced = Object.keys(plugin.config!).find(k => k !== "system");
             }
             if (replaced) {
-                action.path = [replaced]
+                action.path = [plugin.name, replaced]
             }
             // failed to properly assign a field even though the config is available and/or plugins methods are available
             else if (getPluginConfigFields(plugin.config).length || plugin.externMethods.length) {
@@ -150,17 +157,17 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
         }
 
-        // if (action.field[0].startsWith("externMethod") && !plugin.externMethods.includes(action.field[0])) {
-        //     action.error = {
-        //         type: MacroActionConfigurationErrorType.MissingField,
-        //         message: `Missing field for plugin ${action.pluginName} ${action.field[0]}`,
-        //     }
-        //     return;
-        // }
+        if (action.path[1].startsWith("externMethod") && !plugin.externMethods.includes(action.path[1])) {
+            action.error = {
+                type: MacroActionConfigurationErrorType.MissingField,
+                message: `Missing field for plugin ${action.path[0]} ${action.path[1]}`,
+            }
+            return;
+        }
 
-        const checkField = action.type === MacroActionType.ModifyPluginSettings && action.instruction === MutationInstruction.Set || action.type === "PluginSettingsCondition";
+        const patchable = action.type === MacroActionType.ModifyPluginSettings && action.instruction === MutationInstruction.Set || action.type === "PluginSettingsCondition";
 
-        if (checkField) {
+        if (patchable) {
 
             const field = plugin.config?.[action.path[1] as keyof typeof plugin] ?? { value: null };
 

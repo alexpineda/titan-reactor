@@ -1,9 +1,6 @@
 import { settingsStore } from "@stores/settings-store";
 import { getMacroActionOrConditionLevaConfig } from "common/macros/get-macro-action-condition-field-definition";
-import {
-  MacroConditionAppSetting,
-  MacroConditionComparator,
-} from "common/types";
+import { MacroConditionAppSetting, ConditionComparator } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
 import { MacroConditionComparatorSelector } from "./macro-condition-comparator-selector";
@@ -32,7 +29,7 @@ export const MacroConditionPanelHost = (
           updateMacroCondition({
             ...condition,
             path: evt.target.value.split("."),
-            comparator: MacroConditionComparator.Equals,
+            comparator: ConditionComparator.Equals,
             value: undefined,
           });
         }}

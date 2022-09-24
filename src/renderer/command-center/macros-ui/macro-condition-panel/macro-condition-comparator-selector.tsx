@@ -1,5 +1,5 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
-import { MacroConditionComparator } from "common/types";
+import { ConditionComparator } from "common/types";
 import { getMacroConditionValidComparators } from "common/macros/field-utilities";
 import { useSettingsStore } from "@stores";
 import { MacroConditionPanelProps } from "./macro-condition-panel";
@@ -21,8 +21,8 @@ export const MacroConditionComparatorSelector = ({
         updateMacroCondition({
           ...condition,
           comparator:
-            MacroConditionComparator[
-              evt.target.value as keyof typeof MacroConditionComparator
+            ConditionComparator[
+              evt.target.value as keyof typeof ConditionComparator
             ],
         });
       }}

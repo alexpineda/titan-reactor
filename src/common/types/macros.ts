@@ -18,7 +18,7 @@ export enum MacroConditionType {
     FunctionCondition = "FunctionCondition",
 }
 
-export enum MacroConditionComparator {
+export enum ConditionComparator {
     Equals = "Equals",
     NotEquals = "NotEquals",
     GreaterThan = "GreaterThan",
@@ -30,14 +30,14 @@ export enum MacroConditionComparator {
 export type MacroConditionAppSetting = FieldTarget & {
     type: MacroConditionType.AppSettingsCondition,
     id: string;
-    comparator: MacroConditionComparator;
+    comparator: ConditionComparator;
     error?: MacroActionConfigurationError;
 }
 
 export type MacroConditionPluginSetting = FieldTarget & {
     type: MacroConditionType.PluginSettingsCondition,
     id: string;
-    comparator: MacroConditionComparator;
+    comparator: ConditionComparator;
     error?: MacroActionConfigurationError;
 }
 
@@ -45,7 +45,7 @@ export type MacroConditionFunction = {
     type: MacroConditionType.FunctionCondition,
     id: string;
     value?: string;
-    comparator: MacroConditionComparator;
+    comparator: ConditionComparator;
     error?: MacroActionConfigurationError;
 }
 

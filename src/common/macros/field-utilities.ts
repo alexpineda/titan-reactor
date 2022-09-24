@@ -1,5 +1,5 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { FieldDefinition, MacroAction, MacroActionType, MacroCondition, MacroConditionComparator, MutationInstruction, SettingsMeta } from "common/types";
+import { FieldDefinition, MacroAction, MacroActionType, MacroCondition, ConditionComparator, MutationInstruction, SettingsMeta } from "common/types";
 
 export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
@@ -30,17 +30,17 @@ export const getAvailableMutationIntructionsForTypeOfField = (valueType: "boolea
 export const getMacroConditionValueValidComparitors = (valueType: "boolean" | "number" | "string") => {
     if (valueType === "boolean" || valueType === "string") {
         return [
-            MacroConditionComparator.Equals,
-            MacroConditionComparator.NotEquals,
+            ConditionComparator.Equals,
+            ConditionComparator.NotEquals,
         ];
     } else if (valueType === "number") {
         return [
-            MacroConditionComparator.Equals,
-            MacroConditionComparator.NotEquals,
-            MacroConditionComparator.GreaterThan,
-            MacroConditionComparator.GreaterThanOrEquals,
-            MacroConditionComparator.LessThan,
-            MacroConditionComparator.LessThanOrEquals,
+            ConditionComparator.Equals,
+            ConditionComparator.NotEquals,
+            ConditionComparator.GreaterThan,
+            ConditionComparator.GreaterThanOrEquals,
+            ConditionComparator.LessThan,
+            ConditionComparator.LessThanOrEquals,
         ];
     }
     return [];
@@ -129,7 +129,7 @@ export const getAvailableMutationInstructionsForAction = (
 export const getMacroConditionValidComparators = (
     condition: MacroCondition,
     settings: SettingsAndPluginsMeta
-): MacroConditionComparator[] => {
+): ConditionComparator[] => {
 
 
     if (condition.type === "FunctionCondition") {
