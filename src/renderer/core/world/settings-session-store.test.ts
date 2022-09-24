@@ -38,7 +38,7 @@ const initialState = {
 };
 const createBaseStore = () => jest.fn(() => JSON.parse(JSON.stringify(initialState)));
 
-describe("ReactiveSessionVariables", () => {
+describe("SettingsSessionStore", () => {
 
     beforeEach(() => {
         //@ts-ignore

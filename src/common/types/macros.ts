@@ -61,9 +61,12 @@ export enum MacroActionConfigurationErrorType {
     MissingField = "MissingField",
     InvalidField = "InvalidField",
     InvalidFieldValue = "InvalidFieldValue",
+    InvalidInstruction = "InvalidInstruction",
+    InvalidCondition = "InvalidCondition",
     MissingPlugin = "MissingPlugin",
     InvalidPlugin = "InvalidPlugin",
     InvalidMacro = "InvalidMacro",
+    InvalidAction = "InvalidAction",
 }
 
 export type MacroActionHostModifyValue = Mutation & {

@@ -85,7 +85,7 @@ export class PluginSystemNative {
                     return this.callHook(name, ...args);
                 }
             };
-            log.verbose(`@plugin-system-native: initialized plugin "${plugin.name}"`);
+            log.debug(`@plugin-system-native: initialized plugin "${plugin.name}"`);
 
             return plugin;
         } catch (e: unknown) {

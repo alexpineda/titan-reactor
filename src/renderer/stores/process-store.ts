@@ -38,7 +38,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
   }),
   create: (label: string, max = PROCESS_MAX) => {
     const id = MathUtils.generateUUID();
-    log.verbose("@process/init: " + label);
+    log.debug("@process/init: " + label);
 
     performance.mark(`process-${id}`);
 

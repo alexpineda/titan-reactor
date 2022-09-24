@@ -70,7 +70,7 @@ export const writeCommands = (replay: Replay, ignoreList: number[] = []) => {
 export const sanityCheckCommands = (replay: Replay, stopAfterFirstFailure = false) => {
   let currFrame = 0;
 
-  log.verbose("sanity checking replay commands");
+  log.debug("sanity checking replay commands");
   const cmds = new CommandsStream(replay.rawCmds, replay.stormPlayerToGamePlayer);
   const invalids = [];
 

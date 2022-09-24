@@ -6,5 +6,5 @@ import { createLogger } from "./create-logger";
 export const logFilePath = path.join(getUserDataPath(), "logs", "app");
 
 export const logService = createLogger(logFilePath, {
-  logLevels: ["verbose", "info", "debug", "warning", "error"],
+  logLevels: ["info", "debug", "warning", "error"],
 });

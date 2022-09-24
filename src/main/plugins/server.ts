@@ -78,7 +78,7 @@ app.get('*', async function (req, res) {
     const requestPath = normalize(req.path);
 
     //TODO: remove once everything is finalized
-    logService.verbose(`@server: ${requestPath}, ${RESOURCES_PATH}, ${BUNDLED_SUBPATH}`);
+    logService.debug(`@server: ${requestPath}, ${RESOURCES_PATH}, ${BUNDLED_SUBPATH}`);
 
     if (requestPath.startsWith(BUNDLED_SUBPATH)) {
 

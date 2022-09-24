@@ -1,5 +1,5 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { FieldDefinition, MacroAction, MacroActionType, MacroCondition, ConditionComparator, MutationInstruction, SettingsMeta } from "common/types";
+import { FieldDefinition, ConditionComparator, MutationInstruction, SettingsMeta } from "common/types";
 
 export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
@@ -27,7 +27,7 @@ export const getAvailableMutationIntructionsForTypeOfField = (valueType: "boolea
     return [];
 };
 
-export const getMacroConditionValueValidComparitors = (valueType: "boolean" | "number" | "string") => {
+export const getAvailableComparatorsForTypeOfField = (valueType: "boolean" | "number" | "string") => {
     if (valueType === "boolean" || valueType === "string") {
         return [
             ConditionComparator.Equals,
@@ -104,45 +104,3 @@ export const getFieldDefinitionDisplayValue = (options: FieldDefinition["options
 
     return displayValue;
 }
-
-export const getAvailableMutationInstructionsForAction = (
-    action: MacroAction,
-    settings: SettingsAndPluginsMeta
-): MutationInstruction[] => {
-
-    if (action.type === MacroActionType.CallGameTimeApi) {
-        return [];
-    } else {
-
-        const typeOfField = getTypeOfField(action.type === MacroActionType.ModifyAppSettings ? getAppFieldDefinition(settings, action.path) : getPluginFieldDefinition(settings, action.path));
-
-        if (typeOfField === null) {
-            return [];
-        }
-
-        return getAvailableMutationIntructionsForTypeOfField(typeOfField);
-    }
-
-};
-
-
-export const getMacroConditionValidComparators = (
-    condition: MacroCondition,
-    settings: SettingsAndPluginsMeta
-): ConditionComparator[] => {
-
-
-    if (condition.type === "FunctionCondition") {
-        return getMacroConditionValueValidComparitors("number");
-    } else {
-
-        const typeOfField = getTypeOfField(condition.type === "AppSettingsCondition" ? getAppFieldDefinition(settings, condition.path) : getPluginFieldDefinition(settings, condition.path));
-
-        if (typeOfField === null) {
-            return [];
-        }
-
-        return getMacroConditionValueValidComparitors(typeOfField);
-    }
-
-};

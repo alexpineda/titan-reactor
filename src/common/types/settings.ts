@@ -1,3 +1,4 @@
+import { LogLevel } from "common/logging";
 import { MacrosDTO } from "common/types";
 import type { PluginMetaData } from "./plugin";
 
@@ -135,7 +136,7 @@ export type SettingsV6 = {
         detectMeleeObserversThreshold: number,
         alertDesynced: boolean,
         alertDesyncedThreshold: number,
-        logLevel: "debug" | "verbose" | "info" | "warn" | "error",
+        logLevel: LogLevel
     },
     plugins: {
         serverPort: number;

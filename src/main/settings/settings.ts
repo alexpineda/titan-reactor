@@ -18,6 +18,7 @@ import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { defaultMacros } from "./default-macros";
+import { logService } from "main/logger/singleton";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -112,7 +113,7 @@ export class Settings {
     const macros = sanitizeMacros(this._settings.macros, {
       data: this._settings,
       enabledPlugins: getEnabledPluginPackages(),
-    });
+    }, logService);
 
     return {
       data: { ...this._settings, macros },
@@ -170,7 +171,7 @@ export class Settings {
     this._settings.macros = sanitizeMacros(this._settings.macros, {
       data: this._settings,
       enabledPlugins: getEnabledPluginPackages(),
-    });
+    }, logService);
 
     await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings, null, 4), {
       encoding: "utf8",

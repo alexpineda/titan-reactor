@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+- Many many unit tests for some core components
+  
+## Fixed
+- Several memory leaks due to untested Janitor implementation
+- Squashed some bugs around macros and settings
+- Units are still selectable when the game is paused
+
+## Changed
+- Upgraded to Electron 20
+
 ## [0.6.4]
 
 ## Added
@@ -192,7 +203,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 
 [Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.4...HEAD
-[0.6.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.0...v0.6.4
+[0.6.4]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.0...v0.6.4
 [0.6.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.3...v0.6.0
 [0.5.3]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.2...v0.5.3
 [0.5.2]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.1...v0.5.2

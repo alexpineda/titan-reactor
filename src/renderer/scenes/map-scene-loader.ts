@@ -28,7 +28,7 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
 
   processStore().clearCompleted();
   const process = processStore().create("map", 3);
-  log.verbose("loading chk");
+  log.debug("loading chk");
 
   const janitor = new Janitor("MapSceneLoader");
   const chkBuffer = await loadScm(chkFilepath);
@@ -46,7 +46,7 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
 
   process.increment();
 
-  log.verbose("initializing scene");
+  log.debug("initializing scene");
 
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 

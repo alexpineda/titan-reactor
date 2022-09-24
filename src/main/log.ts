@@ -1,8 +1,9 @@
 export const bootupLogs: LogMessage[] = [];
+import { LogLevel } from "common/logging";
 import { logService } from "./logger/singleton";
 
 type LogMessage = {
-    level: "info" | "warning" | "error" | "debug" | "verbose";
+    level: LogLevel;
     message: string;
 }
 
@@ -17,9 +18,9 @@ export default {
         logService.info(message);
         _writeBootupLogs && bootupLogs.push({ level: "info", message });
     },
-    warning: (message: string) => {
-        logService.warning(message);
-        _writeBootupLogs && bootupLogs.push({ level: "warning", message });
+    warn: (message: string) => {
+        logService.warn(message);
+        _writeBootupLogs && bootupLogs.push({ level: "warn", message });
     },
     error: (message: string) => {
         logService.error(message);

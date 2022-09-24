@@ -60,10 +60,12 @@
             "category": "Game",
             "icon": "icon256x256.ico"
         },
-        "extraResources": [{
-            "from": "bundled",
-            "to": "bundled"
-        }]
+        "extraResources": [
+            {
+                "from": "bundled",
+                "to": "bundled"
+            }
+        ]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",
@@ -86,6 +88,7 @@
         "electron-is-dev": "^1.2.0",
         "express": "^4.17.3",
         "iconv-lite": "0.6.3",
+        "immer": "^9.0.15",
         "leva": "^0.9.23",
         "libnpmsearch": "^5.0.0",
         "lodash.debounce": "^4.0.8",

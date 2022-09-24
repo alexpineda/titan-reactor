@@ -57,10 +57,10 @@ export const createAssets = async (directories: Settings["directories"], preload
 
     await openCascStorage(directories.starcraft);
 
-    log.verbose("@load-assets/dat");
+    log.debug("@load-assets/dat");
     const bwDat = await loadDATFiles(readCascFile);
 
-    log.verbose("@load-assets/images");
+    log.debug("@load-assets/images");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
 
@@ -249,7 +249,7 @@ export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) =>
 
     if (glbFileExists) {
 
-        log.verbose(`loading glb  ${glbFileName}`);
+        log.debug(`loading glb  ${glbFileName}`);
 
         const anim = await loadAnimAtlas(
             await loadAnimBuffer(refImageId, UnitTileScale.HD),

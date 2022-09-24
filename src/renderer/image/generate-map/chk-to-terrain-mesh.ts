@@ -33,7 +33,7 @@ export async function chkToTerrainMesh(mapWidth: number, mapHeight: number, tile
 
   const { creepGrpSD, paletteWPE: palette, hdTiles, creepGrpHD, tilegroupCV5: tilegroupU16, megatilesVX4: megatiles, minitilesVR4: minitiles } = tilesetBuffers;
 
-  log.verbose(`Generating terrain textures`);
+  log.debug(`Generating terrain textures`);
   genProcess.increment();
 
   const renderer = renderComposer.getWebGLRenderer();

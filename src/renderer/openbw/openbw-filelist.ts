@@ -41,8 +41,8 @@ export default class OpenBWFileList {
       },
       js_load_done: () => {
         this.clear(); // done loading, openbw has its own memory now
-        log.verbose("@openbw-filelist: complete");
-        log.verbose(`@openbw-filelist: ${this.unused.length} unused assets`);
+        log.debug("@openbw-filelist: complete");
+        log.debug(`@openbw-filelist: ${this.unused.length} unused assets`);
       },
       js_file_index: (ptr: any) => {
         const filepath = openBw.UTF8ToString(ptr);

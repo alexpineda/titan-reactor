@@ -77,7 +77,7 @@ const createBasePlugin = () => {
 };
 
 
-describe("ReactiveSessionVariables", () => {
+describe("PluginSessionStore", () => {
 
     beforeEach(() => {
         //@ts-ignore

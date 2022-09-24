@@ -1,5 +1,5 @@
-import { LogType } from "@ipc/log";
 import { TypeEmitter } from "@utils/type-emitter";
+import { LogLevel } from "common/logging";
 import { PluginMetaData, SettingsMeta } from "common/types";
 
 export interface GlobalEvents {
@@ -14,7 +14,7 @@ export interface GlobalEvents {
     "load-replay-file": string;
     "load-map-file": string;
     "load-iscriptah": string;
-    "log-message": { message: string, level: LogType, server?: boolean };
+    "log-message": { message: string, level: LogLevel, server?: boolean };
     "initial-install-error-plugins": void;
     "exec-macro": string;
     "document-hidden": boolean;

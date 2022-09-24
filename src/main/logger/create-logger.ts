@@ -1,3 +1,4 @@
+import { LogLevel } from "common/logging";
 import { app } from "electron";
 import fs from "fs";
 import mkdirp from "mkdirp";
@@ -19,7 +20,7 @@ const defaultOptions: LoggerOptions = {
   maxRollovers: 3,
   logLevels: ["warning", "error"],
 };
-const possibleLevels = ["verbose", "info", "debug", "warning", "error"];
+const possibleLevels = ["info", "debug", "warning", "error"];
 
 export function createLogger(
   baseFilename: string,
@@ -88,15 +89,11 @@ export class Logger {
     this.system("Version: " + app.getVersion());
   }
 
-  log = (level: string, msg: string) => {
+  log = (level: LogLevel | "system", msg: string) => {
     if (!this.options.logLevels.includes(level)) {
       return;
     }
     this.writeToLog(`[${new Date().toISOString()}]\t<${level}>\t${msg}\n`);
-  };
-
-  verbose = (msg: string) => {
-    this.log("verbose", msg);
   };
 
   info = (msg: string) => {
@@ -107,12 +104,8 @@ export class Logger {
     this.log("debug", msg);
   };
 
-  warning = (msg: string) => {
-    this.log("warning", msg);
-  };
-
   warn = (msg: string) => {
-    this.warning(msg);
+    this.log("warn", msg);
   };
 
   error = (msg: string) => {

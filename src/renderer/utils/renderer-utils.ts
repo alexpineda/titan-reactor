@@ -9,28 +9,28 @@ export const logCapabilities = () => {
     log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
 
     const r = renderComposer.getWebGLRenderer();
-    log.verbose(`@init: webgl capabilities`);
+    log.debug(`@init: webgl capabilities`);
     for (const prop of Object.getOwnPropertyNames(r.capabilities)) {
         const value = r.capabilities[prop as keyof typeof r.capabilities];
         if (typeof value === "function") continue;
-        log.verbose(`- ${prop}: ${value}`);
+        log.debug(`- ${prop}: ${value}`);
     }
 
-    log.verbose(`- anisotropy: ${r.capabilities.getMaxAnisotropy()}`);
-    log.verbose(`- max precision: ${r.capabilities.getMaxPrecision("highp")}`);
-    log.verbose("webgl extensions");
-    log.verbose(
+    log.debug(`- anisotropy: ${r.capabilities.getMaxAnisotropy()}`);
+    log.debug(`- max precision: ${r.capabilities.getMaxPrecision("highp")}`);
+    log.debug("webgl extensions");
+    log.debug(
         `- EXT_color_buffer_float ${r.extensions.has("EXT_color_buffer_float")}`
     );
-    log.verbose(
+    log.debug(
         `- OES_texture_float_linear ${r.extensions.has("OES_texture_float_linear")}`
     );
-    log.verbose(
+    log.debug(
         `- EXT_color_buffer_half_float ${r.extensions.has(
             "EXT_color_buffer_half_float"
         )}`
     );
-    log.verbose(
+    log.debug(
         `- WEBGL_multisampled_render_to_texture ${r.extensions.has(
             "WEBGL_multisampled_render_to_texture"
         )}`
@@ -38,5 +38,5 @@ export const logCapabilities = () => {
 
     r.extensions.init(r.capabilities);
 
-    log.verbose(`@init: device pixel ratio: ${window.devicePixelRatio}`);
+    log.debug(`@init: device pixel ratio: ${window.devicePixelRatio}`);
 }
