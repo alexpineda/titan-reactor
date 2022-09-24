@@ -4,6 +4,7 @@ import { getFieldDefinitionDisplayValue } from "common/macros/field-utilities";
 import { ConditionComparator, MacroCondition } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
+import { useMacroStore } from "../macros-store";
 import { MacroConditionComparatorSelector } from "./macro-condition-comparator-selector";
 import { MacroConditionModifyValue } from "./macro-condition-modify-value";
 import { MacroConditionPanelProps } from "./macro-condition-panel";
@@ -12,7 +13,8 @@ export const MacroConditionPanelHost = (
   props: MacroConditionPanelProps & { condition: MacroCondition }
 ) => {
   const settings = settingsStore();
-  const { condition, viewOnly, updateMacroCondition } = props;
+  const { updateMacroCondition } = useMacroStore();
+  const { condition, viewOnly } = props;
   const levaConfig = getAppSettingsPropertyInLevaFormat(
     settings.data,
     settings.enabledPlugins,

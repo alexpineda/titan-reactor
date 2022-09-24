@@ -5,12 +5,9 @@ import {
 } from "@utils/string-utils";
 import {
   PluginMetaData,
-  MacroAction,
   MacroActionSequence,
   MacroDTO,
   TriggerType,
-  MacroCondition,
-  Operator,
 } from "common/types";
 import { MacroActionPanel } from "./macro-action-panel/macro-action-panel";
 import { CreateMacroAction } from "./create-macro-action";
@@ -22,36 +19,22 @@ import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MacroConditionPanel } from "./macro-condition-panel/macro-condition-panel";
 import { CreateMacroCondition } from "./create-macro-condition";
 import { MouseTrigger } from "@macros/mouse-trigger";
+import { useMacroStore } from "./macros-store";
 
 export const MacroPanel = ({
   macro,
   pluginsMetadata,
-  updateMacro,
-  updateMacroAction,
-  updateMacroActionEffect,
-  updateMacroCondition,
   activeAction: activeActionOrCondition,
   setActiveAction: setActiveActionOrCondition,
-  deleteAction,
-  deleteCondition,
-  deleteMacro,
-  createAction,
-  createCondition,
 }: {
   macro: MacroDTO;
   pluginsMetadata: PluginMetaData[];
-  updateMacro: (macro: MacroDTO) => void;
-  updateMacroAction: (action: MacroAction) => void;
-  updateMacroActionEffect: (action: MacroAction, effect: Operator) => void;
-  updateMacroCondition: (condition: MacroCondition) => void;
   activeAction: string | null;
   setActiveAction: (id: string | null) => void;
-  deleteAction: (id: string) => void;
-  deleteCondition: (id: string) => void;
-  deleteMacro: (id: string) => void;
-  createAction: (macro: MacroDTO, action: MacroAction) => void;
-  createCondition: (macro: MacroDTO, action: MacroCondition) => void;
 }) => {
+  const { updateMacro, deleteMacro, createAction, createCondition } =
+    useMacroStore();
+
   const updateTriggerValue = (value: any) => {
     updateMacro({
       ...macro,
@@ -280,10 +263,8 @@ export const MacroPanel = ({
             key={condition.id}
             condition={condition}
             pluginsMetadata={pluginsMetadata}
-            updateMacroCondition={updateMacroCondition}
             viewOnly={activeActionOrCondition !== condition.id}
             setActiveCondition={setActiveActionOrCondition}
-            deleteCondition={deleteCondition}
           />
         ))}
         <p>Actions</p>
@@ -292,11 +273,8 @@ export const MacroPanel = ({
             key={action.id}
             action={action}
             pluginsMetadata={pluginsMetadata}
-            updateMacroAction={updateMacroAction}
-            updateMacroActionEffect={updateMacroActionEffect}
             viewOnly={activeActionOrCondition !== action.id}
             setActiveAction={setActiveActionOrCondition}
-            deleteAction={deleteAction}
           />
         ))}
       </div>

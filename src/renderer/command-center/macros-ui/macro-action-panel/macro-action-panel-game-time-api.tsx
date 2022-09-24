@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { MacroAction } from "common/types";
+import { useMacroStore } from "../macros-store";
 
 export const MacroActionPanelGameTimeApi = ({
   action,
   viewOnly,
-  updateMacroAction,
 }: {
   action: MacroAction;
   viewOnly: boolean;
-  updateMacroAction: (action: MacroAction) => void;
 }) => {
+  const { updateMacroAction } = useMacroStore();
   const [value, setValue] = useState(action.value);
 
   return (

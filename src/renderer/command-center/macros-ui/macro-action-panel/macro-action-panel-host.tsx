@@ -4,6 +4,7 @@ import { getFieldDefinitionDisplayValue } from "common/macros/field-utilities";
 import { MacroAction, Operator } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
+import { useMacroStore } from "../macros-store";
 import { MacroActionEffectSelector } from "./macro-action-effect-selector";
 import { MacroActionModifyValue } from "./macro-action-modify-value";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
@@ -12,7 +13,8 @@ export const MacroActionPanelHost = (
   props: MacroActionPanelProps & { action: MacroAction }
 ) => {
   const settings = settingsStore();
-  const { action, viewOnly, updateMacroAction } = props;
+  const { action, viewOnly } = props;
+  const { updateMacroAction } = useMacroStore();
 
   const levaConfig = getAppSettingsPropertyInLevaFormat(
     settings.data,

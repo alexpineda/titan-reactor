@@ -3,12 +3,13 @@ import { ConditionComparator } from "common/types";
 import { getMacroConditionValidComparators } from "common/macros/sanitize-macros";
 import { useSettingsStore } from "@stores";
 import { MacroConditionPanelProps } from "./macro-condition-panel";
+import { useMacroStore } from "../macros-store";
 
 export const MacroConditionComparatorSelector = ({
   condition,
-  updateMacroCondition,
   viewOnly,
 }: MacroConditionPanelProps) => {
+  const { updateMacroCondition } = useMacroStore();
   const settings = useSettingsStore();
   const validComparators = getMacroConditionValidComparators(
     condition,

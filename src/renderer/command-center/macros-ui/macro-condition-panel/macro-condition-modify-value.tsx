@@ -3,11 +3,13 @@ import { createLevaPanel } from "../../create-leva-panel";
 import { mapSingleConfigToLeva } from "@utils/leva-utils";
 import { MacroConditionPanelProps } from "./macro-condition-panel";
 import { FieldDefinition } from "common/types";
+import { useMacroStore } from "../macros-store";
 
 export const MacroConditionModifyValue = (
   props: MacroConditionPanelProps & { config: FieldDefinition }
 ) => {
-  const { condition, config, updateMacroCondition } = props;
+  const { updateMacroCondition } = useMacroStore();
+  const { condition, config } = props;
   const controls = {
     SetField: mapSingleConfigToLeva({ ...config, label: "" }, (value) => {
       updateMacroCondition({

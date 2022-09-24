@@ -4,19 +4,15 @@ import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { ManualTrigger } from "@macros/manual-trigger";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
+import { useMacroStore } from "./macros-store";
 
-export const CreateMacro = ({
-  onCreate,
-}: {
-  onCreate: (
-    name: string,
-    trigger: HotkeyTrigger | MouseTrigger | ManualTrigger | MacroHookTrigger
-  ) => void;
-}) => {
+export const CreateMacro = () => {
   const [name, setName] = useState("");
   const [triggerType, setTriggerType] = useState<TriggerType>(
     TriggerType.Hotkey
   );
+
+  const { createMacro } = useMacroStore();
 
   return (
     <div
@@ -79,7 +75,7 @@ export const CreateMacro = ({
             } else if (triggerType === TriggerType.GameHook) {
               trigger = new MacroHookTrigger();
             }
-            onCreate(name, trigger);
+            createMacro(name, trigger);
             setName("");
           }}
         >

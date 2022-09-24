@@ -1,22 +1,22 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import { MacroCondition, PluginMetaData } from "common/types";
 import ErrorBoundary from "../../error-boundary";
+import { useMacroStore } from "../macros-store";
 import { MacroConditionPanelHost } from "./macro-condition-panel-host";
 
 export type MacroConditionPanelProps = {
   condition: MacroCondition;
   viewOnly: boolean;
-  updateMacroCondition: (action: MacroCondition) => void;
   pluginsMetadata: PluginMetaData[];
 };
 
 export const MacroConditionPanel = (
   props: MacroConditionPanelProps & {
     setActiveCondition: (id: string) => void;
-    deleteCondition: (id: string) => void;
   }
 ) => {
-  const { condition, deleteCondition, setActiveCondition, viewOnly } = props;
+  const { deleteCondition } = useMacroStore();
+  const { condition, setActiveCondition, viewOnly } = props;
 
   return (
     <div

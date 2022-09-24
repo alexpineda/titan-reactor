@@ -4,14 +4,15 @@ import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { MacroActionPanelGameTimeApi } from "./macro-action-panel-game-time-api";
 import { MacroActionPanelHost } from "./macro-action-panel-host";
 import { MacroActionPanelPlugin } from "./macro-action-panel-plugin";
+import { useMacroStore } from "../macros-store";
 
 export const MacroActionPanel = (
   props: MacroActionPanelProps & {
     setActiveAction: (actionId: string) => void;
-    deleteAction: (actionId: string) => void;
   }
 ) => {
-  const { action, setActiveAction, deleteAction, viewOnly } = props;
+  const { deleteAction } = useMacroStore();
+  const { action, setActiveAction, viewOnly } = props;
 
   return (
     <div

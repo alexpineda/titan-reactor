@@ -3,13 +3,15 @@ import { MacroActionEffectSelector } from "./macro-action-effect-selector";
 import { MacroActionModifyValue } from "./macro-action-modify-value";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import ErrorBoundary from "../../error-boundary";
+import { useMacroStore } from "../macros-store";
 
 export const MacroActionPanelPlugin = (
   props: MacroActionPanelProps & {
     action: MacroAction;
   }
 ) => {
-  const { action, pluginsMetadata, updateMacroAction, viewOnly } = props;
+  const { updateMacroAction } = useMacroStore();
+  const { action, pluginsMetadata, viewOnly } = props;
 
   const plugin = pluginsMetadata.find((p) => p.name === action.path[0]);
 

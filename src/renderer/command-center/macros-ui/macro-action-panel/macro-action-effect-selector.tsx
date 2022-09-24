@@ -3,14 +3,15 @@ import { MacroAction, Operator } from "common/types";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { useSettingsStore } from "@stores";
 import { getAvailableMutationInstructionsForAction } from "common/macros/sanitize-macros";
+import { useMacroStore } from "../macros-store";
 
 export const MacroActionEffectSelector = ({
   action,
-  updateMacroActionEffect,
   viewOnly,
 }: MacroActionPanelProps & {
   action: MacroAction;
 }) => {
+  const { updateMacroAction } = useMacroStore();
   const settings = useSettingsStore();
   const validInstructions = getAvailableMutationInstructionsForAction(
     action,
@@ -20,7 +21,10 @@ export const MacroActionEffectSelector = ({
   return (
     <select
       onChange={(evt) => {
-        updateMacroActionEffect(action, evt.target.value as Operator);
+        updateMacroAction({
+          ...action,
+          operator: evt.target.value as Operator,
+        });
       }}
       value={action.operator}
       disabled={viewOnly}

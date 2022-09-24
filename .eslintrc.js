@@ -36,6 +36,7 @@ module.exports = {
     "react/prop-types": 0,
     "no-empty": ["error", { allowEmptyCatch: true }],
     "import/no-duplicates": 0,
+    "import/no-unresolved": [2, { caseSensitive: false, commonjs: true }],
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "no-empty-function": "off",
