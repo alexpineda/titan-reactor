@@ -10,7 +10,7 @@ import {
 } from "common/types";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
-import { generateUUID } from "three/src/math/MathUtils";
+import { MathUtils } from "three";
 import { useSettingsStore } from "@stores/settings-store";
 import groupBy from "lodash.groupby";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
@@ -152,7 +152,7 @@ export const MacrosPanel = () => {
     trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | MacroHookTrigger
   ) => {
     const newMacro = {
-      id: generateUUID(),
+      id: MathUtils.generateUUID(),
       name,
       trigger: {
         type: trigger.type,
@@ -192,6 +192,7 @@ export const MacrosPanel = () => {
             })
           ).map(([groupName, macros]) => (
             <div
+              key={groupName}
               style={{
                 margin: "var(--size-7)",
               }}
@@ -227,7 +228,7 @@ export const MacrosPanel = () => {
                   {collapsedGroups.includes(groupName) && (
                     <ul>
                       {macros.map((macro) => (
-                        <li>{macro.name}</li>
+                        <li key={macro.id}>{macro.name}</li>
                       ))}
                     </ul>
                   )}

@@ -12,6 +12,7 @@ import {
   PluginMetaData,
   PluginStateMessage,
   UIStateAssets,
+  // eslint-disable-next-line
 } from "titan-reactor/host";
 
 // split up an array into chunks of size n
@@ -44,7 +45,7 @@ type Plugin = {
 type StateMessage = Partial<PluginStateMessage>;
 const useStore = create<StateMessage>(() => ({
   screen: {
-    screen: `@home`,
+    screen: "@home",
     error: undefined,
   },
 }));
@@ -263,9 +264,9 @@ const _addPlugin = (plugin: PluginMetaData) => {
 };
 
 //@ts-ignore
-export let assets: UIStateAssets = {};
+export const assets: UIStateAssets = {};
 // TODO: export enums type defs
-export let enums: any = {};
+export const enums: any = {};
 class RollingValue {
   #lastTime = 0;
   upSpeed: number;
@@ -514,7 +515,7 @@ export const useSendMessage = () => {
 
 export const usePluginConfig = () => {
   const { pluginId } = useContext(PluginContext)!;
-  return useConfig((store) => store[pluginId]);
+  return useConfig((store: any) => store[pluginId]);
 };
 
 export const useStyleSheet = (content: string, deps = []) => {
@@ -793,14 +794,14 @@ class ErrorBoundary extends React.Component {
 
 ReactDOM.render(<AppWrapper />, document.body);
 
-const canvas = document.createElement("canvas");
-const offscreen = canvas.transferControlToOffscreen();
+// const canvas = document.createElement("canvas");
+// const offscreen = canvas.transferControlToOffscreen();
 
 window.parent.postMessage(
   {
     type: "system:runtime-ready",
-    payload: offscreen,
+    // payload: offscreen,
   },
-  "*",
-  [offscreen]
+  "*"
+  // [offscreen]
 );

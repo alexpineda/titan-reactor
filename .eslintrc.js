@@ -1,4 +1,4 @@
-const aliases = require("./src/build/aliases");
+const aliases = require("./build/aliases.js");
 const aliasList = Object.entries(aliases).reduce(
   (arr, [key, val]) => [...arr, [key, val]],
   []
@@ -14,6 +14,7 @@ module.exports = {
   extends: [
     "eslint:recommended",
     "plugin:react/recommended",
+    "plugin:react/jsx-runtime",
     "plugin:import/recommended",
     "plugin:@typescript-eslint/recommended",
   ],
@@ -42,6 +43,8 @@ module.exports = {
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-empty-interface": "off",
+    "@typescript-eslint/no-var-requires": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
   },
   globals: {
     __static: true,
@@ -50,7 +53,7 @@ module.exports = {
     react: {
       pragma: "React",
       fragment: "Fragment",
-      version: "17.0.0",
+      version: "18.0.0",
     },
     "import/resolver": {
       alias: {

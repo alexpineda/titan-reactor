@@ -59,9 +59,9 @@ export const useIScriptahStore = create<IScriptahStore>((set) => ({
   gameTick: 0,
   setGameTick: (gameTick: number) => set({ gameTick }),
   incGameTick: () =>
-    set((state) => {
-      state.gameTick + 1;
-    }),
+    set((state) => ({
+      gameTick: state.gameTick + 1
+    })),
   unitImageTab: "units",
   setUnitImageTab: (unitImageTab: string) => set({ unitImageTab }),
   autoUpdate: true,

@@ -17,7 +17,11 @@ module.exports = {
   resetModules: true,
   restoreMocks: true,
 
-  collectCoverage: false,
+  collectCoverage: true,
+  collectCoverageFrom: ["src/**/*.{ts,tsx,js,jsx}"],
+  coverageDirectory: "dist/coverage",
+  coverageReporters: ["html"],
+  coveragePathIgnorePatterns: ["/node_modules/", "/dist/", "/bundled"],
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
   setupFiles: ["dotenv/config"],
