@@ -1,4 +1,4 @@
-export enum MutationInstruction {
+export enum Operator {
     SetToDefault = "SetToDefault",
     Set = "Set",
     Toggle = "Toggle",
@@ -8,6 +8,7 @@ export enum MutationInstruction {
     DecreaseCycle = "DecreaseCycle",
     Min = "Min",
     Max = "Max",
+    Execute = "Execute",
 }
 
 export type FieldDefinition = {
@@ -19,11 +20,8 @@ export type FieldDefinition = {
     options?: string[] | Record<string, string>;
 }
 
-export type FieldTarget = {
+export type Operation = {
+    operator: Operator;
     path: string[];
     value?: any;
-}
-
-export type Mutation = FieldTarget & {
-    instruction: MutationInstruction;
 }

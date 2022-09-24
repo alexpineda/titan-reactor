@@ -8,8 +8,8 @@ import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
-import { createSessionStore } from "@stores/session-store";
-import { createMutationStore, MutationVariable } from "@stores/mutation-store";
+import { createResettableStore } from "@stores/session-store";
+import { createOperatableStore, MutationVariable } from "@stores/mutation-store";
 
 type ValidAppSessionPath = `${keyof SessionSettingsData}.`;
 const validAppSettingsPaths: ValidAppSessionPath[] = [
@@ -42,7 +42,7 @@ const partialSettings = (data: Settings) => ({
     postprocessing3d: data.postprocessing3d,
 });
 
-export type ReactiveSessionVariables = ReturnType<
+export type SettingsSessionStore = ReturnType<
     typeof createSettingsSessionStore
 >;
 /**
@@ -53,8 +53,8 @@ export const createSettingsSessionStore = (
 ) => {
     const janitor = new Janitor("ReactiveSessionVariables");
 
-    const store = createMutationStore(
-        createSessionStore({
+    const store = createOperatableStore(
+        createResettableStore({
             sourceOfTruth: partialSettings(settingsStore().data),
             validateMerge: (newSettings, rhs) =>
                 events.emit("settings-changed", { settings: newSettings, rhs }) !==

@@ -1,6 +1,7 @@
 import { settingsStore } from "@stores/settings-store";
-import { getMacroActionOrConditionLevaConfig } from "common/macros/get-macro-action-condition-field-definition";
-import { MacroConditionAppSetting, ConditionComparator } from "common/types";
+import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
+import { getFieldDefinitionDisplayValue } from "common/macros/field-utilities";
+import { ConditionComparator, MacroCondition } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
 import { MacroConditionComparatorSelector } from "./macro-condition-comparator-selector";
@@ -8,11 +9,20 @@ import { MacroConditionModifyValue } from "./macro-condition-modify-value";
 import { MacroConditionPanelProps } from "./macro-condition-panel";
 
 export const MacroConditionPanelHost = (
-  props: MacroConditionPanelProps & { condition: MacroConditionAppSetting }
+  props: MacroConditionPanelProps & { condition: MacroCondition }
 ) => {
   const settings = settingsStore();
   const { condition, viewOnly, updateMacroCondition } = props;
-  const levaConfig = getMacroActionOrConditionLevaConfig(condition, settings);
+  const levaConfig = getAppSettingsPropertyInLevaFormat(
+    settings.data,
+    settings.enabledPlugins,
+    condition.path
+  );
+
+  const displayValue = getFieldDefinitionDisplayValue(
+    levaConfig?.options,
+    condition.value
+  );
 
   return (
     <div
@@ -28,7 +38,7 @@ export const MacroConditionPanelHost = (
         onChange={(evt) => {
           updateMacroCondition({
             ...condition,
-            path: evt.target.value.split("."),
+            path: [":app", ...evt.target.value.split(".")],
             comparator: ConditionComparator.Equals,
             value: undefined,
           });
@@ -49,13 +59,16 @@ export const MacroConditionPanelHost = (
             color: "var(--green-9)",
           }}
         >
-          {levaConfig.displayValue}
+          {displayValue}
         </p>
       )}
 
       {!viewOnly && condition.value !== undefined && levaConfig !== undefined && (
         <ErrorBoundary message="Error with modifier">
-          <MacroConditionModifyValue {...props} config={levaConfig} />
+          <MacroConditionModifyValue
+            {...props}
+            config={{ ...levaConfig, value: condition.value }}
+          />
         </ErrorBoundary>
       )}
     </div>

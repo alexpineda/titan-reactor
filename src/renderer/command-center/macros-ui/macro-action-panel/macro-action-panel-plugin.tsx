@@ -1,7 +1,4 @@
-import {
-  MutationInstruction,
-  MacroActionPluginModifyValue,
-} from "common/types";
+import { MacroAction, Operator } from "common/types";
 import { MacroActionEffectSelector } from "./macro-action-effect-selector";
 import { MacroActionModifyValue } from "./macro-action-modify-value";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
@@ -9,7 +6,7 @@ import ErrorBoundary from "../../error-boundary";
 
 export const MacroActionPanelPlugin = (
   props: MacroActionPanelProps & {
-    action: MacroActionPluginModifyValue;
+    action: MacroAction;
   }
 ) => {
   const { action, pluginsMetadata, updateMacroAction, viewOnly } = props;
@@ -41,9 +38,9 @@ export const MacroActionPanelPlugin = (
             onChange={(evt) => {
               updateMacroAction({
                 ...action,
-                path: [evt.target.value],
+                path: [":plugin", plugin.name, evt.target.value],
                 value: undefined,
-                instruction: MutationInstruction.SetToDefault,
+                operator: Operator.SetToDefault,
               });
             }}
             value={action.path[0]}
@@ -64,7 +61,7 @@ export const MacroActionPanelPlugin = (
                 ...action,
                 path: [action.path[0], evt.target.value],
                 value: undefined,
-                instruction: MutationInstruction.SetToDefault,
+                operator: Operator.SetToDefault,
               });
             }}
             value={action.path[1]}
@@ -87,7 +84,7 @@ export const MacroActionPanelPlugin = (
           <MacroActionEffectSelector {...props} />
         </ErrorBoundary>
 
-        {viewOnly && action.instruction === MutationInstruction.Set && (
+        {viewOnly && action.operator === Operator.Set && (
           <p
             style={{
               background: "var(--green-0)",
@@ -101,7 +98,7 @@ export const MacroActionPanelPlugin = (
           </p>
         )}
       </div>
-      {action.instruction === MutationInstruction.Set &&
+      {action.operator === Operator.Set &&
         !viewOnly &&
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>

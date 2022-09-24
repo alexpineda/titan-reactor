@@ -42,13 +42,13 @@ export const MacroConditionPanel = (
             className="material-icons"
             style={{ fontSize: "var(--font-size-3)" }}
           >
-            {condition.type === "FunctionCondition"
+            {condition.path[0] === ":function"
               ? "code"
-              : condition.type === "AppSettingsCondition"
+              : condition.path[0] === ":app"
               ? "settings_applications"
               : "extension"}
           </i>
-          <span>{spaceOutCapitalLetters(condition.type)}</span>
+          <span>{spaceOutCapitalLetters(condition.path[0].slice(1))}</span>
         </span>
         <button
           onClick={() => setActiveCondition(condition.id)}
@@ -93,7 +93,7 @@ export const MacroConditionPanel = (
         message="There was an error with this action"
         key={condition.id}
       >
-        {condition.type === "AppSettingsCondition" && (
+        {condition.path[0] === ":app" && (
           <MacroConditionPanelHost {...props} condition={condition} />
         )}
       </ErrorBoundary>

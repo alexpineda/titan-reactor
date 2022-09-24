@@ -3,7 +3,7 @@ import { TypeEmitter } from "@utils/type-emitter";
 import { createSettingsSessionStore } from "./settings-session-store";
 import { WorldEvents } from "./world";
 import * as settingsStore from "@stores/settings-store";
-import { MutationInstruction } from "common/types";
+import { Operator } from "common/types";
 
 jest.mock("@ipc/log");
 jest.mock("@utils/type-emitter");
@@ -93,10 +93,10 @@ describe("SettingsSessionStore", () => {
         const events = new TypeEmitter<WorldEvents>();
         const session = createSettingsSessionStore(events);
 
-        session.mutate({
+        session.operate({
             path: ["audio", "music"],
             value: 0.5,
-            instruction: MutationInstruction.Set
+            operator: Operator.Set
         });
 
         expect(session.getState()).toStrictEqual({

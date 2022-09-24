@@ -1,5 +1,5 @@
 import { describe, it, jest } from "@jest/globals";
-import { MacroActionConfigurationErrorType, MacroActionHostModifyValue, MacroActionSequence, MacroActionType, MacroDTO, MutationInstruction, TriggerType } from "common/types";
+import { MacroAction, MacroActionSequence, MacroDTO, Operator, TriggerType } from "common/types";
 import { SettingsAndPluginsMeta } from "./field-utilities";
 import { sanitizeMacros } from "./sanitize-macros";
 
@@ -21,13 +21,12 @@ const util = {
         }
     },
 
-    createAction(partial?: Partial<MacroActionHostModifyValue>): MacroActionHostModifyValue {
+    createAction(partial?: Partial<MacroAction>): MacroAction {
 
         return {
             id: "1",
-            instruction: MutationInstruction.SetToDefault,
-            path: ["test"],
-            type: MacroActionType.ModifyAppSettings,
+            operator: Operator.SetToDefault,
+            path: [":app"],
             ...partial
         }
     }
@@ -52,27 +51,4 @@ describe("sanitizeMacros", () => {
         expect(macro.error).toBeUndefined();
 
     });
-
-    it("should clear action errors", () => {
-
-        const action = util.createAction({ error: { message: "some error", type: MacroActionConfigurationErrorType.InvalidAction } });
-
-        const macro = util.createMacro({
-            actions: [
-                action
-            ]
-        });
-
-        expect(action.error).toBeDefined();
-
-        sanitizeMacros({
-            macros: [
-                macro
-            ], revision: 0
-        }, {} as SettingsAndPluginsMeta);
-
-        expect(action.error).toBeUndefined();
-
-    });
-
 });

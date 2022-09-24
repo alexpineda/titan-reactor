@@ -6,8 +6,8 @@ import { FieldDefinition } from "common/types";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
 import { globalEvents } from "@core/global-events";
-import { createSessionStore } from "@stores/session-store";
-import { createMutationStore } from "@stores/mutation-store";
+import { createResettableStore } from "@stores/session-store";
+import { createOperatableStore } from "@stores/mutation-store";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 import { PluginBase } from "@plugins/plugin-base";
@@ -25,7 +25,7 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
 
     const janitor = new Janitor("ReactivePluginApi");
 
-    const sessionStore = createSessionStore({
+    const sessionStore = createResettableStore({
         sourceOfTruth: plugins.reduce((acc, plugin) => {
             for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
                 if (key !== "system" && (field as FieldDefinition)?.value !== undefined) {
@@ -85,7 +85,7 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
 
     const getValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
 
-    const store = createMutationStore(sessionStore, getValue);
+    const store = createOperatableStore(sessionStore, getValue);
 
     // The user changed a plugin config so update the defaults
     janitor.mop(globalEvents.on("command-center-plugin-config-changed", ({ pluginId, config }) => {

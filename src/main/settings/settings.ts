@@ -5,7 +5,7 @@ import path from "path";
 import phrases from "common/phrases";
 import { defaultSettings } from "common/default-settings";
 import fileExists from "common/utils/file-exists";
-import { MacroDTO, Settings as SettingsType, SettingsMeta } from "common/types";
+import { Settings as SettingsType, SettingsMeta } from "common/types";
 
 import { findStarcraftPath } from "../starcraft/find-install-path";
 import { findMapsPath } from "../starcraft/find-maps-path";
@@ -17,7 +17,6 @@ import { findPluginsPath } from "../starcraft/find-plugins-path";
 import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
-import { defaultMacros } from "./default-macros";
 import { logService } from "main/logger/singleton";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
@@ -199,7 +198,7 @@ export class Settings {
       },
       macros: {
         revision: 0,
-        macros: defaultMacros as MacroDTO[]
+        macros: []
       }
     };
   }

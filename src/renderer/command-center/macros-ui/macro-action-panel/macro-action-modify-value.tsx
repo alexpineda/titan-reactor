@@ -2,10 +2,10 @@ import { useControls, useCreateStore } from "leva";
 import { createLevaPanel } from "../../create-leva-panel";
 import { mapSingleConfigToLeva } from "@utils/leva-utils";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
-import { DisplayFieldDefinition } from "common/macros/get-macro-action-condition-field-definition";
+import { FieldDefinition } from "common/types";
 
 export const MacroActionModifyValue = (
-  props: MacroActionPanelProps & { config: DisplayFieldDefinition }
+  props: MacroActionPanelProps & { config: FieldDefinition }
 ) => {
   const { action, config, updateMacroAction } = props;
   const controls = {

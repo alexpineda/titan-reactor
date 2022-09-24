@@ -1,5 +1,5 @@
 import { describe, it } from "@jest/globals";
-import { createSessionStore } from "./session-store";
+import { createResettableStore } from "./session-store";
 
 describe("SessionStore", () => {
 
@@ -11,7 +11,7 @@ describe("SessionStore", () => {
 
         }
 
-        const store = createSessionStore({ sourceOfTruth });
+        const store = createResettableStore({ sourceOfTruth });
 
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
@@ -24,7 +24,7 @@ describe("SessionStore", () => {
             foo: "bar"
 
         }
-        const store = createSessionStore({ sourceOfTruth });
+        const store = createResettableStore({ sourceOfTruth });
 
         expect(store.getValue(["foo"])).toBe("bar");
 
@@ -37,7 +37,7 @@ describe("SessionStore", () => {
             foo: "bar"
 
         }
-        const store = createSessionStore({ sourceOfTruth });
+        const store = createResettableStore({ sourceOfTruth });
 
         expect(store.setValue(["foo"], "baz"));
 
@@ -51,7 +51,7 @@ describe("SessionStore", () => {
         const sourceOfTruth = {
             foo: "bar"
         };
-        const store = createSessionStore({ sourceOfTruth });
+        const store = createResettableStore({ sourceOfTruth });
 
         expect(store.merge({ foo: "baz" }));
 
@@ -67,7 +67,7 @@ describe("SessionStore", () => {
                 bar: "baz"
             }
         };
-        const store = createSessionStore({ sourceOfTruth });
+        const store = createResettableStore({ sourceOfTruth });
 
         expect(store.merge({ foo: { bar: "foo" } }));
 
@@ -81,7 +81,7 @@ describe("SessionStore", () => {
         const sourceOfTruth = {
             foo: "bar"
         };
-        const store = createSessionStore({
+        const store = createResettableStore({
             sourceOfTruth,
             validateMerge: () => true
         });
@@ -98,7 +98,7 @@ describe("SessionStore", () => {
         const sourceOfTruth = {
             foo: "bar"
         };
-        const store = createSessionStore({
+        const store = createResettableStore({
             sourceOfTruth,
             validateMerge: () => false
         });
@@ -115,7 +115,7 @@ describe("SessionStore", () => {
         const sourceOfTruth = {
             foo: "bar"
         };
-        const store = createSessionStore({
+        const store = createResettableStore({
             sourceOfTruth,
         });
 
@@ -132,7 +132,7 @@ describe("SessionStore", () => {
         const sourceOfTruth = {
             foo: "bar"
         };
-        const store = createSessionStore({
+        const store = createResettableStore({
             sourceOfTruth,
         });
 

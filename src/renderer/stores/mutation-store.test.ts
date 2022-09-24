@@ -1,7 +1,7 @@
 import { describe, it, jest } from "@jest/globals";
-import { createSessionStore } from "./session-store";
-import { createMutationStore } from "./mutation-store";
-import { MutationInstruction } from "common/types";
+import { createResettableStore } from "./session-store";
+import { createOperatableStore } from "./mutation-store";
+import { Operator } from "common/types";
 
 jest.mock("@ipc/log");
 
@@ -15,17 +15,17 @@ describe("SessionStore", () => {
 
         };
 
-        const store = createSessionStore({ sourceOfTruth });
+        const store = createResettableStore({ sourceOfTruth });
 
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
-        const mutation = createMutationStore(store, () => ({
+        const mutation = createOperatableStore(store, () => ({
             value: null
         }));
 
-        mutation.mutate({
+        mutation.operate({
             path: ["foo"],
-            instruction: MutationInstruction.Set,
+            operator: Operator.Set,
             value: "baz"
         });
 
@@ -41,11 +41,11 @@ describe("SessionStore", () => {
 
         };
 
-        const store = createSessionStore({ sourceOfTruth });
+        const store = createResettableStore({ sourceOfTruth });
 
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
-        const mutation = createMutationStore(store, () => ({
+        const mutation = createOperatableStore(store, () => ({
             value: null
         }));
 

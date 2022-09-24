@@ -1,5 +1,5 @@
 import { log } from "@ipc/log";
-import { MacroActionType, MacrosDTO, MacroTrigger, TriggerType, MacroConditionType, ConditionComparator, MacroActionPluginModifyValue, MacroActionHostModifyValue, SessionSettingsData } from "common/types";
+import { MacrosDTO, MacroTrigger, TriggerType, ConditionComparator } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
@@ -7,9 +7,10 @@ import { KeyCombo } from "./key-combo";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import { Janitor } from "three-janitor";
 import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
+import { TargetComposer } from "@core/world/target-composer";
 
 export class Macros {
-    #createGameCompartment?: (context?: any) => Compartment;
+    targets: TargetComposer;
     revision = 0;
     macros: Macro[] = [];
     #macroAlreadyExecuted: Set<Macro> = new Set();
@@ -24,15 +25,11 @@ export class Macros {
             hookMacros: []
         }
 
-    doSessionAction?: (action: MacroActionHostModifyValue) => void;
-    doPluginAction?: (action: MacroActionPluginModifyValue) => void;
-    getSessionProperty?: (path: string[]) => SessionSettingsData;
-    getPluginProperty?: (path: string[]) => any;
-
-    constructor(macros?: MacrosDTO) {
+    constructor(targets: TargetComposer, macros?: MacrosDTO,) {
         if (macros) {
             this.deserialize(macros);
         }
+        this.targets = targets;
     }
 
     add(macro: Macro) {
@@ -116,9 +113,7 @@ export class Macros {
         }
     }
 
-    setCreateCompartment(createCompartment: ((context?: any) => Compartment)) {
-        this.#createGameCompartment = createCompartment;
-    }
+
 
     #testCondition(comparator: ConditionComparator, a: any, b: any) {
         if (comparator === ConditionComparator.Equals) {
@@ -138,26 +133,17 @@ export class Macros {
     }
 
     #testMacroConditions(macro: Macro, context?: any) {
+
         for (const condition of macro.conditions) {
-            let value: any;
-            if (condition.type === MacroConditionType.AppSettingsCondition) {
-                value = this.getSessionProperty!(condition.path);
-            } else if (condition.type === MacroConditionType.PluginSettingsCondition) {
-                value = this.getPluginProperty!(condition.path);
-                const c = this.#createGameCompartment!(context);
-                try {
-                    value = c.globalThis.Function(condition.value)();
-                } catch (e) {
-                    log.error(`Error executing macro condition: ${e}`);
-                    return;
-                }
-            }
+
+            const value = this.targets.getHandler(condition.path[0])!.getValue(condition.path.slice(1), context);
 
             if (this.#testCondition(condition.comparator, value, condition.value) === false) {
                 console.log('failed test')
                 return false;
             }
         }
+
         return true;
     }
 
@@ -173,21 +159,9 @@ export class Macros {
                 log.error(action.error.message);
                 continue;
             }
-            if (action.type === MacroActionType.ModifyAppSettings) {
-                this.doSessionAction!(action);
-            } else if (action.type === MacroActionType.ModifyPluginSettings) {
-                this.doPluginAction!(action);
-            } else if (action.type === MacroActionType.CallGameTimeApi) {
-                const c = this.#createGameCompartment!(context);
-                try {
-                    c.globalThis.Function(action.value)();
-                } catch (e) {
-                    log.error(`Error executing macro action: ${e}`);
-                }
-            }
-            else {
-                log.error(`Invalid macro action ${macro.name}`);
-            }
+
+            this.targets.getHandler(action.path[0])!.action(action, context);
+
         }
     }
 

@@ -5,20 +5,20 @@
     "description": "An OpenBW Renderer",
     "main": "src/main/index.js",
     "scripts": {
-        "build-api-types": "ts-node -T .\\build\\apis\\build-api-types.ts",
-        "tscheck": "tsc --noEmit",
+        "dev": "electron-webpack dev",
+        "sanity": "yarn typecheck && yarn test:once",
+        "typecheck": "tsc --noEmit",
         "test": "jest --watchAll",
         "test:once": "jest --runInBand",
         "test:debug": "node --inspect node_modules/jest/bin/jest --runInBand",
         "clear-cache": "rimraf .cache dist",
         "build": "electron-webpack",
         "dist": "yarn build && electron-builder",
-        "dist:dir": "yarn dist -- --dir -c.compression=store -c.mac.identity=null",
-        "dev": "electron-webpack dev",
         "dist:run": "yarn build && electron dist/main/main.js",
         "lint": "yarn eslint .",
         "clean-dev-win": "taskkill /f /im node.exe",
-        "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch"
+        "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
+        "build-api-types": "ts-node -T .\\build\\apis\\build-api-types.ts"
     },
     "browserslist": [
         "last 2 Chrome versions"
@@ -60,12 +60,10 @@
             "category": "Game",
             "icon": "icon256x256.ico"
         },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ]
+        "extraResources": [{
+            "from": "bundled",
+            "to": "bundled"
+        }]
     },
     "dependencies": {
         "@babel/core": "^7.11.6",

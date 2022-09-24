@@ -1,5 +1,5 @@
 import { GameTimeApi } from "./game-time-api";
-import { ReactiveSessionVariables } from "./settings-session-store";
+import { SettingsSessionStore } from "./settings-session-store";
 import { borrow, mix } from "@utils/object-utils";
 import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world";
@@ -11,7 +11,7 @@ import { OpenBW } from "common/types";
 
 export type PluginsAndMacroSession = Awaited<ReturnType<typeof createPluginsAndMacroSession>>;
 
-export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEvents>, settings: ReactiveSessionVariables, openBW: OpenBW) => {
+export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEvents>, settings: SettingsSessionStore, openBW: OpenBW) => {
 
     const macrosComposer = createMacrosComposer(events, settings);
 
@@ -21,8 +21,10 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
 
         pluginSession.nativePlugins.externalHookListener = (...args) => macrosComposer.macros.callFromHook(...args);
 
-        macrosComposer.macros.getPluginProperty = pluginSession.store.getValue;
-        macrosComposer.macros.doPluginAction = pluginSession.store.mutate;
+        macrosComposer.macros.targets.setHandler(":plugin", {
+            action: (action) => pluginSession.store.operate(action),
+            getValue: (path) => pluginSession.store.getValue(path),
+        });
 
         return pluginSession;
 
@@ -51,7 +53,7 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
     let _undoInject = () => { };
 
     return {
-        activate(gameTimeApi: GameTimeApi, sessionSettings: ReactiveSessionVariables, events: TypeEmitter<WorldEvents>) {
+        activate(gameTimeApi: GameTimeApi, sessionSettings: SettingsSessionStore, events: TypeEmitter<WorldEvents>) {
 
             _undoInject();
 

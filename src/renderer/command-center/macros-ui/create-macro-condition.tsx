@@ -1,54 +1,22 @@
-import { spaceOutCapitalLetters } from "@utils/string-utils";
 import {
   MacroCondition,
   ConditionComparator,
-  MacroConditionType,
   PluginMetaData,
 } from "common/types";
-import { useState } from "react";
 import { generateUUID } from "three/src/math/MathUtils";
 
 export const CreateMacroCondition = ({
-  pluginsMetadata,
   onCreate,
 }: {
   onCreate: (condition: MacroCondition) => void;
   pluginsMetadata: PluginMetaData[];
 }) => {
-  const [conditionType, setConditionType] = useState<MacroConditionType>(
-    MacroConditionType.AppSettingsCondition
-  );
-
-  const defaultAppSettingsField = ["audio", "global"];
-
-  const defaultPluginName = pluginsMetadata[0].name;
-  const defaultPluginSettingsField = Object.keys(
-    pluginsMetadata[0].config ?? {}
-  ).filter((_, i) => i === 0);
-
-  const createAction = () => {
-    if (conditionType === MacroConditionType.AppSettingsCondition) {
-      onCreate({
-        id: generateUUID(),
-        type: conditionType,
-        path: defaultAppSettingsField,
-        comparator: ConditionComparator.Equals,
-      });
-    } else if (conditionType === MacroConditionType.PluginSettingsCondition) {
-      onCreate({
-        id: generateUUID(),
-        type: conditionType,
-        path: [defaultPluginName, ...defaultPluginSettingsField],
-        comparator: ConditionComparator.Equals,
-      });
-    } else if (conditionType === MacroConditionType.FunctionCondition) {
-      onCreate({
-        id: generateUUID(),
-        type: conditionType,
-        value: "",
-        comparator: ConditionComparator.Equals,
-      });
-    }
+  const createCondition = () => {
+    onCreate({
+      id: generateUUID(),
+      path: [":app"],
+      comparator: ConditionComparator.Equals,
+    });
   };
 
   return (
@@ -65,20 +33,8 @@ export const CreateMacroCondition = ({
           marginBottom: "var(--size-9)",
         }}
       >
-        <select
-          onChange={(e) =>
-            setConditionType(e.target.value as MacroConditionType)
-          }
-          value={conditionType}
-        >
-          {Object.values(MacroConditionType).map((key) => (
-            <option key={key} value={key}>
-              {spaceOutCapitalLetters(key)}
-            </option>
-          ))}
-        </select>
         <button
-          onClick={createAction}
+          onClick={createCondition}
           style={{
             display: "flex",
             alignItems: "center",

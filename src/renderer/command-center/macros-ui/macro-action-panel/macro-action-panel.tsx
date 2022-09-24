@@ -1,5 +1,4 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
-import { MacroActionType } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { MacroActionPanelGameTimeApi } from "./macro-action-panel-game-time-api";
@@ -38,13 +37,13 @@ export const MacroActionPanel = (
             className="material-icons"
             style={{ fontSize: "var(--font-size-3)" }}
           >
-            {action.type === MacroActionType.CallGameTimeApi
+            {action.path[0] === ":function"
               ? "code"
-              : action.type === MacroActionType.ModifyAppSettings
+              : action.path[0] === ":app"
               ? "settings_applications"
               : "extension"}
           </i>
-          <span>{spaceOutCapitalLetters(action.type)}</span>
+          <span>{spaceOutCapitalLetters(action.path[0].slice(1))}</span>
         </span>
         <button
           onClick={() => setActiveAction(action.id)}
@@ -89,13 +88,13 @@ export const MacroActionPanel = (
         message="There was an error with this action"
         key={action.id}
       >
-        {action.type === MacroActionType.ModifyAppSettings && (
+        {action.path[0] === ":app" && (
           <MacroActionPanelHost {...props} action={action} />
         )}
-        {action.type === MacroActionType.CallGameTimeApi && (
+        {action.path[0] === ":function" && (
           <MacroActionPanelGameTimeApi {...props} action={action} />
         )}
-        {action.type === MacroActionType.ModifyPluginSettings && (
+        {action.path[0] === ":plugin" && (
           <MacroActionPanelPlugin {...props} action={action} />
         )}
       </ErrorBoundary>

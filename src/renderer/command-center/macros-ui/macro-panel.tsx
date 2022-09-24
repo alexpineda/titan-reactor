@@ -10,9 +10,7 @@ import {
   MacroDTO,
   TriggerType,
   MacroCondition,
-  MutationInstruction,
-  MacroActionPluginModifyValue,
-  MacroActionHostModifyValue,
+  Operator,
 } from "common/types";
 import { MacroActionPanel } from "./macro-action-panel/macro-action-panel";
 import { CreateMacroAction } from "./create-macro-action";
@@ -44,10 +42,7 @@ export const MacroPanel = ({
   pluginsMetadata: PluginMetaData[];
   updateMacro: (macro: MacroDTO) => void;
   updateMacroAction: (action: MacroAction) => void;
-  updateMacroActionEffect: (
-    action: MacroActionHostModifyValue | MacroActionPluginModifyValue,
-    effect: MutationInstruction
-  ) => void;
+  updateMacroActionEffect: (action: MacroAction, effect: Operator) => void;
   updateMacroCondition: (condition: MacroCondition) => void;
   activeAction: string | null;
   setActiveAction: (id: string | null) => void;

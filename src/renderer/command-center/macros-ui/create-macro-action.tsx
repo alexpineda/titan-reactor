@@ -1,53 +1,18 @@
-import { spaceOutCapitalLetters } from "@utils/string-utils";
-import {
-  MacroAction,
-  MutationInstruction,
-  MacroActionType,
-  PluginMetaData,
-} from "common/types";
-import { useState } from "react";
+import { MacroAction, Operator, PluginMetaData } from "common/types";
 import { generateUUID } from "three/src/math/MathUtils";
 
 export const CreateMacroAction = ({
-  pluginsMetadata,
   onCreate,
 }: {
   onCreate: (action: MacroAction) => void;
   pluginsMetadata: PluginMetaData[];
 }) => {
-  const [actionType, setActionType] = useState<MacroActionType>(
-    MacroActionType.ModifyAppSettings
-  );
-
-  const defaultAppSettingsField = ["audio", "global"];
-
-  const defaultPluginName = pluginsMetadata[0].name;
-  const defaultPluginSettingsField = Object.keys(
-    pluginsMetadata[0].config ?? {}
-  ).filter((_, i) => i === 0);
-
   const createAction = () => {
-    if (actionType === MacroActionType.ModifyAppSettings) {
-      onCreate({
-        id: generateUUID(),
-        type: actionType,
-        path: defaultAppSettingsField,
-        instruction: MutationInstruction.SetToDefault,
-      });
-    } else if (actionType === MacroActionType.ModifyPluginSettings) {
-      onCreate({
-        id: generateUUID(),
-        type: actionType,
-        path: [defaultPluginName, ...defaultPluginSettingsField],
-        instruction: MutationInstruction.SetToDefault,
-      });
-    } else if (actionType === MacroActionType.CallGameTimeApi) {
-      onCreate({
-        id: generateUUID(),
-        type: actionType,
-        value: "",
-      });
-    }
+    onCreate({
+      id: generateUUID(),
+      path: [":app"],
+      operator: Operator.Set,
+    });
   };
 
   return (
@@ -64,16 +29,6 @@ export const CreateMacroAction = ({
           marginBottom: "var(--size-9)",
         }}
       >
-        <select
-          onChange={(e) => setActionType(e.target.value as MacroActionType)}
-          value={actionType}
-        >
-          {Object.values(MacroActionType).map((key) => (
-            <option key={key} value={key}>
-              {spaceOutCapitalLetters(key)}
-            </option>
-          ))}
-        </select>
         <button
           onClick={createAction}
           style={{

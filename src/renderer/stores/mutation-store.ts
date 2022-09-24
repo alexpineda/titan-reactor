@@ -1,22 +1,22 @@
-import { FieldDefinition, Mutation, MutationInstruction } from "common/types";
+import { FieldDefinition, Operation, Operator } from "common/types";
 import { applyMutationInstruction } from "./apply-mutation-instruction";
 import { log } from "@ipc/log";
-import { SessionStore } from "./session-store";
+import { ResettableStore } from "./session-store";
 
 export type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
 
-export const createMutationVariable = (mutate: (action: Mutation) => void, getValue: (path: string[]) => any) => (path: string[]) => {
+export const createMutationVariable = (operate: (operation: Operation) => void, getValue: (path: string[]) => any) => (path: string[]) => {
 
     const _data = {
         value: undefined,
         path,
-        instruction: MutationInstruction.Set
-
+        operator: Operator.Set
     }
-    const apply = (instruction: MutationInstruction, value?: any) => {
-        _data.instruction = instruction;
+
+    const apply = (operator: Operator, value?: any) => {
+        _data.operator = operator;
         _data.value = value;
-        mutate(_data);
+        operate(_data);
     }
 
     return {
@@ -30,58 +30,58 @@ export const createMutationVariable = (mutate: (action: Mutation) => void, getVa
          * Set value of the property.
          */
         set value(newValue: any) {
-            apply(MutationInstruction.Set, newValue);
+            apply(Operator.Set, newValue);
         },
         /**
          * Increase the value of the property.
          */
-        inc: () => apply(MutationInstruction.Increase),
+        inc: () => apply(Operator.Increase),
         /**
          * Increase the value of the property. Loop around if the value is greater than the maximum.
          */
-        incCycle: () => apply(MutationInstruction.IncreaseCycle),
+        incCycle: () => apply(Operator.IncreaseCycle),
         /**
          * Decrease the value of the property.
          */
-        dec: () => apply(MutationInstruction.Decrease),
+        dec: () => apply(Operator.Decrease),
         /**
          * Decrease the value of the property. Loop around if the value is less than the minimum.
          */
-        decCycle: () => apply(MutationInstruction.DecreaseCycle),
+        decCycle: () => apply(Operator.DecreaseCycle),
         /**
          * Set the value of the property to the minimum.
          */
-        min: () => apply(MutationInstruction.Min),
+        min: () => apply(Operator.Min),
         /**
          * Set the value of the property to the maximum.
          */
-        max: () => apply(MutationInstruction.Max),
+        max: () => apply(Operator.Max),
         /**
          * Reset the value of the property to the default.
          */
-        reset: () => apply(MutationInstruction.SetToDefault),
+        reset: () => apply(Operator.SetToDefault),
         /**
          * Reset the value of the property to the default.
          */
-        toggle: () => apply(MutationInstruction.Toggle),
+        toggle: () => apply(Operator.Toggle),
     }
 
 }
 
-export type MutationStore<T> = SessionStore<T> & {
-    mutate: (action: Mutation) => void;
+export type OperatableStore<T> = ResettableStore<T> & {
+    operate: (action: Operation) => void;
     createVariable: (path: string[]) => MutationVariable;
 }
 
-export function createMutationStore<T>(store: SessionStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): MutationStore<T> {
+export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
 
-    const mutate = (mutation: Mutation) => {
+    const operate = (mutation: Operation) => {
 
         const field = getFieldDefinition(mutation.path, store.getState());
 
         if (field) {
 
-            store.setValue(mutation.path, applyMutationInstruction(mutation.instruction, field, mutation.value, store.getResetValue(mutation.path)));
+            store.setValue(mutation.path, applyMutationInstruction(mutation.operator, field, mutation.value, store.getResetValue(mutation.path)));
 
         } else {
 
@@ -93,7 +93,7 @@ export function createMutationStore<T>(store: SessionStore<T>, getFieldDefinitio
 
     return {
         ...store,
-        mutate,
-        createVariable: createMutationVariable(mutate, (path) => store.getValue(path))
+        operate,
+        createVariable: createMutationVariable(operate, (path) => store.getValue(path))
     }
 }

@@ -1,12 +1,12 @@
 import { Logger } from "common/logging";
-import { MacroAction, MacroActionConfigurationErrorType, MacroActionType, MacroCondition, ConditionComparator, MacrosDTO } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroCondition, ConditionComparator, MacrosDTO } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
-import { FieldDefinition, MutationInstruction } from "../types/mutations";
-import { getAppFieldDefinition, SettingsAndPluginsMeta, isValidTypeOfField, getTypeOfField, getPluginFieldDefinition, getAvailableMutationIntructionsForTypeOfField, getAvailableComparatorsForTypeOfField } from "./field-utilities";
+import { Operator } from "../types/mutations";
+import { getAppFieldDefinition, SettingsAndPluginsMeta, getTypeOfField, getPluginFieldDefinition, getAvailableMutationIntructionsForTypeOfField, getAvailableComparatorsForTypeOfField } from "./field-utilities";
 
-const getPluginConfigFields = (config: any) => {
-    return Object.keys(config).filter(k => k !== "system")
-}
+// const getPluginConfigFields = (config: any) => {
+//     return Object.keys(config).filter(k => k !== "system")
+// }
 
 export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta, logger?: Logger) => {
 
@@ -18,7 +18,6 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
 
             try {
 
-                console.log("delete action error", action);
                 delete action.error;
 
                 patchMutationInstruction(action, settings);
@@ -68,11 +67,11 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
 const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroCondition, settings: SettingsAndPluginsMeta) => {
 
     // we don't sanitize these types
-    if (action.type === "FunctionCondition" || action.type === MacroActionType.CallGameTimeApi) {
+    if (action.path[0] === ":function") {
         return;
     }
 
-    if (action.type === MacroActionType.ModifyAppSettings || action.type === "AppSettingsCondition") {
+    if (action.path[0] === ":app") {
 
         // validate path
         let field = getAppFieldDefinition(settings, action.path);
@@ -87,18 +86,15 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
         }
 
-        // how do we know if its patchable?
-        const patchable = action.type === MacroActionType.ModifyAppSettings && action.instruction === MutationInstruction.Set || action.type === "AppSettingsCondition";
+        // if (patchable) {
 
-        if (patchable) {
+        //     patchValue(action, field);
 
-            patchValue(action, field);
+        // }
 
-        }
+    } else if (action.path[0] === ":plugin") {
 
-    } else if (action.type === MacroActionType.ModifyPluginSettings || action.type === "PluginSettingsCondition") {
-
-        const plugin = settings.enabledPlugins.find((p) => p.name === action.path[0]);
+        const plugin = settings.enabledPlugins.find((p) => p.name === action.path[1]);
 
         if (!plugin) {
 
@@ -110,31 +106,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
         }
 
-        // patch path
-        if (!action.path || action.path.length === 0) {
-
-            let replaced: string | undefined;
-            if (plugin.externMethods.length) {
-                replaced = plugin.externMethods[0];
-            } else if (plugin.config) {
-                replaced = Object.keys(plugin.config!).find(k => k !== "system");
-            }
-            if (replaced) {
-                action.path = [plugin.name, replaced]
-            }
-            // failed to properly assign a field even though the config is available and/or plugins methods are available
-            else if (getPluginConfigFields(plugin.config).length || plugin.externMethods.length) {
-                action.error = {
-                    type: MacroActionConfigurationErrorType.MissingField,
-                    message: `Missing field for plugin`,
-                }
-                return;
-            }
-            return;
-
-        }
-
-        if (action.path[1].startsWith("externMethod") && !plugin.externMethods.includes(action.path[1])) {
+        if (action.path[2].startsWith("externMethod") && !plugin.externMethods.includes(action.path[2])) {
 
             action.error = {
                 type: MacroActionConfigurationErrorType.MissingField,
@@ -145,63 +117,61 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
         }
 
-        const patchable = action.type === MacroActionType.ModifyPluginSettings && action.instruction === MutationInstruction.Set || action.type === "PluginSettingsCondition";
+        // const patchable = action.type === MacroActionType.ModifyPluginSettings && action.instruction === Operator.Set || action.type === "PluginSettingsCondition";
 
-        if (patchable) {
+        // if (patchable) {
 
-            const field = plugin.config?.[action.path[1] as keyof typeof plugin] ?? { value: null };
+        //     const field = plugin.config?.[action.path[1] as keyof typeof plugin] ?? { value: null };
 
-            patchValue(action, field);
+        //     patchValue(action, field);
 
-        }
+        // }
     }
 }
 
 
-const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
+// const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
 
-    return !Array.isArray(options) ? Object.values(options)[0] : options[0];
+//     return !Array.isArray(options) ? Object.values(options)[0] : options[0];
 
-}
+// }
 
 
-const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition) => {
+// const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition) => {
 
-    if (action.value === undefined) {
-        if (field.options) {
-            action.value = getFirstOption(field.options);
-        } else {
-            action.value = field.value;
-        }
-    }
+//     if (action.value === undefined) {
+//         if (field.options) {
+//             action.value = getFirstOption(field.options);
+//         } else {
+//             action.value = field.value;
+//         }
+//     }
 
-    if (!isValidTypeOfField(typeof action.value)) {
-        action.error = {
-            type: MacroActionConfigurationErrorType.InvalidFieldValue,
-            message: `Invalid field type`
-        }
-    }
+//     if (!isValidTypeOfField(typeof action.value)) {
+//         action.error = {
+//             type: MacroActionConfigurationErrorType.InvalidFieldValue,
+//             message: `Invalid field type`
+//         }
+//     }
 
-}
+// }
 
 
 const patchMutationInstruction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
 
-    if (action.type !== MacroActionType.CallGameTimeApi) {
 
-        const validInstructions = getAvailableMutationInstructionsForAction(action, settings);
+    const validInstructions = getAvailableMutationInstructionsForAction(action, settings);
 
-        if (!validInstructions.includes(action.instruction)) {
+    if (!validInstructions.includes(action.operator)) {
 
-            action.instruction = MutationInstruction.SetToDefault;
-            action.error = {
-                type: MacroActionConfigurationErrorType.InvalidCondition,
-                message: "This action had an invalid instruction and was reset to the default"
-            }
-
+        action.operator = Operator.SetToDefault;
+        action.error = {
+            type: MacroActionConfigurationErrorType.InvalidInstruction,
+            message: "This action had an invalid instruction and was reset to the default"
         }
 
     }
+
 
 }
 
@@ -226,13 +196,13 @@ const patchConditionComparator = (condition: MacroCondition, settings: SettingsA
 export const getAvailableMutationInstructionsForAction = (
     action: MacroAction,
     settings: SettingsAndPluginsMeta
-): MutationInstruction[] => {
+): Operator[] => {
 
-    if (action.type === MacroActionType.CallGameTimeApi) {
-        return [];
+    if (action.path[0] === ":function") {
+        return [Operator.Execute];
     } else {
 
-        const typeOfField = getTypeOfField(action.type === MacroActionType.ModifyAppSettings ? getAppFieldDefinition(settings, action.path) : getPluginFieldDefinition(settings, action.path));
+        const typeOfField = getTypeOfField(action.path[0] === ":app" ? getAppFieldDefinition(settings, action.path) : getPluginFieldDefinition(settings, action.path));
 
         if (typeOfField === null) {
             return [];
@@ -250,11 +220,11 @@ export const getMacroConditionValidComparators = (
 ): ConditionComparator[] => {
 
 
-    if (condition.type === "FunctionCondition") {
+    if (condition.path[0] === ":function") {
         return getAvailableComparatorsForTypeOfField("number");
     } else {
 
-        const typeOfField = getTypeOfField(condition.type === "AppSettingsCondition" ? getAppFieldDefinition(settings, condition.path) : getPluginFieldDefinition(settings, condition.path));
+        const typeOfField = getTypeOfField(condition.path[0] === ":app" ? getAppFieldDefinition(settings, condition.path) : getPluginFieldDefinition(settings, condition.path));
 
         if (typeOfField === null) {
             return [];
@@ -264,7 +234,3 @@ export const getMacroConditionValidComparators = (
     }
 
 };
-
-export const getActionFieldPathType = (action: MacroAction | MacroCondition) => action.type === MacroActionType.ModifyPluginSettings || action.type === "PluginSettingsCondition" ? "plugin" : "app";
-
-export const isActionAssignableType = (action: MacroAction | MacroCondition) => action.type === MacroActionType.ModifyAppSettings && action.instruction === MutationInstruction.Set || action.type === "AppSettingsCondition" || action.type === MacroActionType.ModifyPluginSettings && action.instruction === MutationInstruction.Set || action.type === "PluginSettingsCondition";

@@ -11,7 +11,7 @@ export type CreateSessionStoreArgs<T extends Record<string, any>> = {
     onUpdate?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => void;
 }
 
-export function createSessionStore<T extends Record<string, any>>({ sourceOfTruth, validateMerge: validateMerge, onUpdate }: CreateSessionStoreArgs<T>): SessionStore<T> {
+export function createResettableStore<T extends Record<string, any>>({ sourceOfTruth, validateMerge: validateMerge, onUpdate }: CreateSessionStoreArgs<T>): ResettableStore<T> {
 
     const defaults = JSON.parse(JSON.stringify(sourceOfTruth));
     const store = JSON.parse(JSON.stringify(sourceOfTruth));
@@ -50,7 +50,7 @@ export function createSessionStore<T extends Record<string, any>>({ sourceOfTrut
     }
 }
 
-export type SessionStore<T> = {
+export type ResettableStore<T> = {
     getState: () => T;
     getValue: (path: string[]) => any;
     getResetValue: (path: string[]) => any;

@@ -1,9 +1,9 @@
-import { MutationInstruction, FieldDefinition } from "common/types";
+import { Operator, FieldDefinition } from "common/types";
 import { log } from "@ipc/log";
 
-export const applyMutationInstruction = (instruction: MutationInstruction, field: FieldDefinition, newValue: any, defaultValue: any) => {
+export const applyMutationInstruction = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
-    if (instruction === MutationInstruction.SetToDefault && typeof defaultValue === "undefined") {
+    if (instruction === Operator.SetToDefault && typeof defaultValue === "undefined") {
 
         log.error("Cannot set value to default because default value is undefined");
         return field.value;
@@ -13,15 +13,15 @@ export const applyMutationInstruction = (instruction: MutationInstruction, field
 
     if (field.options) {
         return macroEffectApplyList(instruction, field, newValue, defaultValue);
-    } else if (typeof newValue === "boolean" || instruction === MutationInstruction.Toggle) {
+    } else if (typeof newValue === "boolean" || instruction === Operator.Toggle) {
         return macroEffectApplyBoolean(instruction, field, newValue, defaultValue);
     }
     return macroEffectApplyNumeric(instruction, field, newValue, defaultValue);
 }
 
-const macroEffectApplyGeneric = (instruction: MutationInstruction, field: FieldDefinition, newValue: any, defaultValue: any, expectedType: string) => {
+const macroEffectApplyGeneric = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any, expectedType: string) => {
 
-    if (instruction === MutationInstruction.Set) {
+    if (instruction === Operator.Set) {
 
         if (typeof field.value !== expectedType) {
 
@@ -32,7 +32,7 @@ const macroEffectApplyGeneric = (instruction: MutationInstruction, field: FieldD
 
         return newValue;
 
-    } else if (instruction === MutationInstruction.SetToDefault) {
+    } else if (instruction === Operator.SetToDefault) {
 
         if (typeof defaultValue !== expectedType) {
 
@@ -48,11 +48,11 @@ const macroEffectApplyGeneric = (instruction: MutationInstruction, field: FieldD
 
 }
 
-const macroEffectApplyBoolean = (instruction: MutationInstruction, field: FieldDefinition, newValue: boolean, defaultValue: boolean) => {
+const macroEffectApplyBoolean = (instruction: Operator, field: FieldDefinition, newValue: boolean, defaultValue: boolean) => {
 
 
 
-    if (instruction === MutationInstruction.Toggle) {
+    if (instruction === Operator.Toggle) {
 
         return !field.value;
 
@@ -62,7 +62,7 @@ const macroEffectApplyBoolean = (instruction: MutationInstruction, field: FieldD
 
 }
 
-const macroEffectApplyNumeric = (instruction: MutationInstruction, field: FieldDefinition, newValue: any, defaultValue: any) => {
+const macroEffectApplyNumeric = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
     const max = field.max === undefined || !Number.isFinite(field.max) ? Number.MAX_SAFE_INTEGER : field.max;
 
@@ -75,17 +75,17 @@ const macroEffectApplyNumeric = (instruction: MutationInstruction, field: FieldD
 
     }
 
-    if (instruction === MutationInstruction.Increase && Number.isFinite(field.step)) {
+    if (instruction === Operator.Increase && Number.isFinite(field.step)) {
         return Math.min(field.value + field.step, max);
-    } else if (instruction === MutationInstruction.Decrease && Number.isFinite(field.step)) {
+    } else if (instruction === Operator.Decrease && Number.isFinite(field.step)) {
         return Math.max(field.value - field.step!, min);
-    } else if (instruction === MutationInstruction.IncreaseCycle && Number.isFinite(field.step)) {
+    } else if (instruction === Operator.IncreaseCycle && Number.isFinite(field.step)) {
         let nv = field.value + field.step;
         return nv > max ? min : nv;
-    } else if (instruction === MutationInstruction.DecreaseCycle && Number.isFinite(field.step)) {
+    } else if (instruction === Operator.DecreaseCycle && Number.isFinite(field.step)) {
         let nv = field.value - field.step!;
         return nv < min ? max : nv;
-    } else if (instruction === MutationInstruction.Set && newValue !== undefined) {
+    } else if (instruction === Operator.Set && newValue !== undefined) {
 
         if (newValue > max) {
             return field.max;
@@ -95,11 +95,11 @@ const macroEffectApplyNumeric = (instruction: MutationInstruction, field: FieldD
 
         return newValue;
 
-    } else if (instruction === MutationInstruction.Max && Number.isFinite(field.max)) {
+    } else if (instruction === Operator.Max && Number.isFinite(field.max)) {
         return field.max;
-    } else if (instruction === MutationInstruction.Min && Number.isFinite(field.min)) {
+    } else if (instruction === Operator.Min && Number.isFinite(field.min)) {
         return field.min;
-    } else if (instruction === MutationInstruction.SetToDefault) {
+    } else if (instruction === Operator.SetToDefault) {
         return defaultValue;
     }
 
@@ -107,7 +107,7 @@ const macroEffectApplyNumeric = (instruction: MutationInstruction, field: FieldD
     return field.value;
 }
 
-const macroEffectApplyList = (instruction: MutationInstruction, field: FieldDefinition, newValue: any, defaultValue: any) => {
+const macroEffectApplyList = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
     let options = Array.isArray(field.options) ? field.options : Object.values(field.options!);
 
@@ -117,23 +117,23 @@ const macroEffectApplyList = (instruction: MutationInstruction, field: FieldDefi
         return options[0];
     }
 
-    if (instruction === MutationInstruction.Increase) {
+    if (instruction === Operator.Increase) {
         return options[Math.min(idx + 1, options.length - 1)];
-    } else if (instruction === MutationInstruction.Decrease) {
+    } else if (instruction === Operator.Decrease) {
         return options[Math.max(idx - 1, 0)];
-    } else if (instruction === MutationInstruction.IncreaseCycle) {
+    } else if (instruction === Operator.IncreaseCycle) {
         return options[(idx + 1) % options.length];
-    } else if (instruction === MutationInstruction.DecreaseCycle) {
+    } else if (instruction === Operator.DecreaseCycle) {
         let ndx = idx - 1;
         ndx = ndx < 0 ? options.length - 1 : ndx;
         return options[ndx];
-    } else if (instruction === MutationInstruction.Set && options.includes(newValue)) {
+    } else if (instruction === Operator.Set && options.includes(newValue)) {
         return newValue;
-    } else if (instruction === MutationInstruction.Max) {
+    } else if (instruction === Operator.Max) {
         return options[options.length - 1];
-    } else if (instruction === MutationInstruction.Min) {
+    } else if (instruction === Operator.Min) {
         return options[0];
-    } else if (instruction === MutationInstruction.SetToDefault && options.includes(defaultValue)) {
+    } else if (instruction === Operator.SetToDefault && options.includes(defaultValue)) {
         return defaultValue;
     }
 

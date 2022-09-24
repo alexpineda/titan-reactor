@@ -1,9 +1,5 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
-import {
-  MacroActionHostModifyValue,
-  MacroActionPluginModifyValue,
-  MutationInstruction,
-} from "common/types";
+import { MacroAction, Operator } from "common/types";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import { useSettingsStore } from "@stores";
 import { getAvailableMutationInstructionsForAction } from "common/macros/sanitize-macros";
@@ -13,7 +9,7 @@ export const MacroActionEffectSelector = ({
   updateMacroActionEffect,
   viewOnly,
 }: MacroActionPanelProps & {
-  action: MacroActionHostModifyValue | MacroActionPluginModifyValue;
+  action: MacroAction;
 }) => {
   const settings = useSettingsStore();
   const validInstructions = getAvailableMutationInstructionsForAction(
@@ -24,12 +20,9 @@ export const MacroActionEffectSelector = ({
   return (
     <select
       onChange={(evt) => {
-        updateMacroActionEffect(
-          action,
-          evt.target.value as MutationInstruction
-        );
+        updateMacroActionEffect(action, evt.target.value as Operator);
       }}
-      value={action.instruction}
+      value={action.operator}
       disabled={viewOnly}
     >
       {validInstructions.map((key) => (

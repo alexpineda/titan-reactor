@@ -2,19 +2,16 @@ import { useState } from "react";
 import ErrorBoundary from "../error-boundary";
 import {
   MacroAction,
-  MacroActionHostModifyValue,
-  MacroActionPluginModifyValue,
   MacroActionSequence,
   MacroCondition,
   MacroDTO,
   MacrosDTO,
-  MutationInstruction,
+  Operator,
 } from "common/types";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
 import { generateUUID } from "three/src/math/MathUtils";
 import { useSettingsStore } from "@stores/settings-store";
-import { createDefaultMacros } from "./default-macros";
 import groupBy from "lodash.groupby";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
@@ -55,12 +52,12 @@ export const MacrosPanel = () => {
   };
 
   const updateMacroActionEffect = (
-    action: MacroActionHostModifyValue | MacroActionPluginModifyValue,
-    instruction: MutationInstruction
+    action: MacroAction,
+    instruction: Operator
   ) => {
     updateMacroAction({
       ...action,
-      instruction,
+      operator: instruction,
     });
   };
 
@@ -186,29 +183,6 @@ export const MacrosPanel = () => {
   return (
     <div>
       <ErrorBoundary message="There was an error with this page">
-        {state.macros.length === 0 && (
-          <div
-            style={{
-              padding: "var(--size-3)",
-              background: "var(--yellow-1)",
-              color: "var(--orange-7)",
-              display: "grid",
-              gridTemplateColumns: "auto auto",
-              justifyContent: "start",
-              gridGap: "1rem",
-              alignItems: "center",
-            }}
-          >
-            You don't have any macros. Configure a default set?{" "}
-            <button
-              onClick={() => {
-                save(createDefaultMacros());
-              }}
-            >
-              Create default macros
-            </button>
-          </div>
-        )}
         <CreateMacro onCreate={createMacro} />
         <div>
           {Object.entries(

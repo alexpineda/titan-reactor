@@ -1,21 +1,9 @@
-import { FieldTarget, Mutation } from "./mutations";
+import { Operator } from "./mutations";
 
 export enum MacroActionSequence {
     AllSync = "AllSync",
     SingleAlternate = "SingleAlternate",
     SingleRandom = "SingleRandom",
-}
-
-export enum MacroActionType {
-    ModifyAppSettings = "ModifyAppSettings",
-    ModifyPluginSettings = "ModifyPluginSettings",
-    CallGameTimeApi = "CallGameTimeApi",
-}
-
-export enum MacroConditionType {
-    AppSettingsCondition = "AppSettingsCondition",
-    PluginSettingsCondition = "PluginSettingsCondition",
-    FunctionCondition = "FunctionCondition",
 }
 
 export enum ConditionComparator {
@@ -27,32 +15,9 @@ export enum ConditionComparator {
     LessThanOrEquals = "LessThanOrEquals",
 }
 
-export type MacroConditionAppSetting = FieldTarget & {
-    type: MacroConditionType.AppSettingsCondition,
-    id: string;
-    comparator: ConditionComparator;
-    error?: MacroActionConfigurationError;
-}
-
-export type MacroConditionPluginSetting = FieldTarget & {
-    type: MacroConditionType.PluginSettingsCondition,
-    id: string;
-    comparator: ConditionComparator;
-    error?: MacroActionConfigurationError;
-}
-
-export type MacroConditionFunction = {
-    type: MacroConditionType.FunctionCondition,
-    id: string;
-    value?: string;
-    comparator: ConditionComparator;
-    error?: MacroActionConfigurationError;
-}
-
-export type MacroCondition = MacroConditionAppSetting | MacroConditionPluginSetting | MacroConditionFunction;
-
 
 export type MacroActionConfigurationError = {
+    critical?: boolean;
     type: MacroActionConfigurationErrorType,
     message: string,
 }
@@ -69,26 +34,24 @@ export enum MacroActionConfigurationErrorType {
     InvalidAction = "InvalidAction",
 }
 
-export type MacroActionHostModifyValue = Mutation & {
-    type: MacroActionType.ModifyAppSettings;
+export type TargetType = ":app" | `:plugin` | ":function";
+export type TargetedPath<T extends TargetType = TargetType> = [T, ...string[]];
+
+export type MacroAction<T extends TargetType = TargetType> = {
     id: string;
     error?: MacroActionConfigurationError;
+    path: TargetedPath<T>;
+    value?: any;
+    operator: Operator;
 }
 
-export type MacroActionGameTimeApiCallMethod = {
-    type: MacroActionType.CallGameTimeApi;
-    value: string;
+export type MacroCondition<T extends TargetType = TargetType> = {
     id: string;
     error?: MacroActionConfigurationError;
+    path: TargetedPath<T>;
+    value?: any;
+    comparator: ConditionComparator;
 }
-
-export type MacroActionPluginModifyValue = Mutation & {
-    type: MacroActionType.ModifyPluginSettings;
-    id: string;
-    error?: MacroActionConfigurationError;
-}
-
-export type MacroAction = (MacroActionHostModifyValue | MacroActionGameTimeApiCallMethod | MacroActionPluginModifyValue);
 
 export type MacroTriggerDTO = {
     type: TriggerType;

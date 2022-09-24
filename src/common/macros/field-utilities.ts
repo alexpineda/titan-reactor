@@ -1,28 +1,28 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { FieldDefinition, ConditionComparator, MutationInstruction, SettingsMeta } from "common/types";
+import { FieldDefinition, ConditionComparator, Operator, SettingsMeta } from "common/types";
 
 export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
 export const getAvailableMutationIntructionsForTypeOfField = (valueType: "boolean" | "number" | "string") => {
     if (valueType === "boolean") {
         return [
-            MutationInstruction.SetToDefault,
-            MutationInstruction.Set,
-            MutationInstruction.Toggle,
+            Operator.SetToDefault,
+            Operator.Set,
+            Operator.Toggle,
         ];
     } else if (valueType === "number") {
         return [
-            MutationInstruction.SetToDefault,
-            MutationInstruction.Set,
-            MutationInstruction.Increase,
-            MutationInstruction.IncreaseCycle,
-            MutationInstruction.Decrease,
-            MutationInstruction.DecreaseCycle,
-            MutationInstruction.Min,
-            MutationInstruction.Max,
+            Operator.SetToDefault,
+            Operator.Set,
+            Operator.Increase,
+            Operator.IncreaseCycle,
+            Operator.Decrease,
+            Operator.DecreaseCycle,
+            Operator.Min,
+            Operator.Max,
         ];
     } else if (valueType === "string") {
-        return [MutationInstruction.SetToDefault, MutationInstruction.Set];
+        return [Operator.SetToDefault, Operator.Set];
     }
     return [];
 };
@@ -81,13 +81,12 @@ export const isValidTypeOfField = (type: string): type is "string" | "boolean" |
 }
 
 export const getTypeOfField = (field?: FieldDefinition) => {
-    if (field === undefined) {
+    if (!field) {
         return null;
     }
 
     const typeOfField = field?.options ? "number" : typeof field.value;
     if (!isValidTypeOfField(typeOfField)) {
-        console.warn(`Unsupported field type: ${typeOfField}`);
         return null;
     }
     return typeOfField;
