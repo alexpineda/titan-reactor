@@ -154,6 +154,7 @@ const CommandCenter = () => {
 
   const remotePackageButton = (remote: RemotePackage) => (
     <PluginButton
+      key={remote.name}
       icon={null}
       description={remote.name}
       isOnline={true}

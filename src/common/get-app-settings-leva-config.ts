@@ -16,6 +16,10 @@ export const getAppSettingsPropertyInLevaFormat = (
     settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ): FieldDefinition | undefined => {
 
+    if ([":app", ":plugin", ":function"].includes(fields[0])) {
+        console.error("YOU ARE USING ROOT KEYS", fields);
+        return undefined;
+    }
     const config = getAppSettingsInLevaFormat(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
 
@@ -33,6 +37,10 @@ export const getAppSettingsInLevaFormat = (settings: SettingsMeta["data"], plugi
 export const getSessionSettingsPropertyInLevaFormat = (
     settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ): FieldDefinition | undefined => {
+    if ([":app", ":plugin", ":function"].includes(fields[0])) {
+        console.error("YOU ARE USING ROOT KEYS", fields);
+        return undefined;
+    }
     const config = getSessionSettingsInLevaFormat(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
 };

@@ -7,7 +7,7 @@ import { ManualTrigger } from "@macros/manual-trigger";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
-import { saneDefaultsForNewMacroActionOrCondition } from "common/macros/sanitize-macros";
+import { sanitizeActionable } from "common/macros/sanitize-macros";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { log } from "@ipc/log";
 
@@ -125,7 +125,7 @@ export const createMacroStore = (onSave?: (settings: SettingsMeta) => void) => c
 
         createActionable({ id }: MacroDTO, action: MacroAction | MacroCondition) {
 
-            const saneActionable = saneDefaultsForNewMacroActionOrCondition(action, settingsStore());
+            const saneActionable = sanitizeActionable(action, settingsStore());
 
             set((state) => {
 
@@ -145,11 +145,14 @@ export const createMacroStore = (onSave?: (settings: SettingsMeta) => void) => c
 
         },
 
-        updateActionable({ id }: MacroDTO, actionable: Actionable) {
+        updateActionable({ id }: MacroDTO, _actionable: Actionable) {
+
+            const actionable = sanitizeActionable(_actionable, settingsStore());
 
             set(state => {
 
                 const macro = state.macros.macros.find((m) => m.id === id);
+
 
                 if (macro) {
 

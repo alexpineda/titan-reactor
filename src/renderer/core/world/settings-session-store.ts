@@ -65,7 +65,8 @@ export const createSettingsSessionStore = (
                 state,
                 settingsStore().enabledPlugins,
                 path
-            )
+            ),
+        path => path.slice(1)
     );
 
     // keep the session up to date with user changed settings

@@ -18,7 +18,7 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
 
                 patchMutationInstruction(action, settings);
 
-                sanitizeMacroActionOrConditionFields(action, settings);
+                sanitizeActionable(action, settings);
 
             } catch (e) {
 
@@ -41,7 +41,7 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
 
                 patchConditionComparator(condition, settings);
 
-                sanitizeMacroActionOrConditionFields(condition, settings);
+                sanitizeActionable(condition, settings);
 
             } catch (e) {
 
@@ -72,70 +72,6 @@ const shouldHaveValue = (action: MacroAction | MacroCondition) => {
 
 }
 
-const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroCondition, settings: SettingsAndPluginsMeta) => {
-
-    // we don't sanitize these types
-    if (action.path[0] === ":function") {
-        return;
-    }
-
-    if (action.path[0] === ":app") {
-
-        // validate path
-        const field = getAppFieldDefinition(settings, action.path as TargetedPath<":app">);
-
-        if (!field) {
-
-            action.error = {
-                type: MacroActionConfigurationErrorType.InvalidField,
-                message: "No field definition"
-            }
-            return;
-
-        }
-
-        if (shouldHaveValue(action)) {
-
-            patchValue(action, field);
-
-        }
-
-    } else if (action.path[0] === ":plugin") {
-
-        const plugin = settings.enabledPlugins.find((p) => p.name === action.path[1]);
-
-        if (!plugin) {
-
-            action.error = {
-                type: MacroActionConfigurationErrorType.MissingPlugin,
-                message: `Missing plugin ${action.path[1]}`,
-            }
-            return;
-
-        }
-
-        if (action.path[2].startsWith("externMethod") && !plugin.externMethods.includes(action.path[2])) {
-
-            action.error = {
-                type: MacroActionConfigurationErrorType.MissingField,
-                message: `Missing field for plugin ${action.path[1]} ${action.path[2]}`,
-            }
-
-            return;
-
-        }
-
-        if (shouldHaveValue(action)) {
-
-            const field = plugin.config?.[action.path[2] as keyof typeof plugin] ?? { value: null };
-
-            patchValue(action, field);
-
-        }
-    }
-}
-
-
 const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
 
     return !Array.isArray(options) ? Object.values(options)[0] : options[0];
@@ -150,6 +86,13 @@ const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition
             action.value = getFirstOption(field.options);
         } else {
             action.value = field.value;
+            if (!isValidTypeOfField(typeof action.value)) {
+                if (field.max !== undefined) {
+                    action.value = field.max;
+                } else if (field.min !== undefined) {
+                    action.value = field.min;
+                }
+            }
         }
     }
 
@@ -242,7 +185,7 @@ export const getMacroConditionValidComparators = (
 };
 
 
-export function saneDefaultsForNewMacroActionOrCondition<T extends MacroAction | MacroCondition>(action: T, settings: SettingsAndPluginsMeta) {
+export function sanitizeActionable<T extends MacroAction | MacroCondition>(action: T, settings: SettingsAndPluginsMeta) {
 
 
     if (action.path.length === 0) {
@@ -253,26 +196,75 @@ export function saneDefaultsForNewMacroActionOrCondition<T extends MacroAction |
 
     if (action.path[0] === ":app") {
 
-        action.path = [":app", "audio", "music"];
+        let field = getAppFieldDefinition(settings, action.path as TargetedPath<":app">);
+
+        if (!field) {
+
+            action.path = [":app", "audio", "music"];
+
+            field = getAppFieldDefinition(settings, action.path as TargetedPath<":app">)!;
+
+        }
+
+        if (shouldHaveValue(action)) {
+
+            patchValue(action, field);
+
+        }
+
 
     } else if (action.path[0] === ":plugin") {
 
-        if (settings.enabledPlugins.length > 0) {
+        const [, pluginName] = action.path;
 
-            const plugin = settings.enabledPlugins[0];
-            const fieldName = Object.keys(plugin.config ?? {}).find(k => k !== "system");
+        const plugin = settings.enabledPlugins.find((p) => p.name === pluginName) ?? settings.enabledPlugins[0];
 
-            action.path = [":plugin", plugin.name];
+        if (!plugin) {
 
-            if (fieldName) {
-                action.path.push(fieldName);
-            } else if (plugin.externMethods.length > 0) {
-                action.path.push(plugin.externMethods[0]);
-
-                if (action.type === "action") {
-                    action.operator = Operator.Execute;
-                }
+            action.error = {
+                type: MacroActionConfigurationErrorType.MissingPlugin,
+                message: `Missing plugin ${pluginName}`,
             }
+
+            return action;
+
+        }
+
+        if (action.path[2] && action.path[2].startsWith("externMethod") && !plugin.externMethods.includes(action.path[2])) {
+
+            action.path[2] = "";
+
+        }
+
+        const field = getPluginFieldDefinition(settings, action.path as TargetedPath<":plugin">);
+
+        const fieldName = (action.path[2] && action.path[2].startsWith("externMethod") || field) ? action.path[2] : Object.keys(plugin.config ?? {}).find(k => k !== "system");
+
+        action.path = [":plugin", plugin.name];
+
+        if (fieldName) {
+            action.path.push(fieldName);
+        } else if (plugin.externMethods.length > 0) {
+            action.path.push(plugin.externMethods[0]);
+
+            if (action.type === "action") {
+                action.operator = Operator.Execute;
+            }
+        }
+
+        if (shouldHaveValue(action)) {
+
+            const field = plugin.config?.[action.path[2] as keyof typeof plugin] ?? { value: null };
+
+            patchValue(action, field);
+
+        }
+
+    } else {
+
+        if (typeof action.value !== "string") {
+
+            action.value = "";
 
         }
 

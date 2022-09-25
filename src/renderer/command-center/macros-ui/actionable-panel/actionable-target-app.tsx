@@ -17,12 +17,20 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
   const levaConfig = getAppSettingsPropertyInLevaFormat(
     settings.data,
     settings.enabledPlugins,
-    action.path
+    action.path.slice(1)
   );
 
   const displayValue = getFieldDefinitionDisplayValue(
     levaConfig?.options,
     action.value
+  );
+
+  console.log(
+    viewOnly === false,
+    levaConfig !== undefined,
+    action.value !== undefined,
+    (action.type === "action" && action.operator === Operator.Set) ||
+      action.type === "condition"
   );
 
   return (
@@ -75,13 +83,11 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
           </p>
         )}
 
-      {((action.type === "action" &&
-        (action.operator === Operator.Set ||
-          action.operator === Operator.Toggle)) ||
-        action.type === "condition") &&
-        !viewOnly &&
+      {viewOnly === false &&
+        levaConfig !== undefined &&
         action.value !== undefined &&
-        levaConfig !== undefined && (
+        ((action.type === "action" && action.operator === Operator.Set) ||
+          action.type === "condition") && (
           <ErrorBoundary message="Error with modifier">
             <ActionableEditValue
               {...props}

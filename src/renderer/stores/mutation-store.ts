@@ -73,15 +73,17 @@ export type OperatableStore<T> = ResettableStore<T> & {
     createVariable: (path: string[]) => MutationVariable;
 }
 
-export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
+export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined, transformPath: (path: string[]) => string[] = x => x): OperatableStore<T> {
 
     const operate = (mutation: Operation) => {
 
-        const field = getFieldDefinition(mutation.path, store.getState());
+        const path = transformPath(mutation.path);
+
+        const field = getFieldDefinition(path, store.getState());
 
         if (field) {
 
-            store.setValue(mutation.path, applyMutationInstruction(mutation.operator, field, mutation.value, store.getResetValue(mutation.path)));
+            store.setValue(path, applyMutationInstruction(mutation.operator, field, mutation.value, store.getResetValue(path)));
 
         } else {
 
