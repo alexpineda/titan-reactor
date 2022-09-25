@@ -53,6 +53,7 @@ describe("SettingsSessionStore", () => {
 
     });
 
+    // expect this test to break once the diff merge is introduced
     it("should merge from settings store and emit event", () => {
         let callback: (args: any) => void;
 
