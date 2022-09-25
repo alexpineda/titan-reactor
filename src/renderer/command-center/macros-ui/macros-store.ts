@@ -1,20 +1,24 @@
 import create from "zustand";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
-import { useSettingsStore } from "@stores/settings-store";
+import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { MacroAction, MacroActionSequence, MacroCondition, MacroDTO, MacrosDTO } from "common/types";
+import { Actionable, MacroAction, MacroActionSequence, MacroCondition, MacroDTO, MacrosDTO } from "common/types";
 import { immer } from "zustand/middleware/immer";
 import { MathUtils } from "three";
 import { ManualTrigger } from "@macros/manual-trigger";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
+import { saneDefaultsForNewMacroActionOrCondition } from "common/macros/sanitize-macros";
+import { log } from "@ipc/log";
+import { withErrorMessage } from "common/utils/with-error-message";
 
 type State = { macros: MacrosDTO };
 
 type Actions = {
 
     persist(): void;
+    busy: boolean;
 
     createMacro(
         name: string,
@@ -23,13 +27,9 @@ type Actions = {
     updateMacro(macro: MacroDTO): void;
     deleteMacro(macroId: string): void;
 
-    createAction(macro: MacroDTO, action: MacroAction): void;
-    updateMacroAction(action: MacroAction): void;
-    deleteAction(actionId: string): void;
-
-    createCondition(macro: MacroDTO, action: MacroCondition): void;
-    updateMacroCondition(condition: MacroCondition): void;
-    deleteCondition(conditionId: string): void;
+    createActionable(macro: MacroDTO, action: Actionable): void;
+    updateActionable(macro: MacroDTO, action: Actionable): void;
+    deleteActionable(macro: MacroDTO, action: Actionable): void;
 
 };
 
@@ -37,8 +37,17 @@ export const useMacroStore = create(
 
     immer<State & Actions>((set, get) => ({
         macros: useSettingsStore.getState().data.macros,
+        busy: false,
 
         persist() {
+            if (get().busy) {
+                return;
+            }
+            console.log("persisting macros", JSON.stringify({
+                macros: get().macros.macros,
+                revision: get().macros.revision + 1,
+            }));
+            set(state => state.busy = true);
             useSettingsStore
                 .getState()
                 .save({
@@ -54,7 +63,12 @@ export const useMacroStore = create(
                     });
                     set((state) => {
                         state.macros = payload.data.macros;
+                        state.busy = false;
                     });
+
+                }).catch((e) => {
+                    log.error(withErrorMessage(e, "failed to save macros"));
+                    set((state) => state.busy = false);
                 });
         },
 
@@ -112,14 +126,20 @@ export const useMacroStore = create(
             get().persist();
         },
 
-        createAction({ id }: MacroDTO, action: MacroAction) {
+        createActionable({ id }: MacroDTO, action: MacroAction | MacroCondition) {
+
+            const saneActionable = saneDefaultsForNewMacroActionOrCondition(action, settingsStore());
 
             set((state) => {
 
                 const macro = state.macros.macros.find((m) => m.id === id);
 
-                if (macro) {
-                    macro.actions.push(action);
+                if (!macro) return;
+
+                if (saneActionable.type === "condition") {
+                    macro.conditions.push(saneActionable);
+                } else {
+                    macro.actions.push(saneActionable);
                 }
 
             });
@@ -128,21 +148,34 @@ export const useMacroStore = create(
 
         },
 
-        updateMacroAction(action: MacroAction) {
+        updateActionable({ id }: MacroDTO, actionable: Actionable) {
 
             set(state => {
-                const macro = state.macros.macros.find((m) =>
-                    m.actions.find((a) => a.id === action.id)
-                );
+
+                const macro = state.macros.macros.find((m) => m.id === id);
 
                 if (macro) {
 
-                    const actionIdx = macro.actions.findIndex(
-                        (a: MacroAction) => a.id === action.id
-                    );
+                    if (actionable.type === "action") {
 
-                    if (actionIdx !== -1) {
-                        macro.actions[actionIdx] = action;
+                        const actionIdx = macro.actions.findIndex(
+                            (a: MacroAction) => a.id === actionable.id
+                        );
+
+                        if (actionIdx !== -1) {
+                            macro.actions[actionIdx] = actionable;
+                        }
+
+                    } else {
+
+                        const conditionIdx = macro.conditions.findIndex(
+                            (c: MacroCondition) => c.id === actionable.id
+                        );
+
+                        if (conditionIdx !== -1) {
+                            macro.conditions[conditionIdx] = actionable;
+                        }
+
                     }
 
                 }
@@ -153,83 +186,28 @@ export const useMacroStore = create(
 
         },
 
-        deleteAction(actionId: string) {
+        deleteActionable({ id }: MacroDTO, actionable: Actionable) {
 
             set(state => {
 
-                const macro = state.macros.macros.find((m) =>
-                    m.actions.find((a) => a.id === actionId)
-                );
-
-                if (macro) {
-
-                    macro.actions = macro.actions.filter((a) => a.id !== actionId);
-
-                }
-
-            });
-
-            get().persist();
-
-        },
-
-        createCondition({ id }: MacroDTO, condition: MacroCondition) {
-
-            set((state) => {
                 const macro = state.macros.macros.find((m) => m.id === id);
 
                 if (macro) {
-                    macro.conditions.push(condition);
-                }
 
-            });
-
-            get().persist();
-
-        },
-
-        updateMacroCondition(condition: MacroCondition) {
-
-            set((state) => {
-                const macro = state.macros.macros.find((m) =>
-                    m.conditions.find((a) => a.id === condition.id)
-                );
-
-                if (macro) {
-
-                    const conditionIdx = macro.conditions.findIndex(
-                        (a: MacroCondition) => a.id === condition.id
-                    );
-
-                    if (conditionIdx !== -1) {
-
-                        macro.conditions[conditionIdx] = condition;
-
+                    if (actionable.type === "action") {
+                        macro.actions = macro.actions.filter((a) => a.id !== actionable.id);
+                    } else {
+                        macro.conditions = macro.conditions.filter((a) => a.id !== actionable.id);
                     }
 
                 }
+
             });
 
             get().persist();
+
         },
 
-        deleteCondition(conditionId: string) {
-
-            set(state => {
-
-                const macro = state.macros.macros.find((m) =>
-                    m.conditions.find((a) => a.id === conditionId)
-                );
-
-                if (macro) {
-                    macro.conditions = macro.conditions.filter((a) => a.id !== conditionId);
-                }
-
-            });
-
-            get().persist();
-
-        }
     }))
 );
 

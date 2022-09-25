@@ -1,20 +1,13 @@
-import { MacroAction, Operator, PluginMetaData } from "common/types";
-import { generateUUID } from "three/src/math/MathUtils";
+import { PluginMetaData } from "common/types";
 
-export const CreateMacroAction = ({
+export function CreateMacroConditionOrAction({
   onCreate,
+  label,
 }: {
-  onCreate: (action: MacroAction) => void;
+  label: string;
+  onCreate: () => void;
   pluginsMetadata: PluginMetaData[];
-}) => {
-  const createAction = () => {
-    onCreate({
-      id: generateUUID(),
-      path: [":app"],
-      operator: Operator.Set,
-    });
-  };
-
+}) {
   return (
     <>
       <div
@@ -30,7 +23,7 @@ export const CreateMacroAction = ({
         }}
       >
         <button
-          onClick={createAction}
+          onClick={onCreate}
           style={{
             display: "flex",
             alignItems: "center",
@@ -39,9 +32,9 @@ export const CreateMacroAction = ({
             paddingInline: "var(--size-3)",
           }}
         >
-          <i className="material-icons">add</i> Action
+          <i className="material-icons">add</i> {label}
         </button>
       </div>
     </>
   );
-};
+}

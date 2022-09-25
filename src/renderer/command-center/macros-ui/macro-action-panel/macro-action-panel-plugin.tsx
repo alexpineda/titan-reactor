@@ -1,19 +1,18 @@
-import { MacroAction, Operator } from "common/types";
+import { ConditionComparator, Operator } from "common/types";
 import { MacroActionEffectSelector } from "./macro-action-effect-selector";
 import { MacroActionModifyValue } from "./macro-action-modify-value";
 import { MacroActionPanelProps } from "./macro-action-panel-props";
 import ErrorBoundary from "../../error-boundary";
 import { useMacroStore } from "../macros-store";
 
-export const MacroActionPanelPlugin = (
-  props: MacroActionPanelProps & {
-    action: MacroAction;
-  }
-) => {
-  const { updateMacroAction } = useMacroStore();
-  const { action, pluginsMetadata, viewOnly } = props;
+export const MacroActionPanelPlugin = (props: MacroActionPanelProps) => {
+  const { updateActionable } = useMacroStore();
+  const { action, pluginsMetadata, viewOnly, macro } = props;
 
-  const plugin = pluginsMetadata.find((p) => p.name === action.path[0]);
+  const pluginName = action.path[1];
+  const fieldKey = action.path.slice(2)[0];
+
+  const plugin = pluginsMetadata.find((p) => p.name === pluginName);
 
   if (!plugin) {
     throw new Error(`This action has either no plugin configuration or an invalid plugin
@@ -21,7 +20,7 @@ export const MacroActionPanelPlugin = (
               disabled.`);
   }
 
-  const field = plugin.config?.[action.path[1] as keyof typeof plugin.config];
+  const field = plugin.config?.[fieldKey as keyof typeof plugin.config];
 
   return (
     <>
@@ -38,14 +37,23 @@ export const MacroActionPanelPlugin = (
           Plugin{" "}
           <select
             onChange={(evt) => {
-              updateMacroAction({
-                ...action,
-                path: [":plugin", plugin.name, evt.target.value],
-                value: undefined,
-                operator: Operator.SetToDefault,
-              });
+              if (action.type === "action") {
+                updateActionable(macro, {
+                  ...action,
+                  path: [":plugin", evt.target.value],
+                  value: undefined,
+                  operator: Operator.SetToDefault,
+                });
+              } else {
+                updateActionable(macro, {
+                  ...action,
+                  path: [":plugin", evt.target.value],
+                  value: undefined,
+                  comparator: ConditionComparator.Equals,
+                });
+              }
             }}
-            value={action.path[0]}
+            value={pluginName}
             disabled={viewOnly}
           >
             {pluginsMetadata.map((pluginMetadata) => (
@@ -59,14 +67,23 @@ export const MacroActionPanelPlugin = (
           Field{" "}
           <select
             onChange={(evt) => {
-              updateMacroAction({
-                ...action,
-                path: [action.path[0], evt.target.value],
-                value: undefined,
-                operator: Operator.SetToDefault,
-              });
+              if (action.type === "action") {
+                updateActionable(macro, {
+                  ...action,
+                  path: [":plugin", pluginName, evt.target.value],
+                  value: undefined,
+                  operator: Operator.SetToDefault,
+                });
+              } else {
+                updateActionable(macro, {
+                  ...action,
+                  path: [":plugin", pluginName, evt.target.value],
+                  value: undefined,
+                  comparator: ConditionComparator.Equals,
+                });
+              }
             }}
-            value={action.path[1]}
+            value={fieldKey}
             disabled={viewOnly}
           >
             {plugin.config &&
@@ -86,21 +103,22 @@ export const MacroActionPanelPlugin = (
           <MacroActionEffectSelector {...props} />
         </ErrorBoundary>
 
-        {viewOnly && action.operator === Operator.Set && (
-          <p
-            style={{
-              background: "var(--green-0)",
-              paddingBlock: "var(--size-2)",
-              borderRadius: "var(--radius-2)",
-              paddingInline: "var(--size-3)",
-              color: "var(--green-9)",
-            }}
-          >
-            {action.value}
-          </p>
-        )}
+        {viewOnly &&
+          (action.type === "condition" || action.operator === Operator.Set) && (
+            <p
+              style={{
+                background: "var(--green-0)",
+                paddingBlock: "var(--size-2)",
+                borderRadius: "var(--radius-2)",
+                paddingInline: "var(--size-3)",
+                color: "var(--green-9)",
+              }}
+            >
+              {action.value}
+            </p>
+          )}
       </div>
-      {action.operator === Operator.Set &&
+      {(action.type === "condition" || action.operator === Operator.Set) &&
         !viewOnly &&
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>

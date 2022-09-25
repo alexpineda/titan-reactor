@@ -1,7 +1,8 @@
-import { PluginMetaData, MacroAction } from "common/types";
+import { PluginMetaData, Actionable, MacroDTO } from "common/types";
 
 export type MacroActionPanelProps = {
-    action: MacroAction;
+    macro: MacroDTO,
+    action: Actionable;
     viewOnly: boolean;
     pluginsMetadata: PluginMetaData[];
 };

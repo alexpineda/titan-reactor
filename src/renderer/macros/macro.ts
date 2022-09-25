@@ -6,8 +6,8 @@ export class Macro {
     enabled = true;
     trigger: MacroTrigger;
     actions: MacroAction[];
-    actionSequence = MacroActionSequence.AllSync;
     conditions: MacroCondition[] = [];
+    actionSequence = MacroActionSequence.AllSync;
     #counter = 0;
     id: string;
 

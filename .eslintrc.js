@@ -30,7 +30,7 @@ module.exports = {
   rules: {
     "linebreak-style": ["error", "windows"],
     quotes: ["error", "double"],
-    semi: ["error", "always"],
+    "no-extra-semi": ["error"],
     "no-console": ["warn", { allow: ["error"] }],
     "react/display-name": 0,
     "react/prop-types": 0,

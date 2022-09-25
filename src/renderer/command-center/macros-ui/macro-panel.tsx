@@ -8,18 +8,19 @@ import {
   MacroActionSequence,
   MacroDTO,
   TriggerType,
+  Operator,
+  ConditionComparator,
 } from "common/types";
-import { MacroActionPanel } from "./macro-action-panel/macro-action-panel";
-import { CreateMacroAction } from "./create-macro-action";
+import { MacroActionablePanel } from "./macro-action-panel/macro-action-panel";
+import { CreateMacroConditionOrAction } from "./create-macro-condition-or-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { MacroCustomHookOptions } from "./macro-custom-hook-options";
 import { KeyboardPreview } from "./keyboard-preview";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
-import { MacroConditionPanel } from "./macro-condition-panel/macro-condition-panel";
-import { CreateMacroCondition } from "./create-macro-condition";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { useMacroStore } from "./macros-store";
+import { MathUtils } from "three";
 
 export const MacroPanel = ({
   macro,
@@ -32,8 +33,7 @@ export const MacroPanel = ({
   activeAction: string | null;
   setActiveAction: (id: string | null) => void;
 }) => {
-  const { updateMacro, deleteMacro, createAction, createCondition } =
-    useMacroStore();
+  const { updateMacro, deleteMacro, createActionable } = useMacroStore();
 
   const updateTriggerValue = (value: any) => {
     updateMacro({
@@ -247,29 +247,47 @@ export const MacroPanel = ({
 
       {macro.error && <p style={{ color: "var(--red-6)" }}>{macro.error}</p>}
       <div style={{ display: "flex" }}>
-        <CreateMacroCondition
-          onCreate={(condition) => createCondition(macro, condition)}
+        <CreateMacroConditionOrAction
+          label="Condition"
+          onCreate={() => {
+            createActionable(macro, {
+              type: "condition",
+              id: MathUtils.generateUUID(),
+              path: [":app"],
+              comparator: ConditionComparator.Equals,
+            });
+          }}
           pluginsMetadata={pluginsMetadata}
         />
-        <CreateMacroAction
-          onCreate={(action) => createAction(macro, action)}
+        <CreateMacroConditionOrAction
+          label="Action"
+          onCreate={() => {
+            createActionable(macro, {
+              type: "action",
+              id: MathUtils.generateUUID(),
+              path: [":app"],
+              operator: Operator.Set,
+            });
+          }}
           pluginsMetadata={pluginsMetadata}
         />
       </div>
       <div>
         <p>Conditions (Optional)</p>
-        {(macro.conditions ?? []).map((condition) => (
-          <MacroConditionPanel
+        {macro.conditions.map((condition) => (
+          <MacroActionablePanel
             key={condition.id}
-            condition={condition}
+            macro={macro}
+            action={condition}
             pluginsMetadata={pluginsMetadata}
             viewOnly={activeActionOrCondition !== condition.id}
-            setActiveCondition={setActiveActionOrCondition}
+            setActiveAction={setActiveActionOrCondition}
           />
         ))}
         <p>Actions</p>
         {macro.actions.map((action) => (
-          <MacroActionPanel
+          <MacroActionablePanel
+            macro={macro}
             key={action.id}
             action={action}
             pluginsMetadata={pluginsMetadata}

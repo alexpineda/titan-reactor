@@ -31,14 +31,14 @@ describe("getFieldDefinitionDisplayValue", () => {
 
 });
 
-describe('getAppFieldDefinition', () => {
+describe("getAppFieldDefinition", () => {
 
 
     it("should return null if there is no field definition", () => {
 
         jest.spyOn(levaConfig, "getAppSettingsPropertyInLevaFormat").mockReturnValue(undefined);
 
-        const result = getAppFieldDefinition({} as SettingsAndPluginsMeta, [])
+        const result = getAppFieldDefinition({} as SettingsAndPluginsMeta, [":app"])
 
         expect(result).toBe(null);
 
@@ -49,7 +49,7 @@ describe('getAppFieldDefinition', () => {
 
         jest.spyOn(levaConfig, "getAppSettingsPropertyInLevaFormat").mockReturnValue(testField);
 
-        const result = getAppFieldDefinition({} as SettingsAndPluginsMeta, [])
+        const result = getAppFieldDefinition({} as SettingsAndPluginsMeta, [":app"])
 
         expect(result).toBe(testField);
 
@@ -59,7 +59,7 @@ describe('getAppFieldDefinition', () => {
 
 
 
-describe('getPluginFieldDefinition', () => {
+describe("getPluginFieldDefinition", () => {
 
 
     it("should return null if there is no plugin", () => {
@@ -68,7 +68,7 @@ describe('getPluginFieldDefinition', () => {
             enabledPlugins: [{
                 name: "foo",
             }]
-        } as unknown as SettingsAndPluginsMeta, ["bar"]);
+        } as unknown as SettingsAndPluginsMeta, [":plugin", "bar"]);
 
         expect(result).toBe(null);
 
@@ -80,7 +80,7 @@ describe('getPluginFieldDefinition', () => {
             enabledPlugins: [{
                 name: "foo",
             }]
-        } as unknown as SettingsAndPluginsMeta, ["foo"]);
+        } as unknown as SettingsAndPluginsMeta, [":plugin", "foo"]);
 
         expect(result).toBe(null);
 
@@ -96,7 +96,7 @@ describe('getPluginFieldDefinition', () => {
                     testField
                 }
             }]
-        } as unknown as SettingsAndPluginsMeta, ["foo", "testField"]);
+        } as unknown as SettingsAndPluginsMeta, [":plugin", "foo", "testField"]);
 
         expect(result).toBe(testField);
 
@@ -107,7 +107,7 @@ describe('getPluginFieldDefinition', () => {
 
 
 
-describe('getTypeOfField', () => {
+describe("getTypeOfField", () => {
 
 
     it.each([
@@ -118,7 +118,7 @@ describe('getTypeOfField', () => {
         ["string", "string"],
         [true, "boolean"],
         [77, "number"]
-    ])(`should return null if type of is not a number, boolean or string otherwise return type`, (value, expectedValue) => {
+    ])("should return null if type of is not a number, boolean or string otherwise return type", (value, expectedValue) => {
 
 
         const field = {

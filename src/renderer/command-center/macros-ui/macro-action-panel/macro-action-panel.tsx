@@ -5,14 +5,15 @@ import { MacroActionPanelGameTimeApi } from "./macro-action-panel-game-time-api"
 import { MacroActionPanelHost } from "./macro-action-panel-host";
 import { MacroActionPanelPlugin } from "./macro-action-panel-plugin";
 import { useMacroStore } from "../macros-store";
+import { TargetType } from "common/types";
 
-export const MacroActionPanel = (
+export const MacroActionablePanel = (
   props: MacroActionPanelProps & {
     setActiveAction: (actionId: string) => void;
   }
 ) => {
-  const { deleteAction } = useMacroStore();
-  const { action, setActiveAction, viewOnly } = props;
+  const { deleteActionable, updateActionable } = useMacroStore();
+  const { action, setActiveAction, viewOnly, macro } = props;
 
   return (
     <div
@@ -44,6 +45,18 @@ export const MacroActionPanel = (
               ? "settings_applications"
               : "extension"}
           </i>
+          <select
+            onChange={(evt) => {
+              updateActionable(macro, {
+                ...action,
+                path: [evt.target.value as TargetType],
+              });
+            }}
+          >
+            <option value=":app">App</option>
+            <option value=":plugin">Plugin</option>
+            <option value=":function">Function</option>
+          </select>
           <span>{spaceOutCapitalLetters(action.path[0].slice(1))}</span>
         </span>
         <button
@@ -68,7 +81,9 @@ export const MacroActionPanel = (
             color: "var(--red-4)",
             fontSize: "var(--font-size-00)",
           }}
-          onClick={() => deleteAction(action.id)}
+          onClick={() => {
+            deleteActionable(macro, action);
+          }}
         >
           <i
             className="material-icons small"

@@ -1,3 +1,5 @@
+import { log } from "@ipc/log";
+import { withErrorMessage } from "common/utils/with-error-message";
 import React from "react";
 
 class ErrorBoundary extends React.Component {
@@ -14,7 +16,7 @@ class ErrorBoundary extends React.Component {
   }
 
   override componentDidCatch(error: any, errorInfo: any) {
-    console.error(error, errorInfo);
+    log.error(withErrorMessage(error, errorInfo));
   }
 
   override render() {

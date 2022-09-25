@@ -1,5 +1,5 @@
 import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { FieldDefinition, ConditionComparator, Operator, SettingsMeta } from "common/types";
+import { FieldDefinition, ConditionComparator, Operator, SettingsMeta, TargetedPath } from "common/types";
 
 export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
@@ -46,11 +46,12 @@ export const getAvailableComparatorsForTypeOfField = (valueType: "boolean" | "nu
     return [];
 };
 
-export const getAppFieldDefinition = (settings: SettingsAndPluginsMeta, path: string[]) => {
+export const getAppFieldDefinition = (settings: SettingsAndPluginsMeta, path: TargetedPath<":app">) => {
 
-    const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, path);
+    const field = getAppSettingsPropertyInLevaFormat(settings.data, settings.enabledPlugins, path.slice(1));
 
     if (!field) {
+
         return null;
     }
 
@@ -58,15 +59,15 @@ export const getAppFieldDefinition = (settings: SettingsAndPluginsMeta, path: st
 
 }
 
-export const getPluginFieldDefinition = (settings: SettingsAndPluginsMeta, path: string[]) => {
+export const getPluginFieldDefinition = (settings: SettingsAndPluginsMeta, path: TargetedPath<":plugin">) => {
 
-    const plugin = settings.enabledPlugins.find((p) => p.name === path[0]);
+    const plugin = settings.enabledPlugins.find((p) => p.name === path[1]);
 
     if (plugin === undefined) {
         return null;
     }
 
-    const field = plugin.config?.[path[1] as keyof typeof plugin];
+    const field = plugin.config?.[path[2] as keyof typeof plugin];
 
     if (field === undefined) {
         return null;

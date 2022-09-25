@@ -38,7 +38,7 @@ export class Macros {
 
     #listenForKeyCombos(type: "keydown" | "keyup") {
 
-        let testCombo = new KeyCombo;
+        const testCombo = new KeyCombo();
 
         const _keyListener = (e: KeyboardEvent) => {
             if (e.code !== "AltLeft" && e.code !== "F10") {
@@ -61,7 +61,7 @@ export class Macros {
                 }
                 const trigger = macro.trigger as HotkeyTrigger;
                 if (trigger.onKeyUp === (type !== "keyup")) {
-                    continue
+                    continue;
                 }
                 if (trigger.value.test(testCombo) && this.#testMacroConditions(macro, e)) {
                     if (type === "keydown")
@@ -74,8 +74,7 @@ export class Macros {
                 this.#execMacro(macro);
             }
 
-
-        }
+        };
 
         window.addEventListener(type, _keyListener);
         return () => window.removeEventListener(type, _keyListener);
@@ -136,10 +135,9 @@ export class Macros {
 
         for (const condition of macro.conditions) {
 
-            const value = this.targets.getHandler(condition.path[0])!.getValue(condition.path.slice(1), context);
+            const value = this.targets.getHandler(condition.path[0])!.getValue(condition.value, context);
 
             if (this.#testCondition(condition.comparator, value, condition.value) === false) {
-                console.log('failed test')
                 return false;
             }
         }
@@ -212,7 +210,7 @@ export class Macros {
                 actions: macro.actions,
                 conditions: macro.conditions,
             })),
-        }
+        };
     }
 
     deserialize(macrosDTO: MacrosDTO) {
@@ -220,23 +218,22 @@ export class Macros {
         this.macros = macrosDTO.macros.map((macro) => {
             let trigger: MacroTrigger = new ManualTrigger();
             if (macro.trigger.type === TriggerType.Hotkey) {
-                trigger = HotkeyTrigger.deserialize(macro.trigger.value)
+                trigger = HotkeyTrigger.deserialize(macro.trigger.value);
             } else if (macro.trigger.type === TriggerType.GameHook) {
-                trigger = MacroHookTrigger.deserialize(macro.trigger.value)
+                trigger = MacroHookTrigger.deserialize(macro.trigger.value);
             } else if (macro.trigger.type === TriggerType.Mouse) {
-                trigger = MouseTrigger.deserialize(macro.trigger.value)
+                trigger = MouseTrigger.deserialize(macro.trigger.value);
             }
             const newMacro = new Macro(
                 macro.id,
                 macro.name,
                 trigger,
                 macro.actions,
-                macro.actionSequence
+                macro.actionSequence,
+                macro.conditions,
             );
             newMacro.enabled = macro.enabled;
 
-            // instead of migration just check if it exists
-            newMacro.conditions = macro?.conditions ?? [];
             return newMacro;
         });
 
@@ -244,7 +241,7 @@ export class Macros {
             return a.trigger.weight - b.trigger.weight;
         });
 
-        this.meta.hotkeyMacros = this.macros.filter((m) => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight)
+        this.meta.hotkeyMacros = this.macros.filter((m) => m.trigger instanceof HotkeyTrigger).sort((a, b) => (a.trigger as HotkeyTrigger).weight - (b.trigger as HotkeyTrigger).weight);
 
         this.meta.mouseMacros = this.macros.filter((m) => m.trigger instanceof MouseTrigger);
     }

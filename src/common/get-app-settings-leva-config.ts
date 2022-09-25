@@ -4,17 +4,21 @@ import lSet from "lodash.set";
 export const generateAppSettingsFromLevaFormat = (
     settings: Record<string, { value: any }>
 ) => {
+
     return Object.entries(settings).reduce((memo, [key, item]) => {
         lSet(memo, key.split("."), item.value);
         return memo;
     }, {} as Record<string, any>);
+
 };
 
 export const getAppSettingsPropertyInLevaFormat = (
     settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ): FieldDefinition | undefined => {
+
     const config = getAppSettingsInLevaFormat(settings, plugins);
     return config[fields.join(".") as keyof typeof config];
+
 };
 
 export const getAppSettingsInLevaFormat = (settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({

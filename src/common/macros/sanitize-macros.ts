@@ -1,12 +1,8 @@
 import { Logger } from "common/logging";
-import { MacroAction, MacroActionConfigurationErrorType, MacroCondition, ConditionComparator, MacrosDTO } from "common/types";
+import { MacroAction, MacroActionConfigurationErrorType, MacroCondition, ConditionComparator, MacrosDTO, TargetedPath } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
-import { Operator } from "../types/mutations";
-import { getAppFieldDefinition, SettingsAndPluginsMeta, getTypeOfField, getPluginFieldDefinition, getAvailableMutationIntructionsForTypeOfField, getAvailableComparatorsForTypeOfField } from "./field-utilities";
-
-// const getPluginConfigFields = (config: any) => {
-//     return Object.keys(config).filter(k => k !== "system")
-// }
+import { FieldDefinition, Operator } from "../types/mutations";
+import { getAppFieldDefinition, SettingsAndPluginsMeta, getTypeOfField, getPluginFieldDefinition, getAvailableMutationIntructionsForTypeOfField, getAvailableComparatorsForTypeOfField, isValidTypeOfField } from "./field-utilities";
 
 export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta, logger?: Logger) => {
 
@@ -64,6 +60,18 @@ export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMe
     return macros;
 }
 
+const shouldHaveValue = (action: MacroAction | MacroCondition) => {
+
+    if (action.type === "action" && action.operator === Operator.Set) {
+        return true;
+    } else if (action.type === "condition") {
+        return true;
+    }
+
+    return false;
+
+}
+
 const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroCondition, settings: SettingsAndPluginsMeta) => {
 
     // we don't sanitize these types
@@ -74,9 +82,9 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
     if (action.path[0] === ":app") {
 
         // validate path
-        let field = getAppFieldDefinition(settings, action.path);
+        const field = getAppFieldDefinition(settings, action.path as TargetedPath<":app">);
 
-        if (field === null) {
+        if (!field) {
 
             action.error = {
                 type: MacroActionConfigurationErrorType.InvalidField,
@@ -86,11 +94,11 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
         }
 
-        // if (patchable) {
+        if (shouldHaveValue(action)) {
 
-        //     patchValue(action, field);
+            patchValue(action, field);
 
-        // }
+        }
 
     } else if (action.path[0] === ":plugin") {
 
@@ -100,7 +108,7 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
             action.error = {
                 type: MacroActionConfigurationErrorType.MissingPlugin,
-                message: `Missing plugin ${action.path[0]}`,
+                message: `Missing plugin ${action.path[1]}`,
             }
             return;
 
@@ -110,51 +118,49 @@ const sanitizeMacroActionOrConditionFields = (action: MacroAction | MacroConditi
 
             action.error = {
                 type: MacroActionConfigurationErrorType.MissingField,
-                message: `Missing field for plugin ${action.path[0]} ${action.path[1]}`,
+                message: `Missing field for plugin ${action.path[1]} ${action.path[2]}`,
             }
 
             return;
 
         }
 
-        // const patchable = action.type === MacroActionType.ModifyPluginSettings && action.instruction === Operator.Set || action.type === "PluginSettingsCondition";
+        if (shouldHaveValue(action)) {
 
-        // if (patchable) {
+            const field = plugin.config?.[action.path[2] as keyof typeof plugin] ?? { value: null };
 
-        //     const field = plugin.config?.[action.path[1] as keyof typeof plugin] ?? { value: null };
+            patchValue(action, field);
 
-        //     patchValue(action, field);
-
-        // }
+        }
     }
 }
 
 
-// const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
+const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
 
-//     return !Array.isArray(options) ? Object.values(options)[0] : options[0];
+    return !Array.isArray(options) ? Object.values(options)[0] : options[0];
 
-// }
+}
 
 
-// const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition) => {
+const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition) => {
 
-//     if (action.value === undefined) {
-//         if (field.options) {
-//             action.value = getFirstOption(field.options);
-//         } else {
-//             action.value = field.value;
-//         }
-//     }
+    if (action.value === undefined) {
+        if (field.options) {
+            action.value = getFirstOption(field.options);
+        } else {
+            action.value = field.value;
+        }
+    }
 
-//     if (!isValidTypeOfField(typeof action.value)) {
-//         action.error = {
-//             type: MacroActionConfigurationErrorType.InvalidFieldValue,
-//             message: `Invalid field type`
-//         }
-//     }
+    if (!isValidTypeOfField(typeof action.value)) {
+        action.error = {
+            type: MacroActionConfigurationErrorType.InvalidFieldValue,
+            message: "Invalid field type"
+        }
+    }
 
-// }
+}
 
 
 const patchMutationInstruction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
@@ -168,12 +174,12 @@ const patchMutationInstruction = (action: MacroAction, settings: SettingsAndPlug
         action.error = {
             type: MacroActionConfigurationErrorType.InvalidInstruction,
             message: "This action had an invalid instruction and was reset to the default"
-        }
+        };
 
     }
 
 
-}
+};
 
 const patchConditionComparator = (condition: MacroCondition, settings: SettingsAndPluginsMeta) => {
 
@@ -187,7 +193,7 @@ const patchConditionComparator = (condition: MacroCondition, settings: SettingsA
             type: MacroActionConfigurationErrorType.InvalidCondition,
             message: "This condition had an invalid comparator and was reset to the default"
 
-        }
+        };
 
     }
 
@@ -202,7 +208,7 @@ export const getAvailableMutationInstructionsForAction = (
         return [Operator.Execute];
     } else {
 
-        const typeOfField = getTypeOfField(action.path[0] === ":app" ? getAppFieldDefinition(settings, action.path) : getPluginFieldDefinition(settings, action.path));
+        const typeOfField = getTypeOfField(action.path[0] === ":app" ? getAppFieldDefinition(settings, action.path as TargetedPath<":app">) : getPluginFieldDefinition(settings, action.path as TargetedPath<":plugin">));
 
         if (typeOfField === null) {
             return [];
@@ -224,7 +230,7 @@ export const getMacroConditionValidComparators = (
         return getAvailableComparatorsForTypeOfField("number");
     } else {
 
-        const typeOfField = getTypeOfField(condition.path[0] === ":app" ? getAppFieldDefinition(settings, condition.path) : getPluginFieldDefinition(settings, condition.path));
+        const typeOfField = getTypeOfField(condition.path[0] === ":app" ? getAppFieldDefinition(settings, condition.path as TargetedPath<":app">) : getPluginFieldDefinition(settings, condition.path as TargetedPath<":plugin">));
 
         if (typeOfField === null) {
             return [];
@@ -234,3 +240,47 @@ export const getMacroConditionValidComparators = (
     }
 
 };
+
+
+export function saneDefaultsForNewMacroActionOrCondition<T extends MacroAction | MacroCondition>(action: T, settings: SettingsAndPluginsMeta) {
+
+
+    if (action.path.length === 0) {
+
+        action.path = [":app"];
+
+    }
+
+    if (action.path[0] === ":app") {
+
+        action.path = [":app", "audio", "music"];
+
+    } else if (action.path[0] === ":plugin") {
+
+        if (settings.enabledPlugins.length > 0) {
+
+            const plugin = settings.enabledPlugins[0];
+            const fieldName = Object.keys(plugin.config ?? {}).find(k => k !== "system");
+
+            action.path = [":plugin", plugin.name];
+
+            if (fieldName) {
+                action.path.push(fieldName);
+            } else if (plugin.externMethods.length > 0) {
+                action.path.push(plugin.externMethods[0]);
+
+                if (action.type === "action") {
+                    action.operator = Operator.Execute;
+                }
+            }
+
+        }
+
+    }
+
+    return action;
+
+
+
+
+}

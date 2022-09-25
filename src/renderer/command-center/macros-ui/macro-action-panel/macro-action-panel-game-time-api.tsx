@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { MacroAction } from "common/types";
+import { Actionable, MacroDTO } from "common/types";
 import { useMacroStore } from "../macros-store";
 
 export const MacroActionPanelGameTimeApi = ({
+  macro,
   action,
   viewOnly,
 }: {
-  action: MacroAction;
+  macro: MacroDTO;
+  action: Actionable;
   viewOnly: boolean;
 }) => {
-  const { updateMacroAction } = useMacroStore();
+  const { updateActionable } = useMacroStore();
   const [value, setValue] = useState(action.value);
 
   return (
@@ -25,7 +27,11 @@ export const MacroActionPanelGameTimeApi = ({
         disabled={viewOnly}
       />
       {!viewOnly && (
-        <button onClick={() => updateMacroAction({ ...action, value })}>
+        <button
+          onClick={() => {
+            updateActionable(macro, { ...action, value });
+          }}
+        >
           Save
         </button>
       )}

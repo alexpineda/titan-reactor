@@ -18,19 +18,20 @@ const util = {
                 type: TriggerType.Manual
             },
             ...partial
-        }
+        };
     },
 
     createAction(partial?: Partial<MacroAction>): MacroAction {
 
         return {
+            type: "action",
             id: "1",
             operator: Operator.SetToDefault,
             path: [":app"],
             ...partial
-        }
+        };
     }
-}
+};
 
 describe("sanitizeMacros", () => {
 

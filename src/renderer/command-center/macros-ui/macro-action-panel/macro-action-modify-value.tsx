@@ -8,11 +8,11 @@ import { useMacroStore } from "../macros-store";
 export const MacroActionModifyValue = (
   props: MacroActionPanelProps & { config: FieldDefinition }
 ) => {
-  const { updateMacroAction } = useMacroStore();
-  const { action, config } = props;
+  const { updateActionable } = useMacroStore();
+  const { action, config, macro } = props;
   const controls = {
     SetField: mapSingleConfigToLeva({ ...config, label: "" }, (value) => {
-      updateMacroAction({
+      updateActionable(macro, {
         ...action,
         value,
       });

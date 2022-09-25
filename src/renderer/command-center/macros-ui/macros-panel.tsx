@@ -14,7 +14,7 @@ export const MacrosPanel = () => {
 
   return (
     <div>
-      <ErrorBoundary message="There was an error with this page">
+      <ErrorBoundary message="There was an error with Macros.">
         <CreateMacro />
         <div>
           {Object.entries(
