@@ -85,7 +85,7 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
 
     const getValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
 
-    const store = createOperatableStore(sessionStore, getValue, path => path.slice(1));
+    const store = createOperatableStore(sessionStore, getValue);
 
     // The user changed a plugin config so update the defaults
     janitor.mop(globalEvents.on("command-center-plugin-config-changed", ({ pluginId, config }) => {

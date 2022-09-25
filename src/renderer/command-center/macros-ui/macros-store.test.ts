@@ -3,9 +3,11 @@ import { createMacroStore } from "./macros-store";
 import * as settingsStoreModule from "@stores/settings-store";
 import { ManualTrigger } from "@macros/manual-trigger";
 import { ConditionComparator, MacroDTO, MacrosDTO, Operator } from "common/types";
+import * as sanitizeMacros from "common/macros/sanitize-macros";
 
 jest.mock("@ipc/log");
 jest.mock("@stores/settings-store");
+jest.mock("common/macros/sanitize-macros");
 
 
 const util = {
@@ -30,6 +32,12 @@ const util = {
 }
 
 describe("createMacroStore", () => {
+
+
+    beforeEach(() => {
+        //@ts-ignore
+        sanitizeMacros.sanitizeActionable = jest.fn((actionable) => actionable);
+    });
 
     it("should be create macro", () => {
 

@@ -69,13 +69,13 @@ export const createMutationVariable = (operate: (operation: Operation) => void, 
 }
 
 export type OperatableStore<T> = ResettableStore<T> & {
-    operate: (action: Operation) => void;
+    operate: (action: Operation, transformPath?: (path: string[]) => string[]) => void;
     createVariable: (path: string[]) => MutationVariable;
 }
 
-export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined, transformPath: (path: string[]) => string[] = x => x): OperatableStore<T> {
+export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
 
-    const operate = (mutation: Operation) => {
+    const operate = (mutation: Operation, transformPath: (path: string[]) => string[] = x => x) => {
 
         const path = transformPath(mutation.path);
 

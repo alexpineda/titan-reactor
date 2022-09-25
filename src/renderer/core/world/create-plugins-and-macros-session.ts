@@ -22,7 +22,7 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
         pluginSession.nativePlugins.externalHookListener = (...args) => macrosComposer.macros.callFromHook(...args);
 
         macrosComposer.macros.targets.setHandler(":plugin", {
-            action: (action) => pluginSession.store.operate(action),
+            action: (action) => pluginSession.store.operate(action, path => path.slice(1)),
             getValue: (path) => pluginSession.store.getValue(path),
         });
 

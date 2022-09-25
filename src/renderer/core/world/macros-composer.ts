@@ -18,7 +18,7 @@ export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings:
     const targets = new TargetComposer();
 
     targets.setHandler(":app", {
-        action: (path) => settings.operate(path),
+        action: (path) => settings.operate(path, path => path.slice(1)),
         getValue: (path) => settings.getValue(path),
     });
 
