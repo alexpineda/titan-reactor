@@ -9,6 +9,7 @@ import screenStore from "@stores/scene-store";
 import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { createPluginSessionStore } from "@core/world/plugin-session-store";
+import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "@core/global-events";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
@@ -19,7 +20,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
 
     const pluginPackages = settingsStore().enabledPlugins;
     const uiPlugins = janitor.mop(new PluginSystemUI(pluginPackages, (id) => openBW.get_util_funcs().dump_unit(id)), "uiPlugins");
-    const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, uiPlugins), "nativePlugins");
+    const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, uiPlugins, createCompartment), "nativePlugins");
 
     // available to macros and sandbox only
     const store = janitor.mop(createPluginSessionStore(nativePlugins, uiPlugins), "reactiveApi");
@@ -28,7 +29,6 @@ export const createPluginSession = async (openBW: OpenBW) => {
 
     janitor.mop(globalEvents.on("command-center-plugin-config-changed", ({ pluginId, config }) => {
 
-        //TODO: diff
         uiPlugins.sendMessage({
             type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
             payload: { pluginId, config }
@@ -45,7 +45,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
 
     janitor.mop(globalEvents.on("command-center-plugins-enabled", (plugins) => {
         uiPlugins.enablePlugins(plugins);
-        nativePlugins.enableAdditionalPlugins(plugins);
+        nativePlugins.enableAdditionalPlugins(plugins, createCompartment);
     }), "command-center-plugins-enabled");
 
     janitor.mop(globalEvents.on("initial-install-error-plugins", () => {

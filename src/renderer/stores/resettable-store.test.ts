@@ -127,6 +127,8 @@ describe("SessionStore", () => {
 
     });
 
+    //TODO: update once we are not clobbering all state from source of truth
+
     it("should update source of truth", () => {
 
         const sourceOfTruth = {
@@ -144,7 +146,7 @@ describe("SessionStore", () => {
         store.updateSourceOfTruth(sourceOfTruth);
 
         expect(store.getResetValue(["foo"])).toBe("baz");
-        expect(store.getValue(["foo"])).toBe("bar");
+        expect(store.getValue(["foo"])).toBe("baz");
 
 
 

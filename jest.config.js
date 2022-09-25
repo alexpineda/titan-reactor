@@ -18,7 +18,7 @@ module.exports = {
   restoreMocks: true,
 
   collectCoverage: true,
-  collectCoverageFrom: ["src/**/*.{ts,tsx,js,jsx}"],
+  // collectCoverageFrom: ["src/**/*.{ts,tsx,js,jsx}"],
   coverageDirectory: "dist/coverage",
   coverageReporters: ["html"],
   coveragePathIgnorePatterns: ["/node_modules/", "/dist/", "/bundled"],

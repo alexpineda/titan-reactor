@@ -4,11 +4,7 @@ import * as postprocessing from "postprocessing"
 import cameraControls from "camera-controls"
 import * as enums from "common/enums";
 import { Janitor } from "three-janitor";
-import { CSS2DObject } from "three/examples/jsm/renderers/CSS2DRenderer";
 import { mix } from "./object-utils";
-const STDLIB = {
-    CSS2DObject
-}
 
 // declare global {
 //     interface Window {
@@ -18,9 +14,9 @@ const STDLIB = {
 //     }
 // }
 
-export const createCompartment = (env: {} = {}) => {
+export const createCompartment = (env: object = {}) => {
 
-    const modules = { THREE, STDLIB, postprocessing, Janitor, enums, cameraControls }
+    const modules = { THREE, postprocessing, Janitor, enums, cameraControls }
 
     const compartment = new Compartment(mix(
         env,
@@ -41,7 +37,7 @@ export const lockdown_ = () => {
         window.harden = (x) => x;
 
         // @ts-ignore
-        window.Compartment = function Compartment(env: {}) {
+        window.Compartment = function Compartment(env: object) {
             // const windowCopy = {...window};
             // delete windowCopy.require;
             const globalThis: Record<string, any> = {};

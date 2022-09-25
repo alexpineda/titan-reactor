@@ -2,7 +2,7 @@ import { OpenBW } from "common/types";
 import { Assets } from "@image/assets";
 import { Janitor } from "three-janitor";
 import { createPluginsAndMacroSession } from "./create-plugins-and-macros-session";
-import { createSettingsSessionStore } from "./resettable-store";
+import { createSettingsSessionStore } from "./settings-session-store";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { HOOK_ON_PLUGINS_DISPOSED, HOOK_ON_PLUGINS_READY } from "@plugins/hooks";

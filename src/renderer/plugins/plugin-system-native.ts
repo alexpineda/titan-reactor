@@ -6,7 +6,6 @@ import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
-import { createCompartment } from "@utils/ses-util";
 import { mix } from "@utils/object-utils";
 import { log } from "@ipc/log"
 import { PluginBase } from "./plugin-base";
@@ -42,9 +41,9 @@ export class PluginSystemNative {
         return this.#nativePlugins.reduce.bind(this.#nativePlugins);
     }
 
-    initializePlugin(pluginPackage: PluginMetaData) {
+    initializePlugin(pluginPackage: PluginMetaData, createCompartment: (env: any) => any) {
 
-        const c = createCompartment({
+        const compartment = createCompartment({
             PluginBase, SceneController
         });
 
@@ -54,10 +53,10 @@ export class PluginSystemNative {
 
             if (pluginPackage.nativeSource) {
                 if (pluginPackage.nativeSource.includes("export default")) {
-                    const Constructor = c.globalThis.Function(pluginPackage.nativeSource.replace("export default", "return"))();
+                    const Constructor = compartment.globalThis.Function(pluginPackage.nativeSource.replace("export default", "return"))();
                     plugin = new Constructor(pluginPackage);
                 } else {
-                    plugin = Object.assign(plugin, c.globalThis.Function(pluginPackage.nativeSource)()) as PluginBase
+                    plugin = Object.assign(plugin, compartment.globalThis.Function(pluginPackage.nativeSource)()) as PluginBase
                 }
             }
 
@@ -103,10 +102,10 @@ export class PluginSystemNative {
 
     }
 
-    constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI) {
+    constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI, createCompartment: (env: any) => any) {
 
         this.#hooks = createDefaultHooks();
-        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean) as PluginBase[];
+        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p, createCompartment)).filter(Boolean) as PluginBase[];
         this.#uiPlugins = uiPlugins;
 
         const _messageListener = (event: MessageEvent) => {
@@ -258,9 +257,9 @@ export class PluginSystemNative {
 
     }
 
-    enableAdditionalPlugins(pluginPackages: PluginMetaData[]) {
+    enableAdditionalPlugins(pluginPackages: PluginMetaData[], createCompartment: (env: any) => any) {
 
-        const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p)).filter(Boolean);
+        const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p, createCompartment)).filter(Boolean);
 
         this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins] as PluginBase[];
     }

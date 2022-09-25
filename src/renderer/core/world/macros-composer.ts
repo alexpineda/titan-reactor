@@ -1,6 +1,6 @@
 import { Macros } from "@macros";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
-import { SettingsSessionStore } from "./resettable-store";
+import { SettingsSessionStore } from "./settings-session-store";
 import { Janitor } from "three-janitor";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "../global-events";

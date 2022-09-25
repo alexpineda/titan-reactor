@@ -78,10 +78,10 @@ const _productionTransferables: ArrayBufferLike[] = [];
 export type PluginStateMessage = {
     language: string,
     [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions,
-    [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>['payload'],
+    [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>["payload"],
     [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>,
     [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeReplayPosition>,
-    [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage['payload'],
+    [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage["payload"],
 }
 
 //TODO: use external hooks for access to state changes
@@ -145,7 +145,7 @@ export class PluginSystemUI {
             this.#iframe.style.pointerEvents = interactive ? "auto" : "none";
         }
 
-        var iframeLoaded = false;
+        let iframeLoaded = false;
         this.#iframe.onload = async () => {
             if (iframeLoaded) {
                 iframeLoaded = false;

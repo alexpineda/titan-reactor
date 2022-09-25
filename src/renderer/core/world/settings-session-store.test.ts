@@ -1,6 +1,6 @@
 import { describe, it, jest } from "@jest/globals";
 import { TypeEmitter } from "@utils/type-emitter";
-import { createSettingsSessionStore } from "./resettable-store";
+import { createSettingsSessionStore } from "./settings-session-store";
 import { WorldEvents } from "./world";
 import * as settingsStore from "@stores/settings-store";
 import { Operator } from "common/types";
@@ -54,11 +54,11 @@ describe("SettingsSessionStore", () => {
     });
 
     it("should merge from settings store and emit event", () => {
-        let callback: Function;
+        let callback: (args: any) => void;
 
         //@ts-ignore
         settingsStore.useSettingsStore = {
-            subscribe: jest.fn((cb: Function) => {
+            subscribe: jest.fn((cb: (args: any) => void) => {
                 callback = cb;
             })
         };
@@ -76,7 +76,10 @@ describe("SettingsSessionStore", () => {
                 ...initialState.data,
                 audio: { music: 1 }
             },
-            rhs: { audio: { music: 1 } }
+            rhs: {
+                ...initialState.data,
+                audio: { music: 1 }
+            }
         });
     });
 

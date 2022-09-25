@@ -1,5 +1,5 @@
 import { GameTimeApi } from "./game-time-api";
-import { SettingsSessionStore } from "./resettable-store";
+import { SettingsSessionStore } from "./settings-session-store";
 import { borrow, mix } from "@utils/object-utils";
 import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world";
