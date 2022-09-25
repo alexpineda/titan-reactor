@@ -19,7 +19,7 @@ export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings:
 
     targets.setHandler(":app", {
         action: (path) => settings.operate(path, path => path.slice(1)),
-        getValue: (path) => settings.getValue(path),
+        getValue: (path) => settings.getValue(path.slice(1)),
     });
 
     const macros = new Macros(targets, settingsStore().data.macros);
@@ -61,7 +61,7 @@ export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings:
                         log.error(`Error executing macro action: ${e}`);
                     }
                 },
-                getValue: ([value], context) => {
+                getValue: (_, value, context) => {
                     container.globalThis.context = context;
                     try {
                         return container.globalThis.Function(value)();

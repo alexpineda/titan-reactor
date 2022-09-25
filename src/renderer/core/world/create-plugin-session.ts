@@ -27,12 +27,15 @@ export const createPluginSession = async (openBW: OpenBW) => {
     await uiPlugins.isRunning();
 
     janitor.mop(globalEvents.on("command-center-plugin-config-changed", ({ pluginId, config }) => {
+
         //TODO: diff
         uiPlugins.sendMessage({
             type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
             payload: { pluginId, config }
         });
         nativePlugins.hook_onConfigChanged(pluginId, config);
+        store.updateSourceOfTruth(nativePlugins.getConfigSnapshot());
+
     }), "command-center-plugin-config-changed");
 
     janitor.mop(globalEvents.on("command-center-plugin-disabled", (pluginId) => {

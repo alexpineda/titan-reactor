@@ -23,7 +23,7 @@ export const createPluginsAndMacroSession = async (events: TypeEmitter<WorldEven
 
         macrosComposer.macros.targets.setHandler(":plugin", {
             action: (action) => pluginSession.store.operate(action, path => path.slice(1)),
-            getValue: (path) => pluginSession.store.getValue(path),
+            getValue: (path) => pluginSession.store.getValue(path.slice(1)),
         });
 
         return pluginSession;

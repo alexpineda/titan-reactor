@@ -53,6 +53,7 @@ export function createResettableStore<T extends Record<string, any>>({ sourceOfT
         merge,
         updateSourceOfTruth: (newSourceOfTruth: DeepPartial<T>) => {
             Object.assign(defaults, deepMerge(defaults, JSON.parse(JSON.stringify(newSourceOfTruth))));
+            merge(JSON.parse(JSON.stringify(defaults)));
         }
     }
 }

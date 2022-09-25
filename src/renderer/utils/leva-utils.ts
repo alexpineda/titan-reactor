@@ -51,3 +51,18 @@ export const attachOnChangeAndGroupByFolder = ({
         return values.reduce((acc, v) => ({ ...acc, [v._key]: v }), {});
     }
 };
+
+export const simplifyLevaConfig = (config: Record<string, any>) => {
+
+    const values: Record<string, any> = {};
+    for (const k in config) {
+        if (
+            k !== "system" &&
+            typeof config[k] === "object" &&
+            "value" in config[k as keyof typeof config]
+        ) {
+            values[k] = (config[k as keyof typeof config].value);
+        }
+    }
+    return values;
+}

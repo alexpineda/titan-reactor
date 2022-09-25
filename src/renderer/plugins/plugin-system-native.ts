@@ -1,4 +1,4 @@
-import { PluginMetaData, NativePlugin, SceneInputHandler } from "common/types";
+import { PluginMetaData, NativePlugin, SceneInputHandler, FieldDefinition } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
@@ -11,11 +11,18 @@ import { mix } from "@utils/object-utils";
 import { log } from "@ipc/log"
 import { PluginBase } from "./plugin-base";
 import { SceneController } from "./scene-controller";
+import lSet from "lodash.set";
 
 const VALID_PERMISSIONS = [
     PERMISSION_REPLAY_COMMANDS,
     PERMISSION_REPLAY_FILE
 ];
+
+type PluginsConfigSnapshot = {
+    [pluginName: string]: {
+        [variableName: string]: number | boolean | string | number[];
+    };
+}
 
 export class PluginSystemNative {
     #nativePlugins: PluginBase[] = [];
@@ -315,4 +322,16 @@ export class PluginSystemNative {
 
     }
 
+    getConfigSnapshot() {
+
+        return this.#nativePlugins.reduce((acc, plugin) => {
+            for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
+                if (key !== "system" && (field as FieldDefinition)?.value !== undefined) {
+                    lSet(acc, [plugin.name, key], (field as FieldDefinition).value);
+                }
+            }
+            return acc;
+        }, {}) as PluginsConfigSnapshot;
+
+    }
 }

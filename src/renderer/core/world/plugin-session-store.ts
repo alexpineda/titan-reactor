@@ -2,21 +2,13 @@ import { log } from "@ipc/log";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
 import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
-import { FieldDefinition } from "common/types";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
-import { globalEvents } from "@core/global-events";
 import { createResettableStore } from "@stores/resettable-store";
 import { createOperatableStore } from "@stores/operatable-store";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 import { PluginBase } from "@plugins/plugin-base";
-
-type PluginResetStore = {
-    [pluginName: string]: {
-        [variableName: string]: number | boolean | string | number[];
-    };
-}
 
 /**
  * An api that allows the consumer to modify plugin values and have the system respond.
@@ -26,18 +18,11 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
     const janitor = new Janitor("ReactivePluginApi");
 
     const sessionStore = createResettableStore({
-        sourceOfTruth: plugins.reduce((acc, plugin) => {
-            for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
-                if (key !== "system" && (field as FieldDefinition)?.value !== undefined) {
-                    lSet(acc, [plugin.name, key], (field as FieldDefinition).value);
-                }
-            }
-            return acc;
-        }, {}) as PluginResetStore,
+        sourceOfTruth: plugins.getConfigSnapshot(),
         validateMerge: (_, __, path) => {
+            // merged from source of truth
             if (path === undefined) {
-                log.warn("Attempted to set the entire plugin session store. This is not allowed.");
-                return false;
+                return true;
             }
             const plugin = plugins.getByName(path[0]);
 
@@ -63,8 +48,8 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
             return true;
         },
         onUpdate: (_, __, path, value) => {
+            // merged from source of truth
             if (path === undefined) {
-                log.warn("@on-update: path is undefined");
                 return;
             }
 
@@ -86,29 +71,6 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
     const getValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
 
     const store = createOperatableStore(sessionStore, getValue);
-
-    // The user changed a plugin config so update the defaults
-    janitor.mop(globalEvents.on("command-center-plugin-config-changed", ({ pluginId, config }) => {
-
-        const plugin = plugins.getById(pluginId);
-
-        if (plugin) {
-
-            for (const [key, field] of Object.entries(config ?? {})) {
-
-                if (key !== "system") {
-
-                    //TODO: update store as well
-                    store.updateSourceOfTruth(lSet({}, [plugin.name, key], (field as FieldDefinition)?.value ?? field));
-
-                }
-
-            }
-
-        }
-
-    }));
-
 
     const vars = plugins.reduce((acc, plugin) => {
 

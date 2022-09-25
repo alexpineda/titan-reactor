@@ -71,7 +71,6 @@ export const createSettingsSessionStore = (
     // keep the session up to date with user changed settings
     janitor.mop(
         useSettingsStore.subscribe(({ data }) => {
-            store.merge(data);
             store.updateSourceOfTruth(partialSettings(data));
         }),
         "settings-store-subscription"

@@ -112,8 +112,6 @@ export class Macros {
         }
     }
 
-
-
     #testCondition(comparator: ConditionComparator, a: any, b: any) {
         if (comparator === ConditionComparator.Equals) {
             return a === b;
@@ -135,7 +133,7 @@ export class Macros {
 
         for (const condition of macro.conditions) {
 
-            const value = this.targets.getHandler(condition.path[0])!.getValue(condition.value, context);
+            const value = this.targets.getHandler(condition.path[0])!.getValue(condition.path, condition.value, context);
 
             if (this.#testCondition(condition.comparator, value, condition.value) === false) {
                 return false;
