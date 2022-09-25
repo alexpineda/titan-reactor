@@ -4,11 +4,14 @@ import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
 import { useSettingsStore } from "@stores/settings-store";
 import groupBy from "lodash.groupby";
+import { useMacroStore } from "./use-macros-store";
 
 export const MacrosPanel = () => {
   const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
   const settings = useSettingsStore();
-  const state = settings.data.macros;
+  const {
+    macros: { macros },
+  } = useMacroStore();
 
   const [activeAction, setActiveAction] = useState<string | null>(null);
 
@@ -18,7 +21,7 @@ export const MacrosPanel = () => {
         <CreateMacro />
         <div>
           {Object.entries(
-            groupBy(state.macros, (m) => {
+            groupBy(macros, (m) => {
               const s = m.name.split(":");
               return s.length === 1 ? "General" : s[0].trim();
             })

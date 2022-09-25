@@ -5,13 +5,13 @@ import {
   MacroCondition,
   Operator,
 } from "common/types";
-import { MacroActionPanelProps } from "./macro-action-panel-props";
+import { ActionablePanelProps } from "./actionable-pane-props";
 import { SettingsStore, useSettingsStore } from "@stores";
 import {
   getAvailableMutationInstructionsForAction,
   getMacroConditionValidComparators,
 } from "common/macros/sanitize-macros";
-import { useMacroStore } from "../macros-store";
+import { useMacroStore } from "../use-macros-store";
 
 const getValidOps = (
   action: MacroAction | MacroCondition,
@@ -22,11 +22,11 @@ const getValidOps = (
     : getMacroConditionValidComparators(action, settings);
 };
 
-export const MacroActionEffectSelector = ({
+export const ActionableOpsSelector = ({
   action,
   viewOnly,
   macro,
-}: MacroActionPanelProps) => {
+}: ActionablePanelProps) => {
   const { updateActionable } = useMacroStore();
   const settings = useSettingsStore();
   const validInstructions = getValidOps(action, settings);

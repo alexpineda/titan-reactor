@@ -1,14 +1,14 @@
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import ErrorBoundary from "../../error-boundary";
-import { MacroActionPanelProps } from "./macro-action-panel-props";
-import { MacroActionPanelGameTimeApi } from "./macro-action-panel-game-time-api";
-import { MacroActionPanelHost } from "./macro-action-panel-host";
-import { MacroActionPanelPlugin } from "./macro-action-panel-plugin";
-import { useMacroStore } from "../macros-store";
+import { ActionablePanelProps } from "./actionable-pane-props";
+import { ActionableTargetFunction } from "./actionable-target-function";
+import { ActionableTargetApp } from "./actionable-target-app";
+import { ActionableTargetPlugin } from "./actionable-target-plugin";
+import { useMacroStore } from "../use-macros-store";
 import { TargetType } from "common/types";
 
-export const MacroActionablePanel = (
-  props: MacroActionPanelProps & {
+export const ActionablePanel = (
+  props: ActionablePanelProps & {
     setActiveAction: (actionId: string) => void;
   }
 ) => {
@@ -105,13 +105,13 @@ export const MacroActionablePanel = (
         key={action.id}
       >
         {action.path[0] === ":app" && (
-          <MacroActionPanelHost {...props} action={action} />
+          <ActionableTargetApp {...props} action={action} />
         )}
         {action.path[0] === ":function" && (
-          <MacroActionPanelGameTimeApi {...props} action={action} />
+          <ActionableTargetFunction {...props} action={action} />
         )}
         {action.path[0] === ":plugin" && (
-          <MacroActionPanelPlugin {...props} action={action} />
+          <ActionableTargetPlugin {...props} action={action} />
         )}
       </ErrorBoundary>
     </div>

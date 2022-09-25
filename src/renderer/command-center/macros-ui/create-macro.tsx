@@ -4,7 +4,7 @@ import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { ManualTrigger } from "@macros/manual-trigger";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
-import { useMacroStore } from "./macros-store";
+import { useMacroStore } from "./use-macros-store";
 
 export const CreateMacro = () => {
   const [name, setName] = useState("");

@@ -1,11 +1,11 @@
 import { ConditionComparator, Operator } from "common/types";
-import { MacroActionEffectSelector } from "./macro-action-effect-selector";
-import { MacroActionModifyValue } from "./macro-action-modify-value";
-import { MacroActionPanelProps } from "./macro-action-panel-props";
+import { ActionableOpsSelector } from "./actionable-ops-selector";
+import { ActionableEditValue } from "./actionable-edit-value";
+import { ActionablePanelProps } from "./actionable-pane-props";
 import ErrorBoundary from "../../error-boundary";
-import { useMacroStore } from "../macros-store";
+import { useMacroStore } from "../use-macros-store";
 
-export const MacroActionPanelPlugin = (props: MacroActionPanelProps) => {
+export const ActionableTargetPlugin = (props: ActionablePanelProps) => {
   const { updateActionable } = useMacroStore();
   const { action, pluginsMetadata, viewOnly, macro } = props;
 
@@ -100,7 +100,7 @@ export const MacroActionPanelPlugin = (props: MacroActionPanelProps) => {
           </select>
         </label>
         <ErrorBoundary message="Error with effects">
-          <MacroActionEffectSelector {...props} />
+          <ActionableOpsSelector {...props} />
         </ErrorBoundary>
 
         {viewOnly &&
@@ -123,11 +123,7 @@ export const MacroActionPanelPlugin = (props: MacroActionPanelProps) => {
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>
             <ErrorBoundary message="Error with modifier">
-              <MacroActionModifyValue
-                {...props}
-                config={field}
-                action={action}
-              />
+              <ActionableEditValue {...props} config={field} action={action} />
             </ErrorBoundary>
           </div>
         )}

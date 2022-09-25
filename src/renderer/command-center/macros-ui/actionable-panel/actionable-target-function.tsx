@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Actionable, MacroDTO } from "common/types";
-import { useMacroStore } from "../macros-store";
+import { useMacroStore } from "../use-macros-store";
 
-export const MacroActionPanelGameTimeApi = ({
+export const ActionableTargetFunction = ({
   macro,
   action,
   viewOnly,

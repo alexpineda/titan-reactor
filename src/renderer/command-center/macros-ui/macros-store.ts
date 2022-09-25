@@ -1,8 +1,6 @@
 import create from "zustand";
-import { sendWindow, SendWindowActionType } from "@ipc/relay";
-import { settingsStore, useSettingsStore } from "@stores/settings-store";
-import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { Actionable, MacroAction, MacroActionSequence, MacroCondition, MacroDTO, MacrosDTO } from "common/types";
+import { settingsStore } from "@stores/settings-store";
+import { Actionable, MacroAction, MacroActionSequence, MacroCondition, MacroDTO, MacrosDTO, SettingsMeta } from "common/types";
 import { immer } from "zustand/middleware/immer";
 import { MathUtils } from "three";
 import { ManualTrigger } from "@macros/manual-trigger";
@@ -10,8 +8,8 @@ import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import { saneDefaultsForNewMacroActionOrCondition } from "common/macros/sanitize-macros";
-import { log } from "@ipc/log";
 import { withErrorMessage } from "common/utils/with-error-message";
+import { log } from "@ipc/log";
 
 type State = { macros: MacrosDTO };
 
@@ -33,23 +31,20 @@ type Actions = {
 
 };
 
-export const useMacroStore = create(
+export const createMacroStore = (onSave?: (settings: SettingsMeta) => void) => create(
 
     immer<State & Actions>((set, get) => ({
-        macros: useSettingsStore.getState().data.macros,
+        macros: settingsStore().data.macros,
         busy: false,
 
         persist() {
             if (get().busy) {
                 return;
             }
-            console.log("persisting macros", JSON.stringify({
-                macros: get().macros.macros,
-                revision: get().macros.revision + 1,
-            }));
-            set(state => state.busy = true);
-            useSettingsStore
-                .getState()
+            set(state => {
+                state.busy = true
+            });
+            settingsStore()
                 .save({
                     macros: {
                         macros: get().macros.macros,
@@ -57,18 +52,20 @@ export const useMacroStore = create(
                     },
                 })
                 .then((payload) => {
-                    sendWindow(InvokeBrowserTarget.Game, {
-                        type: SendWindowActionType.CommitSettings,
-                        payload,
-                    });
+
                     set((state) => {
                         state.macros = payload.data.macros;
                         state.busy = false;
                     });
 
+                    onSave && onSave(payload);
+
+
                 }).catch((e) => {
                     log.error(withErrorMessage(e, "failed to save macros"));
-                    set((state) => state.busy = false);
+                    set((state) => {
+                        state.busy = false
+                    });
                 });
         },
 

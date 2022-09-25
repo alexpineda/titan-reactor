@@ -1,12 +1,12 @@
 import { useControls, useCreateStore } from "leva";
 import { createLevaPanel } from "../../create-leva-panel";
 import { mapSingleConfigToLeva } from "@utils/leva-utils";
-import { MacroActionPanelProps } from "./macro-action-panel-props";
+import { ActionablePanelProps } from "./actionable-pane-props";
 import { FieldDefinition } from "common/types";
-import { useMacroStore } from "../macros-store";
+import { useMacroStore } from "../use-macros-store";
 
-export const MacroActionModifyValue = (
-  props: MacroActionPanelProps & { config: FieldDefinition }
+export const ActionableEditValue = (
+  props: ActionablePanelProps & { config: FieldDefinition }
 ) => {
   const { updateActionable } = useMacroStore();
   const { action, config, macro } = props;

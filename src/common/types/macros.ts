@@ -34,10 +34,11 @@ export enum MacroActionConfigurationErrorType {
     InvalidAction = "InvalidAction",
 }
 
-export type TargetType = ":app" | `:plugin` | ":function";
+export type TargetType = ":app" | ":plugin" | ":function";
 export type TargetedPath<T extends TargetType = TargetType> = [T, ...string[]];
 
 export type MacroAction<T extends TargetType = TargetType> = {
+    type: "action";
     id: string;
     error?: MacroActionConfigurationError;
     path: TargetedPath<T>;
@@ -46,12 +47,15 @@ export type MacroAction<T extends TargetType = TargetType> = {
 }
 
 export type MacroCondition<T extends TargetType = TargetType> = {
+    type: "condition";
     id: string;
     error?: MacroActionConfigurationError;
     path: TargetedPath<T>;
     value?: any;
     comparator: ConditionComparator;
 }
+
+export type Actionable<T extends TargetType = TargetType> = MacroAction<T> | MacroCondition<T>;
 
 export type MacroTriggerDTO = {
     type: TriggerType;

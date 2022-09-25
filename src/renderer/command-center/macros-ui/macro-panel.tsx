@@ -11,7 +11,7 @@ import {
   Operator,
   ConditionComparator,
 } from "common/types";
-import { MacroActionablePanel } from "./macro-action-panel/macro-action-panel";
+import { ActionablePanel } from "./actionable-panel/actionable-panel";
 import { CreateMacroConditionOrAction } from "./create-macro-condition-or-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
@@ -19,7 +19,7 @@ import { MacroCustomHookOptions } from "./macro-custom-hook-options";
 import { KeyboardPreview } from "./keyboard-preview";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
-import { useMacroStore } from "./macros-store";
+import { useMacroStore } from "./use-macros-store";
 import { MathUtils } from "three";
 
 export const MacroPanel = ({
@@ -275,7 +275,7 @@ export const MacroPanel = ({
       <div>
         <p>Conditions (Optional)</p>
         {macro.conditions.map((condition) => (
-          <MacroActionablePanel
+          <ActionablePanel
             key={condition.id}
             macro={macro}
             action={condition}
@@ -286,7 +286,7 @@ export const MacroPanel = ({
         ))}
         <p>Actions</p>
         {macro.actions.map((action) => (
-          <MacroActionablePanel
+          <ActionablePanel
             macro={macro}
             key={action.id}
             action={action}

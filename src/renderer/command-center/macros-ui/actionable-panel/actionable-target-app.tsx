@@ -4,12 +4,12 @@ import { getFieldDefinitionDisplayValue } from "common/macros/field-utilities";
 import { ConditionComparator, Operator } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
-import { useMacroStore } from "../macros-store";
-import { MacroActionEffectSelector } from "./macro-action-effect-selector";
-import { MacroActionModifyValue } from "./macro-action-modify-value";
-import { MacroActionPanelProps } from "./macro-action-panel-props";
+import { useMacroStore } from "../use-macros-store";
+import { ActionableOpsSelector } from "./actionable-ops-selector";
+import { ActionableEditValue } from "./actionable-edit-value";
+import { ActionablePanelProps } from "./actionable-pane-props";
 
-export const MacroActionPanelHost = (props: MacroActionPanelProps) => {
+export const ActionableTargetApp = (props: ActionablePanelProps) => {
   const settings = settingsStore();
   const { action, viewOnly, macro } = props;
   const { updateActionable } = useMacroStore();
@@ -57,7 +57,7 @@ export const MacroActionPanelHost = (props: MacroActionPanelProps) => {
         disabled={viewOnly}
       />
       <ErrorBoundary message="Error with effects">
-        <MacroActionEffectSelector {...props} />
+        <ActionableOpsSelector {...props} />
       </ErrorBoundary>
       {viewOnly &&
         ((action.type === "action" && action.operator === Operator.Set) ||
@@ -83,7 +83,7 @@ export const MacroActionPanelHost = (props: MacroActionPanelProps) => {
         action.value !== undefined &&
         levaConfig !== undefined && (
           <ErrorBoundary message="Error with modifier">
-            <MacroActionModifyValue
+            <ActionableEditValue
               {...props}
               config={{ ...levaConfig, value: action.value }}
             />
