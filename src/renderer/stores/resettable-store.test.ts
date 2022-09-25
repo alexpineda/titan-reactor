@@ -1,5 +1,5 @@
 import { describe, it } from "@jest/globals";
-import { createResettableStore } from "./session-store";
+import { createResettableStore } from "./resettable-store";
 
 describe("SessionStore", () => {
 

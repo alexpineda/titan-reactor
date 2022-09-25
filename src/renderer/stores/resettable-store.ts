@@ -2,7 +2,7 @@
 import lGet from "lodash.get";
 import lSet from "lodash.set";
 import { DeepPartial } from "common/types";
-import deepMerge from 'deepmerge';
+import deepMerge from "deepmerge";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 
 export type CreateSessionStoreArgs<T extends Record<string, any>> = {
@@ -11,6 +11,13 @@ export type CreateSessionStoreArgs<T extends Record<string, any>> = {
     onUpdate?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => void;
 }
 
+/**
+ * 
+ * Creates a store that can be reset to a previous state.
+ * 
+ * @param options
+ * @returns 
+ */
 export function createResettableStore<T extends Record<string, any>>({ sourceOfTruth, validateMerge: validateMerge, onUpdate }: CreateSessionStoreArgs<T>): ResettableStore<T> {
 
     const defaults = JSON.parse(JSON.stringify(sourceOfTruth));

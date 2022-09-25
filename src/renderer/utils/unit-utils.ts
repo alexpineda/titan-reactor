@@ -10,7 +10,7 @@ export const unitIsCompleted = (unit: UnitStruct) => {
 export const canSelectUnit = (unit: Unit | undefined) => {
   if (!unit) return null;
 
-  return Boolean(unit.typeId !== unitTypes.darkSwarm &&
+  return unit.typeId !== unitTypes.darkSwarm &&
     unit.typeId !== unitTypes.disruptionWeb &&
     unit.order !== orders.die &&
     !unit.extras.dat.isTurret &&
@@ -18,7 +18,7 @@ export const canSelectUnit = (unit: Unit | undefined) => {
     (unit.statusFlags & UnitFlags.InBunker) === 0 &&
     unit.order !== orders.harvestGas &&
     unit.typeId !== unitTypes.spiderMine &&
-    (unitIsCompleted(unit) || unit.extras.dat.isZerg || unit.extras.dat.isBuilding)) ? unit : null;
+    (unitIsCompleted(unit) || unit.extras.dat.isZerg || unit.extras.dat.isBuilding) ? unit : null;
 }
 
 const _canOnlySelectOne = [

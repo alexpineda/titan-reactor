@@ -1,7 +1,7 @@
 import { FieldDefinition, Operation, Operator } from "common/types";
 import { applyMutationInstruction } from "./apply-mutation-instruction";
 import { log } from "@ipc/log";
-import { ResettableStore } from "./session-store";
+import { ResettableStore } from "./resettable-store";
 
 export type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
 
@@ -73,17 +73,25 @@ export type OperatableStore<T> = ResettableStore<T> & {
     createVariable: (path: string[]) => MutationVariable;
 }
 
+/**
+ * 
+ * An operatable store provides a defined set of operations that can be applied to the store.
+ * 
+ * @param store The store to operate on.
+ * @param getFieldDefinition A function that returns the field definition for a given path.
+ * @returns 
+ */
 export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
 
-    const operate = (mutation: Operation, transformPath: (path: string[]) => string[] = x => x) => {
+    const operate = (operation: Operation, transformPath: (path: string[]) => string[] = x => x) => {
 
-        const path = transformPath(mutation.path);
+        const path = transformPath(operation.path);
 
         const field = getFieldDefinition(path, store.getState());
 
         if (field) {
 
-            store.setValue(path, applyMutationInstruction(mutation.operator, field, mutation.value, store.getResetValue(path)));
+            store.setValue(path, applyMutationInstruction(operation.operator, field, operation.value, store.getResetValue(path)));
 
         } else {
 

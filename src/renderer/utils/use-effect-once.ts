@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 
 // https://blog.ag-grid.com/avoiding-react-18-double-mount/
 export const useEffectOnce = (effect: () => void | (() => void)) => {

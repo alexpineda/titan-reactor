@@ -1,6 +1,6 @@
 import { describe, it, jest } from "@jest/globals";
-import { createResettableStore } from "./session-store";
-import { createOperatableStore } from "./mutation-store";
+import { createResettableStore } from "./resettable-store";
+import { createOperatableStore } from "./operatable-store";
 import { Operator } from "common/types";
 
 jest.mock("@ipc/log");

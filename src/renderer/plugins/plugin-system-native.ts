@@ -94,7 +94,7 @@ export class PluginSystemNative {
             }
         }
 
-    };
+    }
 
     constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI) {
 
@@ -132,7 +132,7 @@ export class PluginSystemNative {
         return this.#nativePlugins.find(p => p.name === name);
     }
 
-    #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async: boolean = false) {
+    #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async = false) {
         if (this.#hooks[name] !== undefined) {
             log.error(`@plugin-system: hook ${name} already registered`);
             return;
@@ -261,7 +261,7 @@ export class PluginSystemNative {
     /**
      * Temporarily inject an api into all active plugins.
      */
-    injectApi(object: {}) {
+    injectApi(object: Record<string, unknown>) {
 
         mix(PluginBase.prototype, object);
         const keys = Object.keys(object);
@@ -285,7 +285,7 @@ export class PluginSystemNative {
         for (const plugin of this.#nativePlugins) {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
-                context = plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
+                context = plugin[hookName as keyof typeof plugin](...args) ?? context;
                 this.externalHookListener(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
@@ -305,7 +305,7 @@ export class PluginSystemNative {
         for (const plugin of this.#nativePlugins) {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
-                context = await plugin[hookName as keyof typeof plugin].apply(plugin, args) ?? context;
+                context = await plugin[hookName as keyof typeof plugin](...args) ?? context;
                 this.externalHookListener(hookName, plugin.name, args, context);
                 delete plugin.context;
             }

@@ -8,8 +8,8 @@ import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { WorldEvents } from "./world";
 import { TypeEmitter } from "@utils/type-emitter";
-import { createResettableStore } from "@stores/session-store";
-import { createOperatableStore, MutationVariable } from "@stores/mutation-store";
+import { createResettableStore } from "@stores/resettable-store";
+import { createOperatableStore, MutationVariable } from "@stores/operatable-store";
 
 type ValidAppSessionPath = `${keyof SessionSettingsData}.`;
 const validAppSettingsPaths: ValidAppSessionPath[] = [
