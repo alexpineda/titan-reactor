@@ -13,7 +13,15 @@ export const MacrosPanel = () => {
     macros: { macros },
   } = useMacroStore();
 
-  const [activeAction, setActiveAction] = useState<string | null>(null);
+  const [activeAction, _setActiveAction] = useState<string | null>(null);
+
+  const setActiveAction = (id: string) => {
+    if (activeAction === id) {
+      _setActiveAction(null);
+    } else {
+      _setActiveAction(id);
+    }
+  };
 
   return (
     <div>

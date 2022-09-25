@@ -31,7 +31,7 @@ export const MacroPanel = ({
   macro: MacroDTO;
   pluginsMetadata: PluginMetaData[];
   activeAction: string | null;
-  setActiveAction: (id: string | null) => void;
+  setActiveAction: (id: string) => void;
 }) => {
   const { updateMacro, deleteMacro, createActionable } = useMacroStore();
 

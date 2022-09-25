@@ -1,4 +1,3 @@
-import { spaceOutCapitalLetters } from "@utils/string-utils";
 import ErrorBoundary from "../../error-boundary";
 import { ActionablePanelProps } from "./actionable-pane-props";
 import { ActionableTargetFunction } from "./actionable-target-function";
@@ -52,12 +51,12 @@ export const ActionablePanel = (
                 path: [evt.target.value as TargetType],
               });
             }}
+            value={action.path[0]}
           >
             <option value=":app">App</option>
             <option value=":plugin">Plugin</option>
             <option value=":function">Function</option>
           </select>
-          <span>{spaceOutCapitalLetters(action.path[0].slice(1))}</span>
         </span>
         <button
           onClick={() => setActiveAction(action.id)}

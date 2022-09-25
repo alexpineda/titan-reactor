@@ -123,7 +123,12 @@ export const ActionableTargetPlugin = (props: ActionablePanelProps) => {
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>
             <ErrorBoundary message="Error with modifier">
-              <ActionableEditValue {...props} config={field} action={action} />
+              <ActionableEditValue
+                {...props}
+                config={field}
+                action={action}
+                key={action.path.join(".")}
+              />
             </ErrorBoundary>
           </div>
         )}

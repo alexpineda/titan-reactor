@@ -13,6 +13,7 @@ export enum ConditionComparator {
     LessThan = "LessThan",
     GreaterThanOrEquals = "GreaterThanOrEquals",
     LessThanOrEquals = "LessThanOrEquals",
+    Execute = "Execute",
 }
 
 

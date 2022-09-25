@@ -1,7 +1,9 @@
 import { settingsStore } from "@stores/settings-store";
-import { getAppSettingsPropertyInLevaFormat } from "common/get-app-settings-leva-config";
-import { getFieldDefinitionDisplayValue } from "common/macros/field-utilities";
-import { ConditionComparator, Operator } from "common/types";
+import {
+  getAppFieldDefinition,
+  getFieldDefinitionDisplayValue,
+} from "common/macros/field-utilities";
+import { ConditionComparator, Operator, TargetedPath } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
 import { useMacroStore } from "../use-macros-store";
@@ -14,23 +16,14 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
   const { action, viewOnly, macro } = props;
   const { updateActionable } = useMacroStore();
 
-  const levaConfig = getAppSettingsPropertyInLevaFormat(
-    settings.data,
-    settings.enabledPlugins,
-    action.path.slice(1)
+  const levaConfig = getAppFieldDefinition(
+    settings,
+    action.path as TargetedPath<":app">
   );
 
   const displayValue = getFieldDefinitionDisplayValue(
     levaConfig?.options,
     action.value
-  );
-
-  console.log(
-    viewOnly === false,
-    levaConfig !== undefined,
-    action.value !== undefined,
-    (action.type === "action" && action.operator === Operator.Set) ||
-      action.type === "condition"
   );
 
   return (
@@ -61,7 +54,7 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
             });
           }
         }}
-        value={action.path.join(".")}
+        value={action.path.slice(1).join(".")}
         disabled={viewOnly}
       />
       <ErrorBoundary message="Error with effects">
@@ -84,7 +77,7 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
         )}
 
       {viewOnly === false &&
-        levaConfig !== undefined &&
+        levaConfig !== null &&
         action.value !== undefined &&
         ((action.type === "action" && action.operator === Operator.Set) ||
           action.type === "condition") && (
@@ -92,6 +85,7 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
             <ActionableEditValue
               {...props}
               config={{ ...levaConfig, value: action.value }}
+              key={action.path.join(".")}
             />
           </ErrorBoundary>
         )}

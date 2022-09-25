@@ -101,14 +101,9 @@ const patchMutationInstruction = (action: MacroAction, settings: SettingsAndPlug
 
     if (!validInstructions.includes(action.operator)) {
 
-        action.operator = Operator.SetToDefault;
-        action.error = {
-            type: MacroActionConfigurationErrorType.InvalidInstruction,
-            message: "This action had an invalid instruction and was reset to the default"
-        };
+        action.operator = validInstructions[0];
 
     }
-
 
 };
 
@@ -118,13 +113,7 @@ const patchConditionComparator = (condition: MacroCondition, settings: SettingsA
 
     if (!validComparators.includes(condition.comparator)) {
 
-        condition.comparator = ConditionComparator.Equals;
-        condition.error = {
-
-            type: MacroActionConfigurationErrorType.InvalidCondition,
-            message: "This condition had an invalid comparator and was reset to the default"
-
-        };
+        condition.comparator = validComparators[0];
 
     }
 
@@ -249,6 +238,18 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(actio
         }
 
     } else {
+
+        if (action.type === "action") {
+
+            action.operator = Operator.Execute;
+
+        } else {
+
+            //TODO: wtf
+
+            action.comparator = ConditionComparator.Execute;
+
+        }
 
         if (typeof action.value !== "string") {
 
