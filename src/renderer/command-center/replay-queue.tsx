@@ -24,7 +24,6 @@ export const ReplayQueue = () => {
           alignItems: "center",
         }}
       >
-        <h3>Replay Queue</h3>
         <button
           onClick={async () => {
             const files = await openReplayDialog(true);

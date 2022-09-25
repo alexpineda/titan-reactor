@@ -29,8 +29,6 @@ export const CreateMacro = () => {
           justifyContent: "end",
         }}
       >
-        <h3>Macros</h3>
-
         <label>
           Name:
           <input

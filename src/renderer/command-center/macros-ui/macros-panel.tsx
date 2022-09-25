@@ -12,6 +12,9 @@ export const MacrosPanel = () => {
   const {
     macros: { macros },
   } = useMacroStore();
+  const [selectedMacroId, selectMacroId] = useState<string | null>(
+    macros[0]?.id ?? null
+  );
 
   const [activeAction, _setActiveAction] = useState<string | null>(null);
 
@@ -26,69 +29,92 @@ export const MacrosPanel = () => {
   return (
     <div>
       <ErrorBoundary message="There was an error with Macros.">
-        <CreateMacro />
-        <div>
-          {Object.entries(
-            groupBy(macros, (m) => {
-              const s = m.name.split(":");
-              return s.length === 1 ? "General" : s[0].trim();
-            })
-          ).map(([groupName, macros]) => (
-            <div
-              key={groupName}
-              style={{
-                margin: "var(--size-7)",
-              }}
-            >
-              {groupName && (
-                <div
-                  onClick={() => {
-                    if (collapsedGroups.includes(groupName)) {
-                      setCollapsedGroups(
-                        collapsedGroups.filter((g) => g !== groupName)
-                      );
-                    } else {
-                      setCollapsedGroups([...collapsedGroups, groupName]);
-                    }
-                  }}
-                  style={{
-                    color: "var(--gray-6)",
-                    display: "flex",
-                    alignItems: "center",
-                    position: "sticky",
-                  }}
-                >
-                  <i
-                    className="material-icons"
+        <div
+          style={{
+            display: "flex",
+          }}
+        >
+          <aside>
+            <CreateMacro />
+            {Object.entries(
+              groupBy(macros, (m) => {
+                const s = m.name.split(":");
+                return s.length === 1 ? "General" : s[0].trim();
+              })
+            ).map(([groupName, macros]) => (
+              <div
+                key={groupName}
+                style={{
+                  margin: "var(--size-7)",
+                }}
+              >
+                {groupName && (
+                  <div
                     style={{
-                      fontSize: "var(--font-size-3)",
-                      marginRight: "var(--size-2)",
+                      color: "var(--gray-6)",
                     }}
                   >
-                    folder
-                  </i>
-                  <span>{groupName}</span>
-                  {collapsedGroups.includes(groupName) && (
-                    <ul>
-                      {macros.map((macro) => (
-                        <li key={macro.id}>{macro.name}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              )}
-              {!collapsedGroups.includes(groupName) &&
-                macros.map((macro) => (
-                  <MacroPanel
-                    key={macro.id}
-                    macro={macro}
-                    pluginsMetadata={settings.enabledPlugins}
-                    activeAction={activeAction}
-                    setActiveAction={setActiveAction}
-                  />
-                ))}
-            </div>
-          ))}
+                    <span
+                      style={{ cursor: "pointer" }}
+                      onClick={() => {
+                        if (collapsedGroups.includes(groupName)) {
+                          setCollapsedGroups(
+                            collapsedGroups.filter((g) => g !== groupName)
+                          );
+                        } else {
+                          setCollapsedGroups([...collapsedGroups, groupName]);
+                        }
+                      }}
+                    >
+                      <i
+                        className="material-icons"
+                        style={{
+                          fontSize: "var(--font-size-3)",
+                          marginRight: "var(--size-2)",
+                        }}
+                      >
+                        folder
+                      </i>
+                      <span>{groupName}</span>
+                    </span>
+                    {!collapsedGroups.includes(groupName) && (
+                      <ul>
+                        {macros.map((macro) => (
+                          <li
+                            key={macro.id}
+                            style={{
+                              color:
+                                macro.id === selectedMacroId
+                                  ? "var(--blue-5)"
+                                  : "var(--gray-8)",
+                              cursor: "pointer",
+                            }}
+                            onClick={(evt) => {
+                              evt.stopPropagation();
+                              selectMacroId(macro.id);
+                            }}
+                          >
+                            {macro.name}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </aside>
+          <main>
+            {macros.find((m) => m.id === selectedMacroId) && (
+              <MacroPanel
+                key={selectedMacroId}
+                macro={macros.find((m) => m.id === selectedMacroId)!}
+                pluginsMetadata={settings.enabledPlugins}
+                activeAction={activeAction}
+                setActiveAction={setActiveAction}
+              />
+            )}
+          </main>
         </div>
       </ErrorBoundary>
     </div>
