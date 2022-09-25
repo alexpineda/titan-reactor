@@ -75,7 +75,7 @@ export interface NativePlugin {
     /**
      * Called when a plugin has it's configuration changed by the user
      */
-    onConfigChanged?(oldConfig: {}): void;
+    onConfigChanged?(oldConfig: Record<string, unknown>): void;
     /**
      * CaLLed when a plugin must release its resources
      */

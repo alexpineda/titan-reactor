@@ -72,28 +72,16 @@ const shouldHaveValue = (action: MacroAction | MacroCondition) => {
 
 }
 
-const getFirstOption = (options: Required<FieldDefinition>["options"]) => {
-
-    return !Array.isArray(options) ? Object.values(options)[0] : options[0];
+const optionExists = (options: Required<FieldDefinition>["options"], value: string) => {
+    return (Array.isArray(options) ? options : Object.values(options)).find(option => option === value);
 
 }
 
-
 const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition) => {
 
-    if (action.value === undefined) {
-        if (field.options) {
-            action.value = getFirstOption(field.options);
-        } else {
-            action.value = field.value;
-            if (!isValidTypeOfField(typeof action.value)) {
-                if (field.max !== undefined) {
-                    action.value = field.max;
-                } else if (field.min !== undefined) {
-                    action.value = field.min;
-                }
-            }
-        }
+
+    if (action.value === undefined || (field.options && !optionExists(field.options, action.value))) {
+        action.value = field.value;
     }
 
     if (!isValidTypeOfField(typeof action.value)) {
