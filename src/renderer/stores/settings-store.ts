@@ -1,4 +1,4 @@
-import create, { GetState, SetState } from "zustand";
+import create from "zustand";
 
 import { Settings, SettingsMeta } from "common/types";
 import { defaultSettings } from "common/default-settings";
@@ -10,7 +10,7 @@ export type SettingsStore = SettingsMeta & {
   load: () => Promise<SettingsMeta>;
 };
 
-export const useSettingsStore = create<SettingsStore>((set: SetState<SettingsStore>, get: GetState<SettingsStore>) => ({
+export const useSettingsStore = create<SettingsStore>((set, get) => ({
   data: { ...defaultSettings },
   phrases: {},
   isCascStorage: false,

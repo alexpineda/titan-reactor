@@ -120,7 +120,7 @@ if (process.env.NODE_ENV !== "development") {
     };
 }
 
-document.addEventListener('visibilitychange', () => globalEvents.emit("document-hidden", document.hidden), false);
+document.addEventListener("visibilitychange", () => globalEvents.emit("document-hidden", document.hidden), false);
 
 export const getJanitorLogLevel = () => {
 

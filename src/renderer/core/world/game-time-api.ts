@@ -3,7 +3,7 @@ import BaseScene from "@render/base-scene";
 import Chk from "bw-chk";
 import { Assets } from "@image/assets";
 import { PxToWorld } from "common/utils/conversions";
-import { GameViewPort } from "renderer/camera/game-viewport";
+import { GameViewPort } from "../../camera/game-viewport";
 import { Color } from "three";
 import { createSandboxApi } from "@openbw/sandbox-api";
 

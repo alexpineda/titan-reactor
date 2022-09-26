@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { Actionable, MacroDTO } from "common/types";
 import { useMacroStore } from "../use-macros-store";
+import { ScriptInline } from "../../script-inline";
+import debounce from "lodash.debounce";
+
+const debouncedUpdateActionable = debounce(
+  useMacroStore.getState().updateActionable,
+  500
+);
 
 export const ActionableTargetFunction = ({
   macro,
@@ -11,7 +18,6 @@ export const ActionableTargetFunction = ({
   action: Actionable;
   viewOnly: boolean;
 }) => {
-  const { updateActionable } = useMacroStore();
   const [value, setValue] = useState(action.value);
 
   return (
@@ -21,20 +27,13 @@ export const ActionableTargetFunction = ({
         gridGap: "var(--size-1)",
       }}
     >
-      <textarea
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        disabled={viewOnly}
+      <ScriptInline
+        content={value}
+        onChange={(content) => {
+          setValue(content);
+          debouncedUpdateActionable(macro, { ...action, value: content });
+        }}
       />
-      {!viewOnly && (
-        <button
-          onClick={() => {
-            updateActionable(macro, { ...action, value });
-          }}
-        >
-          Save
-        </button>
-      )}
     </p>
   );
 };

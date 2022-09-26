@@ -23,7 +23,7 @@ import { SurfaceComposer } from "./surface-composer";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
-let _intersects: Intersection[] = [];
+const _intersects: Intersection[] = [];
 
 const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D): Unit | null => {
 
@@ -119,9 +119,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     cursorMaterial.uniforms.uResolution.value.set(surfaces.gameSurface!.bufferWidth, surfaces.gameSurface!.bufferHeight);
 
-    world.events!.on("resize", (surface) => {
-
-        console.log("overlay:resize", surface);
+    world.events!.on("resize", () => {
 
         applySettings({ settings: world.settings!.getState(), rhs: {} });
 
