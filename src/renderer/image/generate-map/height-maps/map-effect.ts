@@ -1,6 +1,6 @@
 import { LinearEncoding, Matrix3, sRGBEncoding, Uniform, Texture } from "three";
 import { ColorChannel, BlendFunction, Effect } from "postprocessing";
-import fragmentShader from "./map-effect.frag";
+import fragmentShader from "./map-effect.frag?raw";
 
 const vertexShader = `
 uniform mat3 uvTransform;

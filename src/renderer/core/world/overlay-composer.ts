@@ -5,8 +5,8 @@ import { Assets } from "@image/assets";
 import { Intersection, Mesh, Object3D, PlaneBufferGeometry, Raycaster, Scene, Vector2 } from "three";
 import { SceneComposer } from "./scene-composer";
 import { World, WorldEvents } from "./world";
-import fragmentShader from "../../render/minimap-frag.glsl";
-import vertexShader from "../../render/minimap-vert.glsl";
+import fragmentShader from "../../render/minimap-frag.glsl?raw";
+import vertexShader from "../../render/minimap-vert.glsl?raw";
 import { ViewInputComposer } from "./view-composer";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
@@ -65,14 +65,14 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     if (module.hot) {
 
-        module.hot.accept("../../render/minimap-frag.glsl", () => {
+        module.hot.accept("../../render/minimap-frag.glsl?raw", () => {
 
             minimapMaterial.fragmentShader = fragmentShader;
             minimapMaterial.needsUpdate = true;
 
         });
 
-        module.hot.accept("../../render/minimap-vert.glsl", () => {
+        module.hot.accept("../../render/minimap-vert.glsl?raw", () => {
 
             minimapMaterial.vertexShader = vertexShader;
             minimapMaterial.needsUpdate = true;

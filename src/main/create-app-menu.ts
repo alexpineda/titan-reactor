@@ -7,7 +7,7 @@ import settings from "./settings/singleton"
 import { CLEAR_ASSET_CACHE, OPEN_MAP_DIALOG, OPEN_REPLAY_DIALOG, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import electronIsDev from "electron-is-dev";
 
-const settingsPath = path.join(getUserDataPath(), "settings.json");
+const settingsPath = path.join(getUserDataPath());
 export const logFilePath = path.join(getUserDataPath(), "logs");
 
 export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {

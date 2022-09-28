@@ -6,8 +6,8 @@ import { CreepTexture, WrappedQuartileTextures, GeometryOptions, EffectsTextures
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
 import { MapDataTextures } from "./create-data-textures";
 
-import hdMapFrag from "./glsl/hd.frag";
-import hdHeaderFrag from "./glsl/hd-header.frag";
+import hdMapFrag from "./glsl/hd.frag?raw";
+import hdHeaderFrag from "./glsl/hd-header.frag?raw";
 import { Terrain } from "@core/terrain";
 import { HeightMaps } from "./height-maps/render-height-maps";
 import gameStore from "@stores/game-store";

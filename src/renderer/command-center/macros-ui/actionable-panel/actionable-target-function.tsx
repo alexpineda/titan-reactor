@@ -12,11 +12,9 @@ const debouncedUpdateActionable = debounce(
 export const ActionableTargetFunction = ({
   macro,
   action,
-  viewOnly,
 }: {
   macro: MacroDTO;
   action: Actionable;
-  viewOnly: boolean;
 }) => {
   const [value, setValue] = useState(action.value);
 

@@ -35,7 +35,7 @@ export const MacrosPanel = () => {
           }}
         >
           <aside>
-            <CreateMacro />
+            <CreateMacro onCreated={selectMacroId} />
             {Object.entries(
               groupBy(macros, (m) => {
                 const s = m.name.split(":");

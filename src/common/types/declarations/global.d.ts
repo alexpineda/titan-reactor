@@ -1,41 +1,25 @@
 declare const __static: string;
 
-declare module "*!worker" {
+declare module "*?worker" {
 
     class Worker {
-        postMessage(message: {}, transferList?: any[]): void;
-        onmessage?: (message: { data: any; }) => void;
+        postMessage(message: object, transferList?: unknown[]): void;
+        onmessage?: (message: { data: unknown; }) => void;
         terminate(): void;
     }
     export default Worker;
 }
 
-declare module '*.frag' {
+declare module "*?raw" {
+    const contents: string;
+    export = contents
+}
+declare module "*.svg" {
     const contents: string;
     export = contents
 }
 
-declare module '*.vert' {
-    const contents: string;
-    export = contents
-}
-
-declare module '*.glsl' {
-    const contents: string;
-    export = contents
-}
-
-declare module '!!raw-loader!*' {
-    const contents: string;
-    export = contents
-}
-
-declare module '*.svg' {
-    const contents: string;
-    export = contents
-}
-
-declare module '*.png' {
+declare module "*.png" {
     const contents: string;
     export = contents
 }

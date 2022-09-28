@@ -95,9 +95,7 @@ export class PluginSystemNative {
 
             return plugin;
         } catch (e: unknown) {
-            if (e instanceof Error) {
-                log.error(`@plugin-system: failed to initialize "${pluginPackage.name}" - ${e.message}`);
-            }
+            log.error(withErrorMessage(e, `@plugin-system: failed to initialize "${pluginPackage.name}"`));
         }
 
     }

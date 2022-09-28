@@ -1,7 +1,8 @@
 import { BrowserWindow } from "electron";
 import isDev from "electron-is-dev";
 import path from "path";
-import { pathToFileURL } from "url";
+// import { pathToFileURL } from "url";
+import { ROOT_PATH } from "./root-path";
 
 const browserWindows = {} as {
   main: null | BrowserWindow;
@@ -18,12 +19,13 @@ interface CreateWindowArgs {
   nodeIntegration?: boolean;
   backgroundThrottling?: boolean;
   preloadFile?: string | undefined;
+  filepath: string;
 }
 
 const createDefaultArgs = (args: CreateWindowArgs) => Object.assign({}, { onClose: () => { }, query: "", removeMenu: false, hideMenu: false, backgroundColor: "#242526", nodeIntegration: false, devTools: false, backgroundThrottling: true, preloadFile: undefined }, args);
 
 export const createWindow = (createWindowArgs: CreateWindowArgs) => {
-  const { onClose, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, preloadFile } = createDefaultArgs(createWindowArgs);
+  const { onClose, removeMenu, hideMenu, devTools, backgroundColor, nodeIntegration, backgroundThrottling, preloadFile, filepath } = createDefaultArgs(createWindowArgs);
 
   let preload: string | undefined = undefined;
 
@@ -60,9 +62,9 @@ export const createWindow = (createWindowArgs: CreateWindowArgs) => {
   }
 
   if (isDev) {
-    w.loadURL(`http://localhost:${process.env.ELECTRON_WEBPACK_WDS_PORT}`);
+    w.loadURL(`${process.env.VITE_DEV_SERVER_URL!}${filepath}`);
   } else {
-    w.loadURL(pathToFileURL(path.join(__dirname, 'index.html')).toString());
+    w.loadURL(path.join(ROOT_PATH.dist, filepath));
   }
 
   // on(event: 'unresponsive', listener: Function): this;

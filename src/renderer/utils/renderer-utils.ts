@@ -1,5 +1,5 @@
 import { version } from "../../../package.json";
-import { renderComposer } from "@render";
+import { renderComposer } from "@render/render-composer";
 import { log } from "@ipc/log";
 
 export const logCapabilities = () => {

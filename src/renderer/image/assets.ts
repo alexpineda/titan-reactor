@@ -16,7 +16,7 @@ import gameStore from "@stores/game-store";
 import processStore from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
 import { generateAllIcons } from "./generate-icons/generate-icons";
-import { log } from "../ipc/log"
+import { log } from "@ipc/log"
 import { loadEnvironmentMap } from "./environment/env-map";
 import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
 import range from "common/utils/range";
@@ -48,8 +48,14 @@ export const createAssets = async (directories: Settings["directories"], preload
 
 
     electronFileLoader((file: string) => {
+        log.debug(file);
+
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png") || file.includes(".exr")) {
+            // if (process.env.NODE_ENV !== "development") {
             return fsPromises.readFile(file);
+            // } else {
+            //     return fetch(file).then(res => res.arrayBuffer()).then(buffer => Buffer.from(buffer));
+            // }
         } else {
             return readCascFile(file);
         }
@@ -64,20 +70,20 @@ export const createAssets = async (directories: Settings["directories"], preload
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
 
+    log.debug("@load-assets/selection-circles");
     const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
 
     const minimapConsole = {
         clock: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareRight.DDS")),
         square: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareFull.DDS")),
     }
-    console.log("minimapConsole", minimapConsole.clock.image.width, minimapConsole.clock.image.height)
-    console.log("minimapConsole", minimapConsole.square.image.width, minimapConsole.square.image.height)
 
+    log.debug("@load-assets/envmap");
     const envEXRAssetFilename = path.join(
         directories.assets,
         "envmap.exr"
     )
-    const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : `${__static}/envmap.hdr`;
+    const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : path.join(__static, "./envmap.hdr")
     const envMap = await loadEnvironmentMap(envMapFilename);
 
     const refId = (id: number) => {
@@ -150,7 +156,7 @@ export const createAssets = async (directories: Settings["directories"], preload
 
         if (anim.isHD2 && atlases[imageId]?.isHD) {
 
-            console.warn("hd2 after hd", imageId);
+            log.warn("hd2 after hd");
 
         }
 
@@ -181,7 +187,7 @@ export const createAssets = async (directories: Settings["directories"], preload
     if (preload) {
 
 
-        log.info(`@load-assets/atlas: preload`);
+        log.debug("@load-assets/atlas: preload");
         const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
         const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
 
@@ -196,8 +202,11 @@ export const createAssets = async (directories: Settings["directories"], preload
 
     await loadImageAtlas(imageTypes.warpInFlash);
 
+    log.debug("@load-assets/skybox");
     const loader = new CubeTextureLoader();
-    const rootPath = path.join(__static, "skybox", "sparse");
+    const rootPath = path.join(__static, "/skybox/sparse");
+    log.debug(rootPath);
+
     loader.setPath(rootPath);
 
     const skyBox = await new Promise(res => loader.load([
@@ -208,7 +217,6 @@ export const createAssets = async (directories: Settings["directories"], preload
         "front.png",
         "back.png",
     ], res)) as CubeTexture;
-
 
     return {
         bwDat,

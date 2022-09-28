@@ -16,7 +16,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
 
 import App from "./components/app";
-import { Surface } from "@image";
+import { Surface } from "@image/canvas/surface";
 import "common/utils/electron-file-loader";
 import IScriptSprite from "./iscript-sprite";
 import {

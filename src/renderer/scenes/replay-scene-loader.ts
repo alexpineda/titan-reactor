@@ -9,13 +9,13 @@ import Chk from "bw-chk";
 
 import { OpenBW } from "common/types";
 import { GameTypes } from "common/enums";
-import { openFile } from "@ipc";
+import { openFile } from "@ipc/files";
 import { log } from "@ipc/log";
 import { settingsStore } from "@stores/settings-store";
 import processStore from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";
 import { Janitor } from "three-janitor";
-import { useReplayAndMapStore } from "@stores";
+import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { detectMeleeObservers } from "@utils/replay-utils";

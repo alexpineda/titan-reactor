@@ -6,10 +6,10 @@ import {
 } from "three";
 
 import { CreepTexture, GeometryOptions } from "common/types";
-import sdMapFrag from "./glsl/sd-map.frag";
-import sdMapFragHeader from "./glsl/sd-map-header.frag";
-import elevationFrag from "./glsl/elevation.frag";
-import elevationHeader from "./glsl/elevation-header.frag";
+import sdMapFrag from "./glsl/sd-map.frag?raw";
+import sdMapFragHeader from "./glsl/sd-map-header.frag?raw";
+import elevationFrag from "./glsl/elevation.frag?raw";
+import elevationHeader from "./glsl/elevation-header.frag?raw";
 
 
 export const createSDMesh = async (

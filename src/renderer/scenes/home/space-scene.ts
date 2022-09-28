@@ -1,5 +1,5 @@
 import { renderComposer } from "@render";
-import { Surface } from "@image";
+import { Surface } from "@image/canvas/surface";
 import { loadEnvironmentMap } from "@image/environment/env-map";
 import {
     BlendFunction,
@@ -38,6 +38,7 @@ import { createAsteroids } from "./asteroids";
 import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
+import path from "path";
 
 CameraControls.install({ THREE: THREE });
 
@@ -136,9 +137,9 @@ export const preloadIntro = async () => {
 
     //TODO submit to types
     //@ts-ignore
-    fireTexture = new EXRLoader().load(`${__static}/FireBall03_8x8.exr`);
+    fireTexture = new EXRLoader().load(path.join(__static, "./FireBall03_8x8.exr"));
 
-    const envmap = await loadEnvironmentMap(`${__static}/envmap.hdr`);
+    const envmap = await loadEnvironmentMap(path.join(__static, "./envmap.hdr"));
     increment();
 
     await battleCruiser.load(envmap, fireTexture);
@@ -153,7 +154,7 @@ export const preloadIntro = async () => {
 
 };
 
-let mouse = new Vector3();
+const mouse = new Vector3();
 const _mousemove = (ev: MouseEvent) => {
     mouse.x = (ev.clientX / window.innerWidth) * 2 - 1;
     mouse.y = (ev.clientY / window.innerHeight) * 2 - 1;

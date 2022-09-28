@@ -2,6 +2,7 @@ import { loadGlb } from "@image/formats";
 import { Euler, InstancedMesh, MathUtils, Matrix4, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Object3D, Quaternion, Texture, Vector3 } from "three";
 import range from "common/utils/range";
 import { upgradeStandardMaterial } from "@utils/material-utils";
+import path from "path";
 
 
 
@@ -12,7 +13,7 @@ export const createAsteroids = () => {
     return {
         async load(envmap: Texture) {
 
-            const { model: asteroid } = await loadGlb(`${__static}/asteroid.glb`, envmap);
+            const { model: asteroid } = await loadGlb(path.join(__static, "./asteroid.glb"), envmap);
 
             asteroid.name = "asteroid.glb";
             asteroid.traverse((o: Object3D) => {

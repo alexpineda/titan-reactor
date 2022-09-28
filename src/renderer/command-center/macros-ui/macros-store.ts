@@ -15,13 +15,13 @@ type State = { macros: MacrosDTO };
 
 type Actions = {
 
-    persist(): void;
+    persist(): Promise<SettingsMeta | undefined>;
     busy: boolean;
 
     createMacro(
         name: string,
         trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | MacroHookTrigger
-    ): void;
+    ): Promise<string>;
     updateMacro(macro: MacroDTO): void;
     deleteMacro(macroId: string): void;
 
@@ -37,47 +37,53 @@ export const createMacroStore = (onSave?: (settings: SettingsMeta) => void) => c
         macros: settingsStore().data.macros,
         busy: false,
 
-        persist() {
+        async persist() {
             if (get().busy) {
                 return;
             }
             set(state => {
                 state.busy = true
             });
-            settingsStore()
-                .save({
-                    macros: {
-                        macros: get().macros.macros,
-                        revision: get().macros.revision + 1,
-                    },
-                })
-                .then((payload) => {
 
-                    set((state) => {
-                        state.macros = payload.data.macros;
-                        state.busy = false;
+            try {
+                const settings = await settingsStore()
+                    .save({
+                        macros: {
+                            macros: get().macros.macros,
+                            revision: get().macros.revision + 1,
+                        },
                     });
 
-                    onSave && onSave(payload);
-
-
-                }).catch((e) => {
-                    log.error(withErrorMessage(e, "failed to save macros"));
-                    set((state) => {
-                        state.busy = false
-                    });
+                set((state) => {
+                    state.macros = settings.data.macros;
                 });
+
+                onSave && onSave(settings);
+
+                return settings;
+
+            } catch (e) {
+                log.error(withErrorMessage(e, "failed to save macros"));
+
+            } finally {
+                set((state) => {
+                    state.busy = false
+                });
+            }
+
         },
 
 
-        createMacro(
+        async createMacro(
             name: string,
             trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | MacroHookTrigger
         ) {
+            const id = MathUtils.generateUUID();
+
             set((state) => {
 
                 state.macros.macros.push({
-                    id: MathUtils.generateUUID(),
+                    id,
                     name,
                     trigger: {
                         type: trigger.type,
@@ -91,8 +97,9 @@ export const createMacroStore = (onSave?: (settings: SettingsMeta) => void) => c
 
             });
 
-            get().persist();
+            await get().persist();
 
+            return id;
         },
 
 

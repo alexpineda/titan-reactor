@@ -34,6 +34,7 @@ const createMainWindow = () => {
     backgroundThrottling: false,
     hideMenu: true,
     removeMenu: false,
+    filepath: "index.html",
   });
   windows.main.maximize();
 
@@ -54,7 +55,8 @@ const createConfigurationWindow = () => {
     removeMenu: true,
     backgroundThrottling: true,
     backgroundColor: "#000000",
-    devTools: true
+    devTools: true,
+    filepath: "command-center.html",
   });
   windows.config.title = "Configuration Panel";
   windows.config.minimize();
@@ -77,8 +79,8 @@ if (!gotTheLock) {
   app.commandLine.appendSwitch("force_high_performance_gpu");
   app.commandLine.appendSwitch("disable-xr-sandbox");
   app.commandLine.appendSwitch("strict-origin-isolation");
-  app.commandLine.appendSwitch('js-flags', '--expose-gc');
-  app.commandLine.appendSwitch('--disable-gpu-process-crash-limit')
+  app.commandLine.appendSwitch("js-flags", "--expose-gc");
+  app.commandLine.appendSwitch("--disable-gpu-process-crash-limit")
   app.disableDomainBlockingFor3DAPIs()
 
   nativeTheme.themeSource = "light";
@@ -91,21 +93,21 @@ if (!gotTheLock) {
 
   if (process.defaultApp) {
     if (process.argv.length >= 2) {
-      app.setAsDefaultProtocolClient('titan-reactor', process.execPath, process.argv.slice(1));
+      app.setAsDefaultProtocolClient("titan-reactor", process.execPath, process.argv.slice(1));
     }
   } else {
-    app.setAsDefaultProtocolClient('titan-reactor')
+    app.setAsDefaultProtocolClient("titan-reactor")
   }
 
-  app.on('second-instance', () => {
+  app.on("second-instance", () => {
     if (windows.main) {
       if (windows.main.isMinimized()) windows.main.restore()
       windows.main.focus()
     }
   });
 
-  app.on('open-url', (_, url) => {
-    dialog.showErrorBox('Welcome Back', `You arrived from: ${url}`)
+  app.on("open-url", (_, url) => {
+    dialog.showErrorBox("Welcome Back", `You arrived from: ${url}`)
   })
 
   app.on("ready", async () => {

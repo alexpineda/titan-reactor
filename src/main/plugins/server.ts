@@ -7,14 +7,15 @@ import { LOG_MESSAGE, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import settings from "../settings/singleton"
 import fileExists from "common/utils/file-exists";
 import { logService } from "../logger/singleton";
-import fetch from 'node-fetch';
+import fetch from "node-fetch";
 import { getEnabledPluginPackages } from "./load-plugins";
 import * as casclib from "bw-casclib";
-import runtimeHTML from "!!raw-loader!./runtime.html";
-import runtimeJSX from "!!raw-loader!./runtime.tsx";
+import runtimeHTML from "./runtime.html?raw";
+import runtimeJSX from "./runtime.tsx?raw";
+import { ROOT_PATH } from "../root-path";
 
 const BUNDLED_SUBPATH = path.normalize("/bundled/");
-const RESOURCES_PATH = path.normalize(__static);
+const RESOURCES_PATH = path.normalize(ROOT_PATH.public);
 
 let _handle: any = null;
 const app = express();
@@ -25,7 +26,7 @@ app.use(function (_, res, next) {
     next()
 })
 
-app.get('*', async function (req, res) {
+app.get("*", async function (req, res) {
     if (req.url.startsWith("/m_api")) {
         if (req.method === "GET") {
             if (req.query["iconPNG"]) {
@@ -84,6 +85,8 @@ app.get('*', async function (req, res) {
 
         const filepath = path.normalize(path.join(RESOURCES_PATH, requestPath.replace(BUNDLED_SUBPATH, "")));
 
+        logService.debug(`sending ${filepath}`);
+
         if (!(filepath.startsWith(RESOURCES_PATH))) {
 
             logService.error(`@server/403-forbidden: ${filepath}`);
@@ -91,6 +94,7 @@ app.get('*', async function (req, res) {
             return res.sendStatus(403);
 
         }
+
 
         return res.sendFile(filepath);
 

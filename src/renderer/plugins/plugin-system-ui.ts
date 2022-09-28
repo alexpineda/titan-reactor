@@ -158,21 +158,23 @@ export class PluginSystemUI {
 
             const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
+            const payload = {
+                plugins: pluginPackages.map(plugin => ({ ...plugin, config: normalizePluginConfiguration(plugin.config ?? {}) })),
+                initialStore: initialStore(),
+                assets: {
+                    bwDat: assets.bwDat,
+                    gameIcons: assets.gameIcons,
+                    cmdIcons: assets.cmdIcons,
+                    raceInsetIcons: assets.raceInsetIcons,
+                    workerIcons: assets.workerIcons,
+                    wireframeIcons: assets.wireframeIcons
+                },
+                enums: { ...enums },
+            }
+
             this.#iframe.contentWindow?.postMessage({
                 type: UI_SYSTEM_READY,
-                payload: {
-                    plugins: pluginPackages.map(plugin => ({ ...plugin, config: normalizePluginConfiguration(plugin.config ?? {}) })),
-                    initialStore: initialStore(),
-                    assets: {
-                        bwDat: assets.bwDat,
-                        gameIcons: assets.gameIcons,
-                        cmdIcons: assets.cmdIcons,
-                        raceInsetIcons: assets.raceInsetIcons,
-                        workerIcons: assets.workerIcons,
-                        wireframeIcons: assets.wireframeIcons
-                    },
-                    enums,
-                }
+                payload
             }, "*");
 
         };

@@ -1,8 +1,7 @@
 import { Texture } from "three";
 import { TilesBufferView } from "@buffer-view";
 
-//@ts-ignore
-import Worker from "./creep.worker.js";
+import Worker from "./creep.worker.js?worker";
 import { Janitor } from "three-janitor";
 
 export class Creep {

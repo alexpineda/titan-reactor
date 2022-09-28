@@ -1,13 +1,16 @@
 import { SceneState, SceneStateID } from "../scene";
 import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
-import { renderComposer, root } from "@render";
+import { renderComposer } from "@render/render-composer";
 import { waitForSeconds } from "@utils/wait-for";
 import { Janitor } from "three-janitor";
 import { mixer } from "@core/global";
+import { root } from "@render/root";
+import { log } from "@ipc/log";
 
 export async function homeSceneLoader(): Promise<SceneState> {
   const janitor = new Janitor("home-scene-loader");
+  log.debug("Loading home scene");
   janitor.mop(await createWraithScene());
 
   await waitForSeconds(1);

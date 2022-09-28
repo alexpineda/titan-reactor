@@ -4,8 +4,8 @@ import {
 } from "three";
 
 import { Effect, BlendFunction } from "postprocessing";
-import fragmentShader from "./cursor.frag";
-import vertexShader from "./cursor.vert";
+import fragmentShader from "./cursor.frag?raw";
+import vertexShader from "./cursor.vert?raw";
 import { Assets } from "@image/assets";
 import { LegacyGRP } from "..";
 

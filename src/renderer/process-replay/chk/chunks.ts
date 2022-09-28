@@ -1,5 +1,5 @@
 const BufferList = require("bl");
-const { chunkTypes } = require("./common");
+import { chunkTypes } from "./chk-common";
 
 const PARTIAL_OVERWRITE = 0;
 

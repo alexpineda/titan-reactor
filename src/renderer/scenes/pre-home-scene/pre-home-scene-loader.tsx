@@ -7,7 +7,7 @@ import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
 import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
 import path from "path";
-import { Filter } from "@audio";
+import { Filter } from "@audio/filter";
 import { SceneState } from "../scene";
 import gameStore from "@stores/game-store";
 import { mixer } from "@core/global";
@@ -30,6 +30,7 @@ const makeErrorScene = (errors: string[]) => {
 export async function preHomeSceneLoader(): Promise<SceneState> {
   root.render(<PreHomeScene />);
 
+  log.debug("Loading settings");
   const settings = await settingsStore().load();
 
   await waitForTruthy(() => {
@@ -44,6 +45,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     )
   );
 
+  log.debug("Loading intro");
   await preloadIntro();
 
   mixer.setVolumes(settings.data.audio);

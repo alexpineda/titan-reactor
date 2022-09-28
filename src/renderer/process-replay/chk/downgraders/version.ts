@@ -1,4 +1,4 @@
-import { Version } from "../common";
+import { Version } from "../chk-common";
 import { uint16 } from "../../util/alloc";
 import { Downgrader } from "./downgrader";
 

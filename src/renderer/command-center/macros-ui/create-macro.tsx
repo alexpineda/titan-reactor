@@ -6,7 +6,11 @@ import { ManualTrigger } from "@macros/manual-trigger";
 import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import { useMacroStore } from "./use-macros-store";
 
-export const CreateMacro = () => {
+export const CreateMacro = ({
+  onCreated,
+}: {
+  onCreated: (id: string) => void;
+}) => {
   const [name, setName] = useState("");
   const [triggerType, setTriggerType] = useState<TriggerType>(
     TriggerType.Hotkey
@@ -57,7 +61,7 @@ export const CreateMacro = () => {
         </label>
 
         <button
-          onClick={() => {
+          onClick={async () => {
             if (name.trim() === "") {
               return;
             }
@@ -73,7 +77,8 @@ export const CreateMacro = () => {
             } else if (triggerType === TriggerType.GameHook) {
               trigger = new MacroHookTrigger();
             }
-            createMacro(name, trigger);
+            const id = await createMacro(name, trigger);
+            onCreated(id);
             setName("");
           }}
         >

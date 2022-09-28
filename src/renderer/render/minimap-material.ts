@@ -4,12 +4,12 @@ import { unitTypes } from "common/enums";
 import { Settings, UnitDAT } from "common/types";
 import { floor32 } from "common/utils/conversions";
 import { Color, Euler, Matrix4, OrthographicCamera, PerspectiveCamera, Quaternion, ShaderMaterial, Texture, Vector2, Vector3 } from "three";
-import fragmentShader from "./minimap-frag.glsl";
-import vertexShader from "./minimap-vert.glsl";
+import fragmentShader from "./minimap-frag.glsl?raw";
+import vertexShader from "./minimap-vert.glsl?raw";
 
 if (module.hot) {
-    module.hot.accept("./minimap-frag.glsl");
-    module.hot.accept("./minimap-vert.glsl");
+    module.hot.accept("./minimap-frag.glsl?raw");
+    module.hot.accept("./minimap-vert.glsl?raw");
 }
 
 //TODO:change to fit in to 1:1 box

@@ -3,6 +3,7 @@ import { createSpline } from "@utils/linear-spline";
 import { createParticles, ParticleSystem, defaultUpdate } from "@utils/particles";
 import { upgradeStandardMaterial } from "@utils/material-utils";
 import { Color, MathUtils, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, Texture, Vector3 } from "three";
+import path from "path";
 
 const BC_START_POS = new Vector3(-900, -250, -500);
 const BC_END_POS = new Vector3(-320, -560, -500);
@@ -23,7 +24,7 @@ export const createBattleCruiser = () => {
         coordMultipler: new Vector3(.1, .1, .1),
         async load(envmap: Texture, particle: Texture) {
             const { model } = await loadGlb(
-                `${__static}/battlecruiser.glb`,
+                path.join(__static, "/battlecruiser.glb"),
                 envmap
             );
             battleCruiser = model;

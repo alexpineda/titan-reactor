@@ -9,7 +9,7 @@ import {
 } from "three";
 
 import { Effect, EffectAttribute, BlendFunction } from "postprocessing";
-import fragmentShader from "./fog-of-war.frag";
+import fragmentShader from "./fog-of-war.frag?raw";
 
 export class FogOfWarEffect extends Effect {
   constructor() {

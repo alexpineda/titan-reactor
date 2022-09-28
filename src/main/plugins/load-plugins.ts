@@ -1,12 +1,12 @@
-import PackageJson from '@npmcli/package-json';
+import PackageJson from "@npmcli/package-json";
 import path from "path";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
-import { shell } from 'electron';
+import { shell } from "electron";
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge"
-import semver from 'semver';
+import semver from "semver";
 
 import { PluginMetaData, PluginPackage } from "common/types";
 import { ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_INSTALL_ERROR, ON_PLUGINS_INITIAL_INSTALL } from "common/ipc-handle-names";
@@ -14,11 +14,11 @@ import { ON_PLUGINS_ENABLED, RELOAD_PLUGINS, DISABLE_PLUGIN, ON_PLUGINS_INITIAL_
 import readFolder, { ReadFolderResult } from "../starcraft/get-files";
 import browserWindows from "../windows";
 import settings from "../settings/singleton"
-import { withErrorMessage } from 'common/utils/with-error-message';
+import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log"
-import fileExists from 'common/utils/file-exists';
+import fileExists from "common/utils/file-exists";
 import packagejson from "../../../package.json";
-import { transpile } from '../transpile';
+import { transpile } from "../transpile";
 
 let _enabledPluginPackages: PluginMetaData[] = [];
 let _disabledPluginPackages: PluginMetaData[] = [];
@@ -26,9 +26,9 @@ let _disabledPluginPackages: PluginMetaData[] = [];
 export const getEnabledPluginPackages = () => _enabledPluginPackages;
 export const getDisabledPluginPackages = () => _disabledPluginPackages;
 
-const loadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "text"): Promise<{}> => {
+const loadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "text"): Promise<object | string> => {
     const content = await fsPromises.readFile(filepath, { encoding: "utf8" });
-    if (format === 'json') {
+    if (format === "json") {
         return JSON.parse(content);
     }
     return content;
@@ -37,7 +37,7 @@ const loadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "tex
 const tryLoadUtf8 = async (filepath: string, format: "json" | "text" | "xml" = "text"): Promise<any | null> => {
     try {
         const content = await fsPromises.readFile(filepath, { encoding: "utf8" });
-        if (format === 'json') {
+        if (format === "json") {
             return JSON.parse(content);
         }
         return content;
@@ -139,6 +139,7 @@ const loadPluginPackages = async (folders: ReadFolderResult[]) => {
             continue;
         }
 
+        log.info(`@load-plugins/load-plugin-packages: Loaded plugin ${plugin.name} v${plugin.version}`);
         const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
         const pluginIsAlreadyEnabled = settings.get().plugins.enabled.includes(plugin.name);
 
@@ -204,13 +205,13 @@ export default async (pluginDirectory: string) => {
                     browserWindows.main?.webContents.reload();
                 });
             } else {
-                log.error(`@load-plugins/default: Failed to install default plugins`);
+                log.error("@load-plugins/default: Failed to install default plugins");
                 browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL_ERROR);
             }
 
         }
     } catch (e) {
-        log.error(withErrorMessage(e, `@load-plugins/default: Error loading plugins`));
+        log.error(withErrorMessage(e, "@load-plugins/default: Error loading plugins"));
     }
 
 }
@@ -247,7 +248,7 @@ export const installPlugin = async (repository: string) => {
             }
             return loadedPackage;
         } catch (e) {
-            log.error(withErrorMessage(e, `@load-plugins/install-plugin: Error loading plugins`));
+            log.error(withErrorMessage(e, "@load-plugins/install-plugin: Error loading plugins"));
         }
 
     } catch (e) {
@@ -287,7 +288,7 @@ export const disablePlugin = async (pluginId: string) => {
     if (!plugin) {
         log.info(`@load-plugins/disable: Plugin ${pluginId} not found`);
         return false;
-    };
+    }
 
     log.info(`@load-plugins/disable: Disabling plugin ${plugin.name}`);
 
@@ -309,7 +310,7 @@ export const uninstallPlugin = async (pluginId: string) => {
     if (!plugin) {
         log.error(`@load-plugins/uninstall: Plugin ${pluginId} not found`);
         return;
-    };
+    }
 
     log.info(`@load-plugins/uninstall: Uninstalling plugin ${plugin.name}`);
 
@@ -348,7 +349,7 @@ export const savePluginConfig = async (pluginId: string, config: any) => {
         })
         await pkgJson.save()
     } catch (e) {
-        log.error(withErrorMessage(e, `@save-plugins-config: Error writing plugin package.json`));
+        log.error(withErrorMessage(e, "@save-plugins-config: Error writing plugin package.json"));
         return;
     }
 }

@@ -6,6 +6,8 @@ import { ParticleSystem } from "@utils/particles";
 import { Color, Group, MathUtils, Mesh, MeshPhysicalMaterial, MeshStandardMaterial, Object3D, PerspectiveCamera, PointLight, Texture, Vector3 } from "three";
 import { playWraithComms } from "./wraith-noise";
 import { quadrants } from "@utils/quadrants";
+import path from "path";
+
 
 export type Wraith = Object3D & {
     init: () => void;
@@ -24,9 +26,9 @@ const wraithBlue = 0x0033ff;
 const createWraith = (og: Object3D, originalPosition: Vector3, particles: ParticleSystem, i: number) => {
     let swerveRate = 1000;
     let nextSwerveRate = 1000;
-    let _nextSwerveAngle = Math.PI / 3.5;
+    const _nextSwerveAngle = Math.PI / 3.5;
 
-    let [wx, wy, wz] = [
+    const [wx, wy, wz] = [
         MathUtils.randInt(1000, 4000),
         MathUtils.randInt(1000, 4000),
         MathUtils.randInt(1000, 4000),
@@ -127,7 +129,7 @@ export const createWraiths = () => {
         },
         async load(envmap: Texture, particle: Texture) {
 
-            const { model } = await loadGlb(`${__static}/wraith.glb`, envmap);
+            const { model } = await loadGlb(path.join(__static, "wraith.glb"), envmap);
 
             model.name = "wraith.glb";
             model.traverse((o: Object3D) => {

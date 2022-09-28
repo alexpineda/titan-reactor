@@ -4,7 +4,7 @@ import BufferList from "bl/BufferList";
 import VersionDowngrader from "./version";
 import StringDowngrader from "./string";
 import CRGBDowngrader from "./crgb";
-import { Version } from "../common";
+import { Version } from "../chk-common";
 import { uint32 } from "../../util/alloc";
 
 class Orchestrate {

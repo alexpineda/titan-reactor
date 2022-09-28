@@ -82,6 +82,10 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
             await viewInputComposer.activate(sceneController, defaultData);
             overlayComposer.unitSelectionBox.camera = viewInputComposer.primaryCamera!;
 
+        } else {
+
+            throw new Error(`Scene controller ${controllername} not found`);
+
         }
 
     }

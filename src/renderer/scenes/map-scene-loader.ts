@@ -5,7 +5,7 @@ import processStore from "@stores/process-store";
 import { OpenBW } from "common/types";
 import { waitForTruthy } from "@utils/wait-for";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
-import { useReplayAndMapStore } from "@stores";
+import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import gameStore from "@stores/game-store";
 import { Janitor } from "three-janitor";
 import ChkDowngrader from "@process-replay/chk/chk-downgrader";

@@ -10,25 +10,18 @@
       "request": "launch",
       "runtimeArgs": [
         "--inspect-brk",
-        "${workspaceRoot}/node_modules/jest/bin/jest.js",
-        "--runInBand"
+        "${workspaceRoot}/node_modules/jest/bin/jest",
+        "--runInBand",
+        "--no-cache"
       ],
       "console": "integratedTerminal",
       "internalConsoleOptions": "neverOpen",
-      "skipFiles": ["<node_internals>/**"],
-      "autoAttachChildProcesses": true
-    },
-
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Electron: Main",
-      "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron-webpack",
-      "runtimeArgs": ["dev"],
-      "windows": {
-        "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron-webpack.cmd"
-      },
-      "skipFiles": ["<node_internals>/**"]
+      "smartStep": true,
+      "skipFiles": ["<node_internals>/**", "node_modules/**"],
+      "autoAttachChildProcesses": true,
+      "sourceMaps": true,
+      "disableOptimisticBPs": "true",
+      "outFiles": ["${workspaceFolder}/**/*.js", "!**/node_modules/**"]
     }
   ]
 }
