@@ -116,13 +116,11 @@
         "threejs-shader-materials": "MasatoMakino/threejs-shader-materials",
         "troika-three-utils": "^0.46.0",
         "ts-morph": "^15.1.0",
-        "typescript": "^4.4.4",
-        "vite-plugin-esmodule": "^1.4.2",
+        "typescript": "^4.8.4",
         "winreg": "^1.2.4",
         "zustand": "4.1.1"
     },
     "devDependencies": {
-        "@babel/eslint-parser": "^7.15.8",
         "@babel/plugin-proposal-class-properties": "^7.10.4",
         "@babel/preset-typescript": "^7.15.0",
         "@types/babel__core": "^7.1.18",
@@ -173,7 +171,8 @@
         "ts-jest": "^29.0.1",
         "ts-node": "^10.9.1",
         "vite": "^3.1.3",
-        "vite-plugin-electron": "^0.9.3"
+        "vite-plugin-electron": "^0.9.3",
+        "vite-plugin-esmodule": "^1.4.2"
     },
     "resolutions": {
         "@types/react": "18.0.15",

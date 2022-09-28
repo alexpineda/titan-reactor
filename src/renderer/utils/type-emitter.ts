@@ -1,5 +1,3 @@
-import { settingsStore } from "@stores/settings-store";
-
 export type MatchingKeys<
     TRecord,
     TMatch,
@@ -31,11 +29,11 @@ export class TypeEmitter<T>  {
             }
         }
 
-        if (settingsStore().data.utilities.logLevel === "debug") {
-            if (!(s as string).startsWith("image") || Math.random() > 0.99) {
-                console.debug(`[TypeEmitter] ${s} emitted`, v);
-            }
-        }
+        // if (settingsStore().data.utilities.logLevel === "debug") {
+        //     if (!(s as string).startsWith("image") || Math.random() > 0.99) {
+        //         console.debug(`[TypeEmitter] ${s} emitted`, v);
+        //     }
+        // }
 
     }
 

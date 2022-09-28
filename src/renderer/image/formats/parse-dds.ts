@@ -266,10 +266,11 @@ export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
         );
       }
 
-      const mipmap = {
+      const mipmap: ImageData = {
         data: byteArray,
         width: width,
         height: height,
+        colorSpace: "srgb",
       };
       dds.mipmaps.push(mipmap);
 
