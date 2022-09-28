@@ -30,7 +30,7 @@ const createWebGLRenderer = () => {
         precision: "highp",
     });
     renderer.outputEncoding = sRGBEncoding;
-    renderer.debug.checkShaderErrors = false;// process.env.NODE_ENV === "development";
+    renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = VSMShadowMap;

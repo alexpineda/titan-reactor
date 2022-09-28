@@ -38,12 +38,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     return settingsStore().errors.length === 0;
   });
 
-  gameStore().setAssets(
-    await createAssets(
-      settings.data.directories,
-      settings.data.graphics.preload
-    )
-  );
+  gameStore().setAssets(await createAssets(settings.data.directories));
 
   log.debug("Loading intro");
   await preloadIntro();

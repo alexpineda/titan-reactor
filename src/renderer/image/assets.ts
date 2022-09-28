@@ -13,14 +13,11 @@ import {
 import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
 import gameStore from "@stores/game-store";
-import processStore from "@stores/process-store";
 import loadSelectionCircles from "./load-selection-circles";
 import { generateAllIcons } from "./generate-icons/generate-icons";
 import { log } from "@ipc/log"
 import { loadEnvironmentMap } from "./environment/env-map";
-import { calculateImagesFromUnitsIscript } from "../utils/images-from-iscript";
-import range from "common/utils/range";
-import { imageTypes, unitTypes } from "common/enums";
+import { imageTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";
 import { settingsStore } from "@stores/settings-store";
 import { modelSetFileRefIds } from "@core/model-effects-configuration";
@@ -44,7 +41,7 @@ const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
 export type Assets = Awaited<ReturnType<typeof createAssets>>;
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
 
-export const createAssets = async (directories: Settings["directories"], preload: boolean) => {
+export const createAssets = async (directories: Settings["directories"]) => {
 
 
     electronFileLoader((file: string) => {
@@ -182,22 +179,6 @@ export const createAssets = async (directories: Settings["directories"], preload
 
         }
 
-    }
-
-    if (preload) {
-
-
-        log.debug("@load-assets/atlas: preload");
-        const omit = [unitTypes.khaydarinCrystalFormation, unitTypes.protossTemple, unitTypes.xelNagaTemple];
-        const preloadImageIds = calculateImagesFromUnitsIscript(bwDat, [...range(0, 172).filter(id => !omit.includes(id)), ...[unitTypes.vespeneGeyser, unitTypes.mineral1, unitTypes.mineral2, unitTypes.mineral3, unitTypes.darkSwarm], ...range(220, 228)])
-
-        const assetProcess = processStore().create("assets", preloadImageIds.length);
-
-        for (const id of preloadImageIds) {
-            assetProcess.increment();
-            await loadImageAtlas(id);
-        }
-        // don't complete assetProcess as we'll need to load more assets later
     }
 
     await loadImageAtlas(imageTypes.warpInFlash);

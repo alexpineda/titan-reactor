@@ -49,10 +49,12 @@
             "category": "Game",
             "icon": "icon256x256.ico"
         },
-        "extraResources": [{
-            "from": "bundled",
-            "to": "bundled"
-        }]
+        "extraResources": [
+            {
+                "from": "bundled",
+                "to": "bundled"
+            }
+        ]
     },
     "debug": {
         "env": {
@@ -159,6 +161,7 @@
         "reflect-metadata": "^0.1.13",
         "rimraf": "^3.0.2",
         "source-map-support": "^0.5.19",
+        "spectorjs": "^0.9.27",
         "ts-jest": "^29.0.1",
         "ts-node": "^10.9.1",
         "vite": "^3.1.3",

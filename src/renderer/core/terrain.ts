@@ -102,13 +102,13 @@ export class Terrain extends Group {
 
         this.shadowsEnabled = highDefinition;
 
+        this.#setAnisotropy(anisotropy);
+
         if (highDefinition) {
             this.#changeToStandardMaterial();
             this.#setBumpScale(0);
-            this.#setAnisotropy(anisotropy);
         } else {
             this.#changeToBasicMaterial();
-            this.#setAnisotropy(1);
         }
 
     }

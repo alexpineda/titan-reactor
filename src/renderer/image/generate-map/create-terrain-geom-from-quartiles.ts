@@ -6,8 +6,8 @@ import { CreepTexture, WrappedQuartileTextures, GeometryOptions, EffectsTextures
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
 import { MapDataTextures } from "./create-data-textures";
 
-import hdMapFrag from "./glsl/hd.frag?raw";
-import hdHeaderFrag from "./glsl/hd-header.frag?raw";
+import hdMapFrag from "./hd/hd.frag.glsl?raw";
+import hdHeaderFrag from "./hd/hd-header.frag.glsl?raw";
 import { Terrain } from "@core/terrain";
 import { HeightMaps } from "./height-maps/render-height-maps";
 import gameStore from "@stores/game-store";
@@ -21,7 +21,7 @@ export const createTerrainGeometryFromQuartiles = async (
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
     { creepEdgesTextureUniform, creepTextureUniform /*, occlussionRoughnessMetallicMap*/ }: MapDataTextures,
-    { displaceCanvas, singleChannel, texture }: HeightMaps,
+    { singleChannel, texture, displaceCanvas }: HeightMaps,
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
@@ -40,23 +40,29 @@ export const createTerrainGeometryFromQuartiles = async (
     const tilesX = mapWidth / qw;
     const tilesY = mapHeight / qh;
 
-    let totalVertices = 0;
+    // const displacementMap = new DataTexture(out, texture.image.width, texture.image.height, RedFormat);
+    // displacementMap.needsUpdate = true;
+
     for (let qy = 0; qy < tilesY; qy++) {
         for (let qx = 0; qx < tilesX; qx++) {
+            // const g =
+            //     new PlaneBufferGeometry(qw,
+            //         qh,
+            //         qw * geomOptions.meshDetail,
+            //         qh * geomOptions.meshDetail);
             const g = createDisplacementGeometryQuartile(
                 qw,
                 qh,
-                qw * geomOptions.meshDetail,
-                qh * geomOptions.meshDetail,
+                qw * geomOptions.tesselation,
+                qh * geomOptions.tesselation,
                 displaceCanvas,
                 geomOptions.maxTerrainHeight,
                 0,
                 qw / mapWidth,
                 qh / mapHeight,
-                qx * qw * geomOptions.textureDetail,
-                qy * qh * geomOptions.textureDetail,
+                qx * qw * geomOptions.texPxPerTile,
+                qy * qh * geomOptions.texPxPerTile,
             );
-            totalVertices += g.attributes.position.count;
             g.computeVertexNormals();
 
             const standardMaterial = new MeshStandardMaterial({
@@ -65,6 +71,8 @@ export const createTerrainGeometryFromQuartiles = async (
                 bumpMap: mapTextures.mapQuartiles[qx][qy],
                 bumpScale: geomOptions.bumpScale,
                 envMap: gameStore().assets!.envMap,
+                // displacementMap: displacementMap,
+                // displacementScale: geomOptions.maxTerrainHeight,
                 // roughnessMap: occlussionRoughnessMetallicMap,
                 fog: false
             });
@@ -77,10 +85,31 @@ export const createTerrainGeometryFromQuartiles = async (
                 let fs = shader.fragmentShader;
 
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
-                fs = fs.replace("#include <roughnessmap_fragment>", ShaderChunk.roughnessmap_fragment.replace("vec4 texelRoughness = texture2D( roughnessMap, vUv );", "vec4 texelRoughness = texture2D( roughnessMap, qUv );"));
-                ;
+                fs = fs.replace("#include <roughnessmap_fragment>", ShaderChunk.roughnessmap_fragment.replace("vUv", "qUv"));
 
                 shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
+
+                let vs = shader.vertexShader;
+
+                vs = vs.replace("#include <uv_vertex>", `${ShaderChunk.uv_vertex}\nqUv = vUv * quartileSize + vec2(quartileOffset.x, (1. - quartileSize.y) - quartileOffset.y);`);
+                vs = vs.replace("#include <displacementmap_vertex>", ShaderChunk.displacementmap_vertex.replace("vUv", "qUv"));
+
+                vs = vs.replace("varying vec3 vViewPosition;", `
+                    varying vec3 vViewPosition;
+                    varying vec3 v_Position;
+                `);
+
+                vs = vs.replace("gl_Position = projectionMatrix * mvPosition;", `
+                    gl_Position = projectionMatrix * mvPosition;
+                    v_Position = projectionMatrix * mvPosition;
+                `);
+
+                shader.vertexShader = `
+                uniform vec2 quartileSize;
+                uniform vec2 quartileOffset;
+                varying vec2 qUv;
+
+                ${vs}`;
 
                 shader.uniforms.quartileSize = {
                     value: new Vector2(qw / mapWidth, qh / mapHeight),
@@ -148,18 +177,6 @@ export const createTerrainGeometryFromQuartiles = async (
                     value: effectsTextures.tileMask
                 };
 
-                let vs = shader.vertexShader;
-                vs = vs.replace("varying vec3 vViewPosition;", `
-                    varying vec3 vViewPosition;
-                    varying vec3 v_Position;
-                `);
-                ;
-                vs = vs.replace("gl_Position = projectionMatrix * mvPosition;", `
-                    gl_Position = projectionMatrix * mvPosition;
-                    v_Position = projectionMatrix * mvPosition;
-                `);
-                shader.vertexShader = vs;
-
             };
             standardMaterial.onBeforeCompile = materialOnBeforeCompile;
             basicMaterial.onBeforeCompile = materialOnBeforeCompile;
@@ -185,7 +202,6 @@ export const createTerrainGeometryFromQuartiles = async (
         }
     }
 
-    console.log(totalVertices);
     terrain.castShadow = true;
     terrain.receiveShadow = true;
     terrain.rotation.x = -Math.PI / 2;

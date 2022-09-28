@@ -15,6 +15,8 @@ uniform sampler2D creepEdges;
 uniform sampler2D creepEdgesTexture;
 uniform vec2 creepEdgesResolution;
 
+varying vec2 qUv;
+
 
 // // water / effects uniforms
 // uniform sampler2D spriteTex;

@@ -118,14 +118,14 @@ export const MapViewer = ({
 
     textureDetail: {
       folder: "Generation",
-      value: defaultGeometryOptions.textureDetail,
+      value: defaultGeometryOptions.texPxPerTile,
       min: 1,
       max: 32,
       step: 1,
     },
     meshDetail: {
       folder: "Generation",
-      value: defaultGeometryOptions.meshDetail,
+      value: defaultGeometryOptions.tesselation,
       min: 0.5,
       max: 4,
       step: 0.5,

@@ -6,10 +6,10 @@ import {
 } from "three";
 
 import { CreepTexture, GeometryOptions } from "common/types";
-import sdMapFrag from "./glsl/sd-map.frag?raw";
-import sdMapFragHeader from "./glsl/sd-map-header.frag?raw";
-import elevationFrag from "./glsl/elevation.frag?raw";
-import elevationHeader from "./glsl/elevation-header.frag?raw";
+import sdMapFrag from "./sd/sd-map.frag.glsl?raw";
+import sdMapFragHeader from "./sd/sd-map-header.frag.glsl?raw";
+import elevationFrag from "./sd/elevation.frag.glsl?raw";
+import elevationHeader from "./sd/elevation-header.frag.glsl?raw";
 
 
 export const createSDMesh = async (
@@ -119,8 +119,8 @@ export const createSDMesh = async (
   const geometry = new THREE.PlaneBufferGeometry(
     mapWidth,
     mapHeight,
-    mapWidth * geomOptions.meshDetail,
-    mapHeight * geomOptions.meshDetail
+    mapWidth * geomOptions.tesselation,
+    mapHeight * geomOptions.tesselation
   );
   // const geometry = createDisplacementGeometry(
   //   null,

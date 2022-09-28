@@ -126,14 +126,10 @@ export const createHdQuartiles = (
         }
       }
 
-
-
       mapQuartiles[qx][qy] = rt.texture;
       mapQuartiles[qx][qy].encoding = sRGBEncoding;
+      // rt.dispose();
 
-      if (Janitor.logLevel === JanitorLogLevel.Debug) {
-        Janitor.logLevel = JanitorLogLevel.Verbose;
-      }
       Janitor.logLevel = JanitorLogLevel.None;
       Janitor.trash("quartileScene", quartileScene);
       Janitor.logLevel = getJanitorLogLevel();

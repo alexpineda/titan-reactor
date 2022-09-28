@@ -60,3 +60,15 @@ lockdown_();
   sceneStore().execSceneLoader(homeSceneLoader);
 
 })()
+
+if (process.env.NODE_ENV === "development") {
+
+  import("spectorjs").then(module => {
+
+    const spector = new module.Spector();
+    spector.displayUI();
+    spector.spyCanvases();
+
+  })
+
+}

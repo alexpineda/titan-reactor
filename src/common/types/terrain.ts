@@ -10,11 +10,11 @@ export type GeometryOptions = {
   elevationLevels: number[];
   ignoreLevels: number[];
   normalizeLevels: boolean;
-  textureDetail: number;
+  texPxPerTile: number;
   /**
    * number of vertices per tile
    */
-  meshDetail: number;
+  tesselation: number;
   blendNonWalkableBase: boolean;
   firstPass: boolean;
   secondPass: boolean;

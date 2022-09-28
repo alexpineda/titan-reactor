@@ -134,7 +134,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
     const buildSprite = (spriteData: SpritesBufferView, delta: number, renderMode3D: boolean, direction: number) => {
 
         const unit = sprites.getUnit(spriteData.index);
-        let sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
+        const sprite = sprites.getOrCreate(spriteData.index, spriteData.typeId);
 
         const dat = assets.bwDat.sprites[spriteData.typeId];
 
@@ -170,7 +170,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         for (const imgAddr of spriteData.images.reverse()) {
             const imageData = imageBufferView.get(imgAddr);
 
-            let image = images.getOrCreate(imageData.index, imageData.typeId);
+            const image = images.getOrCreate(imageData.index, imageData.typeId);
             if (!image) {
                 continue;
             }

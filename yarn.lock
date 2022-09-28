@@ -7739,6 +7739,11 @@ spdx-license-ids@^3.0.0:
   resolved "https://registry.yarnpkg.com/spdx-license-ids/-/spdx-license-ids-3.0.11.tgz#50c0d8c40a14ec1bf449bae69a0ea4685a9d9f95"
   integrity sha512-Ctl2BrFiM0X3MANYgj3CkygxhRmr9mi6xhejbdO960nF6EDJApTYpn0BQnDKlnNBULKiCN1n3w9EBkHK8ZWg+g==
 
+spectorjs@^0.9.27:
+  version "0.9.27"
+  resolved "https://registry.yarnpkg.com/spectorjs/-/spectorjs-0.9.27.tgz#9b3893e90da124a9db1d9d1c5ab695bd0af0dcd5"
+  integrity sha512-eujFAuFWdW9S5wT++ks2o1zShN5Vd8Zple2NB6oM5G5tXqNtGbk6Yg3mfCpL03Bbq0djqGJAeswYk0VfpuPfIQ==
+
 split-string@^3.0.1:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/split-string/-/split-string-3.1.0.tgz#7cb09dda3a86585705c64b39a6466038682e8fe2"
