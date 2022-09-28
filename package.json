@@ -49,12 +49,10 @@
             "category": "Game",
             "icon": "icon256x256.ico"
         },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ]
+        "extraResources": [{
+            "from": "bundled",
+            "to": "bundled"
+        }]
     },
     "debug": {
         "env": {
@@ -71,7 +69,7 @@
         "bl": "^5.0.0",
         "bw-casclib": "^2.0.1",
         "bw-chk": "^1.3.0",
-        "camera-controls": "@1.34.7",
+        "camera-controls": "1.34.7",
         "codemirror": "^6.0.1",
         "concat-stream": "^2.0.0",
         "d3-ease": "1.0.6",

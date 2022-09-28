@@ -18,7 +18,7 @@ const alias = Object.entries(aliases).reduce((acc, [key, aliasPath]) => {
 
 const sharedViteConfig = ({ command }) => ({
     define: {
-        "__static": JSON.stringify(command === "build" ? "./resources/bundled" : "./bundled")// path.normalize(path.join(__dirname, "bundled")))
+        "__static": JSON.stringify(command === "build" ? "./resources/bundled" : "./bundled")
     },
     resolve: {
         alias
@@ -34,7 +34,6 @@ export default defineConfig((env) => {
     return {
 
         ...sharedViteConfig(env),
-        assetsInclude: ["**/*.glb", "**/*.exr", "**/*.hdr"],
         publicDir: "bundled",
         build: {
             rollupOptions: {

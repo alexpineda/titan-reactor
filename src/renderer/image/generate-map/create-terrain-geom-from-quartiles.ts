@@ -21,17 +21,16 @@ export const createTerrainGeometryFromQuartiles = async (
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
     { creepEdgesTextureUniform, creepTextureUniform /*, occlussionRoughnessMetallicMap*/ }: MapDataTextures,
-    { displacementImage, displaceCanvas, singleChannel }: HeightMaps,
+    { displaceCanvas, singleChannel, texture }: HeightMaps,
     mapTextures: WrappedQuartileTextures,
     effectsTextures: EffectsTextures
 ) => {
     const terrain = new Terrain(geomOptions, getTerrainY({
-        data: singleChannel, width: displacementImage.width, height: displacementImage.height
+        data: singleChannel, width: texture.image.width, height: texture.image.height
     }, geomOptions.maxTerrainHeight, mapWidth, mapHeight), (anisotropy: number) => {
         creepTexture.texture.anisotropy = anisotropy;
         creepEdgesTexture.texture.anisotropy = anisotropy;
     });
-
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;

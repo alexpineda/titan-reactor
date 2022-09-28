@@ -37,6 +37,8 @@ module.exports = {
     "no-empty": ["error", { allowEmptyCatch: true }],
     "import/no-duplicates": 0,
     "import/no-unresolved": 0,
+    "import/namespace": 0,
+    "import/named": 0,
     "no-unused-vars": "off",
     "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "no-empty-function": "off",

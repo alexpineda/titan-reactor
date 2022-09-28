@@ -10,7 +10,7 @@ import parseHeader from "./parse-replay-header";
 import { readBlock } from "./blocks";
 import { parseLMTS, parseSCRSection } from "./parse-scr-section";
 
-const parseReplay = async (buf: Buffer) => {
+export const parseReplay = async (buf: Buffer) => {
   const bl = new BufferList();
   bl.append(buf);
 
@@ -66,7 +66,6 @@ const parseReplay = async (buf: Buffer) => {
   if (version === Version.remastered && scrOffset !== null) {
     const scr = new BufferList(buf.subarray(scrOffset));
     limits = await parseSCRSection(scr) ?? limits;
-    console.log(limits);
   }
 
   return {
@@ -80,5 +79,4 @@ const parseReplay = async (buf: Buffer) => {
   };
 };
 
-export default parseReplay;
 export type Replay = Awaited<ReturnType<typeof parseReplay>>;

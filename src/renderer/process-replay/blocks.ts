@@ -36,7 +36,6 @@ export const deflate = async (buf: Buffer) => {
 
 export const readBlock = async (buf: BufferList, blockSize: number) => {
   if (blockSize === 0) {
-    console.warn("block size 0");
     return Buffer.alloc(0);
   }
   const checksum = buf.readUInt32LE(0);
@@ -64,7 +63,7 @@ export const readBlock = async (buf: BufferList, blockSize: number) => {
 
   const isDeflated = actualBlockSize < blockSize;
 
-  let deflated = await Promise.all(
+  const deflated = await Promise.all(
     chunks.map((chunk) => (isDeflated ? inflate(chunk.buf) : chunk.buf))
   );
 
@@ -102,7 +101,7 @@ export const getBlockSize = async (data: Buffer) => {
 
 export const writeBlock = async (out: BufferList, data: Buffer, compress: boolean) => {
   const numChunks = Math.ceil(data.length / MAX_CHUNK_SIZE);
-  let checksum = pkware.crc32(data.slice(0));
+  const checksum = pkware.crc32(data.slice(0));
   let outBlockSize = 0;
 
   //@ts-ignore

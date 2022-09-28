@@ -58,7 +58,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
     units.externalOnClearUnits = () => world.events!.emit("units-cleared");
     units.externalOnCreateUnit = (unit) => world.events!.emit("unit-created", unit);
 
-    world.openBW!.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.displacementImage.width, terrainExtra.heightMaps.displacementImage.height);
+    world.openBW!.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.texture.image.width, terrainExtra.heightMaps.texture.image.height);
 
     const scene = janitor.mop(new BaseScene(...world.map!.size, terrain, assets.skyBox, assets.envMap), "scene");
     const sprites = janitor.mop(new SpriteEntities(), "sprites");

@@ -71,13 +71,32 @@ export const createHdQuartiles = (
   const renderHeight = quartileHeight * PX_PER_TILE_HD;
   renderer.setSize(renderWidth, renderHeight);
 
-  const plane = new PlaneBufferGeometry();
+
+
   for (let qx = 0; qx < quartileStrideW; qx++) {
     mapQuartiles[qx] = [];
     for (let qy = 0; qy < quartileStrideH; qy++) {
 
       const quartileScene = new Scene();
       quartileScene.name = "quartile-ortho-scene";
+
+      const rt = new WebGLRenderTarget(renderWidth, renderHeight, {
+        anisotropy: renderer.capabilities.getMaxAnisotropy(),
+        minFilter: NearestFilter,
+        magFilter: NearestFilter,
+        encoding: sRGBEncoding,
+        depthBuffer: false,
+        generateMipmaps: true,
+
+      });
+      renderer.setRenderTarget(rt)
+      quartileScene.scale.set(1, 1, -1);
+
+      const mat = new MeshBasicMaterial({
+        side: DoubleSide,
+      });
+      const plane = new PlaneBufferGeometry();
+      const mesh = new Mesh(plane, mat);
 
       for (let x = 0; x < quartileWidth; x++) {
         for (let y = 0; y < quartileHeight; y++) {
@@ -90,31 +109,24 @@ export const createHdQuartiles = (
               hdCache.set(tile, texture);
             }
             texture.encoding = sRGBEncoding;
-            const mat = new MeshBasicMaterial({
-              map: texture,
-              side: DoubleSide,
-            });
-            const mesh = new Mesh(plane, mat);
+
+
+            mat.map = texture;
             mesh.name = "hd-tile";
             quartileScene.add(mesh);
             mesh.position.x = x - quartileWidth / 2 + 0.5;
             mesh.position.z = y - quartileHeight / 2 + 0.5;
             mesh.rotation.x = Math.PI / 2;
+
+            renderer.render(quartileScene, ortho);
+
           } else {
             console.error("no tile", tile);
           }
         }
       }
 
-      const rt = new WebGLRenderTarget(renderWidth, renderHeight, {
-        anisotropy: renderer.capabilities.getMaxAnisotropy(),
-        minFilter: NearestFilter,
-        magFilter: NearestFilter,
-        encoding: sRGBEncoding,
-      });
-      renderer.setRenderTarget(rt)
-      quartileScene.scale.set(1, 1, -1);
-      renderer.render(quartileScene, ortho);
+
 
       mapQuartiles[qx][qy] = rt.texture;
       mapQuartiles[qx][qy].encoding = sRGBEncoding;
@@ -122,6 +134,7 @@ export const createHdQuartiles = (
       if (Janitor.logLevel === JanitorLogLevel.Debug) {
         Janitor.logLevel = JanitorLogLevel.Verbose;
       }
+      Janitor.logLevel = JanitorLogLevel.None;
       Janitor.trash("quartileScene", quartileScene);
       Janitor.logLevel = getJanitorLogLevel();
     }

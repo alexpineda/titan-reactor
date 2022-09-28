@@ -72,6 +72,10 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
   const rt = new WebGLRenderTarget(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD, {
     anisotropy: renderer.capabilities.getMaxAnisotropy(),
     encoding: sRGBEncoding,
+    generateMipmaps: true,
+    depthBuffer: false,
+    minFilter: NearestFilter,
+    magFilter: NearestFilter
   });
   renderer.setRenderTarget(rt)
   renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);

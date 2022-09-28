@@ -12,7 +12,7 @@ export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 export const createSurfaceComposer = (world: Borrowed<World>) => {
 
     const janitor = new Janitor("SurfaceComposer");
-    const gameSurface = janitor.mop(new GameSurface(...world.map!.size), "GameSurface");
+    const gameSurface = janitor.mop(new GameSurface(...world.map!.size, renderComposer.getWebGLRenderer().domElement), "GameSurface");
 
     gameSurface.canvas.style.cursor = "none";
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);

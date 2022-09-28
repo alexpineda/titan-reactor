@@ -1,5 +1,5 @@
 export class Surface {
-  ctx: CanvasRenderingContext2D;
+  ctx?: CanvasRenderingContext2D;
   canvas: HTMLCanvasElement;
   #pixelRatio = 1;
   #width = 0;
@@ -7,19 +7,20 @@ export class Surface {
   #bufferWidth = 0;
   #bufferHeight = 0;
 
-  constructor(styles?: Partial<ElementCSSInlineStyle["style"]>) {
-    const canvas = document.createElement("canvas");
+  constructor(canvas = document.createElement("canvas"), useContext = true, styles?: Partial<ElementCSSInlineStyle["style"]>) {
     if (styles) {
       Object.assign(canvas.style, styles);
     }
-    canvas.addEventListener('contextmenu', e => {
+    canvas.addEventListener("contextmenu", e => {
       e.preventDefault();
     });
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      throw new Error("Could not get canvas context");
+    if (useContext) {
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        throw new Error("Could not get canvas context");
+      }
+      this.ctx = ctx;
     }
-    this.ctx = ctx;
     this.canvas = canvas;
   }
 

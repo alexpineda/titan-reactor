@@ -41,6 +41,8 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
     minFilter: NearestFilter,
     magFilter: NearestFilter,
     encoding: LinearEncoding,
+    generateMipmaps: true,
+    depthBuffer: false
   });
   renderer.setRenderTarget(rt)
   renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);

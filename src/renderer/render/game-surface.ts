@@ -15,13 +15,13 @@ export class GameSurface extends Surface {
   #mapHeight: number;
   #shouldHavePointerLock = false;
 
-  constructor(mapWidth: number, mapHeight: number) {
+  constructor(mapWidth: number, mapHeight: number, canvas: HTMLCanvasElement) {
 
-    super();
+    super(canvas, false);
     this.#mapHeight = mapHeight;
     this.#mapWidth = mapWidth;
 
-    document.addEventListener('pointerlockerror', () => {
+    document.addEventListener("pointerlockerror", () => {
       this.#shouldHavePointerLock = false;
     });
 
@@ -48,8 +48,8 @@ export class GameSurface extends Surface {
       this.bottom = 0;
 
       super.setDimensions(
-        Math.floor(maxWidth - 2),
-        Math.floor(maxHeight - 2),
+        Math.floor(maxWidth),
+        Math.floor(maxHeight),
         pixelRatio
       );
 

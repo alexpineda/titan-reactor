@@ -1,4 +1,4 @@
-import parseReplay from "@process-replay/parse-replay";
+import { parseReplay } from "@process-replay/parse-replay";
 import writeReplay from "@process-replay/write-replay";
 import { Version } from "@process-replay/version";
 import CommandsStream from "@process-replay/commands/commands-stream";
@@ -70,7 +70,7 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
     replayBuffer = await writeReplay(replay.rawHeader, rawCmds, chk, replay.limits);
 
     if (process.env.NODE_ENV === "development") {
-      fs.writeFileSync(`D:\\last_replay.rep`, replayBuffer);
+      fs.writeFileSync("D:\\last_replay.rep", replayBuffer);
     }
     replay = await parseReplay(replayBuffer);
 
@@ -105,7 +105,6 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
   // wait for initial assets to load
   const assets = await waitForTruthy<Assets>(() => gameStore().assets);
 
-  // wait for initial assets to load
   if (settingsStore().data.graphics.preload) {
     await preloadMapUnitsAndSpriteFiles(assets, map, replay);
   }

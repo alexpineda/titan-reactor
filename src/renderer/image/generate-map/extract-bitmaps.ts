@@ -34,7 +34,6 @@ export const extractBitmaps = (
     b;
 
   const mapTilesData = new Uint16Array(mapWidth * mapHeight);
-  // const minitiles = new Uint16Array(mapWidth * mapHeight * 4 * 4);
   const diffuse = new Uint8Array(mapWidth * mapHeight * 32 * 32 * 4);
   const layers = new Uint8Array(mapWidth * mapHeight * 4 * 4);
   const paletteIndices = new Uint8Array(mapWidth * mapHeight * 32 * 32);
@@ -65,10 +64,11 @@ export const extractBitmaps = (
 
       for (let miniY = 0; miniY < 4; miniY++) {
         for (let miniX = 0; miniX < 4; miniX++) {
-          mini = megatilesVX4[megatileId * 16 + (miniY * 4 + miniX)];
+          const _megaIdx = megatileId * 16 + (miniY * 4 + miniX)
+          mini = megatilesVX4[_megaIdx];
           minitile = mini & 0xfffffffe;
           flipped = mini & 1;
-          meta = minitilesFlagsVF4[megatileId * 16 + (miniY * 4 + miniX)];
+          meta = minitilesFlagsVF4[_megaIdx];
           walkable = meta & 0x01;
           mid = meta & 0x02;
           high = meta & 0x04;
@@ -98,7 +98,7 @@ export const extractBitmaps = (
           }
 
           miniPos =
-            mapY * 4 * mapWidth * 4 + mapX * 4 + miniY * mapWidth * 4 + miniX;
+            mapY * mapWidth * 16 + mapX * 4 + miniY * mapWidth * 4 + miniX;
 
           layers[miniPos] = elevation;
           metaData[miniPos] = meta;
@@ -112,27 +112,30 @@ export const extractBitmaps = (
                 color = minitilesVR4[minitile * 0x20 + colorY * 8 + colorX];
               }
 
-              r = paletteWPE[color * 4];
-              g = paletteWPE[color * 4 + 1];
-              b = paletteWPE[color * 4 + 2];
+              const c4 = color * 4;
+
+              r = paletteWPE[c4];
+              g = paletteWPE[c4 + 1];
+              b = paletteWPE[c4 + 2];
 
               pixelPos =
-                mapY * 32 * mapWidth * 32 +
+                mapY * mapWidth * 1024 +
                 mapX * 32 +
-                miniY * 8 * mapWidth * 32 +
+                miniY * mapWidth * 256 +
                 miniX * 8 +
                 colorY * mapWidth * 32 +
                 colorX;
 
               paletteIndices[pixelPos] = color;
 
-              diffuse[pixelPos * 4] = r;
-              diffuse[pixelPos * 4 + 1] = g;
-              diffuse[pixelPos * 4 + 2] = b;
-              diffuse[pixelPos * 4 + 3] = 255;
+              const p4 = pixelPos * 4;
+              diffuse[p4] = r;
+              diffuse[p4 + 1] = g;
+              diffuse[p4 + 2] = b;
+              diffuse[p4 + 3] = 255;
 
               // G channel for roughness
-              occlussionRoughnessMetallic[pixelPos * 4 + 1] = elevation == 0 ? 0 : 255;
+              occlussionRoughnessMetallic[p4 + 1] = elevation == 0 ? 0 : 255;
             }
           }
         }
