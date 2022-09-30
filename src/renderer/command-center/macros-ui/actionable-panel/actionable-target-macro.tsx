@@ -67,6 +67,7 @@ export const ActionableTargetMacro = (props: ActionablePanelProps) => {
       </select>
 
       <select
+        value={action.path[2]}
         disabled={viewOnly}
         onChange={(evt) => {
           updateActionable(macro, {

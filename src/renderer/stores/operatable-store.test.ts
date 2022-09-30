@@ -6,9 +6,9 @@ import { SourceOfTruth } from "./source-of-truth";
 
 jest.mock("@ipc/log");
 
-describe("SessionStore", () => {
+describe("OperatableStore", () => {
 
-    it("should create resettable store", () => {
+    it("should create store", () => {
 
         const sourceOfTruth = new SourceOfTruth({
 
@@ -37,6 +37,7 @@ describe("SessionStore", () => {
 
     it("should create operatable variables", () => {
 
+
         const sourceOfTruth = new SourceOfTruth({
 
             foo: "bar"
@@ -45,18 +46,46 @@ describe("SessionStore", () => {
 
         const store = createDeepStore({ initialState: sourceOfTruth.snapshot() });
 
-        expect(store.getState()).toStrictEqual({ "foo": "bar" });
-
         const mutation = createOperatableStore(store, sourceOfTruth, () => ({
-            value: ""
+            value: "bar"
         }));
 
         const foo = mutation.createVariable(["foo"]);
 
-        foo.value = "baz";
+        expect(foo()).toBe("bar");
+        expect(store.getState()).toStrictEqual({ "foo": "bar" });
+
+        foo("baz");
 
         expect(store.getState()).toStrictEqual({ "foo": "baz" });
+        expect(foo()).toBe("baz");
         expect(sourceOfTruth.getValue(["foo"])).toBe("bar");
+
+    });
+
+    it("should apply operations variables", () => {
+
+        const sourceOfTruth = new SourceOfTruth({
+
+            foo: 0
+
+        });
+
+        const store = createDeepStore({ initialState: sourceOfTruth.snapshot() });
+
+        const mutation = createOperatableStore(store, sourceOfTruth, () => ({
+            value: 0,
+            step: 1
+        }));
+
+        const foo = mutation.createVariable(["foo"]);
+
+        // expect(foo()).toBe("bar");
+        expect(store.getState()).toStrictEqual({ "foo": 0 });
+
+        foo.inc();
+
+        expect(store.getState()).toStrictEqual({ "foo": 1 });
 
     });
 

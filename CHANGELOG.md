@@ -17,7 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Units are still selectable when the game is paused
 
 ## Changed
-- Upgraded to Electron 20
+- Upgraded to Electron 20, TypeScript 4.8.4, Vite build system and others.
+- Plugin API v3.
 
 ## [0.6.4]
 

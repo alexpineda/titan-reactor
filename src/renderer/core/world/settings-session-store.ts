@@ -94,15 +94,6 @@ export const createSettingsSessionStore = (
                 settingsKey,
                 store.createVariable(settingsKey)
             );
-            lSet<SessionVariables>(
-                acc,
-                [
-                    `get${settingsKey
-                        .map((t) => t[0].toUpperCase() + t.slice(1))
-                        .join("")}`,
-                ],
-                () => store.getValue(settingsKey)
-            );
         }
         return acc;
     }, {}) as SessionVariables;

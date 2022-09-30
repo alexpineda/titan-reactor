@@ -81,7 +81,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             if (!sceneController) {
                 inputs.mouse.interrupted = true;
                 return;
-            };
+            }
 
             inputs.update();
 
