@@ -16,7 +16,7 @@ const util = {
             actionSequence: MacroActionSequence.AllSync,
             enabled: true,
             trigger: {
-                type: TriggerType.Manual
+                type: TriggerType.None
             },
             ...partial
         };

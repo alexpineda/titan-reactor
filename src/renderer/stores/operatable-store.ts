@@ -3,10 +3,12 @@ import { fieldOperation } from "./field-operation";
 import { log } from "@ipc/log";
 import { DeepStore } from "./deep-store";
 import { SourceOfTruth } from "./source-of-truth";
+import { getTypeOfField } from "common/macros/field-utilities";
+import { Vector2, Vector3 } from "three";
 
 export type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
 
-export const createMutationVariable = (operate: (operation: Operation) => void, getValue: (path: string[]) => any) => (path: string[]) => {
+export const createMutationVariable = (operate: (operation: Operation) => void, getValue: (path: string[]) => any, setValue: (path: string[], x: any) => any = (_, x) => x) => (path: string[]) => {
 
     const _data = {
         value: undefined,
@@ -21,6 +23,15 @@ export const createMutationVariable = (operate: (operation: Operation) => void, 
     }
 
     return {
+
+        get() {
+            return this.value;
+        },
+
+        set(value: any) {
+            this.value = value;
+        },
+
         /**
          * Get value of the property.
          */
@@ -31,7 +42,7 @@ export const createMutationVariable = (operate: (operation: Operation) => void, 
          * Set value of the property.
          */
         set value(newValue: any) {
-            apply(Operator.Set, newValue);
+            apply(Operator.Set, setValue(path, newValue));
         },
         /**
          * Increase the value of the property.
@@ -112,6 +123,32 @@ export function createOperatableStore<T extends object>(store: DeepStore<T>, sou
         ...store,
         sourceOfTruth,
         operate,
-        createVariable: createMutationVariable(operate, (path) => store.getValue(path))
+        createVariable: createMutationVariable(operate, (path) => {
+            const value = store.getValue(path)
+            const field = getFieldDefinition(path, store.getState());
+            const fieldType = getTypeOfField(field);
+
+            if (fieldType === "vector") {
+                if (value.length === 2) {
+                    return new Vector2(value[0], value[1]);
+                } else if (value.length === 3) {
+                    return new Vector3(value[0], value[1], value[2]);
+                }
+            }
+            return value
+
+        }, (path, newValue) => {
+            const value = store.getValue(path)
+            const field = getFieldDefinition(path, store.getState());
+            const fieldType = getTypeOfField(field);
+
+            if (fieldType === "vector") {
+                if (newValue.isVector2 || newValue.isVector3) {
+                    return newValue.toArray();
+                }
+            }
+            return value
+
+        })
     }
 }

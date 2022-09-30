@@ -1,5 +1,5 @@
 import { log } from "@ipc/log";
-import { MacrosDTO, MacroTrigger, TriggerType, ConditionComparator } from "common/types";
+import { MacrosDTO, MacroTrigger, TriggerType, ConditionComparator, MacroAction, Operator } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
@@ -61,7 +61,11 @@ export class Macros {
                     macro.enabled = fieldOperation(action.operator, { value: action.value }, action.value, this.#macroDefaultEnabled.get(macro));
                     return;
                 } else if (action.path[2] === "program") {
-                    this.#execMacro(macro, context);
+                    if (action.operator === Operator.Execute) {
+                        this.#execMacro(macro, context);
+                    } else if (action.operator === Operator.SetToDefault) {
+                        this.resetAllActions(macro.id);
+                    }
                 } else {
                     log.warn(`Macro target does not support path ${action.path.join(".")}`);
                 }
@@ -198,7 +202,7 @@ export class Macros {
                 continue;
             }
 
-            this.targets.getHandler(action.path[0])!.action(action, context);
+            this.execAction(action, context);
 
         }
 
@@ -215,6 +219,21 @@ export class Macros {
             this.#execMacro(macro, context);
         } else {
             log.error(`Macro with id ${id} not found`);
+        }
+    }
+
+    execAction(action: MacroAction, context?: any) {
+
+        this.targets.getHandler(action.path[0])!.action(action, context);
+
+    }
+
+    resetAllActions(macroId: string) {
+        const macro = this.macros.find((m) => m.id === macroId);
+        if (macro) {
+            for (const action of macro.actions) {
+                this.execAction({ ...action, operator: Operator.SetToDefault });
+            }
         }
     }
 

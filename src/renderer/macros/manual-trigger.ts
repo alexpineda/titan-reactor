@@ -1,7 +1,7 @@
 import { MacroTrigger, TriggerType } from "common/types";
 
 export class ManualTrigger implements MacroTrigger {
-    type = TriggerType.Manual;
+    type = TriggerType.None;
     readonly weight = 0;
 
     async test() {

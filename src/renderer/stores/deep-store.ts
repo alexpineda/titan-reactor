@@ -50,7 +50,7 @@ export function createDeepStore<T extends Record<string, any>>({ initialState, v
 
 export type DeepStore<T extends object> = {
     getState: () => T;
-    getValue: (path: string[]) => any;
     setValue: (path: string[], value: any) => void;
+    getValue: (path: string[]) => any;
     merge: (rhs: DeepPartial<T>) => void;
 }

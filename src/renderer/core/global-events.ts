@@ -1,6 +1,6 @@
 import { TypeEmitter } from "@utils/type-emitter";
 import { LogLevel } from "common/logging";
-import { PluginMetaData, SettingsMeta } from "common/types";
+import { MacroAction, PluginMetaData, SettingsMeta } from "common/types";
 
 export interface GlobalEvents {
     "webglcontextlost": void;
@@ -17,6 +17,8 @@ export interface GlobalEvents {
     "log-message": { message: string, level: LogLevel, server?: boolean };
     "initial-install-error-plugins": void;
     "exec-macro": string;
+    "reset-macro-actions": string;
+    "exec-macro-action": { action: MacroAction, withReset: boolean };
     "document-hidden": boolean;
 }
 

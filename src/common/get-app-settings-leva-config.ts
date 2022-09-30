@@ -16,7 +16,7 @@ export const getAppSettingsPropertyInLevaFormat = (
     settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ): FieldDefinition | undefined => {
 
-    if ([":app", ":plugin", ":function"].includes(fields[0])) {
+    if ([":app", ":plugin", ":function", ":macro"].includes(fields[0])) {
         console.error("YOU ARE USING ROOT KEYS", fields);
         return undefined;
     }
@@ -37,7 +37,7 @@ export const getAppSettingsInLevaFormat = (settings: SettingsMeta["data"], plugi
 export const getSessionSettingsPropertyInLevaFormat = (
     settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
 ): FieldDefinition | undefined => {
-    if ([":app", ":plugin", ":function"].includes(fields[0])) {
+    if ([":app", ":plugin", ":function", ":macro"].includes(fields[0])) {
         console.error("YOU ARE USING ROOT KEYS", fields);
         return undefined;
     }
@@ -183,16 +183,12 @@ const getMinimapConfig = (minimap: SettingsMeta["data"]["minimap"]): MinimapConf
     "minimap.position": {
         label: "Minimap Position",
         value: minimap.position,
-        step: 0.5,
-        min: -10,
-        max: 10
+        step: 0.01,
     },
     "minimap.rotation": {
         label: "Minimap Rotation",
         value: minimap.rotation,
         step: 0.01,
-        min: -Math.PI,
-        max: Math.PI,
     },
     "minimap.opacity": {
         label: "Minimap Opacity",

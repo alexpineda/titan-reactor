@@ -108,6 +108,24 @@ ipcRenderer.on(SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
     }
 });
 
+ipcRenderer.on(SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
+    type: SendWindowActionType.ResetMacroActions,
+    payload: SendWindowActionPayload<SendWindowActionType.ResetMacroActions>
+}) => {
+    if (type === SendWindowActionType.ResetMacroActions) {
+        globalEvents.emit("reset-macro-actions", payload);
+    }
+});
+
+ipcRenderer.on(SEND_BROWSER_WINDOW, (_: IpcRendererEvent, { type, payload }: {
+    type: SendWindowActionType.ManualMacroActionTrigger,
+    payload: SendWindowActionPayload<SendWindowActionType.ManualMacroActionTrigger>
+}) => {
+    if (type === SendWindowActionType.ManualMacroActionTrigger) {
+        globalEvents.emit("exec-macro-action", payload);
+    }
+});
+
 if (process.env.NODE_ENV !== "development") {
     window.onerror = (
         _: Event | string,

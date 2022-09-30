@@ -1,7 +1,10 @@
 import { Operator, FieldDefinition } from "common/types";
 import { log } from "@ipc/log";
+import { getTypeOfField, TypeOfField } from "common/macros/field-utilities";
 
 export const fieldOperation = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
+
+    const typeOfField = getTypeOfField(field);
 
     if (instruction === Operator.SetToDefault && typeof defaultValue === "undefined") {
 
@@ -10,20 +13,29 @@ export const fieldOperation = (instruction: Operator, field: FieldDefinition, ne
 
     }
 
+    if (typeOfField === null) {
+
+        log.warn("field.type is not a valid type");
+        return field.value;
+
+    }
+
 
     if (field.options) {
         return applyOperatorToList(instruction, field, newValue, defaultValue);
-    } else if (typeof newValue === "boolean" || instruction === Operator.Toggle) {
+    } else if (typeOfField === "boolean" || instruction === Operator.Toggle) {
         return applyOperatorToBoolean(instruction, field, newValue, defaultValue);
+    } else if (typeOfField === "number") {
+        return applyOperatorToNumber(instruction, field, newValue, defaultValue);
     }
-    return applyOperatorToNumber(instruction, field, newValue, defaultValue);
+    return applyOperatorToAny(instruction, field, newValue, defaultValue, typeOfField);
 }
 
-const applyOperatorToAny = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any, expectedType: string) => {
+const applyOperatorToAny = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any, expectedType: TypeOfField) => {
 
     if (instruction === Operator.Set) {
 
-        if (typeof field.value !== expectedType) {
+        if (getTypeOfField(field) !== expectedType) {
 
             log.warn(`field.value is not a ${expectedType}`);
             return field.value
@@ -33,12 +45,6 @@ const applyOperatorToAny = (instruction: Operator, field: FieldDefinition, newVa
         return newValue;
 
     } else if (instruction === Operator.SetToDefault) {
-
-        if (typeof defaultValue !== expectedType) {
-
-            log.warn(`defaultValue is not a ${expectedType}`);
-            return field.value
-        }
 
         return defaultValue;
 

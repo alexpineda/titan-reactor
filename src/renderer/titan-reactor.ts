@@ -18,8 +18,8 @@ import { logBoth, logClient } from "@ipc/log";
 
 globalEvents.on("command-center-save-settings", payload => {
 
-  useSettingsStore.setState(payload);
   mixer.setVolumes(payload.data.audio);
+  useSettingsStore.setState(payload);
 
 });
 

@@ -1,7 +1,7 @@
 import { ipcRenderer } from "electron";
 
 import { BrowserTargetPayloadType, InvokeBrowserTarget, INVOKE_BROWSER_WINDOW, INVOKE_BROWSER_WINDOW_RESPONSE, SEND_BROWSER_WINDOW } from "common/ipc-handle-names";
-import { SettingsMeta } from "common/types";
+import { MacroAction, SettingsMeta } from "common/types";
 
 export const invokeWindow = async (target: InvokeBrowserTarget, message: { type: string, payload?: any }) => {
     const messageId = Math.random().toString();
@@ -10,6 +10,8 @@ export const invokeWindow = async (target: InvokeBrowserTarget, message: { type:
 
 export enum SendWindowActionType {
     ManualMacroTrigger = "ManualMacroTrigger",
+    ManualMacroActionTrigger = "ManualMacroActionTrigger",
+    ResetMacroActions = "ResetMacroActions",
     CommitSettings = "RefreshSettings",
     PluginConfigChanged = "PluginConfigChanged",
     // game -> command center
@@ -18,7 +20,7 @@ export enum SendWindowActionType {
     LoadReplay = "LoadReplay",
 }
 
-export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.CommitSettings ? SettingsMeta : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: {} } : T extends SendWindowActionType.ConsoleLog ? { message: string, level: "info" | "warning" | "error" | "debug" } : T extends SendWindowActionType.LoadReplay ? string : never;
+export type SendWindowActionPayload<T> = T extends SendWindowActionType.ManualMacroTrigger ? string : T extends SendWindowActionType.ResetMacroActions ? string : T extends SendWindowActionType.ManualMacroActionTrigger ? { action: MacroAction, withReset: boolean } : T extends SendWindowActionType.CommitSettings ? SettingsMeta : T extends SendWindowActionType.PluginConfigChanged ? { pluginId: string, config: object } : T extends SendWindowActionType.ConsoleLog ? { message: string, level: "info" | "warning" | "error" | "debug" } : T extends SendWindowActionType.LoadReplay ? string : never;
 
 export function sendWindow<T extends SendWindowActionType>(target: InvokeBrowserTarget, message: { type: SendWindowActionType, payload: SendWindowActionPayload<T> }) {
     ipcRenderer.send(SEND_BROWSER_WINDOW, { target }, message);

@@ -2,7 +2,7 @@ import { Logger } from "common/logging";
 import { MacroAction, MacroActionConfigurationErrorType, MacroCondition, ConditionComparator, MacrosDTO, TargetedPath } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { FieldDefinition, Operator } from "../types/mutations";
-import { getAppFieldDefinition, SettingsAndPluginsMeta, getTypeOfField, getPluginFieldDefinition, getAvailableOperationsForTypeOfField, getAvailableComparatorsForTypeOfField, isValidTypeOfField } from "./field-utilities";
+import { getAppFieldDefinition, SettingsAndPluginsMeta, getTypeOfField, getPluginFieldDefinition, getAvailableOperationsForTypeOfField, getAvailableComparatorsForTypeOfField } from "./field-utilities";
 
 export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta, logger?: Logger) => {
 
@@ -79,23 +79,16 @@ const optionExists = (options: Required<FieldDefinition>["options"], value: stri
 
 const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition) => {
 
-
     if (action.value === undefined || (field.options && !optionExists(field.options, action.value))) {
-        action.value = field.value;
-    }
 
-    if (!isValidTypeOfField(typeof action.value)) {
-        action.error = {
-            type: MacroActionConfigurationErrorType.InvalidFieldValue,
-            message: "Invalid field type"
-        }
+        action.value = field.value;
+
     }
 
 }
 
 
 const patchMutationInstruction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
-
 
     const validInstructions = getAvailableOperationsForAction(action, settings);
 
@@ -130,7 +123,7 @@ export const getAvailableOperationsForAction = (
         if (action.path[2] === "enabled") {
             return getAvailableOperationsForTypeOfField("boolean");
         } else if (action.path[2] === "program") {
-            return [Operator.Execute];
+            return [Operator.Execute, Operator.SetToDefault];
         }
         return [];
     } else {

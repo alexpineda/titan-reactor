@@ -3,7 +3,7 @@ import { FieldDefinition, ConditionComparator, Operator, SettingsMeta, TargetedP
 
 export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
-export const getAvailableOperationsForTypeOfField = (valueType: string) => {
+export const getAvailableOperationsForTypeOfField = (valueType: TypeOfField) => {
     if (valueType === "boolean") {
         return [
             Operator.SetToDefault,
@@ -21,14 +21,14 @@ export const getAvailableOperationsForTypeOfField = (valueType: string) => {
             Operator.Min,
             Operator.Max,
         ];
-    } else if (valueType === "string") {
+    } else if (valueType === "string" || valueType === "vector") {
         return [Operator.SetToDefault, Operator.Set];
     }
     return [];
 };
 
-export const getAvailableComparatorsForTypeOfField = (valueType: "boolean" | "number" | "string") => {
-    if (valueType === "boolean" || valueType === "string") {
+export const getAvailableComparatorsForTypeOfField = (valueType: TypeOfField) => {
+    if (valueType === "boolean" || valueType === "string" || valueType === "vector") {
         return [
             ConditionComparator.Equals,
             ConditionComparator.NotEquals,
@@ -77,16 +77,25 @@ export const getPluginFieldDefinition = (settings: SettingsAndPluginsMeta, path:
 
 }
 
-export const isValidTypeOfField = (type: string): type is "string" | "boolean" | "number" => {
-    return type === "boolean" || type === "number" || type === "string";
+export const isValidTypeOfField = (type: string): type is TypeOfField => {
+    return type === "boolean" || type === "number" || type === "string" || type === "vector";
 }
 
-export const getTypeOfField = (field?: FieldDefinition) => {
+export type TypeOfField = "boolean" | "number" | "string" | "vector";
+
+export const getTypeOfField = (field?: FieldDefinition): TypeOfField | null => {
     if (!field) {
         return null;
     }
 
-    const typeOfField = field?.options ? "number" : typeof field.value;
+    let typeOfField = typeof field.value as string;
+
+    if (field.options) {
+        typeOfField = "number";
+    } else if (Array.isArray(field.value) && field.value.every((v) => typeof v === "number")) {
+        typeOfField = "vector";
+    }
+
     if (!isValidTypeOfField(typeOfField)) {
         return null;
     }
@@ -94,6 +103,10 @@ export const getTypeOfField = (field?: FieldDefinition) => {
 }
 
 export const getFieldDefinitionDisplayValue = (options: FieldDefinition["options"], value: any): any => {
+
+    if (getTypeOfField({ value, options }) === "vector") {
+        return (value as number[]).map(v => v.toFixed(2)).join(", ");
+    }
 
     const displayValue =
         options && !Array.isArray(options)

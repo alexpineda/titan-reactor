@@ -21,7 +21,7 @@ describe("SessionStore", () => {
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
         const mutation = createOperatableStore(store, sourceOfTruth, () => ({
-            value: null
+            value: ""
         }));
 
         mutation.operate({
@@ -48,7 +48,7 @@ describe("SessionStore", () => {
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
         const mutation = createOperatableStore(store, sourceOfTruth, () => ({
-            value: null
+            value: ""
         }));
 
         const foo = mutation.createVariable(["foo"]);

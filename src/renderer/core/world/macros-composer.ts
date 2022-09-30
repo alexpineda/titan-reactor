@@ -8,6 +8,8 @@ import { WorldEvents } from "./world-events";
 import { TypeEmitter } from "@utils/type-emitter";
 import { TargetComposer } from "./target-composer";
 import { log } from "@ipc/log";
+import debounce from "lodash.debounce";
+import { MacroAction, Operator } from "common/types";
 
 export type MacrosComposer = ReturnType<typeof createMacrosComposer>;
 
@@ -28,6 +30,19 @@ export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings:
 
     janitor.mop(globalEvents.on("exec-macro", (macroId) => {
         macros.execMacroById(macroId);
+    }), "exec-macro");
+
+    janitor.mop(globalEvents.on("reset-macro-actions", (macroId) => {
+        macros.resetAllActions(macroId);
+    }), "exec-macro");
+
+    const debouncedExec = debounce((action: MacroAction) => macros.execAction(action), 1000);
+
+    janitor.mop(globalEvents.on("exec-macro-action", ({ action, withReset }) => {
+        macros.execAction(action);
+        if (withReset) {
+            debouncedExec({ ...action, operator: Operator.SetToDefault });
+        }
     }), "exec-macro");
 
     janitor.mop(events.on("mouse-click", (button) => {

@@ -8,8 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ## Added
-- Many many unit tests for some core components
-  
+- Macros can execute other macros
+- Active Preview option for modifying macros
+
 ## Fixed
 - Several memory leaks due to untested Janitor implementation
 - Squashed some bugs around macros and settings
@@ -211,4 +212,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.4.0...v0.5.0
 [0.4.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/imbateam-gg/titan-reactor/compare/alpha-0.1.3...v0.3.0
-[0.2.0]: https://github.com/imbateam-gg/titan-reactor/compare/alpha-0.1.2...alpha-0.1.3

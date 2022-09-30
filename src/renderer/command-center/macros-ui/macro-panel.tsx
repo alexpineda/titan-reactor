@@ -1,27 +1,22 @@
-import { KeyboardEvent, useEffect, useRef } from "react";
-import {
-  capitalizeFirstLetters,
-  spaceOutCapitalLetters,
-} from "@utils/string-utils";
+import { useEffect, useRef, useState } from "react";
 import {
   PluginMetaData,
-  MacroActionSequence,
   MacroDTO,
-  TriggerType,
   Operator,
   ConditionComparator,
+  MacroActionSequence,
 } from "common/types";
 import { ActionablePanel } from "./actionable-panel/actionable-panel";
 import { CreateMacroConditionOrAction } from "./create-macro-condition-or-action";
-import { sendWindow, SendWindowActionType } from "@ipc/relay";
-import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { KeyboardPreview } from "./keyboard-preview";
-import { HotkeyTrigger } from "@macros/hotkey-trigger";
-import { MouseTrigger } from "@macros/mouse-trigger";
+
 import { useMacroStore } from "./use-macros-store";
 import { MathUtils } from "three";
-import { worldEventsList } from "@core/world/world-events";
-import { WorldEventTrigger } from "@macros/world-event-trigger";
+import { ConfigureTrigger } from "./configure-trigger";
+import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import { sendWindow, SendWindowActionType } from "@ipc/relay";
+import { spaceOutCapitalLetters } from "@utils/string-utils";
+import usePrevious from "@utils/use-previous";
+import { PreviewContext } from "./PreviewContext";
 
 export const MacroPanel = ({
   macro,
@@ -34,32 +29,9 @@ export const MacroPanel = ({
   activeAction: string | null;
   setActiveAction: (id: string) => void;
 }) => {
-  const { updateMacro, deleteMacro, createActionable } = useMacroStore();
-
-  const updateTriggerValue = (value: any) => {
-    updateMacro({
-      ...macro,
-      trigger: {
-        ...macro.trigger,
-        value,
-      },
-    });
-  };
-
-  const changeHotkeyTriggerKey = async (e: KeyboardEvent<HTMLInputElement>) => {
-    e.preventDefault();
-
-    const key = await hotkeyTrigger!.value.generateKeyComboFromEvent(e);
-    if (key) {
-      updateTriggerValue(hotkeyTrigger!.serialize());
-    }
-  };
-
-  const changeMouseTriggerCode = async (e: MouseEvent) => {
-    e.preventDefault();
-    mouseTrigger!.copy(e);
-    updateTriggerValue(mouseTrigger!.serialize());
-  };
+  const { updateMacro, createActionable, deleteMacro, macros } =
+    useMacroStore();
+  const [activePreview, setActivePreview] = useState(false);
 
   const renameMacro = (name: string | null) => {
     if (name !== null && name.trim() !== "") {
@@ -78,20 +50,21 @@ export const MacroPanel = ({
     }
   }, []);
 
-  const hotkeyTrigger =
-    macro.trigger.type === TriggerType.Hotkey
-      ? HotkeyTrigger.deserialize(macro.trigger.value)
-      : null;
+  const prevActivePreview = usePrevious(activePreview);
 
-  const mouseTrigger =
-    macro.trigger.type === TriggerType.Mouse
-      ? MouseTrigger.deserialize(macro.trigger.value)
-      : null;
-
-  const eventTrigger =
-    macro.trigger.type === TriggerType.WorldEvent
-      ? WorldEventTrigger.deserialize(macro.trigger.value)
-      : null;
+  useEffect(() => {
+    if (activePreview && macro.actionSequence === MacroActionSequence.AllSync) {
+      sendWindow(InvokeBrowserTarget.Game, {
+        type: SendWindowActionType.ManualMacroTrigger,
+        payload: macro.id,
+      });
+    } else if (!activePreview && activePreview !== prevActivePreview) {
+      sendWindow(InvokeBrowserTarget.Game, {
+        type: SendWindowActionType.ResetMacroActions,
+        payload: macro.id,
+      });
+    }
+  }, [activePreview, macros.revision]);
 
   return (
     <div
@@ -106,7 +79,7 @@ export const MacroPanel = ({
           display: "grid",
           gridGap: "var(--size-3)",
           padding: "var(--size-3)",
-          gridTemplateColumns: "auto auto auto 1fr",
+          gridTemplateColumns: "auto auto  1fr",
           alignItems: "center",
           justifyContent: "start",
           marginBottom: "var(--size-5)",
@@ -140,52 +113,6 @@ export const MacroPanel = ({
 
         <span>
           <label>
-            {capitalizeFirstLetters(macro.trigger.type)}
-            {hotkeyTrigger && (
-              <div>
-                <input
-                  value={hotkeyTrigger.stringify()}
-                  onKeyDown={changeHotkeyTriggerKey}
-                  readOnly={true}
-                />
-                <label>
-                  On KeyUp
-                  <input
-                    type="checkbox"
-                    checked={hotkeyTrigger.onKeyUp}
-                    onChange={(e) => {
-                      hotkeyTrigger.onKeyUp = e.target.checked;
-                      updateTriggerValue(hotkeyTrigger.serialize());
-                    }}
-                  />
-                </label>
-              </div>
-            )}
-            {mouseTrigger && (
-              <input
-                value={mouseTrigger.stringify()}
-                onMouseDown={(e) => changeMouseTriggerCode(e.nativeEvent)}
-                readOnly={true}
-              />
-            )}
-            {eventTrigger && (
-              <select
-                onChange={(e) => {
-                  eventTrigger.eventName = e.target.value;
-                  updateTriggerValue(eventTrigger.serialize());
-                }}
-              >
-                {worldEventsList.map((event) => (
-                  <option key={event} value={event}>
-                    {event}
-                  </option>
-                ))}
-              </select>
-            )}
-          </label>
-        </span>
-        <span>
-          <label>
             Sequence{" "}
             <select
               onChange={(evt) => {
@@ -207,30 +134,39 @@ export const MacroPanel = ({
             </select>
           </label>
         </span>
+
         <div
           style={{
             display: "grid",
             justifyContent: "end",
+            alignItems: "center",
             gridTemplateColumns: "auto auto",
             gridGap: "var(--size-4)",
           }}
         >
-          {(macro.trigger.type === TriggerType.Manual ||
-            macro.trigger.type === TriggerType.Hotkey) && (
-            <button
-              onClick={() => {
-                sendWindow(InvokeBrowserTarget.Game, {
-                  type: SendWindowActionType.ManualMacroTrigger,
-                  payload: macro.id,
-                });
-              }}
-            >
-              <i className="material-icons" style={{ color: "var(--green-7)" }}>
-                play_arrow
-              </i>{" "}
-              Run Macro (Manually)
-            </button>
-          )}
+          <label>
+            <input
+              type="checkbox"
+              checked={activePreview}
+              onChange={(e) => setActivePreview(e.target.checked)}
+            />{" "}
+            Active Preview{" "}
+            {macro.actionSequence !== MacroActionSequence.AllSync && (
+              <>(On Edit)</>
+            )}
+          </label>
+
+          <button
+            onClick={() => {
+              sendWindow(InvokeBrowserTarget.Game, {
+                type: SendWindowActionType.ManualMacroTrigger,
+                payload: macro.id,
+              });
+            }}
+          >
+            Run
+          </button>
+
           <button
             style={{
               color: "var(--red-6)",
@@ -249,16 +185,11 @@ export const MacroPanel = ({
           </button>
         </div>
       </span>
-      {macro.trigger.type === TriggerType.Hotkey && (
-        <KeyboardPreview
-          previewKey={
-            HotkeyTrigger.deserialize(macro.trigger.value).value.codes[0]
-          }
-          svgProps={{ width: "100px" }}
-        />
-      )}
 
       {macro.error && <p style={{ color: "var(--red-6)" }}>{macro.error}</p>}
+
+      <ConfigureTrigger macro={macro} />
+
       <div style={{ display: "flex" }}>
         <CreateMacroConditionOrAction
           label="Condition"
@@ -286,28 +217,35 @@ export const MacroPanel = ({
         />
       </div>
       <div>
-        <p>Conditions (Optional)</p>
-        {macro.conditions.map((condition) => (
-          <ActionablePanel
-            key={condition.id}
-            macro={macro}
-            action={condition}
-            pluginsMetadata={pluginsMetadata}
-            viewOnly={activeActionOrCondition !== condition.id}
-            setActiveAction={setActiveActionOrCondition}
-          />
-        ))}
-        <p>Actions</p>
-        {macro.actions.map((action) => (
-          <ActionablePanel
-            macro={macro}
-            key={action.id}
-            action={action}
-            pluginsMetadata={pluginsMetadata}
-            viewOnly={activeActionOrCondition !== action.id}
-            setActiveAction={setActiveActionOrCondition}
-          />
-        ))}
+        <PreviewContext.Provider
+          value={
+            activePreview &&
+            macro.actionSequence !== MacroActionSequence.AllSync
+          }
+        >
+          <p>Conditions (Optional)</p>
+          {macro.conditions.map((condition) => (
+            <ActionablePanel
+              key={condition.id}
+              macro={macro}
+              action={condition}
+              pluginsMetadata={pluginsMetadata}
+              viewOnly={activeActionOrCondition !== condition.id}
+              setActiveAction={setActiveActionOrCondition}
+            />
+          ))}
+          <p>Actions</p>
+          {macro.actions.map((action) => (
+            <ActionablePanel
+              macro={macro}
+              key={action.id}
+              action={action}
+              pluginsMetadata={pluginsMetadata}
+              viewOnly={activeActionOrCondition !== action.id}
+              setActiveAction={setActiveActionOrCondition}
+            />
+          ))}
+        </PreviewContext.Provider>
       </div>
     </div>
   );
