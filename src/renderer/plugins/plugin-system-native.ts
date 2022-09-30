@@ -1,7 +1,6 @@
 import { PluginMetaData, NativePlugin, SceneInputHandler, FieldDefinition } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
-import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
@@ -27,7 +26,6 @@ export class PluginSystemNative {
     #janitor = new Janitor("PluginSystemNative");
     #sceneController?: SceneInputHandler;
 
-    #hooks: Record<string, Hook> = createDefaultHooks();
     #permissions: Map<string, Record<string, boolean>> = new Map();
     #sendCustomUIMessage: (pluginId: string, message: any) => void;
 
@@ -71,24 +69,10 @@ export class PluginSystemNative {
 
             this.#permissions.set(pluginPackage.id, permissions);
 
-            for (const hook of pluginPackage.hooks) {
-                this.#registerCustomHook(hook, [], pluginPackage.id, false);
-            }
-
             plugin.sendUIMessage = throttle((message: any) => {
                 this.#sendCustomUIMessage(plugin.id, message);
             }, 100, { leading: true, trailing: false });
 
-            plugin.callCustomHook = (name: string, ...args: any[]) => {
-                if (this.#hooks[name] === undefined) {
-                    log.warn(`Plugin ${pluginPackage.name} tried to call hook ${name} but it was not found`);
-                }
-                else if (!this.#hooks[name].isAuthor(pluginPackage.id)) {
-                    log.warn(`Plugin ${pluginPackage.name} tried to call hook ${name} but it is not the author`);
-                } else if (this.#hooks[name].isAuthor(pluginPackage.id)) {
-                    return this.callHook(name, ...args);
-                }
-            };
 
             log.debug(`@plugin-system-native: initialized plugin "${plugin.name}"`);
 
@@ -101,18 +85,22 @@ export class PluginSystemNative {
 
     constructor(pluginPackages: PluginMetaData[], msg: (id: string, message: any) => void, createCompartment: (env: any) => any) {
 
-        this.#hooks = createDefaultHooks();
         this.#plugins = pluginPackages.map(p => this.loadPlugin(p, createCompartment)).filter(Boolean) as PluginBase[];
         this.#sendCustomUIMessage = msg;
 
-        const _messageListener = (event: MessageEvent) => {
+        this.#janitor.addEventListener(window, "message", "messageListener", (event: MessageEvent) => {
             if (event.data.type === UI_SYSTEM_CUSTOM_MESSAGE) {
                 const { pluginId, message } = event.data.payload;
-                this.#hook_onUIMessage(pluginId, message);
+                const plugin = this.#plugins.find(p => p.id === pluginId);
+                if (plugin) {
+                    try {
+                        plugin.onUIMessage && plugin.onUIMessage(message);
+                    } catch (e) {
+                        log.error(withErrorMessage(e, `@plugin-system-native: onUIMessage "${plugin.name}"`));
+                    }
+                }
             }
-        };
-        window.addEventListener("message", _messageListener);
-        this.#janitor.mop(() => { window.removeEventListener("message", _messageListener); }, "messageListener");
+        });
 
     }
 
@@ -132,31 +120,6 @@ export class PluginSystemNative {
         return this.#plugins.find(p => p.name === name);
     }
 
-    #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async = false) {
-        if (this.#hooks[name] !== undefined) {
-            log.error(`@plugin-system: hook ${name} already registered`);
-            return;
-        }
-
-        if (!name.startsWith("onCustom")) {
-            log.error(`@plugin-system: hook ${name} must start with "onCustom"`);
-            return;
-        }
-
-        this.#hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
-    }
-
-    #hook_onUIMessage(pluginId: string, message: any) {
-        const plugin = this.#plugins.find(p => p.id === pluginId);
-        if (plugin) {
-            try {
-                plugin.onUIMessage && plugin.onUIMessage(message);
-            } catch (e) {
-                log.error(withErrorMessage(e, `@plugin-system-native: onUIMessage "${plugin.name}"`));
-            }
-        }
-    }
-
     dispose() {
         for (const plugin of this.#plugins) {
             try {
@@ -165,7 +128,6 @@ export class PluginSystemNative {
                 log.error(withErrorMessage(e, `@plugin-system-native: onDispose "${plugin.name}"`));
             }
         }
-        this.#hooks = {};
         this.#plugins = [];
     }
 
@@ -253,43 +215,6 @@ export class PluginSystemNative {
                 delete PluginBase.prototype[key as keyof typeof PluginBase.prototype];
             })
         }
-
-    }
-
-    callHook(hookName: string, ...args: any[]) {
-
-        if (this.#hooks[hookName] === undefined) {
-            log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
-            return;
-        }
-
-        let context;
-        for (const plugin of this.#plugins) {
-            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
-                plugin.context = context;
-                context = plugin[hookName as keyof typeof plugin](...args) ?? context;
-                delete plugin.context;
-            }
-        }
-        return context;
-    }
-
-    async callHookAsync(hookName: string, ...args: any[]) {
-
-        if (this.#hooks[hookName] === undefined) {
-            log.error(`@plugin-system-native: hook "${hookName}" does not exist`);
-            return;
-        }
-
-        let context;
-        for (const plugin of this.#plugins) {
-            if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
-                plugin.context = context;
-                context = await plugin[hookName as keyof typeof plugin](...args) ?? context;
-                delete plugin.context;
-            }
-        }
-        return context;
 
     }
 

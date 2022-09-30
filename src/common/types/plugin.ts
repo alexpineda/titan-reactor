@@ -113,25 +113,9 @@ export interface NativePlugin {
      */
     onSceneDisposed?(): void;
     /**
-     * When a unit is created, but not necessarily fully trained.
-     */
-    onUnitCreated?(): void;
-    /**
-     * When a unit is destroyed, not necessarily killed.
-     */
-    onUnitDestroyed?(): void;
-    /**
      * When the scene objects have been reset due to replay forwarding or rewinding.
      */
     onFrameReset?(): void;
-    /**
-     * When an upgrade has been completed
-     */
-    onUpgradeCompleted?(): void;
-    /**
-     * When research has been completed
-     */
-    onTechCompleted?(): void;
 
 }
 

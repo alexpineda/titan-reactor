@@ -4,7 +4,6 @@ import { borrow, mix } from "@utils/object-utils";
 import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { createPluginSession } from "./create-plugin-session";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { OpenBW } from "common/types";
@@ -46,16 +45,9 @@ export const createPluginsAndMacroSession = async (_events: TypeEmitter<WorldEve
 
         hookMacrosToWorldEvents();
 
-        eventsProxy.on("completed-upgrade", (upgrade) => pluginSession.nativePlugins.callHook(HOOK_ON_UPGRADE_COMPLETED, upgrade));
-        eventsProxy.on("completed-tech", (tech) => pluginSession.nativePlugins.callHook(HOOK_ON_TECH_COMPLETED, tech));
-        eventsProxy.on("unit-created", (unit) => pluginSession.nativePlugins.callHook(HOOK_ON_UNIT_CREATED, unit));
-        eventsProxy.on("unit-killed", (unit) => pluginSession.nativePlugins.callHook(HOOK_ON_UNIT_KILLED, unit));
         eventsProxy.on("selected-units-changed", units => {
-            pluginSession.nativePlugins.callHook(HOOK_ON_UNITS_SELECTED, units);
             pluginSession.uiPlugins.onUnitsSelected(units);
         })
-        eventsProxy.on("frame-reset", () =>
-            pluginSession.nativePlugins.callHook(HOOK_ON_FRAME_RESET));
 
         return {
             ...pluginSession, dispose() {

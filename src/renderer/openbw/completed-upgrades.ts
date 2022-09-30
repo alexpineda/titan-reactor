@@ -15,7 +15,7 @@ export const createCompletedUpgradesHelper = (openBW: OpenBW, onUpgradeCompleted
         if (!productionData) {
             productionData = new StdVector(openBW.HEAP32, openBW._get_buffer(9) >> 2);
         }
-        let addr32 = openBW._get_buffer(9) >> 2;
+        const addr32 = openBW._get_buffer(9) >> 2;
         for (let player = 0; player < 8; player++) {
             productionData.addr32 = addr32 + (player * 9) + 3;
             _updateCompleted(completedUpgrades[player], completedUpgradesReset[player], 3, currentBwFrame, player, onUpgradeCompleted);
