@@ -1,6 +1,5 @@
 import { PluginMetaData, NativePlugin, SceneInputHandler, FieldDefinition } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
-import { PluginSystemUI } from "./plugin-system-ui";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
 import { Hook, createDefaultHooks } from "./hooks";
 import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
@@ -24,23 +23,23 @@ type PluginsConfigSnapshot = {
 }
 
 export class PluginSystemNative {
-    #nativePlugins: PluginBase[] = [];
-    #uiPlugins: PluginSystemUI;
+    #plugins: PluginBase[] = [];
     #janitor = new Janitor("PluginSystemNative");
     #sceneController?: SceneInputHandler;
 
     #hooks: Record<string, Hook> = createDefaultHooks();
     #permissions: Map<string, Record<string, boolean>> = new Map();
+    #sendCustomUIMessage: (pluginId: string, message: any) => void;
 
     [Symbol.iterator]() {
-        return this.#nativePlugins[Symbol.iterator]();
+        return this.#plugins[Symbol.iterator]();
     }
 
     get reduce() {
-        return this.#nativePlugins.reduce.bind(this.#nativePlugins);
+        return this.#plugins.reduce.bind(this.#plugins);
     }
 
-    initializePlugin(pluginPackage: PluginMetaData, createCompartment: (env: any) => any) {
+    loadPlugin(pluginPackage: PluginMetaData, createCompartment: (env: any) => any) {
 
         const compartment = createCompartment({
             PluginBase, SceneController
@@ -77,7 +76,7 @@ export class PluginSystemNative {
             }
 
             plugin.sendUIMessage = throttle((message: any) => {
-                this.#sendCustomUIMessage(plugin, message);
+                this.#sendCustomUIMessage(plugin.id, message);
             }, 100, { leading: true, trailing: false });
 
             plugin.callCustomHook = (name: string, ...args: any[]) => {
@@ -90,6 +89,7 @@ export class PluginSystemNative {
                     return this.callHook(name, ...args);
                 }
             };
+
             log.debug(`@plugin-system-native: initialized plugin "${plugin.name}"`);
 
             return plugin;
@@ -99,11 +99,11 @@ export class PluginSystemNative {
 
     }
 
-    constructor(pluginPackages: PluginMetaData[], uiPlugins: PluginSystemUI, createCompartment: (env: any) => any) {
+    constructor(pluginPackages: PluginMetaData[], msg: (id: string, message: any) => void, createCompartment: (env: any) => any) {
 
         this.#hooks = createDefaultHooks();
-        this.#nativePlugins = pluginPackages.map(p => this.initializePlugin(p, createCompartment)).filter(Boolean) as PluginBase[];
-        this.#uiPlugins = uiPlugins;
+        this.#plugins = pluginPackages.map(p => this.loadPlugin(p, createCompartment)).filter(Boolean) as PluginBase[];
+        this.#sendCustomUIMessage = msg;
 
         const _messageListener = (event: MessageEvent) => {
             if (event.data.type === UI_SYSTEM_CUSTOM_MESSAGE) {
@@ -117,7 +117,7 @@ export class PluginSystemNative {
     }
 
     getSceneInputHandlers() {
-        return this.#nativePlugins.filter(p => p.isSceneController) as SceneController[];
+        return this.#plugins.filter(p => p.isSceneController) as SceneController[];
     }
 
     activateSceneController(plugin: SceneController | undefined) {
@@ -125,11 +125,11 @@ export class PluginSystemNative {
     }
 
     getById(id: string) {
-        return this.#nativePlugins.find(p => p.id === id);
+        return this.#plugins.find(p => p.id === id);
     }
 
     getByName(name: string) {
-        return this.#nativePlugins.find(p => p.name === name);
+        return this.#plugins.find(p => p.name === name);
     }
 
     #registerCustomHook(name: string, args: string[], hookAuthorPluginId: string, async = false) {
@@ -146,20 +146,8 @@ export class PluginSystemNative {
         this.#hooks[name] = new Hook(name, args, { async, hookAuthorPluginId });
     }
 
-    #sendCustomUIMessage(plugin: PluginBase, message: any) {
-        if (this.#nativePlugins.includes(plugin)) {
-            this.#uiPlugins.sendMessage({
-                type: UI_SYSTEM_CUSTOM_MESSAGE,
-                payload: {
-                    pluginId: plugin.id,
-                    message
-                }
-            });
-        }
-    }
-
     #hook_onUIMessage(pluginId: string, message: any) {
-        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
+        const plugin = this.#plugins.find(p => p.id === pluginId);
         if (plugin) {
             try {
                 plugin.onUIMessage && plugin.onUIMessage(message);
@@ -170,32 +158,26 @@ export class PluginSystemNative {
     }
 
     dispose() {
-        for (const plugin of this.#nativePlugins) {
+        for (const plugin of this.#plugins) {
             try {
-                this.hook_onPluginDispose(plugin.id);
+                plugin.dispose && plugin.dispose();
             } catch (e) {
                 log.error(withErrorMessage(e, `@plugin-system-native: onDispose "${plugin.name}"`));
             }
         }
         this.#hooks = {};
-        this.#nativePlugins = [];
+        this.#plugins = [];
     }
 
-    hook_onPluginDispose(pluginId: string) {
-        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
+    disposePlugin(id: string) {
+        const plugin = this.#plugins.find(p => p.id === id);
         if (plugin) {
             try {
                 plugin.dispose && plugin.dispose();
             } catch (e) {
                 log.error(withErrorMessage(e, `@plugin-system-native: onDispose "${plugin.name}"`));
             }
-            this.#nativePlugins = this.#nativePlugins.filter(p => p !== plugin);
-
-            for (const key of Object.keys(this.#hooks)) {
-                if (this.#hooks[key].isAuthor(pluginId)) {
-                    delete this.#hooks[key];
-                }
-            }
+            this.#plugins = this.#plugins.filter(p => p.id !== id);
         }
     }
 
@@ -207,7 +189,7 @@ export class PluginSystemNative {
 
     hook_onConfigChanged(pluginId: string, config: any) {
 
-        const plugin = this.#nativePlugins.find(p => p.id === pluginId);
+        const plugin = this.#plugins.find(p => p.id === pluginId);
 
         if (plugin) {
             try {
@@ -223,7 +205,7 @@ export class PluginSystemNative {
 
     hook_onBeforeRender(delta: number, elapsed: number) {
 
-        for (const plugin of this.#nativePlugins) {
+        for (const plugin of this.#plugins) {
             plugin.onBeforeRender && this.isRegularPluginOrActiveSceneController(plugin) && plugin.onBeforeRender(delta, elapsed);
         }
 
@@ -231,7 +213,7 @@ export class PluginSystemNative {
 
     hook_onRender(delta: number, elapsed: number) {
 
-        for (const plugin of this.#nativePlugins) {
+        for (const plugin of this.#plugins) {
             plugin.onRender && plugin.onRender(delta, elapsed);
         }
 
@@ -239,7 +221,7 @@ export class PluginSystemNative {
 
     hook_onFrame(frame: number, commands: any[]) {
 
-        for (const plugin of this.#nativePlugins) {
+        for (const plugin of this.#plugins) {
             if (plugin.onFrame && this.isRegularPluginOrActiveSceneController(plugin)) {
                 if (this.#permissions.get(plugin.id)?.[PERMISSION_REPLAY_COMMANDS]) {
                     plugin.onFrame(frame, commands);
@@ -253,9 +235,9 @@ export class PluginSystemNative {
 
     enableAdditionalPlugins(pluginPackages: PluginMetaData[], createCompartment: (env: any) => any) {
 
-        const additionalPlugins = pluginPackages.map(p => this.initializePlugin(p, createCompartment)).filter(Boolean);
+        const additionalPlugins = pluginPackages.map(p => this.loadPlugin(p, createCompartment)).filter(Boolean);
 
-        this.#nativePlugins = [...this.#nativePlugins, ...additionalPlugins] as PluginBase[];
+        this.#plugins = [...this.#plugins, ...additionalPlugins] as PluginBase[];
     }
 
     /**
@@ -282,7 +264,7 @@ export class PluginSystemNative {
         }
 
         let context;
-        for (const plugin of this.#nativePlugins) {
+        for (const plugin of this.#plugins) {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin](...args) ?? context;
@@ -300,7 +282,7 @@ export class PluginSystemNative {
         }
 
         let context;
-        for (const plugin of this.#nativePlugins) {
+        for (const plugin of this.#plugins) {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin](...args) ?? context;
@@ -313,7 +295,7 @@ export class PluginSystemNative {
 
     getConfigSnapshot() {
 
-        return this.#nativePlugins.reduce((acc, plugin) => {
+        return this.#plugins.reduce((acc, plugin) => {
             for (const [key, field] of Object.entries(plugin.rawConfig ?? {})) {
                 if (key !== "system" && (field as FieldDefinition)?.value !== undefined) {
                     lSet(acc, [plugin.name, key], (field as FieldDefinition).value);
@@ -322,5 +304,15 @@ export class PluginSystemNative {
             return acc;
         }, {}) as PluginsConfigSnapshot;
 
+    }
+
+    sessionInit() {
+        for (const plugin of this.#plugins) {
+            try {
+                plugin.init && plugin.init();
+            } catch (e) {
+                log.error(withErrorMessage(e, `@plugin-system-native: init "${plugin.name}"`));
+            }
+        }
     }
 }

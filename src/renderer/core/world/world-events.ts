@@ -34,10 +34,6 @@ export const worldEventsList: (keyof WorldEvents)[] = [
 
     "mouse-click",
 
-    //for plugins and macros
-    "session-start",
-    "session-end"
-
 ];
 
 // do not put anything performance sensitive here as these are synchronous.
@@ -75,7 +71,4 @@ export interface WorldEvents {
 
     "mouse-click": MouseTriggerDTO;
 
-    //for plugins and macros
-    "session-start": void;
-    "session-end": void;
 }

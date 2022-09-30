@@ -3,7 +3,6 @@ import { createPluginSessionStore } from "./plugin-session-store";
 import * as settingsStore from "@stores/settings-store";
 import { log } from "@ipc/log";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
-import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { PluginMetaData } from "common/types";
 
 jest.mock("@ipc/log");
@@ -46,7 +45,7 @@ const createBasePlugin = (_package?: Partial<PluginMetaData>) => {
 
     const plugins = new PluginSystemNative([
         pluginPackage as unknown as PluginMetaData
-    ], {} as PluginSystemUI, () => { });
+    ], () => { }, () => { });
 
     return {
         plugins,

@@ -5,7 +5,6 @@ import { createPluginsAndMacroSession } from "./create-plugins-and-macros-sessio
 import { createSettingsSessionStore } from "./settings-session-store";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
-import { HOOK_ON_PLUGINS_DISPOSED, HOOK_ON_PLUGINS_READY } from "@plugins/hooks";
 import { GameTimeApi } from "./game-time-api";
 import Chk from "bw-chk";
 import { SimpleText } from "@render/simple-text";
@@ -179,16 +178,12 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
             if (reloadPlugins) {
 
                 unsetSceneController();
-                plugins.native.callHook(HOOK_ON_PLUGINS_DISPOSED);
-                plugins.reload();
 
             }
 
-            plugins.activate(gameTimeApi, settings, events);
+            await plugins.activate(gameTimeApi, settings, reloadPlugins);
 
             await setSceneController(sceneController, targetData);
-
-            await plugins.native.callHookAsync(HOOK_ON_PLUGINS_READY);
 
             this.onRender(0, 0);
 

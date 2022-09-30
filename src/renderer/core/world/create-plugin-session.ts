@@ -2,6 +2,7 @@ import { OpenBW } from "common/types";
 import {
     UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
     UI_SYSTEM_MOUSE_CLICK,
+    UI_SYSTEM_CUSTOM_MESSAGE,
 } from "@plugins/events";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
@@ -20,7 +21,13 @@ export const createPluginSession = async (openBW: OpenBW) => {
 
     const pluginPackages = settingsStore().enabledPlugins;
     const uiPlugins = janitor.mop(new PluginSystemUI(pluginPackages, (id) => openBW.get_util_funcs().dump_unit(id)), "uiPlugins");
-    const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, uiPlugins, createCompartment), "nativePlugins");
+    const nativePlugins = janitor.mop(new PluginSystemNative(pluginPackages, (pluginId: string, message: any) => uiPlugins.sendMessage({
+        type: UI_SYSTEM_CUSTOM_MESSAGE,
+        payload: {
+            pluginId,
+            message
+        }
+    }), createCompartment), "nativePlugins");
 
     // available to macros and sandbox only
     const store = janitor.mop(createPluginSessionStore(nativePlugins, uiPlugins), "reactiveApi");
@@ -39,7 +46,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
     }), "command-center-plugin-config-changed");
 
     janitor.mop(globalEvents.on("command-center-plugin-disabled", (pluginId) => {
-        nativePlugins.hook_onPluginDispose(pluginId);
+        nativePlugins.disposePlugin(pluginId);
         uiPlugins.disablePlugin(pluginId);
     }), "command-center-plugin-disabled");
 

@@ -4,7 +4,7 @@ import { savePluginsConfig } from "@ipc/plugins";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import { NativePlugin, PluginPackage } from "common/types";
 
-export interface PluginBase extends NativePlugin, GameTimeApi { };
+export interface PluginBase extends NativePlugin, GameTimeApi { }
 export class PluginBase implements NativePlugin {
     readonly id: string;
     readonly name: string;
@@ -89,4 +89,4 @@ export class PluginBase implements NativePlugin {
     get rawConfig() {
         return this.#config;
     }
-};
+}

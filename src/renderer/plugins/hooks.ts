@@ -1,5 +1,3 @@
-export const HOOK_ON_PLUGINS_DISPOSED = "onPluginsDisposed";
-export const HOOK_ON_PLUGINS_READY = "onPluginsReady";
 export const HOOK_ON_UNIT_CREATED = "onUnitCreated";
 export const HOOK_ON_UNIT_KILLED = "onUnitDestroyed";
 export const HOOK_ON_FRAME_RESET = "onFrameReset";
@@ -9,8 +7,6 @@ export const HOOK_ON_UNITS_SELECTED = "onUnitsSelected";
 
 
 export const createDefaultHooks = () => ({
-    [HOOK_ON_PLUGINS_DISPOSED]: new Hook(HOOK_ON_PLUGINS_DISPOSED, []),
-    [HOOK_ON_PLUGINS_READY]: new Hook(HOOK_ON_PLUGINS_READY, [], { async: true }),
     [HOOK_ON_UNIT_CREATED]: new Hook(HOOK_ON_UNIT_CREATED, ["unit"]),
     [HOOK_ON_UNIT_KILLED]: new Hook(HOOK_ON_UNIT_KILLED, ["unit"]),
     [HOOK_ON_FRAME_RESET]: new Hook(HOOK_ON_FRAME_RESET, []),
@@ -21,7 +17,7 @@ export const createDefaultHooks = () => ({
 
 
 type InternalHookOptions = {
-    postFn?: Function;
+    postFn?: () => void;
     async?: boolean;
     hookAuthorPluginId?: string
 }

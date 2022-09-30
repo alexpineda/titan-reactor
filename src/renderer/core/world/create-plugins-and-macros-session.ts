@@ -4,7 +4,7 @@ import { borrow, mix } from "@utils/object-utils";
 import { createMacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
-import { HOOK_ON_FRAME_RESET, HOOK_ON_PLUGINS_DISPOSED, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
+import { HOOK_ON_FRAME_RESET, HOOK_ON_TECH_COMPLETED, HOOK_ON_UNITS_SELECTED, HOOK_ON_UNIT_CREATED, HOOK_ON_UNIT_KILLED, HOOK_ON_UPGRADE_COMPLETED } from "@plugins/hooks";
 import { createPluginSession } from "./create-plugin-session";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { OpenBW } from "common/types";
@@ -18,6 +18,7 @@ export const createPluginsAndMacroSession = async (_events: TypeEmitter<WorldEve
     const macrosComposer = createMacrosComposer(_events, settings);
 
     const macrosProxy = new TypeEmitterProxy(_events);
+    const eventsProxy = new TypeEmitterProxy(_events);
 
     const hookMacrosToWorldEvents = () => {
 
@@ -25,8 +26,9 @@ export const createPluginsAndMacroSession = async (_events: TypeEmitter<WorldEve
 
         for (const macro of macrosComposer.macros.meta.hookMacros) {
 
-            macrosProxy.on((macro.trigger as WorldEventTrigger).eventName as keyof WorldEvents, (...args: any[]) => {
-                macrosComposer.macros.execMacroById(macro.id, args);
+            // only support 1 argument for context so as to not create array objects constantly
+            macrosProxy.on((macro.trigger as WorldEventTrigger).eventName as keyof WorldEvents, (arg?: any) => {
+                macrosComposer.macros.execMacroById(macro.id, arg);
             });
 
         }
@@ -35,7 +37,6 @@ export const createPluginsAndMacroSession = async (_events: TypeEmitter<WorldEve
 
     const create = async () => {
 
-        const eventsProxy = new TypeEmitterProxy(_events);
         const pluginSession = await createPluginSession(openBW);
 
         macrosComposer.macros.targets.setHandler(":plugin", {
@@ -56,14 +57,9 @@ export const createPluginsAndMacroSession = async (_events: TypeEmitter<WorldEve
         eventsProxy.on("frame-reset", () =>
             pluginSession.nativePlugins.callHook(HOOK_ON_FRAME_RESET));
 
-        eventsProxy.on("dispose", () => {
-            pluginSession.nativePlugins.callHook(HOOK_ON_PLUGINS_DISPOSED);
-            janitor.dispose();
-            macrosComposer.dispose();
-        });
-
         return {
-            pluginSession, dispose() {
+            ...pluginSession, dispose() {
+                pluginSession.dispose();
                 eventsProxy.dispose();
                 macrosProxy.dispose();
                 pluginSession.dispose();
@@ -72,8 +68,8 @@ export const createPluginsAndMacroSession = async (_events: TypeEmitter<WorldEve
 
     }
 
-    const janitor = new Janitor("PluginsAndMacroSession");
-    janitor.mop(useSettingsStore.subscribe((settings) => {
+    const janitor = new Janitor();
+    janitor.add(useSettingsStore.subscribe((settings) => {
 
         if (settings.data.macros.revision !== macrosComposer.macros.revision) {
 
@@ -83,42 +79,50 @@ export const createPluginsAndMacroSession = async (_events: TypeEmitter<WorldEve
 
         }
 
-    }), "useSettingsStore.subscribe");
+    }));
 
-    const { pluginSession } = janitor.mop(await create());
-    let _pluginSession = pluginSession;
+    _events.on("dispose", () => {
+        janitor.dispose();
+        macrosComposer.dispose();
+    });
 
     return {
-        activate(gameTimeApi: GameTimeApi, sessionSettings: SettingsSessionStore, events: TypeEmitter<WorldEvents>) {
+        session: janitor.mop(await create()),
+        async activate(gameTimeApi: GameTimeApi, sessionSettings: SettingsSessionStore, reload: boolean) {
+
+            if (reload) {
+
+                await (settingsStore().load());
+                this.session.dispose();
+                //TODO: implement forget()
+                //janitor.forget(this.session);
+                this.session = janitor.mop(await create());
+            }
 
             // macros unsafe api additionally allows access to plugin configurations
             // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
             macrosComposer.setContainer(
                 mix({
                     api: borrow(gameTimeApi),
-                    plugins: borrow(_pluginSession.store.vars),
+                    plugins: borrow(this.session.store.vars),
                     settings: borrow(sessionSettings.vars),
-                    events
+                    events: eventsProxy
                 }));
 
             janitor.mop(this.native.injectApi(
                 mix({
                     settings: sessionSettings.vars,
-                    events
+                    events: eventsProxy
                 }, gameTimeApi)), "native.injectApi");
+
+            this.native.sessionInit();
 
         },
         get native() {
-            return _pluginSession.nativePlugins;
+            return this.session.nativePlugins;
         },
         get ui() {
-            return _pluginSession.uiPlugins;
-        },
-        async reload() {
-            await (settingsStore().load());
-            janitor.dispose();
-            const { pluginSession } = janitor.mop(await create());
-            _pluginSession = pluginSession;
+            return this.session.uiPlugins;
         }
     }
 }

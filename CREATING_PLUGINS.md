@@ -249,8 +249,8 @@ import { PluginBase } from "titan-reactor/host";
 // your plugin must return an object with keynames matching hook names that you want to listen to
 export default class Plugin extends PluginBase {
     
-    // onSceneReady fires when everything is loaded but before the first frame is run
-    async onPluginsReady() {
+    // init fires when everything is loaded but before the first frame is run
+    async init() {
       
     }
 
@@ -263,8 +263,8 @@ export default class Plugin extends PluginBase {
       }
     }
 
-    
-    onPluginsDisposed() {
+    // when the plugin is reloaded, disabled, or when the current game/map is over
+    dispose() {
 
     }
 
