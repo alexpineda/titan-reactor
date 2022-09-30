@@ -8,7 +8,7 @@ import {
 import { ActionablePanelProps } from "./actionable-pane-props";
 import { SettingsStore, useSettingsStore } from "@stores";
 import {
-  getAvailableMutationInstructionsForAction,
+  getAvailableOperationsForAction,
   getMacroConditionValidComparators,
 } from "common/macros/sanitize-macros";
 import { useMacroStore } from "../use-macros-store";
@@ -18,7 +18,7 @@ const getValidOps = (
   settings: SettingsStore
 ) => {
   return action.type === "action"
-    ? getAvailableMutationInstructionsForAction(action, settings)
+    ? getAvailableOperationsForAction(action, settings)
     : getMacroConditionValidComparators(action, settings);
 };
 

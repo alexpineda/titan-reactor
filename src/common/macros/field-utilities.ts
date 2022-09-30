@@ -3,7 +3,7 @@ import { FieldDefinition, ConditionComparator, Operator, SettingsMeta, TargetedP
 
 export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">
 
-export const getAvailableMutationIntructionsForTypeOfField = (valueType: "boolean" | "number" | "string") => {
+export const getAvailableOperationsForTypeOfField = (valueType: string) => {
     if (valueType === "boolean") {
         return [
             Operator.SetToDefault,

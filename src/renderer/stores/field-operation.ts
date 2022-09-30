@@ -1,7 +1,7 @@
 import { Operator, FieldDefinition } from "common/types";
 import { log } from "@ipc/log";
 
-export const applyMutationInstruction = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
+export const fieldOperation = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
     if (instruction === Operator.SetToDefault && typeof defaultValue === "undefined") {
 
@@ -12,14 +12,14 @@ export const applyMutationInstruction = (instruction: Operator, field: FieldDefi
 
 
     if (field.options) {
-        return macroEffectApplyList(instruction, field, newValue, defaultValue);
+        return applyOperatorToList(instruction, field, newValue, defaultValue);
     } else if (typeof newValue === "boolean" || instruction === Operator.Toggle) {
-        return macroEffectApplyBoolean(instruction, field, newValue, defaultValue);
+        return applyOperatorToBoolean(instruction, field, newValue, defaultValue);
     }
-    return macroEffectApplyNumeric(instruction, field, newValue, defaultValue);
+    return applyOperatorToNumber(instruction, field, newValue, defaultValue);
 }
 
-const macroEffectApplyGeneric = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any, expectedType: string) => {
+const applyOperatorToAny = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any, expectedType: string) => {
 
     if (instruction === Operator.Set) {
 
@@ -48,7 +48,7 @@ const macroEffectApplyGeneric = (instruction: Operator, field: FieldDefinition, 
 
 }
 
-const macroEffectApplyBoolean = (instruction: Operator, field: FieldDefinition, newValue: boolean, defaultValue: boolean) => {
+const applyOperatorToBoolean = (instruction: Operator, field: FieldDefinition, newValue: boolean, defaultValue: boolean) => {
 
 
 
@@ -58,11 +58,11 @@ const macroEffectApplyBoolean = (instruction: Operator, field: FieldDefinition, 
 
     }
 
-    return macroEffectApplyGeneric(instruction, field, newValue, defaultValue, "boolean");
+    return applyOperatorToAny(instruction, field, newValue, defaultValue, "boolean");
 
 }
 
-const macroEffectApplyNumeric = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
+const applyOperatorToNumber = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
     const max = field.max === undefined || !Number.isFinite(field.max) ? Number.MAX_SAFE_INTEGER : field.max;
 
@@ -70,7 +70,7 @@ const macroEffectApplyNumeric = (instruction: Operator, field: FieldDefinition, 
 
     if (max < min) {
 
-        log.warn(`field.max is less than field.min`);
+        log.warn("field.max is less than field.min");
         return field.value;
 
     }
@@ -80,10 +80,10 @@ const macroEffectApplyNumeric = (instruction: Operator, field: FieldDefinition, 
     } else if (instruction === Operator.Decrease && Number.isFinite(field.step)) {
         return Math.max(field.value - field.step!, min);
     } else if (instruction === Operator.IncreaseCycle && Number.isFinite(field.step)) {
-        let nv = field.value + field.step;
+        const nv = field.value + field.step;
         return nv > max ? min : nv;
     } else if (instruction === Operator.DecreaseCycle && Number.isFinite(field.step)) {
-        let nv = field.value - field.step!;
+        const nv = field.value - field.step!;
         return nv < min ? max : nv;
     } else if (instruction === Operator.Set && newValue !== undefined) {
 
@@ -107,9 +107,9 @@ const macroEffectApplyNumeric = (instruction: Operator, field: FieldDefinition, 
     return field.value;
 }
 
-const macroEffectApplyList = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
+const applyOperatorToList = (instruction: Operator, field: FieldDefinition, newValue: any, defaultValue: any) => {
 
-    let options = Array.isArray(field.options) ? field.options : Object.values(field.options!);
+    const options = Array.isArray(field.options) ? field.options : Object.values(field.options!);
 
     const idx = options.indexOf(field.value);
     if (idx === -1) {

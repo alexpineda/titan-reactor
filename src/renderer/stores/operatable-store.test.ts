@@ -1,5 +1,5 @@
 import { describe, it, jest } from "@jest/globals";
-import { createResettableStore } from "./resettable-store";
+import { createDeepStore } from "./deep-store";
 import { createOperatableStore } from "./operatable-store";
 import { Operator } from "common/types";
 import { SourceOfTruth } from "./source-of-truth";
@@ -16,7 +16,7 @@ describe("SessionStore", () => {
 
         });
 
-        const store = createResettableStore({ initialState: sourceOfTruth.snapshot() });
+        const store = createDeepStore({ initialState: sourceOfTruth.snapshot() });
 
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
@@ -43,7 +43,7 @@ describe("SessionStore", () => {
 
         });
 
-        const store = createResettableStore({ initialState: sourceOfTruth.snapshot() });
+        const store = createDeepStore({ initialState: sourceOfTruth.snapshot() });
 
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
@@ -72,7 +72,7 @@ describe("SessionStore", () => {
 
         });
 
-        const store = createOperatableStore(createResettableStore({
+        const store = createOperatableStore(createDeepStore({
             initialState: sourceOfTruth.snapshot(),
         }), sourceOfTruth, () => ({
             value: null

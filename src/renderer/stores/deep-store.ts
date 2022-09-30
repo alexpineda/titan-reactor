@@ -5,7 +5,7 @@ import { DeepPartial } from "common/types";
 import deepMerge from "deepmerge";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 
-export type CreateSessionStoreArgs<T extends Record<string, any>> = {
+type Args<T extends Record<string, any>> = {
     initialState: T;
     validateMerge?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => boolean;
     onUpdate?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => void;
@@ -19,7 +19,7 @@ export type CreateSessionStoreArgs<T extends Record<string, any>> = {
  * @returns 
  */
 //TODO: refactor this to be called DeepStore and extract the sourceOfTruth stuff
-export function createResettableStore<T extends Record<string, any>>({ initialState, validateMerge: validateMerge, onUpdate }: CreateSessionStoreArgs<T>): ResettableStore<T> {
+export function createDeepStore<T extends Record<string, any>>({ initialState, validateMerge: validateMerge, onUpdate }: Args<T>): DeepStore<T> {
 
     const store = initialState;
 
@@ -48,7 +48,7 @@ export function createResettableStore<T extends Record<string, any>>({ initialSt
     }
 }
 
-export type ResettableStore<T extends object> = {
+export type DeepStore<T extends object> = {
     getState: () => T;
     getValue: (path: string[]) => any;
     setValue: (path: string[], value: any) => void;

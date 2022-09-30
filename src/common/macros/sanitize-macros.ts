@@ -2,7 +2,7 @@ import { Logger } from "common/logging";
 import { MacroAction, MacroActionConfigurationErrorType, MacroCondition, ConditionComparator, MacrosDTO, TargetedPath } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { FieldDefinition, Operator } from "../types/mutations";
-import { getAppFieldDefinition, SettingsAndPluginsMeta, getTypeOfField, getPluginFieldDefinition, getAvailableMutationIntructionsForTypeOfField, getAvailableComparatorsForTypeOfField, isValidTypeOfField } from "./field-utilities";
+import { getAppFieldDefinition, SettingsAndPluginsMeta, getTypeOfField, getPluginFieldDefinition, getAvailableOperationsForTypeOfField, getAvailableComparatorsForTypeOfField, isValidTypeOfField } from "./field-utilities";
 
 export const sanitizeMacros = (macros: MacrosDTO, settings: SettingsAndPluginsMeta, logger?: Logger) => {
 
@@ -97,7 +97,7 @@ const patchValue = (action: MacroAction | MacroCondition, field: FieldDefinition
 const patchMutationInstruction = (action: MacroAction, settings: SettingsAndPluginsMeta) => {
 
 
-    const validInstructions = getAvailableMutationInstructionsForAction(action, settings);
+    const validInstructions = getAvailableOperationsForAction(action, settings);
 
     if (!validInstructions.includes(action.operator)) {
 
@@ -119,7 +119,7 @@ const patchConditionComparator = (condition: MacroCondition, settings: SettingsA
 
 }
 
-export const getAvailableMutationInstructionsForAction = (
+export const getAvailableOperationsForAction = (
     action: MacroAction,
     settings: SettingsAndPluginsMeta
 ): Operator[] => {
@@ -128,7 +128,7 @@ export const getAvailableMutationInstructionsForAction = (
         return [Operator.Execute];
     } else if (action.path[0] === ":macro") {
         if (action.path[2] === "enabled") {
-            return getAvailableMutationIntructionsForTypeOfField("boolean");
+            return getAvailableOperationsForTypeOfField("boolean");
         } else if (action.path[2] === "program") {
             return [Operator.Execute];
         }
@@ -141,7 +141,7 @@ export const getAvailableMutationInstructionsForAction = (
             return [];
         }
 
-        return getAvailableMutationIntructionsForTypeOfField(typeOfField);
+        return getAvailableOperationsForTypeOfField(typeOfField);
     }
 
 };

@@ -4,7 +4,7 @@ import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
-import { createResettableStore } from "@stores/resettable-store";
+import { createDeepStore } from "@stores/deep-store";
 import { createOperatableStore } from "@stores/operatable-store";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
@@ -19,7 +19,7 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
     const janitor = new Janitor("ReactivePluginApi");
 
     const sourceOfTruth = new SourceOfTruth(plugins.getConfigSnapshot());
-    const sessionStore = createResettableStore({
+    const sessionStore = createDeepStore({
         initialState: sourceOfTruth.snapshot(),
         validateMerge: (_, __, path) => {
             // merged from source of truth

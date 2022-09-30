@@ -8,7 +8,7 @@ import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
 import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
 import { TargetComposer } from "@core/world/target-composer";
-import { applyMutationInstruction } from "@stores/apply-mutation-instruction";
+import { fieldOperation } from "@stores/field-operation";
 
 export class Macros {
     targets: TargetComposer;
@@ -58,7 +58,7 @@ export class Macros {
                 }
 
                 if (action.path[2] === "enabled") {
-                    macro.enabled = applyMutationInstruction(action.operator, { value: action.value }, action.value, this.#macroDefaultEnabled.get(macro));
+                    macro.enabled = fieldOperation(action.operator, { value: action.value }, action.value, this.#macroDefaultEnabled.get(macro));
                     return;
                 } else if (action.path[2] === "program") {
                     this.#execMacro(macro, context);

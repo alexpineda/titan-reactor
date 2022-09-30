@@ -1,7 +1,7 @@
 import { FieldDefinition, Operation, Operator } from "common/types";
-import { applyMutationInstruction } from "./apply-mutation-instruction";
+import { fieldOperation } from "./field-operation";
 import { log } from "@ipc/log";
-import { ResettableStore } from "./resettable-store";
+import { DeepStore } from "./deep-store";
 import { SourceOfTruth } from "./source-of-truth";
 
 export type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
@@ -69,7 +69,7 @@ export const createMutationVariable = (operate: (operation: Operation) => void, 
 
 }
 
-export type OperatableStore<T extends object> = ResettableStore<T> & {
+export type OperatableStore<T extends object> = DeepStore<T> & {
     operate: (action: Operation, transformPath?: (path: string[]) => string[]) => void;
     createVariable: (path: string[]) => MutationVariable;
     sourceOfTruth: SourceOfTruth<T>;
@@ -83,7 +83,7 @@ export type OperatableStore<T extends object> = ResettableStore<T> & {
  * @param getFieldDefinition A function that returns the field definition for a given path.
  * @returns 
  */
-export function createOperatableStore<T extends object>(store: ResettableStore<T>, sourceOfTruth: SourceOfTruth<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
+export function createOperatableStore<T extends object>(store: DeepStore<T>, sourceOfTruth: SourceOfTruth<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
 
     // when the source of truth is updated, we want to update our session state as well
     sourceOfTruth.onUpdate = (diff) => {
@@ -98,7 +98,7 @@ export function createOperatableStore<T extends object>(store: ResettableStore<T
 
         if (field) {
 
-            store.setValue(path, applyMutationInstruction(operation.operator, field, operation.value, sourceOfTruth.getValue(path)));
+            store.setValue(path, fieldOperation(operation.operator, field, operation.value, sourceOfTruth.getValue(path)));
 
         } else {
 

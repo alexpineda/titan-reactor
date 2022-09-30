@@ -8,7 +8,7 @@ import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter } from "@utils/type-emitter";
-import { createResettableStore } from "@stores/resettable-store";
+import { createDeepStore } from "@stores/deep-store";
 import { createOperatableStore, MutationVariable } from "@stores/operatable-store";
 import { SourceOfTruth } from "@stores/source-of-truth";
 
@@ -58,7 +58,7 @@ export const createSettingsSessionStore = (
 
     const sourceOfTruth = new SourceOfTruth(partialSettings(settingsStore().data));
     const store = createOperatableStore(
-        createResettableStore<PartialSettings>({
+        createDeepStore<PartialSettings>({
             initialState: sourceOfTruth.snapshot(),
             validateMerge: (newSettings, rhs) =>
                 events.emit("settings-changed", { settings: newSettings, rhs }) !==

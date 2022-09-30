@@ -1,5 +1,5 @@
 import { describe, it } from "@jest/globals";
-import { createResettableStore } from "./resettable-store";
+import { createDeepStore } from "./deep-store";
 
 describe("SessionStore", () => {
 
@@ -11,7 +11,7 @@ describe("SessionStore", () => {
 
         }
 
-        const store = createResettableStore({ initialState });
+        const store = createDeepStore({ initialState });
 
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
@@ -24,7 +24,7 @@ describe("SessionStore", () => {
             foo: "bar"
 
         };
-        const store = createResettableStore({ initialState });
+        const store = createDeepStore({ initialState });
 
         expect(store.getValue(["foo"])).toBe("bar");
 
@@ -37,7 +37,7 @@ describe("SessionStore", () => {
             foo: "bar"
 
         }
-        const store = createResettableStore({ initialState });
+        const store = createDeepStore({ initialState });
 
         expect(store.setValue(["foo"], "baz"));
 
@@ -52,7 +52,7 @@ describe("SessionStore", () => {
             foo: "bar"
 
         }
-        const store = createResettableStore({ initialState });
+        const store = createDeepStore({ initialState });
 
         expect(store.merge({ foo: "baz" }));
 
@@ -67,7 +67,7 @@ describe("SessionStore", () => {
                 bar: "baz"
             }
         };
-        const store = createResettableStore({ initialState });
+        const store = createDeepStore({ initialState });
 
         expect(store.merge({ foo: { bar: "foo" } }));
 
@@ -82,7 +82,7 @@ describe("SessionStore", () => {
             foo: "bar"
 
         };
-        const store = createResettableStore({
+        const store = createDeepStore({
             initialState,
             validateMerge: () => true
         });
@@ -100,7 +100,7 @@ describe("SessionStore", () => {
             foo: "bar"
 
         }
-        const store = createResettableStore({
+        const store = createDeepStore({
             initialState,
             validateMerge: () => false
         });
