@@ -2,7 +2,7 @@ export type MatchingKeys<
     TRecord,
     TMatch,
     K extends keyof TRecord = keyof TRecord
-    > = K extends (TRecord[K] extends TMatch ? K : never) ? K : never;
+> = K extends (TRecord[K] extends TMatch ? K : never) ? K : never;
 
 export type VoidKeys<Record> = MatchingKeys<Record, void>;
 
@@ -29,16 +29,33 @@ export class TypeEmitter<T>  {
             }
         }
 
-        // if (settingsStore().data.utilities.logLevel === "debug") {
-        //     if (!(s as string).startsWith("image") || Math.random() > 0.99) {
-        //         console.debug(`[TypeEmitter] ${s} emitted`, v);
-        //     }
-        // }
-
     }
 
     dispose() {
         this.#listeners.clear();
+    }
+
+}
+
+
+export class TypeEmitterProxy<T>  {
+
+    #host: TypeEmitter<T>;
+    #disposers: (() => void)[] = [];
+
+    constructor(host: TypeEmitter<T>) {
+        this.#host = host;
+    }
+
+    on<K extends keyof T>(s: K, listener: (v: T[K]) => void) {
+        const dispose = this.#host.on(s, listener);
+        this.#disposers.push(dispose);
+        return dispose;
+    }
+
+    dispose() {
+        for (const dispose of this.#disposers)
+            dispose();
     }
 
 }

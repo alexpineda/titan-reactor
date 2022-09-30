@@ -1,7 +1,7 @@
 import { describe, it, jest } from "@jest/globals";
 import { TypeEmitter } from "@utils/type-emitter";
 import { createSettingsSessionStore } from "./settings-session-store";
-import { WorldEvents } from "./world";
+import { WorldEvents } from "./world-events";
 import * as settingsStore from "@stores/settings-store";
 import { Operator } from "common/types";
 

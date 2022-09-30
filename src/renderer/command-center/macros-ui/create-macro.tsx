@@ -3,7 +3,7 @@ import { TriggerType } from "common/types";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { ManualTrigger } from "@macros/manual-trigger";
-import { MacroHookTrigger } from "@macros/macro-hook-trigger";
+import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { useMacroStore } from "./use-macros-store";
 
 export const CreateMacro = ({
@@ -69,13 +69,13 @@ export const CreateMacro = ({
               | ManualTrigger
               | HotkeyTrigger
               | MouseTrigger
-              | MacroHookTrigger = new ManualTrigger();
+              | WorldEventTrigger = new ManualTrigger();
             if (triggerType === TriggerType.Hotkey) {
               trigger = new HotkeyTrigger();
             } else if (triggerType === TriggerType.Mouse) {
               trigger = new MouseTrigger();
-            } else if (triggerType === TriggerType.GameHook) {
-              trigger = new MacroHookTrigger();
+            } else if (triggerType === TriggerType.WorldEvent) {
+              trigger = new WorldEventTrigger();
             }
             const id = await createMacro(name, trigger);
             onCreated(id);

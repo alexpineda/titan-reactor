@@ -1,10 +1,10 @@
 import { Macros } from "@macros";
-import { settingsStore, useSettingsStore } from "@stores/settings-store";
+import { settingsStore } from "@stores/settings-store";
 import { SettingsSessionStore } from "./settings-session-store";
 import { Janitor } from "three-janitor";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "../global-events";
-import { WorldEvents } from "./world";
+import { WorldEvents } from "./world-events";
 import { TypeEmitter } from "@utils/type-emitter";
 import { TargetComposer } from "./target-composer";
 import { log } from "@ipc/log";
@@ -29,17 +29,6 @@ export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings:
     janitor.mop(globalEvents.on("exec-macro", (macroId) => {
         macros.execMacroById(macroId);
     }), "exec-macro");
-
-    janitor.mop(useSettingsStore.subscribe((settings) => {
-
-        if (settings.data.macros.revision !== macros.revision) {
-
-            macros.deserialize(settings.data.macros);
-
-        }
-
-    }), "useSettingsStore.subscribe");
-
 
     janitor.mop(events.on("mouse-click", (button) => {
         macros.mouseTrigger(button);

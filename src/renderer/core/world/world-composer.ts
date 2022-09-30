@@ -23,10 +23,11 @@ import { createGameLoopComposer } from "./game-loop-composer";
 import { renderComposer } from "@render/render-composer";
 import { createViewInputComposer } from "./view-composer";
 import { TypeEmitter } from "@utils/type-emitter";
-import { World, WorldEvents } from "./world";
+import { World } from "./world";
 import { borrow, expose, mix } from "@utils/object-utils";
 import { mixer } from "@core/global";
 import processStore from "@stores/process-store";
+import { WorldEvents } from "./world-events";
 // import { useSettingsStore } from "@stores/settings-store";
 
 export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: Chk, players: BasePlayer[], commands: CommandsStream) => {

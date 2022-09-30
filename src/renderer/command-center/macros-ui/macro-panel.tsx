@@ -15,12 +15,13 @@ import { ActionablePanel } from "./actionable-panel/actionable-panel";
 import { CreateMacroConditionOrAction } from "./create-macro-condition-or-action";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { MacroCustomHookOptions } from "./macro-custom-hook-options";
 import { KeyboardPreview } from "./keyboard-preview";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
 import { useMacroStore } from "./use-macros-store";
 import { MathUtils } from "three";
+import { worldEventsList } from "@core/world/world-events";
+import { WorldEventTrigger } from "@macros/world-event-trigger";
 
 export const MacroPanel = ({
   macro,
@@ -85,6 +86,11 @@ export const MacroPanel = ({
   const mouseTrigger =
     macro.trigger.type === TriggerType.Mouse
       ? MouseTrigger.deserialize(macro.trigger.value)
+      : null;
+
+  const eventTrigger =
+    macro.trigger.type === TriggerType.WorldEvent
+      ? WorldEventTrigger.deserialize(macro.trigger.value)
       : null;
 
   return (
@@ -162,12 +168,19 @@ export const MacroPanel = ({
                 readOnly={true}
               />
             )}
-            {macro.trigger.type === TriggerType.GameHook && (
-              <MacroCustomHookOptions
-                macro={macro}
-                pluginsMetadata={pluginsMetadata}
-                updateTriggerValue={updateTriggerValue}
-              />
+            {eventTrigger && (
+              <select
+                onChange={(e) => {
+                  eventTrigger.eventName = e.target.value;
+                  updateTriggerValue(eventTrigger.serialize());
+                }}
+              >
+                {worldEventsList.map((event) => (
+                  <option key={event} value={event}>
+                    {event}
+                  </option>
+                ))}
+              </select>
             )}
           </label>
         </span>

@@ -4,7 +4,7 @@ import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
 import { HotkeyTrigger } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
-import { MacroHookTrigger } from "@macros/macro-hook-trigger";
+import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
 import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
 import { TargetComposer } from "@core/world/target-composer";
@@ -209,31 +209,12 @@ export class Macros {
      * Executes a macro by Id.
      * @param id 
      */
-    execMacroById(id: string) {
+    execMacroById(id: string, context?: any) {
         const macro = this.macros.find((m) => m.id === id);
         if (macro) {
-            this.#execMacro(macro);
+            this.#execMacro(macro, context);
         } else {
             log.error(`Macro with id ${id} not found`);
-        }
-    }
-
-    /**
-     * Executes a hook type macro. These are executed by Game Time API events and can either target a plugin or global context.
-     * @param hookName 
-     * @param pluginName 
-     * @param context 
-     */
-    callFromHook(hookName: string, pluginName?: string, ...context: any[]) {
-        const candidates: Macro[] = [];
-        for (const macro of this.meta.hookMacros) {
-            if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName)) {
-                candidates.push(macro);
-            }
-        }
-
-        for (const macro of candidates) {
-            this.#execMacro(macro, context);
         }
     }
 
@@ -261,8 +242,8 @@ export class Macros {
             let trigger: MacroTrigger = new ManualTrigger();
             if (macro.trigger.type === TriggerType.Hotkey) {
                 trigger = HotkeyTrigger.deserialize(macro.trigger.value);
-            } else if (macro.trigger.type === TriggerType.GameHook) {
-                trigger = MacroHookTrigger.deserialize(macro.trigger.value);
+            } else if (macro.trigger.type === TriggerType.WorldEvent) {
+                trigger = WorldEventTrigger.deserialize(macro.trigger.value);
             } else if (macro.trigger.type === TriggerType.Mouse) {
                 trigger = MouseTrigger.deserialize(macro.trigger.value);
             }
@@ -280,7 +261,7 @@ export class Macros {
             return newMacro;
         });
 
-        this.meta.hookMacros = this.macros.filter((m) => m.trigger instanceof MacroHookTrigger).sort((a, b) => {
+        this.meta.hookMacros = this.macros.filter((m) => m.trigger instanceof WorldEventTrigger).sort((a, b) => {
             return a.trigger.weight - b.trigger.weight;
         });
 

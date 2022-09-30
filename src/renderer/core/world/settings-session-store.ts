@@ -6,7 +6,7 @@ import {
 import lSet from "lodash.set";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
-import { WorldEvents } from "./world";
+import { WorldEvents } from "./world-events";
 import { TypeEmitter } from "@utils/type-emitter";
 import { createResettableStore } from "@stores/resettable-store";
 import { createOperatableStore, MutationVariable } from "@stores/operatable-store";

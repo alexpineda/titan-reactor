@@ -175,7 +175,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
 
             if (prevSceneController?.onExitScene) {
                 try {
-                    world.events!.emit("scene-exit", prevSceneController?.name);
+                    world.events!.emit("scene-controller-exit", prevSceneController?.name);
                     prevData = prevSceneController.onExitScene!(prevData);
                 } catch (e) {
                     log.error(e);
@@ -202,7 +202,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             await newController.onEnterScene(prevData);
             sceneController = new WeakRef(newController);
 
-            world.events!.emit("scene-enter", newController.name);
+            world.events!.emit("scene-controller-enter", newController.name);
 
             activating = false;
         },

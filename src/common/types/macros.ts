@@ -83,7 +83,7 @@ export type MacrosDTO = {
 export enum TriggerType {
     Manual = "Manual",
     Hotkey = "Hotkey",
-    GameHook = "GameHook",
+    WorldEvent = "WorldEvent",
     Mouse = "Mouse",
 }
 export interface MacroTrigger {

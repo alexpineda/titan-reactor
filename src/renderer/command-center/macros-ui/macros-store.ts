@@ -6,7 +6,7 @@ import { MathUtils } from "three";
 import { ManualTrigger } from "@macros/manual-trigger";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
 import { MouseTrigger } from "@macros/mouse-trigger";
-import { MacroHookTrigger } from "@macros/macro-hook-trigger";
+import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { sanitizeActionable } from "common/macros/sanitize-macros";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { log } from "@ipc/log";
@@ -20,7 +20,7 @@ type Actions = {
 
     createMacro(
         name: string,
-        trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | MacroHookTrigger
+        trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | WorldEventTrigger
     ): Promise<string>;
     updateMacro(macro: MacroDTO): void;
     deleteMacro(macroId: string): void;
@@ -76,7 +76,7 @@ export const createMacroStore = (onSave?: (settings: SettingsMeta) => void) => c
 
         async createMacro(
             name: string,
-            trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | MacroHookTrigger
+            trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | WorldEventTrigger
         ) {
             const id = MathUtils.generateUUID();
 

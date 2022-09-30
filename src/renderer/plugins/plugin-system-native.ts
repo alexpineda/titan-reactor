@@ -31,7 +31,6 @@ export class PluginSystemNative {
 
     #hooks: Record<string, Hook> = createDefaultHooks();
     #permissions: Map<string, Record<string, boolean>> = new Map();
-    externalHookListener: (hookName: string, pluginName?: string, ...context: any[]) => void = () => { }
 
     [Symbol.iterator]() {
         return this.#nativePlugins[Symbol.iterator]();
@@ -123,9 +122,6 @@ export class PluginSystemNative {
 
     activateSceneController(plugin: SceneController | undefined) {
         this.#sceneController = plugin;
-        if (plugin) {
-            this.externalHookListener("onEnterScene", plugin.name);
-        }
     }
 
     getById(id: string) {
@@ -290,11 +286,9 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = plugin[hookName as keyof typeof plugin](...args) ?? context;
-                this.externalHookListener(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.externalHookListener(hookName, undefined, args, context);
         return context;
     }
 
@@ -310,11 +304,9 @@ export class PluginSystemNative {
             if (!this.#hooks[hookName].isAuthor(plugin.id) && plugin[hookName as keyof typeof plugin] !== undefined && this.isRegularPluginOrActiveSceneController(plugin)) {
                 plugin.context = context;
                 context = await plugin[hookName as keyof typeof plugin](...args) ?? context;
-                this.externalHookListener(hookName, plugin.name, args, context);
                 delete plugin.context;
             }
         }
-        this.externalHookListener(hookName, undefined, args, context);
         return context;
 
     }

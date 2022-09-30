@@ -63,6 +63,7 @@ lockdown_();
 
 if (process.env.NODE_ENV === "development") {
 
+  //@ts-ignore
   import("spectorjs").then(module => {
 
     const spector = new module.Spector();
