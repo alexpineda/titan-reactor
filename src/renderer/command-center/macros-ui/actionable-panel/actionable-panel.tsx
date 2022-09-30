@@ -5,6 +5,7 @@ import { ActionableTargetApp } from "./actionable-target-app";
 import { ActionableTargetPlugin } from "./actionable-target-plugin";
 import { useMacroStore } from "../use-macros-store";
 import { TargetType } from "common/types";
+import { ActionableTargetMacro } from "./actionable-target-macro";
 
 export const ActionablePanel = (
   props: ActionablePanelProps & {
@@ -55,6 +56,7 @@ export const ActionablePanel = (
           >
             <option value=":app">App</option>
             <option value=":plugin">Plugin</option>
+            <option value=":macro">Macro</option>
             <option value=":function">Function</option>
           </select>
         </span>
@@ -111,6 +113,9 @@ export const ActionablePanel = (
         )}
         {action.path[0] === ":plugin" && (
           <ActionableTargetPlugin {...props} action={action} />
+        )}
+        {action.path[0] === ":macro" && (
+          <ActionableTargetMacro {...props} action={action} />
         )}
       </ErrorBoundary>
     </div>

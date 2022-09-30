@@ -126,6 +126,13 @@ export const getAvailableMutationInstructionsForAction = (
 
     if (action.path[0] === ":function") {
         return [Operator.Execute];
+    } else if (action.path[0] === ":macro") {
+        if (action.path[2] === "enabled") {
+            return getAvailableMutationIntructionsForTypeOfField("boolean");
+        } else if (action.path[2] === "program") {
+            return [Operator.Execute];
+        }
+        return [];
     } else {
 
         const typeOfField = getTypeOfField(action.path[0] === ":app" ? getAppFieldDefinition(settings, action.path as TargetedPath<":app">) : getPluginFieldDefinition(settings, action.path as TargetedPath<":plugin">));
@@ -148,6 +155,8 @@ export const getMacroConditionValidComparators = (
 
     if (condition.path[0] === ":function") {
         return getAvailableComparatorsForTypeOfField("number");
+    } else if (condition.path[0] === ":macro") {
+        return getAvailableComparatorsForTypeOfField("boolean");
     } else {
 
         const typeOfField = getTypeOfField(condition.path[0] === ":app" ? getAppFieldDefinition(settings, condition.path as TargetedPath<":app">) : getPluginFieldDefinition(settings, condition.path as TargetedPath<":plugin">));
@@ -237,7 +246,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(actio
 
         }
 
-    } else {
+    } else if (action.path[0] === ":function") {
 
         if (action.type === "action") {
 
@@ -257,11 +266,47 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(actio
 
         }
 
+    } else if (action.path[0] === ":macro") {
+
+        if (action.path.length > 1) {
+
+            if (!settings.data.macros.macros.find(m => m.id === action.path[1])) {
+
+                action.error = {
+                    type: MacroActionConfigurationErrorType.InvalidMacro,
+                    message: "The macro originally targeted does not exist"
+                }
+
+                action.path.slice(0, 1);
+
+            }
+
+        }
+
+        if (action.path.length === 1) {
+
+            if (settings.data.macros.macros[0]) {
+
+                action.path.push(settings.data.macros.macros[0].id);
+
+            }
+
+        }
+
+        if (action.path.length === 2) {
+
+            action.path.push("enabled");
+
+        }
+
+        if (typeof action.value !== "boolean") {
+
+            action.value = true;
+
+        }
+
     }
 
     return action;
-
-
-
 
 }

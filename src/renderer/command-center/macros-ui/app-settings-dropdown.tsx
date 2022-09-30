@@ -1,4 +1,5 @@
 import { settingsStore } from "@stores/settings-store";
+import { capitalizeFirstLetters } from "@utils/string-utils";
 import { getSessionSettingsInLevaFormat } from "common/get-app-settings-leva-config";
 import React from "react";
 
@@ -24,7 +25,8 @@ export const SessionSettingsDropDown = ({
         const field = config[key as keyof typeof config];
         return (
           <option key={key} value={key}>
-            &gt; {field.label.replace("(Default)", "")}
+            {capitalizeFirstLetters(key.split(".")[0])} &gt;{" "}
+            {field.label.replace("(Default)", "")}
           </option>
         );
       })}

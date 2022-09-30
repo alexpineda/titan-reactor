@@ -35,7 +35,7 @@ export enum MacroActionConfigurationErrorType {
     InvalidAction = "InvalidAction",
 }
 
-export type TargetType = ":app" | ":plugin" | ":function";
+export type TargetType = ":app" | ":plugin" | ":function" | ":macro";
 export type TargetedPath<T extends TargetType = TargetType> = [T, ...string[]];
 
 export type MacroAction<T extends TargetType = TargetType> = {

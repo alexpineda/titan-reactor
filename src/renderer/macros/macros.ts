@@ -8,12 +8,14 @@ import { MacroHookTrigger } from "@macros/macro-hook-trigger";
 import { Janitor } from "three-janitor";
 import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
 import { TargetComposer } from "@core/world/target-composer";
+import { applyMutationInstruction } from "@stores/apply-mutation-instruction";
 
 export class Macros {
     targets: TargetComposer;
     revision = 0;
     macros: Macro[] = [];
     #macroAlreadyExecuted: Set<Macro> = new Set();
+    #macroDefaultEnabled: WeakMap<Macro, boolean> = new Map();
 
     meta: {
         hotkeyMacros: Macro[];
@@ -30,6 +32,41 @@ export class Macros {
             this.deserialize(macros);
         }
         this.targets = targets;
+
+        //todo: move this to session store
+        targets.setHandler(":macro", {
+            getValue: (path) => {
+                if (path[2] !== "enabled") {
+                    log.warn(`Macro target does not support path ${path.join(".")}`);
+                    return;
+                }
+
+                const macro = this.macros.find((m) => m.id === path[1]);
+
+                if (macro) {
+                    return macro.enabled;
+                } else {
+                    log.warn(`Macro ${path[1]} not found.`);
+                }
+            },
+            action: (action, context?) => {
+                const macro = this.macros.find((m) => m.id === action.path[1]);
+
+                if (!macro) {
+                    log.warn(`Macro ${action.path[1]} not found.`);
+                    return;
+                }
+
+                if (action.path[2] === "enabled") {
+                    macro.enabled = applyMutationInstruction(action.operator, { value: action.value }, action.value, this.#macroDefaultEnabled.get(macro));
+                    return;
+                } else if (action.path[2] === "program") {
+                    this.#execMacro(macro, context);
+                } else {
+                    log.warn(`Macro target does not support path ${action.path.join(".")}`);
+                }
+            },
+        });
     }
 
     add(macro: Macro) {
@@ -96,7 +133,7 @@ export class Macros {
         const candidates: Macro[] = [];
         for (const macro of this.meta.mouseMacros) {
             const trigger = macro.trigger as MouseTrigger;
-            if (trigger.value.test(e) && this.#testMacroConditions(macro, e)) {
+            if (trigger.value.test(e)) {
                 candidates.push(macro);
             }
         }
@@ -149,6 +186,11 @@ export class Macros {
      * @param context Additional context provided to environment of caller. Usually provided from plugin hook results.
      */
     #execMacro(macro: Macro, context?: any) {
+
+        if (this.#testMacroConditions(macro) === false) {
+            return false;
+        }
+
         const actions = macro.getActionSequence();
         for (const action of actions) {
             if (action.error) {
@@ -159,6 +201,8 @@ export class Macros {
             this.targets.getHandler(action.path[0])!.action(action, context);
 
         }
+
+        return true;
     }
 
     /**
@@ -167,7 +211,7 @@ export class Macros {
      */
     execMacroById(id: string) {
         const macro = this.macros.find((m) => m.id === id);
-        if (macro && this.#testMacroConditions(macro)) {
+        if (macro) {
             this.#execMacro(macro);
         } else {
             log.error(`Macro with id ${id} not found`);
@@ -183,7 +227,7 @@ export class Macros {
     callFromHook(hookName: string, pluginName?: string, ...context: any[]) {
         const candidates: Macro[] = [];
         for (const macro of this.meta.hookMacros) {
-            if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName) && this.#testMacroConditions(macro, context)) {
+            if ((macro.trigger as MacroHookTrigger).test(hookName, pluginName)) {
                 candidates.push(macro);
             }
         }
@@ -231,6 +275,7 @@ export class Macros {
                 macro.conditions,
             );
             newMacro.enabled = macro.enabled;
+            this.#macroDefaultEnabled.set(newMacro, newMacro.enabled);
 
             return newMacro;
         });
