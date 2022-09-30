@@ -41,7 +41,7 @@ export const createPluginSession = async (openBW: OpenBW) => {
             payload: { pluginId, config }
         });
         nativePlugins.hook_onConfigChanged(pluginId, config);
-        store.updateSourceOfTruth(nativePlugins.getConfigSnapshot());
+        store.sourceOfTruth.update(nativePlugins.getConfigSnapshot());
 
     }), "command-center-plugin-config-changed");
 

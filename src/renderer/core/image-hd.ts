@@ -162,11 +162,11 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     return gameStore().assets!.bwDat.images[this.atlas.imageIndex];
   }
 
-  updateImageType(atlas: AnimAtlas) {
+  updateImageType(atlas: AnimAtlas, force: boolean) {
     if (this.atlas && this.atlas.imageIndex !== atlas.imageIndex) {
       console.warn("changing image type");
     }
-    if (this.atlas?.imageIndex === atlas.imageIndex && this.atlas?.unitTileScale === atlas.unitTileScale) {
+    if (this.atlas?.imageIndex === atlas.imageIndex && this.atlas?.unitTileScale === atlas.unitTileScale && !force) {
       return this;
     }
 

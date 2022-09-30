@@ -8,13 +8,6 @@ const util = {
     createSceneState: (props?: { beforeNext?: any }) => ({ id: "@home", dispose: jest.fn(), start: jest.fn(), ...props })
 }
 
-// should call dispose on old state
-// should log error if dispose failed
-// should call beforeNext on old state
-// should call start on new state
-// should log error if start failed
-// should call setError if start failed
-// should load errorhandler if start failed
 
 describe("SceneStore", () => {
 

@@ -2,6 +2,7 @@ import { FieldDefinition, Operation, Operator } from "common/types";
 import { applyMutationInstruction } from "./apply-mutation-instruction";
 import { log } from "@ipc/log";
 import { ResettableStore } from "./resettable-store";
+import { SourceOfTruth } from "./source-of-truth";
 
 export type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
 
@@ -68,9 +69,10 @@ export const createMutationVariable = (operate: (operation: Operation) => void, 
 
 }
 
-export type OperatableStore<T> = ResettableStore<T> & {
+export type OperatableStore<T extends object> = ResettableStore<T> & {
     operate: (action: Operation, transformPath?: (path: string[]) => string[]) => void;
     createVariable: (path: string[]) => MutationVariable;
+    sourceOfTruth: SourceOfTruth<T>;
 }
 
 /**
@@ -81,7 +83,12 @@ export type OperatableStore<T> = ResettableStore<T> & {
  * @param getFieldDefinition A function that returns the field definition for a given path.
  * @returns 
  */
-export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
+export function createOperatableStore<T extends object>(store: ResettableStore<T>, sourceOfTruth: SourceOfTruth<T>, getFieldDefinition: (path: string[], state: T) => FieldDefinition | undefined): OperatableStore<T> {
+
+    // when the source of truth is updated, we want to update our session state as well
+    sourceOfTruth.onUpdate = (diff) => {
+        store.merge(diff);
+    }
 
     const operate = (operation: Operation, transformPath: (path: string[]) => string[] = x => x) => {
 
@@ -91,7 +98,7 @@ export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefi
 
         if (field) {
 
-            store.setValue(path, applyMutationInstruction(operation.operator, field, operation.value, store.getResetValue(path)));
+            store.setValue(path, applyMutationInstruction(operation.operator, field, operation.value, sourceOfTruth.getValue(path)));
 
         } else {
 
@@ -103,6 +110,7 @@ export function createOperatableStore<T>(store: ResettableStore<T>, getFieldDefi
 
     return {
         ...store,
+        sourceOfTruth,
         operate,
         createVariable: createMutationVariable(operate, (path) => store.getValue(path))
     }

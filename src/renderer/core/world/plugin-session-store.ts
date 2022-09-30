@@ -9,6 +9,7 @@ import { createOperatableStore } from "@stores/operatable-store";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 import { PluginBase } from "@plugins/plugin-base";
+import { SourceOfTruth } from "@stores/source-of-truth";
 
 /**
  * An api that allows the consumer to modify plugin values and have the system respond.
@@ -17,8 +18,9 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
 
     const janitor = new Janitor("ReactivePluginApi");
 
+    const sourceOfTruth = new SourceOfTruth(plugins.getConfigSnapshot());
     const sessionStore = createResettableStore({
-        sourceOfTruth: plugins.getConfigSnapshot(),
+        initialState: sourceOfTruth.snapshot(),
         validateMerge: (_, __, path) => {
             // merged from source of truth
             if (path === undefined) {
@@ -70,7 +72,7 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
 
     const getValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
 
-    const store = createOperatableStore(sessionStore, getValue);
+    const store = createOperatableStore(sessionStore, sourceOfTruth, getValue);
 
     const vars = plugins.reduce((acc, plugin) => {
 

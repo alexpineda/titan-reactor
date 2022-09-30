@@ -10,6 +10,7 @@ import { WorldEvents } from "./world-events";
 import { TypeEmitter } from "@utils/type-emitter";
 import { createResettableStore } from "@stores/resettable-store";
 import { createOperatableStore, MutationVariable } from "@stores/operatable-store";
+import { SourceOfTruth } from "@stores/source-of-truth";
 
 type ValidAppSessionPath = `${keyof SessionSettingsData}.`;
 const validAppSettingsPaths: ValidAppSessionPath[] = [
@@ -42,6 +43,8 @@ const partialSettings = (data: Settings) => ({
     postprocessing3d: data.postprocessing3d,
 });
 
+type PartialSettings = ReturnType<typeof partialSettings>;
+
 export type SettingsSessionStore = ReturnType<
     typeof createSettingsSessionStore
 >;
@@ -53,13 +56,15 @@ export const createSettingsSessionStore = (
 ) => {
     const janitor = new Janitor("ReactiveSessionVariables");
 
+    const sourceOfTruth = new SourceOfTruth(partialSettings(settingsStore().data));
     const store = createOperatableStore(
-        createResettableStore({
-            sourceOfTruth: partialSettings(settingsStore().data),
+        createResettableStore<PartialSettings>({
+            initialState: sourceOfTruth.snapshot(),
             validateMerge: (newSettings, rhs) =>
                 events.emit("settings-changed", { settings: newSettings, rhs }) !==
                 false,
         }),
+        sourceOfTruth,
         (path, state) =>
             getSessionSettingsPropertyInLevaFormat(
                 state,
@@ -71,7 +76,7 @@ export const createSettingsSessionStore = (
     // keep the session up to date with user changed settings
     janitor.mop(
         useSettingsStore.subscribe(({ data }) => {
-            store.updateSourceOfTruth(partialSettings(data));
+            store.sourceOfTruth.update(partialSettings(data));
         }),
         "settings-store-subscription"
     );

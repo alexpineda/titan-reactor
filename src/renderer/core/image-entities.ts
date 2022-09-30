@@ -74,10 +74,15 @@ export class ImageEntities {
             image = this.#create(imageTypeId, atlas);
             this.onCreateImage?.(image);
             this.#images.set(imageIndex, image);
+
+            image.updateImageType(gameStore().assets!.atlases[imageTypeId], true);
+
+        } else {
+
+            image.updateImageType(gameStore().assets!.atlases[imageTypeId]);
+
         }
 
-        // update to latest atlas
-        image.updateImageType(gameStore().assets!.atlases[imageTypeId]);
         image.userData.imageIndex = imageIndex;
 
         return image;

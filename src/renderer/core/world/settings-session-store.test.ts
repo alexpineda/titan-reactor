@@ -69,7 +69,8 @@ describe("SettingsSessionStore", () => {
 
         expect(session.getState()).toStrictEqual(initialState.data);
 
-        callback!({ data: { audio: { music: 1 } } });
+        const rhs = { data: { audio: { music: 1 } } };
+        callback!(rhs);
 
         expect(events.emit).toBeCalledTimes(1);
         expect(events.emit).toBeCalledWith("settings-changed", {
@@ -77,10 +78,7 @@ describe("SettingsSessionStore", () => {
                 ...initialState.data,
                 audio: { music: 1 }
             },
-            rhs: {
-                ...initialState.data,
-                audio: { music: 1 }
-            }
+            rhs: rhs.data
         });
     });
 

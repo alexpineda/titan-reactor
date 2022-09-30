@@ -86,7 +86,7 @@ const App = ({
           if (isGltfAtlas(atlas)) {
             return new Image3D(atlas);
           }
-          return new ImageHD().updateImageType(atlas);
+          return new ImageHD().updateImageType(atlas, true);
         };
       };
 

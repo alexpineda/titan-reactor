@@ -6,7 +6,7 @@ import deepMerge from "deepmerge";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 
 export type CreateSessionStoreArgs<T extends Record<string, any>> = {
-    sourceOfTruth: T;
+    initialState: T;
     validateMerge?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => boolean;
     onUpdate?: (newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any) => void;
 }
@@ -18,16 +18,11 @@ export type CreateSessionStoreArgs<T extends Record<string, any>> = {
  * @param options
  * @returns 
  */
-export function createResettableStore<T extends Record<string, any>>({ sourceOfTruth, validateMerge: validateMerge, onUpdate }: CreateSessionStoreArgs<T>): ResettableStore<T> {
+//TODO: refactor this to be called DeepStore and extract the sourceOfTruth stuff
+export function createResettableStore<T extends Record<string, any>>({ initialState, validateMerge: validateMerge, onUpdate }: CreateSessionStoreArgs<T>): ResettableStore<T> {
 
-    const defaults = JSON.parse(JSON.stringify(sourceOfTruth));
-    const store = JSON.parse(JSON.stringify(sourceOfTruth));
+    const store = initialState;
 
-    const getResetValue = (path: string[]) => lGet(defaults, path);
-
-    //TODO: generate path & value if no provided for consistency\
-    // or just do it by default and omit path,value params
-    // would need to be paths[], and values[] though
     const merge = (rhs: DeepPartial<T>, path?: string[], value?: any) => {
 
         const result = deepMerge(store, rhs, { arrayMerge: arrayOverwriteMerge }) as Required<T>;
@@ -47,23 +42,15 @@ export function createResettableStore<T extends Record<string, any>>({ sourceOfT
 
     return {
         getState: () => store,
-        getResetValue,
         getValue,
         setValue,
         merge,
-        updateSourceOfTruth: (newSourceOfTruth: DeepPartial<T>) => {
-            Object.assign(defaults, deepMerge(defaults, JSON.parse(JSON.stringify(newSourceOfTruth))));
-            //TODO: only update the diff
-            merge(JSON.parse(JSON.stringify(defaults)));
-        }
     }
 }
 
-export type ResettableStore<T> = {
+export type ResettableStore<T extends object> = {
     getState: () => T;
     getValue: (path: string[]) => any;
-    getResetValue: (path: string[]) => any;
     setValue: (path: string[], value: any) => void;
     merge: (rhs: DeepPartial<T>) => void;
-    updateSourceOfTruth: (newSourceOfTruth: DeepPartial<T>) => void;
 }

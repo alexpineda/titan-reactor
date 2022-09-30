@@ -1,6 +1,10 @@
 import { log } from "@ipc/log";
+import { DeepPartial } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { Object3D } from "three";
+import deepDiff from "deep-diff";
+import set from "lodash.set";
+import get from "lodash.get";
 
 // https://zellwk.com/blog/copy-properties-of-one-object-to-another-object/
 export function mix(dest: {}, ...sources: {}[]) {
@@ -209,3 +213,34 @@ Object3D.prototype.copy = function (source: Object3D, recursive = true) {
 }
 
 export const arrayOverwriteMerge = (_: any, sourceArray: any) => sourceArray;
+
+
+export function intersection<T extends object>(prevObject: T, newObject: T) {
+
+    const diffs = deepDiff.diff(prevObject, newObject);
+    if (diffs === undefined)
+        return {};
+
+    // update our session with the new user manipulated settings
+    // @ts-ignore
+    const result: DeepPartial<T> = {
+
+    };
+
+    for (const d of diffs) {
+        if (d.kind === "E" && d.path && d.rhs !== undefined) {
+            const parentProp = get(newObject, d.path.slice(0, d.path.length - 1));
+            // don't diff down to array elements, just the entire array is fine!
+            // otherwise we're left with a sparse array :(
+            if (Array.isArray(parentProp) && typeof d.path[d.path.length - 1] === "number") {
+                set(parentProp, d.path, d.rhs);
+                set(result, d.path.slice(0, d.path.length - 1), parentProp);
+            } else {
+                set(result, d.path, d.rhs);
+            }
+        }
+    }
+
+    return result;
+}
+
