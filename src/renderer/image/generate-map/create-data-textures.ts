@@ -1,52 +1,11 @@
 import { Janitor } from "three-janitor";
 import * as THREE from "three";
 import { blendNonZeroPixels } from "../rgb";
-import { MapBitmaps } from "./extract-bitmaps";
-
-export interface MapDataTextures {
-    /**
-     * The SD map data texture in RGBA format.
-     */
-    sdMap: THREE.DataTexture,
-    /**
-     * RGBA
-     */
-    occlussionRoughnessMetallicMap: THREE.DataTexture,
-    /**
-     * Megatiles data
-     */
-    mapTilesMap: THREE.DataTexture,
-    /**
-     * Game creep data.
-     */
-    creepTextureUniform: {
-        value: THREE.DataTexture,
-    },
-    /**
-     * Game creep data.
-     */
-    creepEdgesTextureUniform: {
-        value: THREE.DataTexture,
-    },
-    /**
-     * 0-6 "elevations"
-     */
-    elevationsMap: THREE.DataTexture,
-    /**
-     * No idea.
-     */
-    nonZeroElevationsMap: THREE.DataTexture,
-    /**
-      * Map color data as palette indices.
-      */
-    paletteIndicesMap: THREE.DataTexture,
-    /**
-     * Palette colors.
-     */
-    paletteMap: THREE.DataTexture,
-
-    dispose: () => void
-}
+import { LookupBitmaps } from "./lookup-bitmaps";
+import { parseDdsGrpAsTextures } from "..";
+import { parseTMSK } from "@image/formats/parse-tmsk";
+import parseDDS from "@image/formats/parse-dds";
+import { TilesetData } from "./get-tileset-buffers";
 
 const _defaultOpts = {
     encoding: THREE.LinearEncoding,
@@ -92,22 +51,24 @@ const createDataTexture = (data: ArrayBuffer, width: number, height: number, use
     return tex;
 }
 
-export const createDataTextures = async ({
-    blendNonWalkableBase,
-    palette,
-    mapWidth,
-    mapHeight,
-    bitmaps,
+export type MapLookupTextures = Awaited<ReturnType<typeof createLookupTextures>>;
 
-}:
+export const createLookupTextures = async (
+    td: TilesetData,
     {
-        blendNonWalkableBase: boolean,
-        palette: Uint8Array,
-        mapWidth: number,
-        mapHeight: number,
-        bitmaps: MapBitmaps,
-    }
-): Promise<MapDataTextures> => {
+        blendNonWalkableBase,
+        mapWidth,
+        mapHeight,
+        lookupBitmaps,
+
+    }:
+        {
+            blendNonWalkableBase: boolean,
+            mapWidth: number,
+            mapHeight: number,
+            lookupBitmaps: LookupBitmaps,
+        },
+) => {
 
     const w32 = mapWidth * 32;
     const h32 = mapHeight * 32;
@@ -118,32 +79,49 @@ export const createDataTextures = async ({
 
     const janitor = new Janitor("MapDataTextures");
 
-    const sdMap = createDataTexture(bitmaps.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
-    const occlussionRoughnessMetallicMap = createDataTexture(bitmaps.occlussionRoughnessMetallic, w32, h32, { format: THREE.RGBAFormat });
-    const mapTilesMap = createDataTexture(bitmaps.mapTilesData, mapWidth, mapHeight, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
+    const mapDiffuseTex = createDataTexture(lookupBitmaps.diffuse, w32, h32, { encoding: THREE.sRGBEncoding });
 
-    const creepEdgesValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
+    const occlussionRoughnessMetallicTex = createDataTexture(lookupBitmaps.occlussionRoughnessMetallic, w32, h32, { format: THREE.RGBAFormat });
+
+    const tilesTex = createDataTexture(lookupBitmaps.mapTilesData, mapWidth, mapHeight, { format: THREE.RedIntegerFormat, textureDataType: THREE.UnsignedShortType, internalFormat: "R16UI" });
+
+    const creepEdgesTex = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
+
     const creepValues = createDataTexture(new Uint8Array(mapWidth * mapHeight), mapWidth, mapHeight, { format: THREE.RedFormat });
 
-    const elevationsMap = createDataTexture(bitmaps.layers, w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
-    const nonZeroElevationsMap = createDataTexture(createNonZeroElevationsData(bitmaps.layers, w4, h4, blendNonWalkableBase), w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+    const elevationsTex = createDataTexture(lookupBitmaps.layers, w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
 
-    const paletteIndicesMap = createDataTexture(bitmaps.paletteIndices, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
-    const paletteMap = createDataTexture(new Float32Array(palette.length).fill(0).map((_, i) => palette[i] / 255), palette.length / 4, 1, { textureDataType: THREE.FloatType, flipY: false, encoding: THREE.sRGBEncoding });
+    const nonZeroElevationsTex = createDataTexture(createNonZeroElevationsData(lookupBitmaps.layers, w4, h4, blendNonWalkableBase), w4, h4, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+
+    const paletteIndicesTex = createDataTexture(lookupBitmaps.paletteIndices, w32, h32, { format: THREE.RedIntegerFormat, internalFormat: "R8UI" });
+
+    const paletteTex = createDataTexture(new Float32Array(td.palette.length).fill(0).map((_, i) => td.palette[i] / 255), td.palette.length / 4, 1, { textureDataType: THREE.FloatType, flipY: false, encoding: THREE.sRGBEncoding });
+
+    const effectsTextures = {
+        waterNormal1: parseDdsGrpAsTextures(td.waterNormal1),
+        waterNormal2: parseDdsGrpAsTextures(td.waterNormal2),
+        //TODO: fix this
+        noise: await parseDDS(td.noise, false),
+        waterMask: td.waterMask ? parseDdsGrpAsTextures(td.waterMask) : null,
+        tileMask: td.tileMask ? parseTMSK(td.tileMask) : null,
+    }
 
     return {
-        sdMap,
-        occlussionRoughnessMetallicMap,
-        mapTilesMap,
-        creepTextureUniform: { value: creepValues },
-        creepEdgesTextureUniform: { value: creepEdgesValues },
-        elevationsMap,
-        nonZeroElevationsMap,
-        paletteIndicesMap,
-        paletteMap,
+        mapDiffuseTex: mapDiffuseTex,
+        occlussionRoughnessMetallicTex: occlussionRoughnessMetallicTex,
+        tilesTex: tilesTex,
+        creepTexUniform: { value: creepValues },
+        creepEdgesTexUniform: { value: creepEdgesTex },
+        elevationsTex,
+        nonZeroElevationsTex,
+        paletteIndicesTex,
+        paletteTex,
+        effectsTextures,
         dispose: () => {
-            janitor.dispose(sdMap, occlussionRoughnessMetallicMap, mapTilesMap, creepEdgesValues, creepValues, elevationsMap, nonZeroElevationsMap, paletteIndicesMap, paletteMap);
+            janitor.dispose(mapDiffuseTex, occlussionRoughnessMetallicTex, tilesTex, creepEdgesTex, creepValues, elevationsTex, nonZeroElevationsTex, paletteIndicesTex, paletteTex);
+            janitor.dispose(effectsTextures.waterNormal1, effectsTextures.waterNormal2);
+            effectsTextures.waterMask && janitor.dispose(effectsTextures.waterMask);
         }
     };
 };
-export default createDataTextures;
+export default createLookupTextures;

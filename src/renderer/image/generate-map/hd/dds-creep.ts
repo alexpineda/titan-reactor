@@ -23,6 +23,8 @@ const height = 1;
 // generates a single creep texture from 0 - 13
 export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res: UnitTileScale, renderer: WebGLRenderer): CreepTexture => {
 
+  renderer.clear();
+
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
 
   const tiles = parseDdsGrp(buffer);

@@ -1,5 +1,6 @@
 import { CreepTexture } from "common/types";
 import { DataTexture, NearestFilter, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
+import { TilesetData } from "../get-tileset-buffers";
 import { PX_PER_TILE_SD } from "./common";
 
 const width = 13;
@@ -7,10 +8,7 @@ const height = 1;
 
 // draw 13 creep tiles left to right
 export const grpToCreepTexture = (
-  palette: Uint8Array,
-  megatiles: Uint32Array,
-  minitiles: Uint8Array,
-  tilegroupU16: Uint16Array,
+  { megatilesVX4, tilegroupsCV5, minitilesVR4, palette: paletteWPE }: TilesetData
 ): CreepTexture => {
 
 
@@ -26,7 +24,7 @@ export const grpToCreepTexture = (
     for (let miniY = 0; miniY < 4; miniY++) {
       for (let miniX = 0; miniX < 4; miniX++) {
         const mini =
-          megatiles[tilegroupU16[tileIndex] * 16 + (miniY * 4 + miniX)];
+          megatilesVX4[tilegroupsCV5[tileIndex] * 16 + (miniY * 4 + miniX)];
         const minitile = mini & 0xfffffffe;
         const flipped = mini & 1;
 
@@ -34,14 +32,14 @@ export const grpToCreepTexture = (
           for (let colorX = 0; colorX < 8; colorX++) {
             let color = 0;
             if (flipped) {
-              color = minitiles[minitile * 0x20 + colorY * 8 + (7 - colorX)];
+              color = minitilesVR4[minitile * 0x20 + colorY * 8 + (7 - colorX)];
             } else {
-              color = minitiles[minitile * 0x20 + colorY * 8 + colorX];
+              color = minitilesVR4[minitile * 0x20 + colorY * 8 + colorX];
             }
 
-            const r = palette[color * 4];
-            const g = palette[color * 4 + 1];
-            const b = palette[color * 4 + 2];
+            const r = paletteWPE[color * 4];
+            const g = paletteWPE[color * 4 + 1];
+            const b = paletteWPE[color * 4 + 2];
 
             const pixelPos =
               mapY * PX_PER_TILE_SD * width * PX_PER_TILE_SD +

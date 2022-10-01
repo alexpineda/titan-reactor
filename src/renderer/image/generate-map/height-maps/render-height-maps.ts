@@ -18,7 +18,7 @@ import {
 } from "postprocessing";
 import { MapEffect } from "./map-effect";
 
-import { MapDataTextures } from "../create-data-textures";
+import { MapLookupTextures } from "../create-data-textures";
 import { GeometryOptions } from "common/types";
 import { rgbaToGreyScale } from "@image/canvas";
 
@@ -29,12 +29,12 @@ export const doHeightMapEffect = async ({
     tileset,
     mapWidth,
     mapHeight,
-    dataTextures,
+    lookupTextures,
     geomOptions,
     levels,
     renderer
 }: {
-    dataTextures: MapDataTextures,
+    lookupTextures: MapLookupTextures,
     geomOptions: GeometryOptions,
     levels: Matrix3
     palette: Uint8Array,
@@ -63,27 +63,19 @@ export const doHeightMapEffect = async ({
 
     composer.addPass(new ClearPass());
 
-    const {
-        sdMap,
-        nonZeroElevationsMap,
-        mapTilesMap,
-        paletteIndicesMap,
-        elevationsMap
-    } = dataTextures;
-
     composer.addPass(
         new EffectPass(
             camera,
             new MapEffect({
-                texture: sdMap,
-                elevations: nonZeroElevationsMap,
+                texture: lookupTextures.mapDiffuseTex,
+                elevations: lookupTextures.nonZeroElevationsTex,
                 levels,
                 ignoreLevels: new Matrix3(),
-                mapTiles: mapTilesMap,
+                mapTiles: lookupTextures.tilesTex,
                 ignoreDoodads: 0,
                 tileset,
                 palette,
-                paletteIndices: paletteIndicesMap,
+                paletteIndices: lookupTextures.paletteIndicesTex,
                 blendFunction: BlendFunction.NORMAL,
                 processWater: false
             })
@@ -108,16 +100,16 @@ export const doHeightMapEffect = async ({
         new EffectPass(
             camera,
             new MapEffect({
-                texture: sdMap,
-                elevations: elevationsMap,
-                mapTiles: mapTilesMap,
+                texture: lookupTextures.mapDiffuseTex,
+                elevations: lookupTextures.elevationsTex,
+                mapTiles: lookupTextures.tilesTex,
                 ignoreDoodads: 1,
                 levels,
                 ignoreLevels,
                 tileset,
                 palette,
                 processWater: geomOptions.processWater,
-                paletteIndices: paletteIndicesMap,
+                paletteIndices: lookupTextures.paletteIndicesTex,
                 blendFunction: BlendFunction.NORMAL,
             })
         )

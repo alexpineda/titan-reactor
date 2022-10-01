@@ -15,6 +15,8 @@ const leftEdges = [15];
 // generates a single creep texture for the edges from 0 - 15
 export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, renderer: WebGLRenderer): CreepTexture => {
 
+  renderer.clear();
+
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
   const edgeScale = res === UnitTileScale.HD ? 256 : 128;
 

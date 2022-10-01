@@ -1,6 +1,6 @@
-import { TilesetBuffers } from "./get-tileset-buffers";
+import { TilesetData } from "./get-tileset-buffers";
 
-export type MapBitmaps = {
+export type LookupBitmaps = {
   mapTilesData: Uint16Array;
   diffuse: Uint8Array;
   layers: Uint8Array;
@@ -8,12 +8,13 @@ export type MapBitmaps = {
   occlussionRoughnessMetallic: Uint8Array;
 }
 
-export const extractBitmaps = (
+export const createLookupBitmaps = (
   mapWidth: number,
   mapHeight: number,
-  { mapTiles, paletteWPE, tilegroupCV5, megatilesVX4, minitilesFlagsVF4, minitilesVR4 }:
-    Pick<TilesetBuffers, "mapTiles" | "paletteWPE" | "tilegroupCV5" | "megatilesVX4" | "minitilesFlagsVF4" | "minitilesVR4">
-): MapBitmaps => {
+  mapTiles: Uint16Array,
+  { palette: paletteWPE, tilegroupsCV5, megatilesVX4, minitilesFlagsVF4, minitilesVR4 }:
+    TilesetData
+): LookupBitmaps => {
   let tileGroup,
     groupIndex,
     groupOffset,
@@ -54,10 +55,10 @@ export const extractBitmaps = (
       groupIndex = tileId & 0xf;
       groupOffset = tileGroup * 26 + groupIndex + 10;
       megatileId = 0;
-      if (groupOffset > tilegroupCV5.length) {
+      if (groupOffset > tilegroupsCV5.length) {
         megatileId = 0;
       } else {
-        megatileId = tilegroupCV5[groupOffset];
+        megatileId = tilegroupsCV5[groupOffset];
       }
 
       mapTilesData[mapY * mapWidth + mapX] = megatileId;

@@ -30,9 +30,9 @@ export const createHdQuartiles = (
   renderer: WebGLRenderer
 ): WrappedQuartileTextures => {
 
+  renderer.clear();
 
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
-
 
   const mapQuartiles: Texture[][] = [];
   const hdTiles = parseDdsGrp(imageData);

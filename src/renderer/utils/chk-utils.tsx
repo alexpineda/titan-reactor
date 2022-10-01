@@ -68,3 +68,23 @@ export const createMapImage = async (chk: Chk) => {
 
   return rgbToCanvas({ data: img, width: 512, height: 512 }, "rgb");
 };
+
+export const getMapTiles = (chk: Chk) => {
+  const buffer = chk._tiles;
+  //hitchhiker has odd length buffer
+  if (buffer.buffer.byteLength % 2 === 1) {
+    const tiles = Buffer.alloc(buffer.byteLength + 1);
+    buffer.copy(tiles);
+    return new Uint16Array(
+      tiles.buffer,
+      tiles.byteOffset,
+      tiles.byteLength / Uint16Array.BYTES_PER_ELEMENT
+    );
+  } else {
+    return new Uint16Array(
+      buffer.buffer,
+      buffer.byteOffset,
+      buffer.byteLength / Uint16Array.BYTES_PER_ELEMENT
+    );
+  }
+};

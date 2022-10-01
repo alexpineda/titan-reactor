@@ -10,7 +10,7 @@ import { applyModelEffectsOnImage3d, applyOverlayEffectsToImageHD, applyViewport
 import { Players } from "@core/players";
 import { SpriteEntities } from "@core/sprite-entities";
 import { UnitEntities } from "@core/unit-entities";
-import { chkToTerrainMesh } from "@image/generate-map/chk-to-terrain-mesh";
+import { terrainComposer } from "@image/generate-map/terrain-composer";
 import BaseScene from "@render/base-scene";
 import { imageIsDoodad, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
 import { Janitor, JanitorLogLevel } from "three-janitor";
@@ -27,6 +27,7 @@ import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/iterable-set";
 import { Borrowed } from "@utils/object-utils";
 import { getJanitorLogLevel } from "@core/global";
+import { getMapTiles } from "@utils/chk-utils";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
@@ -36,8 +37,8 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
     const janitor = new Janitor("SceneComposer");
 
-    const { terrain, ...terrainExtra } = janitor.mop(await chkToTerrainMesh(
-        ...world.map!.size, world.map!.tileset, world.map!._tiles, UnitTileScale.HD,
+    const { terrain, ...terrainExtra } = janitor.mop(await terrainComposer(
+        ...world.map!.size, world.map!.tileset, getMapTiles(world.map!), UnitTileScale.HD,
     ), "terrain");
 
     const pxToWorld = makePxToWorld(...world.map!.size, terrain.getTerrainY);

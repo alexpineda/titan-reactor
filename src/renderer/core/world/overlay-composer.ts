@@ -82,7 +82,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
         module.hot.accept("@render/minimap-material", () => {
 
-            minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.dataTextures.sdMap);
+            minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
             minimap.material = minimapMaterial;
             applySettings({ settings: world.settings!.getState(), rhs: {} });
 
@@ -90,7 +90,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     }
 
-    let minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.dataTextures.sdMap);
+    let minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
     minimapMaterial.mode = world.settings!.getState().minimap.mode;
 
     const minimap = new Mesh(new PlaneBufferGeometry(1, 1), minimapMaterial);

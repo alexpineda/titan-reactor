@@ -1,10 +1,10 @@
 import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk, MeshBasicMaterial, Shader } from "three";
 
 
-import { CreepTexture, WrappedQuartileTextures, GeometryOptions, EffectsTextures } from "common/types";
+import { CreepTexture, WrappedQuartileTextures, GeometryOptions } from "common/types";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
-import { MapDataTextures } from "./create-data-textures";
+import { MapLookupTextures } from "./create-data-textures";
 
 import hdMapFrag from "./hd/hd.frag.glsl?raw";
 import hdHeaderFrag from "./hd/hd-header.frag.glsl?raw";
@@ -20,10 +20,9 @@ export const createTerrainGeometryFromQuartiles = async (
     creepTexture: CreepTexture,
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
-    { creepEdgesTextureUniform, creepTextureUniform /*, occlussionRoughnessMetallicMap*/ }: MapDataTextures,
+    { creepEdgesTexUniform, creepTexUniform /*, occlussionRoughnessMetallicMap*/, effectsTextures }: MapLookupTextures,
     { singleChannel, texture, displaceCanvas }: HeightMaps,
-    mapTextures: WrappedQuartileTextures,
-    effectsTextures: EffectsTextures
+    mapTextures: WrappedQuartileTextures
 ) => {
     const terrain = new Terrain(geomOptions, getTerrainY({
         data: singleChannel, width: texture.image.width, height: texture.image.height
@@ -138,8 +137,8 @@ export const createTerrainGeometryFromQuartiles = async (
                         qh / 1
                     ),
                 };
-                shader.uniforms.creepEdges = creepEdgesTextureUniform;
-                shader.uniforms.creep = creepTextureUniform;
+                shader.uniforms.creepEdges = creepEdgesTexUniform;
+                shader.uniforms.creep = creepTexUniform;
                 shader.uniforms.creepEdgesTexture = {
                     value: creepEdgesTexture.texture,
                 };
