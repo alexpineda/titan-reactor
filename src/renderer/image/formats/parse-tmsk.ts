@@ -14,14 +14,22 @@ import range from "common/utils/range";
 export const parseTMSK = (buffer: Buffer) => {
     const count = buffer.readUInt16LE(6);
 
+    const map = new Map<number, number>();
+
     let pos = 8;
-    return range(0, count).map(i => {
+
+    range(0, count).forEach(_ => {
+
         const vr4id = buffer.readUInt16LE(pos);
         const maskid = buffer.readUInt16LE(pos + 2);
+
         pos = pos + 4;
 
-        return { i, vr4id, maskid };
+        map.set(vr4id, maskid);
+
     })
+
+    return map;
 };
 
 // u32 getMaskID(u32 vr4id){ u32 i;for(i=0;i<tmsk->count;i++) if(tmsk->tileMasks[i].vr4id == vr4id) return tmsk->tileMasks[i].maskid; return 0xFFFFFFFF; }

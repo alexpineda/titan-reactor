@@ -1,21 +1,17 @@
 precision highp isampler2D;
 precision highp sampler2D;
 
-uniform vec2 quartileSize;
-uniform vec2 quartileOffset;
 uniform vec2 tileUnit;
-uniform vec2 mapToCreepResolution;
-
 uniform sampler2D waterMask;
+
 
 uniform sampler2D creep;
 uniform sampler2D creepTexture;
 uniform vec2 creepResolution;
-uniform vec2 mapToCreepEdgesResolution;
+uniform vec3 mapToCreepResolution;
 
 uniform sampler2D creepEdges;
 uniform sampler2D creepEdgesTexture;
-uniform vec2 creepEdgesResolution;
 
 varying vec2 qUv;
 
@@ -36,9 +32,9 @@ uniform sampler2D waterNormal2_1; // normal detail frame 2 (for interpolation)
 
 varying vec3 v_Position;
 
-vec4 sampleCreep(in vec4 inColor, in vec2 uv, in float creepTile, in sampler2D tex, in vec2 res, in vec2 invRes) {
+vec4 sampleCreep(in vec4 inColor, in vec2 uv, in float creepTile, in sampler2D tex, in float res, in vec2 invRes) {
     // creepTile 1 needs to be set back to 0 base for sampling.
-    float creepS = (creepTile - 1./255.) * 255./res.x ; 
+    float creepS = (creepTile - 1./255.) * 255. / res; 
 
     // modulate uv by tile since we're scaling out to that unit at the end
     vec4 outColor = texture2D(tex, vec2(

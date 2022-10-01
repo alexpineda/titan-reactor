@@ -11,11 +11,13 @@ export class Terrain extends Group {
         quartileHeight: number,
         tilesX: number,
         tilesY: number,
+        timeUniform: { value: number },
     } = {
             quartileWidth: 0,
             quartileHeight: 0,
             tilesX: 0,
             tilesY: 0,
+            timeUniform: { value: 0 },
         }
     readonly getTerrainY: GetTerrainY;
     readonly geomOptions: GeometryOptions;

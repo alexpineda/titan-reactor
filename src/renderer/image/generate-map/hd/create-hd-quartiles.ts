@@ -149,15 +149,17 @@ export const createHdQuartiles = (
             renderer.render(quartileScene, ortho);
 
             if (waterMask && tileMask) {
+
               renderer.setRenderTarget(waterRT);
 
-              const waterIdx = tileMask.find((t) => t.vr4id === tile)?.maskid;
+              const waterIdx = tileMask.get(tile);
+
               if (waterIdx !== undefined) {
                 waterMaskScene.add(mesh);
                 mat.map = waterMask[waterIdx]
                 renderer.render(waterMaskScene, ortho);
-                console.warn("water mask for tile", tile);
               }
+
             }
 
           } else {

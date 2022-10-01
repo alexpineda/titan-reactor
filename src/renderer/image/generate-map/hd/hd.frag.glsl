@@ -4,9 +4,9 @@
 float creepF = texture2D(creep, qUv).r;
 float creepE = texture2D(creepEdges, qUv).r;
 
-diffuseColor = sampleCreep(diffuseColor, vUv, creepF, creepTexture, creepResolution, mapToCreepResolution);
+diffuseColor = sampleCreep(diffuseColor, vUv, creepF, creepTexture, creepResolution.x, mapToCreepResolution.xy);
 
-diffuseColor = sampleCreep(diffuseColor, vUv, creepE, creepEdgesTexture, creepEdgesResolution, mapToCreepEdgesResolution);
+diffuseColor = sampleCreep(diffuseColor, vUv, creepE, creepEdgesTexture, creepResolution.y, mapToCreepResolution.zy);
 
 #ifdef USE_WATER_MASK
 

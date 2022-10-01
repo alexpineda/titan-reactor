@@ -1,4 +1,4 @@
-import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk, MeshBasicMaterial, Shader } from "three";
+import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk, MeshBasicMaterial, Shader, Vector4, Vector3 } from "three";
 
 
 import { CreepTexture, WrappedQuartileTextures, GeometryOptions } from "common/types";
@@ -13,6 +13,10 @@ import { HeightMaps } from "./height-maps/render-height-maps";
 import gameStore from "@stores/game-store";
 import { getTerrainY } from "./get-terrain-y";
 import processStore from "@stores/process-store";
+
+if (module.hot) {
+    module.hot.accept();
+}
 
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
@@ -38,6 +42,10 @@ export const createTerrainGeometryFromQuartiles = async (
 
     const tilesX = mapWidth / qw;
     const tilesY = mapHeight / qh;
+
+    const timeUniform = {
+        value: 0
+    }
 
     // const displacementMap = new DataTexture(out, texture.image.width, texture.image.height, RedFormat);
     // displacementMap.needsUpdate = true;
@@ -97,7 +105,14 @@ export const createTerrainGeometryFromQuartiles = async (
 
                 let vs = shader.vertexShader;
 
-                vs = vs.replace("#include <uv_vertex>", `${ShaderChunk.uv_vertex}\nqUv = vUv * quartileSize + vec2(quartileOffset.x, (1. - quartileSize.y) - quartileOffset.y);`);
+                vs = vs.replace("#include <uv_vertex>", `
+
+                    ${ShaderChunk.uv_vertex}
+
+                    qUv = vUv * quartileSize.xy + vec2(quartileSize.z, (1. - quartileSize.y) - quartileSize.w);`
+
+                );
+
                 vs = vs.replace("#include <displacementmap_vertex>", ShaderChunk.displacementmap_vertex.replace("vUv", "qUv"));
 
                 vs = vs.replace("varying vec3 vViewPosition;", `
@@ -111,17 +126,17 @@ export const createTerrainGeometryFromQuartiles = async (
                 `);
 
                 shader.vertexShader = `
-                uniform vec2 quartileSize;
-                uniform vec2 quartileOffset;
+                uniform vec4 quartileSize;
                 varying vec2 qUv;
 
                 ${vs}`;
 
                 shader.uniforms.quartileSize = {
-                    value: new Vector2(qw / mapWidth, qh / mapHeight),
-                };
-                shader.uniforms.quartileOffset = {
-                    value: new Vector2((qw * qx) / mapWidth, (qh * qy) / mapHeight),
+                    value: new Vector4(
+                        // normalized quartile size
+                        qw / mapWidth, qh / mapHeight,
+                        // offsets
+                        (qw * qx) / mapWidth, (qh * qy) / mapHeight),
                 };
 
                 shader.uniforms.tileUnit = {
@@ -129,31 +144,23 @@ export const createTerrainGeometryFromQuartiles = async (
                 };
 
                 shader.uniforms.mapToCreepResolution = {
-                    value: new Vector2(
+                    value: new Vector3(
                         qw / (creepTexture.count),
-                        qh / 1
+                        qh / 1,
+                        qw / (creepEdgesTexture.count)
                     ),
                 };
                 shader.uniforms.creepResolution = {
-                    value: new Vector2(creepTexture.count, 1)
+                    value: new Vector2(
+                        creepTexture.count,
+                        creepEdgesTexture.count
+                    )
                 };
 
-                shader.uniforms.mapToCreepEdgesResolution = {
-                    value: new Vector2(
-                        qw / (creepEdgesTexture.count),
-                        qh / 1
-                    ),
-                };
                 shader.uniforms.creepEdges = creepEdgesTexUniform;
                 shader.uniforms.creep = creepTexUniform;
                 shader.uniforms.creepEdgesTexture = {
                     value: creepEdgesTexture.texture,
-                };
-                shader.uniforms.creepEdgesResolution = {
-                    value: new Vector2(
-                        creepEdgesTexture.count,
-                        1
-                    ),
                 };
                 shader.uniforms.creepTexture = {
                     value: creepTexture.texture,
@@ -178,6 +185,8 @@ export const createTerrainGeometryFromQuartiles = async (
                 shader.uniforms.waterNormal2_1 = {
                     value: effectsTextures.waterNormal2[1]
                 };
+
+                shader.uniforms.uTime = timeUniform;
 
             };
             standardMaterial.onBeforeCompile = materialOnBeforeCompile;
@@ -212,7 +221,7 @@ export const createTerrainGeometryFromQuartiles = async (
     terrain.visible = true;
     terrain.name = "TerrainHD";
     terrain.userData = {
-        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY
+        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY, timeUniform
     }
 
     return terrain;
