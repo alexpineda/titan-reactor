@@ -18,7 +18,7 @@ import {
 } from "postprocessing";
 import { MapEffect } from "./map-effect";
 
-import { MapLookupTextures } from "../create-data-textures";
+import { LookupTextures } from "../lookup-textures";
 import { GeometryOptions } from "common/types";
 import { rgbaToGreyScale } from "@image/canvas";
 
@@ -34,7 +34,7 @@ export const doHeightMapEffect = async ({
     levels,
     renderer
 }: {
-    lookupTextures: MapLookupTextures,
+    lookupTextures: LookupTextures,
     geomOptions: GeometryOptions,
     levels: Matrix3
     palette: Uint8Array,

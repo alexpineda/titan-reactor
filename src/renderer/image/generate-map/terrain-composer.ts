@@ -1,7 +1,7 @@
 import { GeometryOptions, UnitTileScale } from "common/types";
 
 import {
-  createLookupTextures, createTerrainGeometryFromQuartiles, createLookupBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect, LookupBitmaps
+  createLookupTextures, createTerrainGeometryFromQuartiles, createLookupBitmaps, defaultGeometryOptions, transformLevelConfiguration, doHeightMapEffect, LookupBitmaps, LookupTextures
 } from ".";
 
 import { loadAllTilesetData, TilesetData } from "./get-tileset-buffers";
@@ -49,7 +49,7 @@ export async function terrainComposer(mapWidth: number, mapHeight: number, tiles
 
   const { creepTexture, creepEdgesTexture } = janitor.mop(await generateCreepDiffuse(textureResolution, td));
 
-  const { textures } = janitor.mop(generateMapDiffuseQuartiles(textureResolution, mapWidth, mapHeight, lookupBitmaps, td));
+  const { textures } = janitor.mop(generateMapDiffuseQuartiles(textureResolution, mapWidth, mapHeight, lookupBitmaps, td, lookupTextures.effectsTextures));
 
   //TODO: generate water mask
 
@@ -98,20 +98,25 @@ const generateCreepDiffuse = async (textureResolution: UnitTileScale, td: Tilese
 
 }
 
-const generateMapDiffuseQuartiles = (textureResolution: UnitTileScale, mapWidth: number, mapHeight: number, lookupBitmaps: LookupBitmaps, td: TilesetData) => {
+const generateMapDiffuseQuartiles = (textureResolution: UnitTileScale, mapWidth: number, mapHeight: number, lookupBitmaps: LookupBitmaps, td: TilesetData, effectTextures: LookupTextures["effectsTextures"]) => {
 
   const isLowRes = textureResolution === UnitTileScale.SD;
 
-  const textures = isLowRes ? sd.createSdQuartiles(mapWidth, mapHeight, lookupBitmaps.diffuse) : hd.createHdQuartiles(mapWidth, mapHeight,
+  const textures = isLowRes ? sd.createSdQuartiles(mapWidth, mapHeight, lookupBitmaps.diffuse) : hd.createHdQuartiles(
+    mapWidth,
+    mapHeight,
     td.hdTiles,
     lookupBitmaps.mapTilesData,
-    textureResolution, renderComposer.getWebGLRenderer()
+    textureResolution,
+    effectTextures,
+    renderComposer.getWebGLRenderer()
   );
 
   return {
     textures,
     dispose() {
       textures.mapQuartiles.flat().forEach(t => t.dispose());
+      textures.waterMaskQuartiles.flat().forEach(t => t.dispose());
     }
   }
 }

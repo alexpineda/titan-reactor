@@ -33,6 +33,7 @@ export type CreepTexture = {
 
 export type WrappedQuartileTextures = {
   mapQuartiles: Texture[][],
+  waterMaskQuartiles: Texture[][],
   quartileHeight: number,
   quartileWidth: number,
 }

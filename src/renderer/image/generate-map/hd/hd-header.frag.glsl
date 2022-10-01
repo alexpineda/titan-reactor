@@ -6,6 +6,8 @@ uniform vec2 quartileOffset;
 uniform vec2 tileUnit;
 uniform vec2 mapToCreepResolution;
 
+uniform sampler2D waterMask;
+
 uniform sampler2D creep;
 uniform sampler2D creepTexture;
 uniform vec2 creepResolution;
@@ -26,10 +28,10 @@ varying vec2 qUv;
 // //in vec2 mapCoord2; // small tiles
 // uniform vec4 data;
 
-// uniform sampler2D sampleTex;  // normal 1 frame 1
-// uniform sampler2D sampleTex2; // normal 1 frame 2 (for interpolation)
-// uniform sampler2D sampleTex3; // normal detail frame 1
-// uniform sampler2D sampleTex4; // normal detail frame 2 (for interpolation)
+uniform sampler2D waterNormal1_0;  // normal 1 frame 1
+uniform sampler2D waterNormal1_1; // normal 1 frame 2 (for interpolation)
+uniform sampler2D waterNormal2_0; // normal detail frame 1
+uniform sampler2D waterNormal2_1; // normal detail frame 2 (for interpolation)
 
 
 varying vec3 v_Position;

@@ -1,6 +1,6 @@
 export * from "./create-displacement-geometry";
 export * from "./create-displacement-geometry-quartile";
-export * from "./create-data-textures"
+export * from "./lookup-textures"
 export * from "./transform-level-configuration";
 export * from "./lookup-bitmaps"
 export * from "./default-geometry-options"

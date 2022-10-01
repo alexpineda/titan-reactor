@@ -4,7 +4,7 @@ import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk, MeshBasicMaterial, Sh
 import { CreepTexture, WrappedQuartileTextures, GeometryOptions } from "common/types";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
-import { MapLookupTextures } from "./create-data-textures";
+import { LookupTextures } from "./lookup-textures";
 
 import hdMapFrag from "./hd/hd.frag.glsl?raw";
 import hdHeaderFrag from "./hd/hd-header.frag.glsl?raw";
@@ -20,7 +20,7 @@ export const createTerrainGeometryFromQuartiles = async (
     creepTexture: CreepTexture,
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
-    { creepEdgesTexUniform, creepTexUniform /*, occlussionRoughnessMetallicMap*/, effectsTextures }: MapLookupTextures,
+    { creepEdgesTexUniform, creepTexUniform /*, occlussionRoughnessMetallicMap*/, effectsTextures }: LookupTextures,
     { singleChannel, texture, displaceCanvas }: HeightMaps,
     mapTextures: WrappedQuartileTextures
 ) => {
@@ -74,7 +74,14 @@ export const createTerrainGeometryFromQuartiles = async (
                 // displacementScale: geomOptions.maxTerrainHeight,
                 // roughnessMap: occlussionRoughnessMetallicMap,
                 fog: false
+
             });
+
+            if (mapTextures.waterMaskQuartiles.length > 0) {
+                Object.assign(standardMaterial.defines, {
+                    USE_WATER_MASK: 1,
+                });
+            }
 
             const basicMaterial = new MeshBasicMaterial({
                 map: mapTextures.mapQuartiles[qx][qy],
@@ -153,7 +160,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 };
 
                 shader.uniforms.waterMask = {
-                    value: effectsTextures.waterMask
+                    value: mapTextures.waterMaskQuartiles.length ? mapTextures.waterMaskQuartiles[qx][qy] : null
                 };
 
                 shader.uniforms.waterNormal1_0 = {
@@ -170,10 +177,6 @@ export const createTerrainGeometryFromQuartiles = async (
 
                 shader.uniforms.waterNormal2_1 = {
                     value: effectsTextures.waterNormal2[1]
-                };
-
-                shader.uniforms.tileMask = {
-                    value: effectsTextures.tileMask
                 };
 
             };

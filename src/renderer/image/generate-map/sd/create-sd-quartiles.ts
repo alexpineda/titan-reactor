@@ -19,6 +19,7 @@ export const createSdQuartiles = (
     const strideH = mapHeight / quartileHeight;
 
     return {
+        waterMaskQuartiles: [],
         mapQuartiles: range(0, strideW).map(qx => range(0, strideH).map(qy => {
             const texture = new Uint8Array(quartileWidthPx * quartileHeightPx * 4);
             for (let y = 0; y < quartileHeightPx; y++) {

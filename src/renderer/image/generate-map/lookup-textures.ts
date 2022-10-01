@@ -51,7 +51,7 @@ const createDataTexture = (data: ArrayBuffer, width: number, height: number, use
     return tex;
 }
 
-export type MapLookupTextures = Awaited<ReturnType<typeof createLookupTextures>>;
+export type LookupTextures = Awaited<ReturnType<typeof createLookupTextures>>;
 
 export const createLookupTextures = async (
     td: TilesetData,

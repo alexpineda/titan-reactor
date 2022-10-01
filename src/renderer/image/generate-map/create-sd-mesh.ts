@@ -1,4 +1,4 @@
-import { MapLookupTextures } from "./create-data-textures";
+import { LookupTextures } from "./lookup-textures";
 import * as THREE from "three";
 import {
   Mesh,
@@ -18,7 +18,7 @@ export const createSDMesh = async (
   creepTexture: CreepTexture,
   creepEdgesTexture: CreepTexture,
   geomOptions: GeometryOptions,
-  { paletteIndicesTex: paletteIndicesMap, paletteTex: paletteMap, creepEdgesTexUniform: creepEdgesTextureUniform, creepTexUniform: creepTextureUniform, mapDiffuseTex: sdMap, elevationsTex: elevationsMap, tilesTex: mapTilesMap }: MapLookupTextures,
+  { paletteIndicesTex: paletteIndicesMap, paletteTex: paletteMap, creepEdgesTexUniform: creepEdgesTextureUniform, creepTexUniform: creepTextureUniform, mapDiffuseTex: sdMap, elevationsTex: elevationsMap, tilesTex: mapTilesMap }: LookupTextures,
   displacementCanvas: HTMLCanvasElement,
 ) => {
 
