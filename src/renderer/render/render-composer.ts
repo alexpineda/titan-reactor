@@ -3,6 +3,7 @@ import {
     LinearEncoding,
     PerspectiveCamera,
     Scene,
+    ShaderChunk,
     sRGBEncoding,
     Vector4,
     VSMShadowMap,
@@ -18,6 +19,9 @@ import { globalEvents } from "../core/global-events";
 
 //@ts-ignore
 ColorManagement.legacyMode = false;
+
+// modify global shadow intensity
+ShaderChunk.shadowmap_pars_fragment = ShaderChunk.shadowmap_pars_fragment.replace("return shadow;", "return max( 0.5, shadow );");
 
 const createWebGLRenderer = () => {
     const renderer = new WebGLRenderer({

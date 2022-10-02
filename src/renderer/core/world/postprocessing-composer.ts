@@ -58,7 +58,6 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
                 scene.sunlight.shadowQuality = postProcessingBundle.options3d.shadowQuality;
             }
 
-            scene.sunlight.shadowIntensity = postProcessingBundle.options3d.shadowIntensity;
             scene.sunlight.setPosition(postProcessingBundle.options3d.sunlightDirection[0], postProcessingBundle.options3d.sunlightDirection[1], postProcessingBundle.options3d.sunlightDirection[2]);
             scene.sunlight.intensity = postProcessingBundle.options3d.sunlightIntensity;
             scene.sunlight.setColor(postProcessingBundle.options3d.sunlightColor);

@@ -78,7 +78,6 @@ export const defaultSettingsV6: SettingsV6 = {
     sunlightColor: "#8a8a8a",
     sunlightDirection: [-70, 90, -90],
     sunlightIntensity: 5.25,
-    shadowIntensity: 0.8,
     shadowQuality: 8
   },
   plugins: {

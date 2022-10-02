@@ -440,13 +440,6 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
         "label": "Sunlight Color",
         "value": postprocessing3d.sunlightColor,
     },
-    "postprocessing3d.shadowIntensity": {
-        "label": "Shadow Intensity",
-        "value": postprocessing3d.shadowIntensity,
-        min: 0,
-        max: 1,
-        step: 0.1
-    },
     "postprocessing3d.shadowQuality": {
         "label": "Shadow Quality",
         "value": postprocessing3d.shadowQuality,

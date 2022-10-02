@@ -127,4 +127,5 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
   Janitor.trash("ddsCreep", scene);
 
   return { texture, count: width, dispose() { texture.dispose() } };
+
 };

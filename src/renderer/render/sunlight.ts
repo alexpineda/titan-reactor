@@ -27,35 +27,23 @@ const createDirectional = (mapWidth: number, mapHeight: number) => {
 }
 export class Sunlight {
     #light: DirectionalLight;
-    #light2: DirectionalLight;
-    #intensity = 1;
     shadowIntensity = 1;
     #quality = 1;
 
     constructor(mapWidth: number, mapHeight: number) {
         this.#light = createDirectional(mapWidth, mapHeight);
-        this.#light2 = createDirectional(mapWidth, mapHeight);
-        this.#light2.castShadow = false;
-        this.intensity = 1;
     }
 
     get children() {
-        return [this.#light, this.#light2, this.target];
+        return [this.#light, this.target];
     }
 
     set enabled(val: boolean) {
         this.#light.visible = val;
-        this.#light2.visible = val;
     }
 
     set intensity(value: number) {
-        this.#intensity = value;
         this.#light.intensity = value * this.shadowIntensity;
-        this.#light2.intensity = value * (1 - this.shadowIntensity);
-    }
-
-    get intensity() {
-        return this.#intensity;
     }
 
     get target() {
@@ -78,10 +66,6 @@ export class Sunlight {
         this.#light.shadow.needsUpdate = true;
         this.#light.updateMatrix();
         this.#light.updateMatrixWorld();
-
-        this.#light2.shadow.needsUpdate = true;
-        this.#light2.updateMatrix();
-        this.#light2.updateMatrixWorld();
     }
 
     set shadowQuality(quality: number) {
@@ -101,6 +85,5 @@ export class Sunlight {
 
     dispose() {
         this.#light.dispose();
-        this.#light2.dispose();
     }
 }
