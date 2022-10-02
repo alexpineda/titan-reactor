@@ -88,7 +88,7 @@ export class CursorMaterial extends ShaderMaterial {
         if (cursor.texture !== this.uniforms.uArrowTex.value) {
             this.uniforms.uArrowTex.value = cursor.texture;
             this.uniforms.uArrowSize.value.set(cursor.texture.image.width, cursor.texture.image.height);
-            this.uniforms.uFrame.value.set(cursor.frames?.length!, 1);
+            this.uniforms.uFrame.value.set(cursor.frames!.length!, 1);
         }
     }
 

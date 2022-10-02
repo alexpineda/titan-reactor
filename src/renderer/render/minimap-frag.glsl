@@ -34,7 +34,7 @@ void main() {
 
     result = mix(vec4(0.0, 0.0, 0.0, result.a), result,  step(bounds.x, vUv.x) * step(bounds.y, vUv.y) * step(bounds.x, 1.-vUv.x) * step(bounds.y, 1.-vUv.y));
     // TODO; multiply 0.1 (edge distance) by aspect ratio
-    result.a = mix(result.a,  result.a * smoothstep(bounds.x, bounds.x + 0.1, vUv.x) * smoothstep(bounds.y, bounds.y + 0.1, vUv.y) * smoothstep(bounds.x, bounds.x + 0.1, 1.-vUv.x) * smoothstep(bounds.y, bounds.y + 0.1, 1.-vUv.y),  uSoftEdges);
+    result.a = mix(uOpacity,  uOpacity * smoothstep(bounds.x, bounds.x + 0.1, vUv.x) * smoothstep(bounds.y, bounds.y + 0.1, vUv.y) * smoothstep(bounds.x, bounds.x + 0.1, 1.-vUv.x) * smoothstep(bounds.y, bounds.y + 0.1, 1.-vUv.y),  uSoftEdges);
 
     gl_FragColor = result.rgba;
 
