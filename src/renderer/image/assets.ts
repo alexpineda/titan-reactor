@@ -43,16 +43,11 @@ export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "r
 
 export const createAssets = async (directories: Settings["directories"]) => {
 
-
     electronFileLoader((file: string) => {
         log.debug(file);
 
         if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png") || file.includes(".exr")) {
-            // if (process.env.NODE_ENV !== "development") {
             return fsPromises.readFile(file);
-            // } else {
-            //     return fetch(file).then(res => res.arrayBuffer()).then(buffer => Buffer.from(buffer));
-            // }
         } else {
             return readCascFile(file);
         }

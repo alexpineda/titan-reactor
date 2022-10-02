@@ -116,21 +116,6 @@ const _sceneResizeHandler = () => {
 
 let fireTexture: Texture;
 
-// let _zoom = 100;
-// window.addEventListener("click", () => {
-//     if (_zoom === 1) {
-//         _zoom = 2;
-//         controls.zoomTo(2);
-//     } else if (_zoom === 2) {
-//         _zoom = 3;
-//         controls.zoomTo(3);
-//     } else {
-//         _zoom = 1;
-//         controls.zoomTo(1);
-//     }
-//     window._clap();
-// })
-
 export const preloadIntro = async () => {
 
     const { increment } = processStore().addOrCreate("intro", 4);

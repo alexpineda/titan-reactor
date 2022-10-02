@@ -114,6 +114,17 @@ export const createTerrainGeometryFromQuartiles = async (
 
                 fs = fs.replace("#include <map_fragment>", hdMapFrag);
                 fs = fs.replace("#include <roughnessmap_fragment>", ShaderChunk.roughnessmap_fragment.replace("vUv", "qUv"));
+                fs = fs.replace("#include <normal_fragment_begin>", `
+
+                    #include <normal_fragment_begin>
+
+                    #ifdef USE_WATER_MASK
+
+	                // normal = mix(normal, normalize(vec3(waterNormal.x, 1.0, waterNormal.z)) * 2.0 - 1.0, destWaterMask);
+
+                    #endif
+                
+                `);
 
                 shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
 
@@ -140,6 +151,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 `);
 
                 shader.vertexShader = `
+
                 uniform vec4 quartileSize;
                 varying vec2 qUv;
 

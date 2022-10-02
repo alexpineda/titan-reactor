@@ -11,6 +11,7 @@ uniform mat3 levels;
 uniform mat3 ignoreLevels;
 
 bool getIsWater(const in int tileset, const in int paletteIndex, const in vec4 oColor, const in uint elevation) {
+  
   if (tileset > 3 || tileset == 0) { //jungle, badlands, desert, ice, twilight
     if ((paletteIndex >= 1 && paletteIndex <= 13) || (paletteIndex >= 248 && paletteIndex <= 254) ) {
       return true;
@@ -65,16 +66,23 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor)
 
     float displacement = 0.;
     bool ignoreLevel = false;
+
     // get the height 
     if (level < uint(3)) {
+
         displacement = levels[level][0];
         ignoreLevel = ignoreLevels[level][0] > 0.;
-      } else if (level >= uint(3) && level < uint(6)) {
+
+    } else if (level >= uint(3) && level < uint(6)) {
+
         displacement = levels[level - uint(3)][1];
         ignoreLevel = ignoreLevels[level - uint(3)][1] > 0.;
+
     } else {
+
         displacement = levels[level - uint(6)][2];
         ignoreLevel = ignoreLevels[level - uint(6)][2] > 0.;
+
     }
  
     bool elevationWasModified = elevation != level;

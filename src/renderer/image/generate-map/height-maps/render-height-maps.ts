@@ -58,7 +58,7 @@ export const doHeightMapEffect = async ({
     );
     const savePass = new CopyPass();
     const blurPassHuge = new KawaseBlurPass({
-        kernelSize: geomOptions.firstBlur
+        kernelSize: geomOptions.firstBlurPassKernelSize
     });
 
     composer.addPass(new ClearPass());
@@ -84,7 +84,7 @@ export const doHeightMapEffect = async ({
     composer.addPass(blurPassHuge);
     composer.addPass(savePass);
     composer.addPass(new CopyPass());
-    if (geomOptions.firstPass) {
+    if (geomOptions.renderFirstPass) {
         composer.render(0);
     }
 
@@ -128,7 +128,7 @@ export const doHeightMapEffect = async ({
     composer.addPass(new CopyPass());
     // render to screen
     composer.addPass(new CopyPass());
-    if (geomOptions.secondPass) {
+    if (geomOptions.renderSecondPass) {
         composer.render(0);
     }
 

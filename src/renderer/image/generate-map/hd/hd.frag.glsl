@@ -22,8 +22,8 @@ vec2 wUv = vUv + vec2(waterNormal.x * 0.019, waterNormal.y * 0.029);
 
 vec3 waterColor = texture2D(map, wUv).rgb;
 float waterDist = texture2D(waterMask, wUv).r;
-float destMask = min(water, waterDist);
+float destWaterMask = min(water, waterDist);
 
-diffuseColor = vec4(vec3(mix(diffuseColor.rgb, waterColor, destMask)), 1.0);
+diffuseColor = vec4(vec3(mix(diffuseColor.rgb, waterColor, destWaterMask)), 1.0);
 
 #endif

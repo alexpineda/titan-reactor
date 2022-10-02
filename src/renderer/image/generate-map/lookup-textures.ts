@@ -4,8 +4,9 @@ import { blendNonZeroPixels } from "../rgb";
 import { LookupBitmaps } from "./lookup-bitmaps";
 import { parseDdsGrpAsTextures } from "..";
 import { parseTMSK } from "@image/formats/parse-tmsk";
-import parseDDS from "@image/formats/parse-dds";
 import { TilesetData } from "./get-tileset-buffers";
+import path from "path";
+import { TextureLoader } from "three";
 
 const _defaultOpts = {
     encoding: THREE.LinearEncoding,
@@ -101,20 +102,10 @@ export const createLookupTextures = async (
         waterNormal1: parseDdsGrpAsTextures(td.waterNormal1),
         waterNormal2: parseDdsGrpAsTextures(td.waterNormal2),
         //TODO: fix this
-        noise: await parseDDS(td.noise, false),
+        noise: await (new TextureLoader()).loadAsync(path.join(__static, "./noise.png")),
         waterMask: td.waterMask ? parseDdsGrpAsTextures(td.waterMask) : null,
         tileMask: td.tileMask ? parseTMSK(td.tileMask) : null,
     }
-
-    effectsTextures.waterNormal1.forEach((tex) => {
-        tex.wrapT = THREE.MirroredRepeatWrapping;
-        tex.wrapS = THREE.MirroredRepeatWrapping;
-    });
-
-    effectsTextures.waterNormal2.forEach((tex) => {
-        tex.wrapT = THREE.MirroredRepeatWrapping;
-        tex.wrapS = THREE.MirroredRepeatWrapping;
-    });
 
     return {
         mapDiffuseTex: mapDiffuseTex,
@@ -131,6 +122,7 @@ export const createLookupTextures = async (
             janitor.dispose(mapDiffuseTex, occlussionRoughnessMetallicTex, tilesTex, creepEdgesTex, creepValues, elevationsTex, nonZeroElevationsTex, paletteIndicesTex, paletteTex);
             janitor.dispose(effectsTextures.waterNormal1, effectsTextures.waterNormal2);
             effectsTextures.waterMask && janitor.dispose(effectsTextures.waterMask);
+            janitor.dispose(effectsTextures.noise);
         }
     };
 };

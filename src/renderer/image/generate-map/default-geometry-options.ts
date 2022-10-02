@@ -11,11 +11,11 @@ export const defaultGeometryOptions: GeometryOptions = {
     maxTerrainHeight: 4,
 
     blendNonWalkableBase: true,
-    firstPass: true,
-    secondPass: true,
+    renderFirstPass: true,
+    renderSecondPass: true,
     processWater: true,
     drawMode: { value: 1 },
     detailsMix: 0,
     bumpScale: 0.05,
-    firstBlur: KernelSize.HUGE
+    firstBlurPassKernelSize: KernelSize.HUGE
 };

@@ -148,11 +148,11 @@ export const MapViewer = ({
     },
     firstPass: {
       folder: "Generation",
-      value: defaultGeometryOptions.firstPass,
+      value: defaultGeometryOptions.renderFirstPass,
     },
     secondPass: {
       folder: "Generation",
-      value: defaultGeometryOptions.secondPass,
+      value: defaultGeometryOptions.renderSecondPass,
     },
     processWater: {
       folder: "Generation",

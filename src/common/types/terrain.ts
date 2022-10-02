@@ -16,14 +16,14 @@ export type GeometryOptions = {
    */
   tesselation: number;
   blendNonWalkableBase: boolean;
-  firstPass: boolean;
-  secondPass: boolean;
+  renderFirstPass: boolean;
+  renderSecondPass: boolean;
   processWater: boolean;
   maxTerrainHeight: number;
   drawMode: { value: number };
   detailsMix: number;
   bumpScale: number;
-  firstBlur: number;
+  firstBlurPassKernelSize: number;
 }
 
 export type CreepTexture = {
