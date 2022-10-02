@@ -14,7 +14,7 @@ const styleCenterText = {
   position: "absolute",
   left: "50%",
   top: "50%",
-  transform: `translate(-50%, -50%)`,
+  transform: "translate(-50%, -50%)",
   cursor: "wait",
   color: "#ffeedd",
   fontFamily: "Conthrax",
@@ -53,7 +53,8 @@ export const PreHomeScene = () => {
 
   useEffect(() => {
     //@ts-ignore
-    document.body.style.backdropFilter = `blur(20px) grayscale(0.2) contrast(0.5) brightness(0.2)`;
+    document.body.style.backdropFilter =
+      "blur(20px) grayscale(0.2) contrast(0.5) brightness(0.2)";
     document.body.style.background = `url(${titanReactorLogo}) center center / cover`;
     return () => {
       //@ts-ignore
@@ -81,7 +82,11 @@ export const PreHomeScene = () => {
         //@ts-ignore
         <div style={styleCenterText}>
           <div>{imbateamLogo}</div>
-          <LoadBar color="white" thickness={20} style={{ marginTop: "20px" }} />
+          <LoadBar
+            color="#ffffff"
+            thickness={20}
+            style={{ marginTop: "20px" }}
+          />
         </div>
       )}
       {initialInstall && (

@@ -30,7 +30,7 @@ export const InterstitialScene = ({
       {error && <GlobalErrorState error={error} action={null} />}
       <WrappedCanvas canvas={surface} style={{ zIndex: "-1" }} />
       <LoadBar
-        color="rgb(100 200 87)"
+        color="#64c857"
         thickness={5}
         style={{ marginBottom: "var(--size-10)" }}
       />
