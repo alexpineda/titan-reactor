@@ -194,6 +194,8 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
             gameLoopComposer.start();
 
+            surfaceComposer.gameSurface.show();
+
         },
 
         sceneComposer,
@@ -201,6 +203,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         dispose: () => {
             events.emit("dispose");
             janitor.dispose();
+            surfaceComposer.gameSurface.hide();
         },
 
         update(

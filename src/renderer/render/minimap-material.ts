@@ -12,7 +12,6 @@ if (module.hot) {
     module.hot.accept("./minimap-vert.glsl?raw");
 }
 
-//TODO:change to fit in to 1:1 box
 export class MinimapMaterial extends ShaderMaterial {
 
     #resourceColor = new Color(0, 55, 55);

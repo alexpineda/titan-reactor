@@ -135,6 +135,19 @@ export class GameSurface extends Surface {
     this.canvas.remove();
 
   }
+
+  show() {
+
+    this.canvas.style.display = "block";
+
+  }
+
+  hide() {
+
+    this.canvas.style.display = "none";
+
+  }
+
 }
 
 export default GameSurface;
