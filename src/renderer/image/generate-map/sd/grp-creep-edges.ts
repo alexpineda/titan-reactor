@@ -23,6 +23,7 @@ export const grpToCreepEdgesTextureAsync = async (
 
   return {
     texture: grpSD.texture,
-    count: grpSD.width
+    count: grpSD.width,
+    dispose: () => grpSD.texture.dispose(),
   };
 };

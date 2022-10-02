@@ -79,6 +79,7 @@ export const createHdQuartiles = (
   const renderHeight = quartileHeight * PX_PER_TILE_HD;
 
   renderer.setSize(renderWidth, renderHeight);
+  const renderTargets: WebGLRenderTarget[] = [];
 
   for (let qx = 0; qx < quartileStrideW; qx++) {
 
@@ -103,6 +104,7 @@ export const createHdQuartiles = (
         generateMipmaps: true,
 
       });
+      renderTargets.push(rt);
       renderer.setRenderTarget(rt)
       quartileScene.scale.set(1, 1, -1);
       waterMaskScene.scale.set(1, 1, -1);
@@ -188,5 +190,10 @@ export const createHdQuartiles = (
     waterMaskQuartiles,
     quartileHeight,
     quartileWidth,
+    dispose() {
+      mapQuartiles.flat().forEach(t => t.dispose());
+      waterMaskQuartiles.flat().forEach(t => t.dispose());
+      renderTargets.forEach((rt) => rt.dispose());
+    }
   };
 };

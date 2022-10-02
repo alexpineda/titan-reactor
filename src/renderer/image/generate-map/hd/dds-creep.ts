@@ -83,5 +83,9 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
 
   Janitor.trash("ddsCreep", scene);
 
-  return { texture, count: width };
+  return {
+    texture, count: width, dispose() {
+      rt.dispose()
+    }
+  };
 };

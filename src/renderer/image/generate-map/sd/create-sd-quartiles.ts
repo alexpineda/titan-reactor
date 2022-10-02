@@ -47,5 +47,8 @@ export const createSdQuartiles = (
         })),
         quartileWidth,
         quartileHeight,
+        dispose() {
+            this.mapQuartiles.flat().forEach(t => t.dispose());
+        }
     }
 }

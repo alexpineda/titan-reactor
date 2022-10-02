@@ -29,6 +29,7 @@ export type GeometryOptions = {
 export type CreepTexture = {
   texture: Texture;
   count: number;
+  dispose: () => void;
 }
 
 export type WrappedQuartileTextures = {
@@ -36,6 +37,7 @@ export type WrappedQuartileTextures = {
   waterMaskQuartiles: Texture[][],
   quartileHeight: number,
   quartileWidth: number,
+  dispose: () => void
 }
 
 export interface TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial | MeshBasicMaterial> {

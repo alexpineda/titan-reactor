@@ -6,6 +6,7 @@ import {
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 
 import { createCompressedTexture } from "./common";
+import { UTEX } from "@utils/UTEX";
 
 const bottomEdges = [0, 1, 2, 3];
 const rightEdges = [4];
@@ -71,7 +72,9 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
   ortho.position.y = width;
   ortho.lookAt(new Vector3());
 
-  const rt = new WebGLRenderTarget(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD, {
+  const [renderWidth, renderHeight] = [width * PX_PER_TILE_HD, height * PX_PER_TILE_HD];
+
+  const rt = new WebGLRenderTarget(renderWidth, renderHeight, {
     anisotropy: renderer.capabilities.getMaxAnisotropy(),
     encoding: sRGBEncoding,
     generateMipmaps: true,
@@ -80,7 +83,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
     magFilter: NearestFilter
   });
   renderer.setRenderTarget(rt)
-  renderer.setSize(width * PX_PER_TILE_HD, height * PX_PER_TILE_HD);
+  renderer.setSize(renderWidth, renderHeight);
 
   const scene = new Scene();
   scene.name = "creep-edges-ortho-scene";
@@ -111,7 +114,11 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
   renderer.render(scene, ortho);
   renderer.setRenderTarget(null);
 
-  const texture = rt.texture;
+  const data = new Uint8Array(renderWidth * renderHeight * 4);
+  renderer.readRenderTargetPixels(rt, 0, 0, renderWidth, renderHeight, data);
+  const texture = createCompressedTexture(Buffer.from(UTEX.DDS.encode(data, renderWidth, renderHeight)));
+  rt.dispose();
+
   texture.encoding = sRGBEncoding;
   texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
   texture.minFilter = NearestFilter;
@@ -119,5 +126,5 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
 
   Janitor.trash("ddsCreep", scene);
 
-  return { texture, count: width };
+  return { texture, count: width, dispose() { texture.dispose() } };
 };

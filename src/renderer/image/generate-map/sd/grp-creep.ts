@@ -73,5 +73,5 @@ export const grpToCreepTexture = (
   texture.minFilter = NearestFilter;
   texture.magFilter = NearestFilter;
 
-  return { texture, count: width };
+  return { texture, count: width, dispose() { texture.dispose() } };
 };

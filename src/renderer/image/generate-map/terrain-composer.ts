@@ -20,7 +20,7 @@ export async function terrainComposer(mapWidth: number, mapHeight: number, tiles
 
   const td = await loadAllTilesetData(tileset);
 
-  const lookupBitmaps = await createLookupBitmaps(mapWidth, mapHeight, mapTiles, td);
+  const lookupBitmaps = createLookupBitmaps(mapWidth, mapHeight, mapTiles, td);
 
   const lookupTextures = janitor.mop(await createLookupTextures(td, {
     blendNonWalkableBase: geomOptions.blendNonWalkableBase, mapWidth, mapHeight, lookupBitmaps,
@@ -91,8 +91,8 @@ const generateCreepDiffuse = async (textureResolution: UnitTileScale, td: Tilese
 
   return {
     creepTexture, creepEdgesTexture, dispose() {
-      creepTexture.texture.dispose();
-      creepEdgesTexture.texture.dispose();
+      creepTexture.dispose();
+      creepEdgesTexture.dispose();
     }
   }
 
@@ -115,8 +115,7 @@ const generateMapDiffuseQuartiles = (textureResolution: UnitTileScale, mapWidth:
   return {
     textures,
     dispose() {
-      textures.mapQuartiles.flat().forEach(t => t.dispose());
-      textures.waterMaskQuartiles.flat().forEach(t => t.dispose());
+      textures.dispose();
     }
   }
 }
