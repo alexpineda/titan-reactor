@@ -278,6 +278,8 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
             world.fogOfWar!.onFrame(players.getVisionFlag());
 
+            terrain.userData.update(delta);
+
             for (const unitId of killedUnitIterator(world.openBW!)) {
                 unit = units.get(unitId);
                 if (unit) {

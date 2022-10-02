@@ -106,6 +106,16 @@ export const createLookupTextures = async (
         tileMask: td.tileMask ? parseTMSK(td.tileMask) : null,
     }
 
+    effectsTextures.waterNormal1.forEach((tex) => {
+        tex.wrapT = THREE.MirroredRepeatWrapping;
+        tex.wrapS = THREE.MirroredRepeatWrapping;
+    });
+
+    effectsTextures.waterNormal2.forEach((tex) => {
+        tex.wrapT = THREE.MirroredRepeatWrapping;
+        tex.wrapS = THREE.MirroredRepeatWrapping;
+    });
+
     return {
         mapDiffuseTex: mapDiffuseTex,
         occlussionRoughnessMetallicTex: occlussionRoughnessMetallicTex,

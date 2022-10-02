@@ -72,4 +72,9 @@ if (process.env.NODE_ENV === "development") {
 
   })
 
+  //@ts-ignore
+  import("./utils/ShaderKit.min");
+
+  //@ts-ignore
+  import("./utils/webgl-lint");
 }

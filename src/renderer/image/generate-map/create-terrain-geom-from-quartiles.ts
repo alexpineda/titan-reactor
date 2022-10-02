@@ -43,8 +43,22 @@ export const createTerrainGeometryFromQuartiles = async (
     const tilesX = mapWidth / qw;
     const tilesY = mapHeight / qh;
 
-    const timeUniform = {
+    let _uNormal1 = 0, _uNormal2 = 0, _uTick = 0;
+
+    const waterNormal1 = {
+        value: effectsTextures.waterNormal1.slice(0, 2)
+    };
+
+    const waterNormal2 = {
+        value: effectsTextures.waterNormal2.slice(0, 2)
+    };
+
+    const uTime = {
         value: 0
+    }
+
+    const uResolution = {
+        value: new Vector2(window.innerWidth, window.innerHeight)
     }
 
     // const displacementMap = new DataTexture(out, texture.image.width, texture.image.height, RedFormat);
@@ -140,7 +154,7 @@ export const createTerrainGeometryFromQuartiles = async (
                 };
 
                 shader.uniforms.tileUnit = {
-                    value: new Vector2(1 / qw, 1 / qh),
+                    value: new Vector4(1 / qw, 1 / qh, mapWidth, mapHeight),
                 };
 
                 shader.uniforms.mapToCreepResolution = {
@@ -170,23 +184,10 @@ export const createTerrainGeometryFromQuartiles = async (
                     value: mapTextures.waterMaskQuartiles.length ? mapTextures.waterMaskQuartiles[qx][qy] : null
                 };
 
-                shader.uniforms.waterNormal1_0 = {
-                    value: effectsTextures.waterNormal1[0]
-                };
-
-                shader.uniforms.waterNormal1_1 = {
-                    value: effectsTextures.waterNormal1[1]
-                };
-
-                shader.uniforms.waterNormal2_0 = {
-                    value: effectsTextures.waterNormal2[0]
-                };
-
-                shader.uniforms.waterNormal2_1 = {
-                    value: effectsTextures.waterNormal2[1]
-                };
-
-                shader.uniforms.uTime = timeUniform;
+                shader.uniforms.waterNormal1 = waterNormal1;
+                shader.uniforms.waterNormal2 = waterNormal2;
+                shader.uniforms.uTime = uTime;
+                shader.uniforms.uResolution = uResolution;
 
             };
             standardMaterial.onBeforeCompile = materialOnBeforeCompile;
@@ -213,6 +214,8 @@ export const createTerrainGeometryFromQuartiles = async (
         }
     }
 
+    const WATER_SPEED = 4000;
+
     terrain.castShadow = true;
     terrain.receiveShadow = true;
     terrain.rotation.x = -Math.PI / 2;
@@ -221,7 +224,35 @@ export const createTerrainGeometryFromQuartiles = async (
     terrain.visible = true;
     terrain.name = "TerrainHD";
     terrain.userData = {
-        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY, timeUniform
+        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY, update(delta: number) {
+            _uTick += delta;
+
+            if (_uTick >= WATER_SPEED) {
+
+                _uTick = _uTick - WATER_SPEED;
+
+                _uNormal1++;
+
+                if (_uNormal1 >= effectsTextures.waterNormal1.length) _uNormal1 = 0;
+
+                _uNormal2++;
+
+                if (_uNormal2 >= effectsTextures.waterNormal2.length) _uNormal2 = 0;
+
+
+                waterNormal1.value[0] = effectsTextures.waterNormal1[_uNormal1];
+                waterNormal1.value[1] = effectsTextures.waterNormal1[(_uNormal1 + 1) % effectsTextures.waterNormal1.length];
+
+                waterNormal2.value[0] = effectsTextures.waterNormal2[_uNormal2];
+                waterNormal2.value[1] = effectsTextures.waterNormal2[(_uNormal2 + 1) % effectsTextures.waterNormal2.length];
+
+            }
+
+            uTime.value += delta / WATER_SPEED;
+
+            uResolution.value.x = window.innerWidth;
+            uResolution.value.y = window.innerHeight;
+        }
     }
 
     return terrain;
