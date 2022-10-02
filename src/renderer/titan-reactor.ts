@@ -12,7 +12,6 @@ import { openUrl } from "@ipc/dialogs";
 import { mapSceneLoader } from "./scenes/map-scene-loader";
 import { replaySceneLoader } from "./scenes/replay-scene-loader";
 import { interstitialSceneLoader } from "./scenes/interstitial-scene/interstitial-scene-loader";
-import { createIScriptahScene } from "./scenes/iscriptah/iscriptah";
 import { useSettingsStore } from "@stores/settings-store";
 import { logBoth, logClient } from "@ipc/log";
 
@@ -47,8 +46,6 @@ globalEvents.on("load-replay-file", async (replay: string) => {
   sceneStore().execSceneLoader(() => replaySceneLoader(replay), interstitialSceneLoader);
 
 });
-
-globalEvents.on("load-iscriptah", async () => sceneStore().execSceneLoader(() => createIScriptahScene()));
 
 logCapabilities();
 lockdown_();

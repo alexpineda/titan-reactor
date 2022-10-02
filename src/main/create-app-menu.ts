@@ -10,7 +10,7 @@ import electronIsDev from "electron-is-dev";
 const settingsPath = path.join(getUserDataPath());
 export const logFilePath = path.join(getUserDataPath(), "logs");
 
-export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
+export default (onOpenPluginManager: () => void, goToStartPage: () => void, openIscriptah: () => void) => {
 
   const template = [
     {
@@ -100,13 +100,15 @@ export default (onOpenPluginManager: () => void, goToStartPage: () => void) => {
         ...(electronIsDev ? [
           { type: "separator" },
           { role: "toggledevtools" },
-          // {
-          //   label: "&IScriptah - Animation Viewer",
-          //   click: function () {
-          //     browserWindows.main!.webContents.send(OPEN_ISCRIPTAH);
-          //   },
+
         ] : []),
         { type: "separator" },
+        {
+          label: "&IScriptah - Animation Viewer",
+          click: function () {
+            openIscriptah()
+          },
+        },
         {
           label: "Clear Asset Cache",
           click: async () => {

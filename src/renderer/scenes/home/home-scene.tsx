@@ -41,69 +41,66 @@ export const Home = ({ surface }: { surface: HTMLCanvasElement }) => {
             userSelect: "none",
           }}
         >
-          {
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
             <div
               style={{
                 display: "flex",
-                justifyContent: "space-between",
+                flexDirection: "column",
+                justifyContent: "center",
+                transform: "scale(0.7)",
               }}
             >
-              <div
+              <h1
                 style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  transform: "scale(0.7)",
+                  fontFamily: "Conthrax",
+                  color: "rgb(143 201 154)",
+                  textShadow: "1px 2px 10px var(--green-7)",
+                  letterSpacing: "var(--font-letterspacing-6)",
+                  lineHeight: "var(--font-lineheight-6)",
+                  textTransform: "uppercase",
+                  fontSize: "var(--font-size-fluid-2)",
                 }}
               >
-                <h1
-                  style={{
-                    fontFamily: "Conthrax",
-                    color: "rgb(143 201 154)",
-                    textShadow: "1px 2px 10px var(--green-7)",
-                    letterSpacing: "var(--font-letterspacing-6)",
-                    lineHeight: "var(--font-lineheight-6)",
-                    textTransform: "uppercase",
-                    fontSize: "var(--font-size-fluid-2)",
-                  }}
-                >
-                  Titan Reactor
-                </h1>
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "end",
-                  opacity: "0.2",
-                }}
-              >
-                <img
-                  onClick={() =>
-                    openUrl("https://github.com/imbateam-gg/titan-reactor")
-                  }
-                  src={githubLogo}
-                  style={{ ...iconStyle, filter: "grayscale(1) invert(1)" }}
-                />
-                <img
-                  onClick={() => openUrl("http://youtube.imbateam.gg")}
-                  src={youtubeLogo}
-                  style={{
-                    ...iconStyle,
-                    filter: "grayscale(1) invert(1) brightness(1.2)",
-                  }}
-                />
-                <img
-                  style={{
-                    ...iconStyle,
-                    filter:
-                      "grayscale(1) contrast(2) invert(1) brightness(1.4)",
-                  }}
-                  onClick={() => openUrl("http://discord.imbateam.gg")}
-                  src={discordLogo}
-                />
-              </div>
+                Titan Reactor
+              </h1>
             </div>
-          }
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "end",
+                opacity: "0.2",
+              }}
+            >
+              <img
+                onClick={() =>
+                  openUrl("https://github.com/imbateam-gg/titan-reactor")
+                }
+                src={githubLogo}
+                style={{ ...iconStyle, filter: "grayscale(1) invert(1)" }}
+              />
+              <img
+                onClick={() => openUrl("http://youtube.imbateam.gg")}
+                src={youtubeLogo}
+                style={{
+                  ...iconStyle,
+                  filter: "grayscale(1) invert(1) brightness(1.2)",
+                }}
+              />
+              <img
+                style={{
+                  ...iconStyle,
+                  filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)",
+                }}
+                onClick={() => openUrl("http://discord.imbateam.gg")}
+                src={discordLogo}
+              />
+            </div>
+          </div>
         </div>
       )}
     </div>

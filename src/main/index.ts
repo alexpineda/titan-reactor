@@ -89,6 +89,19 @@ if (!gotTheLock) {
     createConfigurationWindow()
     , () => {
       windows.main?.webContents.send(GO_TO_START_PAGE);
+    }, () => {
+      createWindow({
+        onClose: () => {
+          windows.config = null;
+        },
+        nodeIntegration: true,
+        removeMenu: true,
+        backgroundThrottling: true,
+        backgroundColor: "#000000",
+        devTools: true,
+        filepath: "iscriptah.html",
+      })
+
     });
 
   if (process.defaultApp) {

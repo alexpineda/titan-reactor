@@ -11,6 +11,31 @@ import {
 } from "../stores";
 import { useGameStore } from "@stores/game-store";
 
+const TabItem = ({
+  label,
+  selected,
+  onClick,
+}: {
+  label: string;
+  selected: boolean;
+  onClick: () => void;
+}) => {
+  return (
+    <li
+      style={{
+        fontSize: "var(--font-size-1)",
+        cursor: "pointer",
+        padding: "var(--size-2)",
+        flexGrow: 1,
+        background: selected ? "var(--gray-2)" : "none",
+      }}
+      onClick={onClick}
+    >
+      {label}
+    </li>
+  );
+};
+
 export const UnitsAndImages = ({ search }: { search: number | string }) => {
   const bwDat = useGameStore((state) => state.assets!.bwDat);
 
@@ -23,36 +48,42 @@ export const UnitsAndImages = ({ search }: { search: number | string }) => {
   }));
 
   return (
-    <aside className="bg-gray-100 flex-0 flex flex-col max-h-screen overflow-y-scroll pb-10">
-      <section className="flex-1 p-2" style={{ minWidth: "20rem" }}>
-        <ul className="flex justify-around mb-2">
-          <li
-            className={`text-sm p-2 cursor-pointer hover:bg-gray-300 flex-grow ${
-              selectedTab === "units" ? "bg-gray-300" : ""
-            }`}
+    <aside
+      style={{
+        backgroundColor: "var(--gray-1)",
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "100%",
+        overflowY: "scroll",
+        paddingBottom: "var(--size-5)",
+      }}
+    >
+      <section style={{ flex: 1, padding: "var(--size-2)", minWidth: "20rem" }}>
+        <ul
+          style={{
+            display: "flex",
+            justifyContent: "space-around",
+            marginBottom: "var(--size-2)",
+          }}
+        >
+          <TabItem
+            label={"Units"}
+            selected={selectedTab === "units"}
             onClick={() => setUnitImageTab("units")}
-          >
-            Units
-          </li>
-          <li
-            className={`text-sm p-2 cursor-pointer hover:bg-gray-300 flex-grow ${
-              selectedTab === "sprites" ? "bg-gray-300" : ""
-            }`}
+          />
+          <TabItem
+            label={"Sprites"}
+            selected={selectedTab === "sprites"}
             onClick={() => setUnitImageTab("sprites")}
-          >
-            Sprites
-          </li>
-          <li
-            className={`text-sm p-2 cursor-pointer hover:bg-gray-300 flex-grow ${
-              selectedTab === "images" ? "bg-gray-300" : ""
-            }`}
+          />
+          <TabItem
+            label={"Images"}
+            selected={selectedTab === "images"}
             onClick={() => setUnitImageTab("images")}
-          >
-            Images
-          </li>
+          />
         </ul>
         {selectedTab === "units" && (
-          <ul className="divide-y-2">
+          <ul>
             {" "}
             {bwDat.units
               .filter((unit) => {
@@ -81,7 +112,7 @@ export const UnitsAndImages = ({ search }: { search: number | string }) => {
           </ul>
         )}
         {selectedTab === "sprites" && (
-          <ul className="divide-y-2">
+          <ul>
             {" "}
             {bwDat.sprites
               .filter((sprite) => {
@@ -106,7 +137,7 @@ export const UnitsAndImages = ({ search }: { search: number | string }) => {
           </ul>
         )}
         {selectedTab === "images" && (
-          <ul className="divide-y-2">
+          <ul>
             {" "}
             {bwDat.images
               .filter((image) => {
@@ -134,4 +165,3 @@ export const UnitsAndImages = ({ search }: { search: number | string }) => {
     </aside>
   );
 };
-export default UnitsAndImages;

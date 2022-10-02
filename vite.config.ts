@@ -40,6 +40,7 @@ export default defineConfig((env) => {
                 input: {
                     index: path.resolve(__dirname, "./index.html"),
                     command: path.resolve(__dirname, "./command-center.html"),
+                    iscriptah: path.resolve(__dirname, "./iscriptah.html"),
                 },
             },
             minify: false,

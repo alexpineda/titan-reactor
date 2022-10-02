@@ -26,6 +26,7 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
     }
   }, [focusElement]);
 
+  console.log("frames", selectedBaseFrame, selectedFrame);
   if (
     typeof selectedBaseFrame !== "number" ||
     typeof selectedFrame !== "number"
@@ -36,7 +37,7 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
   return (
     <aside
       style={{
-        flex: 0,
+        // flex: 0,
         display: "flex",
         flexDirection: "column",
         maxHeight: "100vh",
@@ -46,8 +47,8 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
         minWidth: "8rem",
       }}
     >
-      <header className="p-2">
-        <p className="text-xs italic mb-4">
+      <header style={{ padding: "var(--size-2)" }}>
+        <p style={{ fontStyle: "italic", marginBottom: "var(--size-4)" }}>
           <p>{numFrames} All Frames</p>
           <p>{Math.floor(numFrames / 17)} Framesets</p>
           <p>{numFrames % 17} Loose Frames</p>
@@ -63,7 +64,7 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
           Show only framesets
         </label>
       </header>
-      <section className="p-2 relative">
+      <section style={{ padding: "var(--size-2)", position: "relative" }}>
         <ul>
           {range(0, numFrames).map((_, i: number) => {
             const isBaseFrame =
@@ -83,15 +84,20 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
                     elementToFocus.current = el;
                   }
                 }}
-                className={`hover:bg-gray-300 cursor-pointer px-2 py-1 flex justify-between ${
-                  selectedFrame === i ? "bg-green-200" : ""
-                } ${grey ? "bg-gray-200" : ""} ${
-                  !showOnlyFramesets &&
-                  isBaseFrame === i &&
-                  i < numFrames - looseFrames
-                    ? "bg-yellow-100"
-                    : ""
-                }`}
+                style={{
+                  cursor: "pointer",
+                  paddingLeft: "var(--size-2)",
+                  paddingRight: "var(--size-1)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  background: grey
+                    ? "var(--grey-2)"
+                    : !showOnlyFramesets &&
+                      isBaseFrame === i &&
+                      i < numFrames - looseFrames
+                    ? "var(--yellow-1)"
+                    : "",
+                }}
                 onKeyDown={(evt) => {
                   evt.preventDefault();
                   if (evt.key === "ArrowDown") {
@@ -146,8 +152,7 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
                   }
                 }}
               >
-                <span>{i}</span>{" "}
-                <span className="italic text-sm">{i % 17}</span>
+                <span>{i}</span> <span>{i % 17}</span>
               </li>
             ) : null;
           })}
@@ -156,5 +161,3 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
     </aside>
   );
 };
-
-export default Frames;

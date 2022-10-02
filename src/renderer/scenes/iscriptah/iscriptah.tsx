@@ -14,27 +14,34 @@ import {
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { TransformControls } from "three/examples/jsm/controls/TransformControls";
+import "../../../../bundled/assets/open-props.1.4.min.css";
+import "../../../../bundled/assets/normalize.min.css";
+import "../pre-home-scene/styles.css";
 
 import App from "./components/app";
 import { Surface } from "@image/canvas/surface";
 import "common/utils/electron-file-loader";
-import IScriptSprite from "./iscript-sprite";
+import { IScriptSprite } from "./iscript-sprite";
 import {
   incGameTick,
   setFrame,
   useIScriptahStore,
   useIscriptStore,
-  setTransformVector,
 } from "./stores";
 import { updateDirection32 } from "./camera";
 import { updateEntities } from "./entities";
-import { SceneState } from "../scene";
 import { Janitor } from "three-janitor";
 import { RenderPass } from "postprocessing";
 import { renderComposer } from "@render/render-composer";
 import { root } from "@render/root";
+import { settingsStore } from "@stores/settings-store";
+import { createAssets } from "@image/assets";
+import gameStore from "@stores/game-store";
 
-export function createIScriptahScene(): SceneState {
+const bootup = async () => {
+  const settings = await settingsStore().load();
+  gameStore().setAssets(await createAssets(settings.data.directories));
+
   const janitor = new Janitor("iscriptah-scene-loader");
   const surface = new Surface();
   surface.setDimensions(300, 300, window.devicePixelRatio);
@@ -156,33 +163,6 @@ export function createIScriptahScene(): SceneState {
     }
   });
 
-  useIScriptahStore.subscribe((state, prevState) => {
-    plane.visible = state.showFloorAxes;
-    axes.visible = state.showFloorAxes;
-
-    if (state.transform !== prevState.transform) {
-      if (state.transform) {
-        if (!transformControls.object && thingies.length) {
-          transformControls.attach(thingies[0]);
-        }
-        transformControls.setMode(state.transform);
-        transformControls.showX = state.transformEnabled.x;
-        transformControls.showY = state.transformEnabled.y;
-        transformControls.showZ = state.transformEnabled.z;
-        if (state.transform === "translate") {
-          setTransformVector(transformControls.object?.position);
-        } else if (state.transform === "rotate") {
-          setTransformVector(transformControls.object?.rotation);
-        } else if (state.transform === "scale") {
-          setTransformVector(transformControls.object?.scale);
-        }
-      } else {
-        setTransformVector(null);
-        transformControls.detach();
-      }
-    }
-  });
-
   const resizeHandler = () => {
     surface.setDimensions(
       (window.innerWidth * 8) / 20,
@@ -222,18 +202,17 @@ export function createIScriptahScene(): SceneState {
     controls.update();
   };
 
-  return {
-    id: "@iscriptah",
-    beforeNext: () => {
-      root.render(null);
-    },
-    start: () => {
-      renderComposer.targetSurface = surface;
-      renderComposer.getWebGLRenderer().setAnimationLoop(ISCRIPTAH_LOOP);
+  renderComposer.targetSurface = surface;
+  renderComposer.getWebGLRenderer().setAnimationLoop(ISCRIPTAH_LOOP);
+  root.render(<App surface={surface} addTitanSpriteCb={addTitanSpriteCb} />);
+
+  if (module.hot) {
+    module.hot.accept("./components/app", () => {
       root.render(
         <App surface={surface} addTitanSpriteCb={addTitanSpriteCb} />
       );
-    },
-    dispose: () => janitor.dispose(),
-  };
-}
+    });
+  }
+};
+
+bootup();

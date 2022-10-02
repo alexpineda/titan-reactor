@@ -4,6 +4,7 @@ import calculateImagesFromIscript from "@utils/images-from-iscript";
 
 import { useGameStore } from "@stores/game-store";
 import { SpriteDAT } from "common/types";
+import { LeftListItem } from "./left-list-item";
 
 const Sprite = ({
   sprite,
@@ -23,19 +24,12 @@ const Sprite = ({
 
   return (
     <div>
-      <p
-        className="text-lg mt-4 mb-1 text-blue-800 font-medium hover:bg-gray-300 cursor-pointer"
+      <LeftListItem
         onClick={onClick}
-      >
-        <span>{sprite.name}</span>
-        <span
-          className="rounded-lg px-1 bg-gray-400 ml-2 mr-1 text-sm"
-          aria-label={`unit #${sprite.index}`}
-          data-balloon-pos="down"
-        >
-          {sprite.index}
-        </span>
-      </p>
+        name={sprite.name}
+        index={sprite.index}
+        label={"Sprite"}
+      />
       {imagesFromIscript().map((i) => (
         <AnimationBlocks key={i} image={bwDat.images[i]} />
       ))}

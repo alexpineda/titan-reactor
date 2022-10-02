@@ -14,7 +14,7 @@ export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
     cameraDirection: state.cameraDirection,
   }));
 
-  const { blockFrameCount, frame } = useIscriptStore(
+  const { blockFrameCount } = useIscriptStore(
     (store) => ({
       blockFrameCount: store.blockFrameCount,
       selectedBlock: store.block,
@@ -80,17 +80,30 @@ export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
   return (
     <aside
       className="bg-gray-100 flex-0 flex flex-col max-h-screen overflow-y-scroll px-2  pb-10"
-      style={{ minWidth: "15rem" }}
+      style={{
+        background: "var(--gray-1)",
+        // flex: 0,
+        display: "flex",
+        flexDirection: "column",
+        maxHeight: "100%",
+        overflowY: "scroll",
+        paddingInline: "var(--space-2)",
+        paddingBottom: "var(--space-10)",
+        minWidth: "15rem",
+      }}
     >
-      <header className="p-2">
-        <p className="text-xs italic">IScript Animation Block</p>
+      <header style={{ padding: "var(--size-2)" }}>
+        <p style={{ fontSize: "var(--font-size-1)", fontStyle: "italic" }}>
+          IScript Animation
+        </p>
         <p
-          className="font-bold text-lg text-blue-800"
+          style={{ fontSize: "var(--font-size-2)", color: "var(--blue-8)" }}
           aria-label={`using ${offset}`}
           data-balloon-pos="down"
         >
           {headerLabel}
         </p>
+
         <div>
           <label>
             show only playfram{" "}
@@ -139,20 +152,28 @@ export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
                         setBaseFrame(cmd[1]);
                       }
                     }}
-                    className={`p-2 rounded select-none flex justify-between ${
+                    style={{
+                      padding: "var(--size-2)",
+                      borderRadius: "var(--border-size-1)",
+                      userSelect: "none",
+                      display: "flex",
+                      justifyContent: "space-between",
                       //@ts-ignore
-                      interactiveOpCodes.includes(cmd[0])
-                        ? "cursor-pointer bg-green-100 hover:bg-gray-300"
-                        : ""
-                    }
-
-                    ${
-                      frame !== null &&
-                      getDirectionalFrame(cmd) !== null &&
-                      getDirectionalFrame(cmd)[0] === frame
-                        ? "bg-green-200"
-                        : ""
-                    }`}
+                      cursor: interactiveOpCodes.includes(cmd[0])
+                        ? "pointer"
+                        : "default",
+                      //@ts-ignore
+                      background: interactiveOpCodes.includes(cmd[0])
+                        ? "var(--green-1)"
+                        : "inherit",
+                    }}
+                    // ${
+                    //   frame !== null &&
+                    //   getDirectionalFrame(cmd) !== null &&
+                    //   getDirectionalFrame(cmd)[0] === frame
+                    //     ? "bg-green-200"
+                    //     : ""
+                    // }`}
                     key={i}
                   >
                     <span>
@@ -160,7 +181,13 @@ export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
                     </span>
                     {areFrameSetsEnabled(cmd) && (
                       <span
-                        className="rounded-lg px-1 bg-gray-400 ml-2 mr-1 text-sm"
+                        style={{
+                          borderRadius: "var(--border-size-1)",
+                          background: "var(--gray-4)",
+                          marginLeft: "var(--size-2)",
+                          marginRight: "var(--size-1)",
+                          fontSize: "var(--font-size-1)",
+                        }}
                         aria-label="`/w direction"
                         data-balloon-pos="down"
                       >
@@ -175,4 +202,3 @@ export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
     </aside>
   );
 };
-export default Commands;

@@ -1,4 +1,4 @@
-import IScriptSprite from "./iscript-sprite";
+import { IScriptSprite } from "./iscript-sprite";
 
 export const updateEntities = (
   entities: IScriptSprite[],

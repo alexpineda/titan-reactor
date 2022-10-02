@@ -23,9 +23,25 @@ export const AnimationBlocks = ({ image }: { image: ImageDAT }) => {
   return (
     <ul>
       <li onClick={() => toggleIscript()}>
-        <p className="p-2 bg-gray-300 cursor-pointer hover:bg-gray-200 flex items-center justify-between">
+        <p
+          style={{
+            padding: "var(--size-2)",
+            background: "var(--gray-3)",
+            cursor: "pointer",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
           <span
-            className="rounded-lg px-1 bg-gray-400 ml-2 mr-1 text-sm"
+            style={{
+              fontSize: "var(--font-size-1)",
+              borderRadius: "var(--border-size-3)",
+              background: "var(--gray-4)",
+              padding: "var(--size-1)",
+              marginLeft: "var(--size-2)",
+              marginRight: "var(--size-1)",
+            }}
             aria-label={`Image #${image.index}`}
             data-balloon-pos="down"
           >
@@ -41,14 +57,21 @@ export const AnimationBlocks = ({ image }: { image: ImageDAT }) => {
               return (
                 <li
                   key={i}
-                  className="p-2 cursor-pointer hover:bg-gray-200"
+                  style={{
+                    padding: "var(--size-2)",
+                    cursor: "pointer",
+                  }}
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     setBlock(image, offset, i);
                   }}
                 >
-                  <span className={offset ? "font-bold" : ""}>
+                  <span
+                    style={{
+                      fontWeight: offset ? "bold" : "normal",
+                    }}
+                  >
                     {iscriptHeaders[i]}
                   </span>
                   <ul>{}</ul>

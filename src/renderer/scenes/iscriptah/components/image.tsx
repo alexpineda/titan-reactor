@@ -3,6 +3,7 @@ import AnimationBlocks from "./animation-blocks";
 import calculateImagesFromIscript from "@utils/images-from-iscript";
 import { ImageDAT } from "common/types";
 import { useGameStore } from "@stores/game-store";
+import { LeftListItem } from "./left-list-item";
 
 const Image = ({
   image,
@@ -21,19 +22,12 @@ const Image = ({
 
   return (
     <div>
-      <p
-        className="text-lg mt-4 mb-1 text-blue-800 font-medium hover:bg-gray-300 cursor-pointer"
+      <LeftListItem
         onClick={onClick}
-      >
-        <span>{image.name}</span>
-        <span
-          className="rounded-lg px-1 bg-gray-400 ml-2 mr-1 text-sm"
-          aria-label={`unit #${image.index}`}
-          data-balloon-pos="down"
-        >
-          {image.index}
-        </span>
-      </p>
+        name={image.name}
+        index={image.index}
+        label={"Image"}
+      />
       {imagesFromIscript().map((i: number) => (
         <AnimationBlocks key={i} image={bwDat.images[i]} />
       ))}

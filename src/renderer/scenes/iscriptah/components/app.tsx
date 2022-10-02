@@ -1,20 +1,16 @@
 import { useState, useEffect } from "react";
 import shallow from "zustand/shallow";
-import UnitsAndImages from "./units-and-images";
+import { UnitsAndImages } from "./units-and-images";
 
 import { Surface } from "@image";
 import { useGameStore } from "@stores/game-store";
-import Commands from "./commands";
-import Animation from "./animation";
-import Frames from "./frames";
-import IScriptSprite from "../iscript-sprite";
+import { Commands } from "./commands";
+import { Animation } from "./animation";
+import { Frames } from "./frames";
+import { IScriptSprite } from "../iscript-sprite";
 import calculateImagesFromIscript from "@utils/images-from-iscript";
 import { AnimAtlas, UnitDAT } from "common/types";
-import {
-  setBlockFrameCount,
-  useIScriptahStore,
-  useIscriptStore,
-} from "../stores";
+import { setBlockFrameCount, useIscriptStore } from "../stores";
 import { IScriptRunner } from "../iscript-runner";
 import { ImageHD } from "@core/image-hd";
 import { loadImageAtlasDirect } from "@image/assets";
@@ -22,6 +18,12 @@ import { isGltfAtlas } from "@utils/image-utils";
 import { Image3D } from "@core/image-3d";
 import { ImageBase } from "@core/image";
 import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
+
+if (module.hot) {
+  module.hot.accept();
+}
+
+console.log("IScriptah 2");
 
 const App = ({
   surface,
@@ -35,13 +37,6 @@ const App = ({
   const { assets } = useGameStore((state) => ({
     assets: state.assets,
   }));
-
-  const { renderMode } = useIScriptahStore(
-    (store) => ({
-      renderMode: store.renderMode,
-    }),
-    shallow
-  );
 
   const {
     blockFrameCount,
@@ -67,7 +62,6 @@ const App = ({
     const images: Record<number, AnimAtlas> = {};
 
     const preload = async () => {
-      console.log("preload", selectedBlock);
       const { header } = selectedBlock;
 
       await Promise.all(
@@ -78,6 +72,12 @@ const App = ({
         ).map(async (image) => {
           images[image] = await loadImageAtlasDirect(image, true);
         })
+      );
+
+      console.log(
+        "preload",
+        selectedBlock,
+        images[selectedBlock.image.index].frames.length
       );
 
       const createTitanImageFactory = () => {
@@ -110,7 +110,7 @@ const App = ({
       setBlockFrameCount(images[selectedBlock.image.index].frames.length);
     };
     preload();
-  }, [selectedBlock, renderMode]);
+  }, [selectedBlock]);
 
   useEffect(() => {
     if (!(selectedUnit || selectedSprite || selectedImage)) return;
@@ -119,19 +119,20 @@ const App = ({
   }, [selectedImage, selectedSprite, selectedUnit]);
 
   return (
-    <div style={{ background: "var(--gray-0)" }}>
+    <div style={{ background: "white" }}>
       <div
         style={{
           display: "flex",
           width: "100%",
-          position: "absolute",
           zIndex: "10",
+          padding: "var(--size-4)",
         }}
       >
         <section
           style={{
             fontSize: "var(--font-size-1)",
             display: "flex",
+            gap: "1rem",
           }}
         >
           <div
@@ -176,7 +177,7 @@ const App = ({
         style={{
           display: "flex",
           width: "100%",
-          height: "vh100",
+          height: "100vh",
           alignItems: "stretch",
           color: "var(--gray-8)",
         }}

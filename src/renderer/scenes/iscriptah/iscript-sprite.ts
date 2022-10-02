@@ -587,4 +587,3 @@ export class IScriptSprite extends Group {
 
   dispose() { }
 }
-export default IScriptSprite;
