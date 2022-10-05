@@ -19,11 +19,10 @@ export const Animation = ({
   surface: Surface;
   selectedBlock: Block;
 }) => {
-  const { autoUpdate, gamespeed, cameraDirection } = useIScriptahStore(
+  const { autoUpdate, gamespeed } = useIScriptahStore(
     (store) => ({
       autoUpdate: store.autoUpdate,
       gamespeed: store.gamespeed,
-      cameraDirection: store.cameraDirection,
     }),
     shallow
   );
@@ -89,10 +88,6 @@ export const Animation = ({
           marginInline: "auto",
         }}
       >
-        <p style={{ marginRight: "var(--size-2)" }}>
-          Camera Direction {cameraDirection}
-        </p>
-
         <select
           value={gamespeed}
           onChange={({ target }) => setGamespeed(Number(target.value))}

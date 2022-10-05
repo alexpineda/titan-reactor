@@ -1,5 +1,4 @@
 import { PerspectiveCamera, Vector3 } from "three";
-import { setCameraDirection } from "./stores";
 
 export const updateDirection32 = (
   target: Vector3,
@@ -17,6 +16,5 @@ export const updateDirection32 = (
   if (dir != camera.userData.direction) {
     camera.userData.prevDirection = camera.userData.direction;
     camera.userData.direction = dir;
-    setCameraDirection(dir);
   }
 };

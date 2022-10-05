@@ -8,7 +8,6 @@ export type IscriptStore = {
   image: ImageDAT | null;
   sprite: any;
 
-  initializeBlock: boolean;
   block: Block | null;
 
   baseFrame: number | null;
@@ -27,7 +26,6 @@ export const useIscriptStore = create<IscriptStore>(() => ({
 
   sprite: null,
 
-  initializeBlock: false,
   block: null,
   frame: null
 }));

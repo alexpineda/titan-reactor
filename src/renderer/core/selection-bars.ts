@@ -131,13 +131,11 @@ class SelectionBarMaterial extends MeshBasicMaterial {
   }
 }
 
-const hpColorGreen = new Color(16 / 255, 195 / 255, 16 / 255).convertSRGBToLinear();
-const hpColorRed = new Color(234 / 255, 25 / 255, 25 / 255).convertSRGBToLinear();
-const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255).convertSRGBToLinear();
-const shieldsColor = new Color(10 / 255, 58 / 255, 200 / 255).convertSRGBToLinear();
-const energyColor = new Color(158 / 255, 34 / 255, 189 / 255).convertSRGBToLinear();
-
-
+const hpColorGreen = new Color(16 / 255, 195 / 255, 16 / 255);
+const hpColorRed = new Color(234 / 255, 25 / 255, 25 / 255);
+const hpColorYellow = new Color(188 / 255, 193 / 255, 35 / 255);
+const shieldsColor = new Color(10 / 255, 58 / 255, 200 / 255);
+const energyColor = new Color(158 / 255, 34 / 255, 189 / 255);
 
 export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
 

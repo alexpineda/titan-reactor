@@ -12,7 +12,7 @@ const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
   return (flags |= 1 << id);
 }
 
-const makeColor = (color: string) => new Color().setStyle(color).convertSRGBToLinear()
+const makeColor = (color: string) => new Color().setStyle(color);
 const makeColors = (players: Pick<BasePlayer, "color">[]) => players.map(
   ({ color }) => makeColor(color)
 );

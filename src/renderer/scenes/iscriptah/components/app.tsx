@@ -37,12 +37,14 @@ const App = ({ surface }: { surface: Surface }) => {
           color: "var(--gray-8)",
         }}
       >
-        <UnitsAndImages search={search} />
-        {selectedBlock ? (
-          <Commands selectedBlock={selectedBlock} />
-        ) : (
-          <EmptySection label="Select a unit or image" />
-        )}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <UnitsAndImages search={search} />
+          {selectedBlock ? (
+            <Commands selectedBlock={selectedBlock} />
+          ) : (
+            <EmptySection label="Select a unit or image" />
+          )}
+        </div>
         {selectedBlock ? (
           <Animation selectedBlock={selectedBlock} surface={surface} />
         ) : (

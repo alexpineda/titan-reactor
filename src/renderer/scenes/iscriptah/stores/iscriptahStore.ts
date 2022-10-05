@@ -13,8 +13,6 @@ export type IScriptahStore = {
 
   gamespeed: number;
 
-  cameraDirection: number;
-
 };
 
 export const useIScriptahStore = create<IScriptahStore>(() => ({
@@ -24,7 +22,6 @@ export const useIScriptahStore = create<IScriptahStore>(() => ({
   unitImageTab: "units",
   autoUpdate: true,
   gamespeed: gameSpeeds.fastest,
-  cameraDirection: 0,
 
 }));
 
@@ -33,8 +30,6 @@ export const setAutoupdate = (autoUpdate: boolean) => useIScriptahStore.setState
 export const setGamespeed = (gamespeed: number) => useIScriptahStore.setState({ gamespeed });
 
 export const setError = (error: Error) => useIScriptahStore.setState({ error });
-
-export const setCameraDirection = (cameraDirection: number) => useIScriptahStore.setState({ cameraDirection });
 
 export const setUnitImageTab = (unitImageTab: string) => useIScriptahStore.setState({ unitImageTab });
 

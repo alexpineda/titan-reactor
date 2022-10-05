@@ -10,6 +10,7 @@ import {
   AxesHelper,
   Group,
   MeshStandardMaterial,
+  Vector4,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import "../../../../bundled/assets/open-props.1.4.min.css";
@@ -46,25 +47,53 @@ const bootup = async () => {
 
   const janitor = new Janitor("iscriptah-scene-loader");
 
-  const surface = new Surface(
-    renderComposer.getWebGLRenderer().domElement,
-    false
-  );
+  const surface = new Surface();
   surface.setDimensions(300, 300, window.devicePixelRatio);
+
   renderComposer.targetSurface = surface;
 
   const scene = new Scene();
   janitor.mop(scene, "scene");
 
-  const camera = new PerspectiveCamera(22, surface.aspect, 1, 256);
-  camera.userData.direction = 0;
-  camera.position.set(0, 30, 10);
-  camera.lookAt(new Vector3());
+  const cameras = new Array(4).fill(0).map(() => {
+    const camera = new PerspectiveCamera(22, surface.aspect, 1, 256);
+    camera.userData.direction = 0;
+    return camera;
+  });
+
+  const viewports = new Array(4).fill(0).map(() => new Vector4());
+
+  cameras[0].position.set(0, 10, 10);
+  cameras[1].position.set(10, 0, 0);
+  cameras[2].position.set(0, 0, -10);
+  cameras[3].position.set(0, 0, 10);
+
+  cameras[1].userData.direction = 25;
+  cameras[2].userData.direction = 0;
+  cameras[3].userData.direction = 16;
+
+  for (const camera of cameras) {
+    camera.lookAt(new Vector3());
+  }
 
   const controls = janitor.mop(
-    new OrbitControls(camera, surface.canvas),
+    new OrbitControls(cameras[0], surface.canvas),
     "controls"
   );
+
+  const syncCameraDistances = () => {
+    const l = cameras[0].position.length();
+    cameras[1].position.setX(l);
+    cameras[2].position.setZ(-l);
+    cameras[3].position.setZ(l);
+  };
+
+  syncCameraDistances();
+
+  controls.addEventListener("change", () => {
+    syncCameraDistances();
+  });
+  controls.enablePan = false;
 
   controls.mouseButtons = {
     LEFT: MOUSE.PAN,
@@ -107,14 +136,25 @@ const bootup = async () => {
       (window.innerHeight * 3) / 4,
       window.devicePixelRatio
     );
-    camera.aspect = surface.aspect;
-    camera.updateProjectionMatrix();
+    for (const camera of cameras) {
+      camera.aspect = surface.aspect;
+      camera.updateProjectionMatrix();
+    }
+
+    const w2 = surface.bufferWidth / 2;
+    const h2 = surface.bufferHeight / 2;
+
+    viewports[0].set(0, h2, w2, h2);
+    viewports[1].set(0, 0, w2, h2);
+    viewports[2].set(w2, h2, w2, h2);
+    viewports[3].set(w2, 0, w2, h2);
+
     renderComposer.setSize(surface.bufferWidth, surface.bufferHeight);
   };
   janitor.addEventListener(window, "resize", "resize", resizeHandler);
   resizeHandler();
 
-  const renderPass = new RenderPass(scene, camera);
+  const renderPass = new RenderPass(scene, cameras[0]);
 
   const postProcessingBundle = {
     passes: [renderPass],
@@ -137,7 +177,6 @@ const bootup = async () => {
       return;
     }
 
-    console.log("remove", block.header);
     for (const child of parent.children) {
       janitor.dispose(child);
     }
@@ -170,7 +209,6 @@ const bootup = async () => {
 
       setBlockFrameCount(atlas.frames.length);
 
-      console.log("add");
       parent.add(iscriptImage.image);
 
       _image = iscriptImage;
@@ -192,36 +230,32 @@ const bootup = async () => {
     if (gametick > gamespeed && autoUpdate) {
       gametick = 0;
 
-      const { frame, flipFrame } = useIscriptStore.getState();
-
       if (!_image) return;
 
-      if (typeof frame === "number") {
-        _image.image.setFrame(frame as number, flipFrame);
-      } else {
-        // if (image.image.userData.direction !== camera.userData.direction) {
-        //   this.runner.setDirection(direction, this.mainImage.state);
-        //   this.runner.setFrame(this.mainImage.state.frame, this.mainImage.state.flip, this.mainImage.state);
-        // }
-        const dispatched = runner.update(_image.state);
-        //@ts-ignore
-        for (const [key, val] of dispatched) {
-          switch (key) {
-            case "playfram":
-              {
-                console.log("playfram", val[0], val[1]);
-                _image.image.setFrame(val[0], val[1]);
-              }
-              break;
-          }
-        }
-      }
+      runner.update(_image.state);
 
       incGameTick();
     }
 
-    updateDirection32(controls.target, camera);
-    renderComposer.render(delta);
+    updateDirection32(controls.target, cameras[0]);
+
+    for (let i = 0; i < cameras.length; i++) {
+      if (_image) {
+        const { frame, flipFrame } = useIscriptStore.getState();
+
+        if (typeof frame === "number") {
+          _image.image.setFrame(frame as number, flipFrame);
+        } else {
+          runner.setDirection(cameras[i].userData.direction, _image.state);
+          _image.image.setFrame(_image.state.frame, _image.state.flip);
+        }
+      }
+
+      //@ts-ignore
+      renderPass.camera = cameras[i];
+      renderComposer.render(delta, viewports[i]);
+      renderComposer.renderBuffer();
+    }
     controls.update();
   };
 

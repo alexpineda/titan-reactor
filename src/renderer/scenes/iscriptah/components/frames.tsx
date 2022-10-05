@@ -26,17 +26,9 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
     }
   }, [focusElement]);
 
-  if (
-    typeof selectedBaseFrame !== "number" ||
-    typeof selectedFrame !== "number"
-  ) {
-    return null;
-  }
-
   return (
     <aside
       style={{
-        // flex: 0,
         display: "flex",
         flexDirection: "column",
         maxHeight: "100vh",
@@ -89,15 +81,20 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
                   paddingRight: "var(--size-1)",
                   display: "flex",
                   justifyContent: "space-between",
-                  background: grey
-                    ? "var(--grey-2)"
-                    : !showOnlyFramesets &&
-                      isBaseFrame === i &&
-                      i < numFrames - looseFrames
-                    ? "var(--yellow-1)"
-                    : "",
+                  background:
+                    !showOnlyFramesets &&
+                    isBaseFrame === i &&
+                    i < numFrames - looseFrames
+                      ? "var(--yellow-1)"
+                      : grey
+                      ? "var(--gray-2)"
+                      : "white",
                 }}
                 onKeyDown={(evt) => {
+                  if (selectedFrame === null || selectedBaseFrame === null) {
+                    return;
+                  }
+
                   evt.preventDefault();
                   if (evt.key === "ArrowDown") {
                     if (i >= numFrames - looseFrames) {

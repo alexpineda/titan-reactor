@@ -53,7 +53,7 @@ export const UnitsAndImages = ({ search }: { search: number | string }) => {
         backgroundColor: "var(--gray-1)",
         display: "flex",
         flexDirection: "column",
-        maxHeight: "100%",
+        maxHeight: "50%",
         overflowY: "scroll",
         paddingBottom: "var(--size-5)",
       }}
