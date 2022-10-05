@@ -10,10 +10,8 @@ import {
   AxesHelper,
   Group,
   MeshStandardMaterial,
-  Clock,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { TransformControls } from "three/examples/jsm/controls/TransformControls";
 import "../../../../bundled/assets/open-props.1.4.min.css";
 import "../../../../bundled/assets/normalize.min.css";
 import "../pre-home-scene/styles.css";
@@ -21,30 +19,39 @@ import "../pre-home-scene/styles.css";
 import App from "./components/app";
 import { Surface } from "@image/canvas/surface";
 import "common/utils/electron-file-loader";
-import { IScriptSprite } from "./iscript-sprite";
-import {
-  incGameTick,
-  setFrame,
-  useIScriptahStore,
-  useIscriptStore,
-} from "./stores";
 import { updateDirection32 } from "./camera";
-import { updateEntities } from "./entities";
 import { Janitor } from "three-janitor";
 import { RenderPass } from "postprocessing";
 import { renderComposer } from "@render/render-composer";
 import { root } from "@render/root";
 import { settingsStore } from "@stores/settings-store";
-import { createAssets } from "@image/assets";
+import { createAssets, loadImageAtlasDirect } from "@image/assets";
 import gameStore from "@stores/game-store";
+import { IScriptRunner } from "./iscript-runner";
+import {
+  incGameTick,
+  setBlockFrameCount,
+  useIScriptahStore,
+  useIscriptStore,
+} from "./stores";
+import { isGltfAtlas } from "@utils/image-utils";
+import { Image3D } from "@core/image-3d";
+import { ImageHD } from "@core/image-hd";
+import { IScriptState } from "./iscript-state";
+import { IScriptImage } from "./iscript-sprite";
 
 const bootup = async () => {
   const settings = await settingsStore().load();
   gameStore().setAssets(await createAssets(settings.data.directories));
 
   const janitor = new Janitor("iscriptah-scene-loader");
-  const surface = new Surface();
+
+  const surface = new Surface(
+    renderComposer.getWebGLRenderer().domElement,
+    false
+  );
   surface.setDimensions(300, 300, window.devicePixelRatio);
+  renderComposer.targetSurface = surface;
 
   const scene = new Scene();
   janitor.mop(scene, "scene");
@@ -58,6 +65,7 @@ const bootup = async () => {
     new OrbitControls(camera, surface.canvas),
     "controls"
   );
+
   controls.mouseButtons = {
     LEFT: MOUSE.PAN,
     MIDDLE: MOUSE.DOLLY,
@@ -91,77 +99,7 @@ const bootup = async () => {
   const parent = new Group();
   scene.add(parent);
 
-  const transformControls = new TransformControls(camera, surface.canvas);
-  const dragChangedHandler = function (event: any) {
-    controls.enabled = !event.value;
-  };
-  janitor.addEventListener(
-    transformControls,
-    "dragging-changed",
-    "dragging-changed",
-    dragChangedHandler
-  );
-  transformControls.setSpace("local");
-  janitor.mop(transformControls, "transformControls");
-
-  scene.add(transformControls);
-  const thingies: IScriptSprite[] = [];
-
-  // const disposeThingies = () => {
-  //   thingies.forEach(removeTitanSprite);
-  //   thingies.length = 0;
-  // };
-
-  const clock = new Clock(true);
-
-  const addTitanSpriteCb = (titanSprite: IScriptSprite) => {
-    parent.add(titanSprite);
-    transformControls.attach(titanSprite);
-    thingies.push(titanSprite);
-  };
-
-  const removeTitanSprite = (titanSprite: IScriptSprite) => {
-    if (transformControls.object === titanSprite) {
-      transformControls.detach();
-    }
-    const i = thingies.indexOf(titanSprite);
-    if (i >= 0) {
-      thingies.splice(i, 1);
-      parent.remove(titanSprite);
-    }
-  };
-
-  useIscriptStore.subscribe((state) => {
-    if (typeof state.frame === "number") {
-      thingies.forEach((thingy: IScriptSprite) => {
-        if (thingy.mainImage) {
-          try {
-            thingy.mainImage.setFrame(state.frame as number, state.flipFrame);
-          } catch (e) {
-            // store.dispatch(
-            //   errorOccurred(
-            //     "can't set frame to this image, try selecting init animation again"
-            //   )
-            // );
-            setFrame(null);
-          }
-        }
-      });
-    } else {
-      const { autoUpdate, gamespeed } = useIScriptahStore.getState();
-      if (clock.getElapsedTime() > gamespeed && autoUpdate) {
-        updateEntities(
-          thingies,
-          clock.getElapsedTime(),
-          camera.userData.direction,
-          removeTitanSprite
-        );
-
-        clock.elapsedTime = 0;
-        incGameTick();
-      }
-    }
-  });
+  const runner = new IScriptRunner(gameStore().assets!.bwDat, 0);
 
   const resizeHandler = () => {
     surface.setDimensions(
@@ -176,41 +114,124 @@ const bootup = async () => {
   janitor.addEventListener(window, "resize", "resize", resizeHandler);
   resizeHandler();
 
-  // const dispose = () => {
-  //   disposeThingies();
-  // };
-
   const renderPass = new RenderPass(scene, camera);
+
   const postProcessingBundle = {
-    enabled: true,
     passes: [renderPass],
-    effects: [],
   };
+
   renderComposer.setBundlePasses(postProcessingBundle);
   janitor.mop(
     () => renderComposer.getWebGLRenderer().setAnimationLoop(null),
     "renderLoop"
   );
 
+  let _image: IScriptImage | null = null;
+  let _imageLoading = false;
+
+  useIscriptStore.subscribe(({ block }) => {
+    if (!block || _imageLoading) return;
+
+    if (_image && block.image.index === _image.image.dat.index) {
+      runner.run(block.header, _image.state);
+      return;
+    }
+
+    console.log("remove", block.header);
+    for (const child of parent.children) {
+      janitor.dispose(child);
+    }
+    parent.clear();
+    _image = null;
+    _imageLoading = true;
+
+    const preload = async () => {
+      const { header } = block;
+
+      const atlas = await loadImageAtlasDirect(block.image.index, true);
+
+      const image = isGltfAtlas(atlas)
+        ? new Image3D(atlas)
+        : new ImageHD().updateImageType(atlas, true);
+
+      image.matrixAutoUpdate = true;
+      image.matrixWorldNeedsUpdate = true;
+
+      const iscriptImage: IScriptImage = {
+        image: image,
+        state: new IScriptState(
+          gameStore().assets!.bwDat.iscript.iscripts[block.image.iscript],
+          block.image
+        ),
+        sprite: null,
+      };
+
+      runner.run(header, iscriptImage.state);
+
+      setBlockFrameCount(atlas.frames.length);
+
+      console.log("add");
+      parent.add(iscriptImage.image);
+
+      _image = iscriptImage;
+      _imageLoading = false;
+    };
+    preload();
+  });
+
   let lastTime = 0;
+  let gametick = 0;
   let delta = 0;
   const ISCRIPTAH_LOOP = (elapsed: number) => {
     delta = elapsed - lastTime;
+    gametick += delta;
     lastTime = elapsed;
+
+    const { autoUpdate, gamespeed } = useIScriptahStore.getState();
+
+    if (gametick > gamespeed && autoUpdate) {
+      gametick = 0;
+
+      const { frame, flipFrame } = useIscriptStore.getState();
+
+      if (!_image) return;
+
+      if (typeof frame === "number") {
+        _image.image.setFrame(frame as number, flipFrame);
+      } else {
+        // if (image.image.userData.direction !== camera.userData.direction) {
+        //   this.runner.setDirection(direction, this.mainImage.state);
+        //   this.runner.setFrame(this.mainImage.state.frame, this.mainImage.state.flip, this.mainImage.state);
+        // }
+        const dispatched = runner.update(_image.state);
+        //@ts-ignore
+        for (const [key, val] of dispatched) {
+          switch (key) {
+            case "playfram":
+              {
+                console.log("playfram", val[0], val[1]);
+                _image.image.setFrame(val[0], val[1]);
+              }
+              break;
+          }
+        }
+      }
+
+      incGameTick();
+    }
+
     updateDirection32(controls.target, camera);
     renderComposer.render(delta);
     controls.update();
   };
 
-  renderComposer.targetSurface = surface;
   renderComposer.getWebGLRenderer().setAnimationLoop(ISCRIPTAH_LOOP);
-  root.render(<App surface={surface} addTitanSpriteCb={addTitanSpriteCb} />);
+
+  root.render(<App surface={surface} />);
 
   if (module.hot) {
     module.hot.accept("./components/app", () => {
-      root.render(
-        <App surface={surface} addTitanSpriteCb={addTitanSpriteCb} />
-      );
+      root.render(<App surface={surface} />);
     });
   }
 };

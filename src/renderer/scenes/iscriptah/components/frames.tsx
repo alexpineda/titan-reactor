@@ -26,7 +26,6 @@ export const Frames = ({ numFrames }: { numFrames: number }) => {
     }
   }, [focusElement]);
 
-  console.log("frames", selectedBaseFrame, selectedFrame);
   if (
     typeof selectedBaseFrame !== "number" ||
     typeof selectedFrame !== "number"

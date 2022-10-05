@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import AnimationBlocks from "./animation-blocks";
+import { AnimationBlocks } from "./animation-blocks";
 import calculateImagesFromIscript from "@utils/images-from-iscript";
 
 import { useGameStore } from "@stores/game-store";

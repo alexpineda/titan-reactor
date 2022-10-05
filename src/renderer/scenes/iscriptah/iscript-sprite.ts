@@ -19,11 +19,10 @@ enum ImageOrder {
   below,
 }
 
-type IScriptImage = {
+export type IScriptImage = {
   image: ImageBase;
   state: IScriptState;
-  sprite: IScriptSprite;
-  setFrame: (frame: number, flip: boolean) => void;
+  sprite: IScriptSprite | null;
 }
 
 /**
@@ -51,21 +50,21 @@ export class IScriptSprite extends Group {
   constructor(
     unit: any = null,
     bwDat: BwDAT,
-    createTitanSprite: (unit: UnitDAT | null | undefined) => IScriptSprite,
-    createTitanImage: (
+    createSprite: (unit: UnitDAT | null | undefined) => IScriptSprite,
+    createImage: (
       image: number
     ) => ImageBase,
     runner: IScriptRunner,
-    createTitanSpriteCb: (titanSprite: IScriptSprite) => void,
-    destroyTitanSpriteCb: (titanSprite: IScriptSprite) => void = () => { },
+    createSpriteCb: (titanSprite: IScriptSprite) => void,
+    destroySpriteCb: (titanSprite: IScriptSprite) => void = () => { },
   ) {
     super();
     this.unit = unit;
     this.bwDat = bwDat;
-    this.createSprite = createTitanSprite;
-    this.createSpriteCb = createTitanSpriteCb;
-    this.destroyTitanSpriteCb = destroyTitanSpriteCb;
-    this.createTitanImage = createTitanImage;
+    this.createSprite = createSprite;
+    this.createSpriteCb = createSpriteCb;
+    this.destroyTitanSpriteCb = destroySpriteCb;
+    this.createTitanImage = createImage;
     this.runner = runner;
     this.iscriptOptions = {
       createBullets: false,
@@ -110,7 +109,7 @@ export class IScriptSprite extends Group {
     this.add(image);
 
     const state = new IScriptState(this.bwDat.iscript.iscripts[image.dat.iscript], image.dat);
-    const iscriptImage = { image, state, sprite: this, setFrame: () => { } };
+    const iscriptImage: IScriptImage = { image, state, sprite: this };
 
     this.runner.run(iscriptHeaders.init, state)
 

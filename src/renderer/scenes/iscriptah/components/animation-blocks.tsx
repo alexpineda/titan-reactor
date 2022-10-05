@@ -84,7 +84,6 @@ export const AnimationBlocks = ({ image }: { image: ImageDAT }) => {
     </ul>
   );
 };
-export default AnimationBlocks;
 
 //@todo overlays
 //   grp: 1
