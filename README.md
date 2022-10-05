@@ -28,9 +28,12 @@
 
 <br/>
 
-### Requirements
-- A purchased copy of Starcraft Remastered
+### Roadmap
 
+- [Priority Roadmap](https://lucky-equinox-32f.notion.site/Priority-Roadmap-ac07f27f9e44451d8b535a7e5e94db2b)
+- [Long Term Roadmap](https://lucky-equinox-32f.notion.site/Titan-Reactor-Roadmap-919e5145075a45b7b012b59fa6756d62)
+### Requirements
+- A purchased copy of Starcraft Remastered.
 ### Downloads
 - Available via the [Releases Page](https://github.com/imbateam-gg/titan-reactor/releases)
 
@@ -42,9 +45,9 @@ Developing plugins for Titan Reactor is easy and requires no build tools! A know
 
 
 
-### Data Sensitivity
+### Replay Data
 
-Replay information is not transmitted anywhere. Plugins may request permission to access replay information and it is your responsibility to trust the plugins/plugin authors that you grant access to.
+Replay data is not shared or transmitted by Titan Reactor. However, you may explicitly grant a plugin permission to access replay information for its own functionality.
 
 ### Development Installation
 
