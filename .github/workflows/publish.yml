@@ -41,16 +41,17 @@ jobs:
       - name: Install Packages
         run: yarn install
         
-      - name: Build Titan Reactor TS application / Electorn
+      - name: Build Electron App
         run: yarn dist
         env: #satisfy electron-builder even though we're not using their publish function (yet?)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-      - name: Zip Assets
+      - name: Zip Assets (Windows)
         uses: vimtor/action-zip@v1
+        if: matrix.os == 'windows-latest'
         with:
-          files: packages/titan-reactor/dist
-          dest: titan-reactor.zip
+          files: packages/titan-reactor/release/win-unpacked
+          dest: titan-reactor.windows.zip
           
       - name: Generate release tag
         id: tag
@@ -60,7 +61,7 @@ jobs:
       - name: Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "titan-reactor.zip"
+          artifacts: "titan-reactor.windows.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ steps.tag.outputs.release_tag }}
           prerelease: true

@@ -34,7 +34,7 @@
     "homepage": "https://github.com/imbateam-gg/titan-reactor#readme",
     "build": {
         "directories": {
-            "output": "release/${version}",
+            "output": "release",
             "buildResources": "build"
         },
         "files": [
@@ -49,12 +49,10 @@
             "category": "Game",
             "icon": "icon256x256.ico"
         },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ]
+        "extraResources": [{
+            "from": "bundled",
+            "to": "bundled"
+        }]
     },
     "debug": {
         "env": {
