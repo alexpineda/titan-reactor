@@ -132,6 +132,7 @@ export const ConfigureTrigger = ({ macro }: { macro: MacroDTO }) => {
                 eventTrigger.eventName = e.target.value;
                 updateTriggerValue(eventTrigger.serialize());
               }}
+              value={eventTrigger.eventName}
             >
               {worldEventsList.map((event) => (
                 <option key={event} value={event}>

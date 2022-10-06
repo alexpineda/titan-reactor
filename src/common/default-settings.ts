@@ -1,4 +1,5 @@
-import { SettingsV6, SettingsV5 } from "./types";
+import { SettingsV6, SettingsV5, MacroDTO } from "./types";
+import defaultMacros from "common/macros/default-macros.json";
 
 export const defaultSettingsV6: SettingsV6 = {
   version: 6,
@@ -132,7 +133,7 @@ export const defaultSettingsV5: SettingsV5 = {
   },
   macros: {
     revision: 0,
-    macros: [],
+    macros: defaultMacros as MacroDTO[],
   },
 };
 

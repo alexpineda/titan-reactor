@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
 ## [Unreleased]
+
+
+## [0.6.5]
 
 ## Added
 - Macros can execute other macros
 - Active Preview option for modifying macros
+- IScriptah now semi functional again (Tools -> Iscriptah)
 
 ## Fixed
 - Several memory leaks due to untested Janitor implementation
@@ -204,7 +207,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unit selection / unit boxing for the time being.
 
 
-[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.4...HEAD
+[Unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.5...HEAD
+[0.6.5]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.0...v0.6.4
 [0.6.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.3...v0.6.0
 [0.5.3]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.2...v0.5.3
