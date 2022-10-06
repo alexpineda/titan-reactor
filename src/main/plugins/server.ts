@@ -8,7 +8,6 @@ import settings from "../settings/singleton"
 import fileExists from "common/utils/file-exists";
 import { logService } from "../logger/singleton";
 import fetch from "node-fetch";
-import { getEnabledPluginPackages } from "./load-plugins";
 import * as casclib from "bw-casclib";
 import runtimeHTML from "./runtime.html?raw";
 import runtimeJSX from "./runtime.tsx?raw";
@@ -126,9 +125,8 @@ app.get("*", async function (req, res) {
         const { result, transpileErrors } = transpile(fs.readFileSync(filepath, "utf8"), filepath, filepath);
 
         let content = result.outputText;
-        const plugins = getEnabledPluginPackages();
         let plugin;
-        for (const _plugin of plugins) {
+        for (const _plugin of settings.enabledPlugins) {
             if (filepath.startsWith(path.normalize(path.join(settings.get().directories.plugins, _plugin.path)))) {
                 plugin = _plugin;
             }

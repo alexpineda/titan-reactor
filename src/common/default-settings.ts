@@ -1,6 +1,18 @@
 import { SettingsV6, SettingsV5, MacroDTO } from "./types";
 import defaultMacros from "common/macros/default-macros.json";
 
+export const DEFAULT_PLUGIN_PACKAGES: string[] = [
+  "@titan-reactor-plugins/clock",
+  "@titan-reactor-plugins/player-colors",
+  "@titan-reactor-plugins/camera-standard",
+  "@titan-reactor-plugins/camera-overview",
+  "@titan-reactor-plugins/camera-battle",
+  "@titan-reactor-plugins/players-bar",
+  "@titan-reactor-plugins/unit-selection-display",
+  "@titan-reactor-plugins/production-bar",
+  "@titan-reactor-plugins/unit-sounds",
+];
+
 export const defaultSettingsV6: SettingsV6 = {
   version: 6,
   language: "en-US",
@@ -83,11 +95,11 @@ export const defaultSettingsV6: SettingsV6 = {
   },
   plugins: {
     serverPort: 8080,
-    enabled: [],
+    enabled: DEFAULT_PLUGIN_PACKAGES,
   },
   macros: {
     revision: 0,
-    macros: [],
+    macros: defaultMacros as MacroDTO[],
   },
 };
 
@@ -133,7 +145,7 @@ export const defaultSettingsV5: SettingsV5 = {
   },
   macros: {
     revision: 0,
-    macros: defaultMacros as MacroDTO[],
+    macros: []
   },
 };
 

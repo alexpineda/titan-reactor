@@ -68,7 +68,7 @@ export const localPluginRepository = (setSelectedPluginPackage: SetSelectedPlugi
                 setSelectedPluginPackage({ plugin: undefined });
                 await reload();
             } else {
-                setBanner(`Failed to disable plugin.`);
+                setBanner("Failed to disable plugin.");
             }
         }
     },

@@ -12,12 +12,14 @@ import { findMapsPath } from "../starcraft/find-maps-path";
 import { findReplaysPath } from "../starcraft/find-replay-paths";
 import { foldersExist } from "./folders-exist";
 import { doMigrations } from "./migrate";
-import loadPlugins, { getDisabledPluginPackages, getEnabledPluginPackages } from "../plugins/load-plugins";
 import { findPluginsPath } from "../starcraft/find-plugins-path";
 import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { logService } from "../logger/singleton";
+import { PluginManager } from "../plugins/plugin-manager";
+import browserWindows from "../windows";
+import { ON_PLUGINS_INITIAL_INSTALL, ON_PLUGINS_INITIAL_INSTALL_ERROR } from "common/ipc-handle-names";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -25,15 +27,42 @@ const getEnvLocale = (env = process.env) => {
   return env.LC_ALL || env.LC_MESSAGES || env.LANG || env.LANGUAGE;
 };
 
+
+/**
+ * Loads the settings.yml file from disk and parses the contents into a JS object.
+ * Emits the "change" event.
+ */
+async function loadJSON<T>(filepath: string): Promise<T | null> {
+  try {
+    const contents = await fsPromises.readFile(filepath, {
+      encoding: "utf8",
+    });
+    const json = JSON.parse(contents) as T;
+    return json;
+  } catch (e) {
+    log.error(withErrorMessage(e, `@settings/load: Error loading settings.json from ${filepath}`));
+    return null;
+  }
+}
+
 /**
  * A settings management utility which saves and loads settings from a file.
  * It will also emit a "change" event whenever the settings are loaded or saved.
  */
 export class Settings {
-  private _settings: SettingsType = {
+  #settings: SettingsType = {
     ...defaultSettings
   };
-  private _filepath = "";
+  #filepath = "";
+  readonly plugins = new PluginManager();
+
+  get enabledPlugins() {
+    return this.plugins.getCompatiblePlugins().filter(p => this.#settings.plugins.enabled.includes(p.name));
+  }
+
+  get disabledPlugins() {
+    return this.plugins.getAllPlugins().filter(p => !this.#settings.plugins.enabled.includes(p.name))
+  }
 
   /**
    * Loads the existing settings file from disk.
@@ -42,40 +71,69 @@ export class Settings {
    * @param filepath 
    */
   async init(filepath: string) {
-    this._filepath = filepath;
-    this.initialize();
+    this.#filepath = filepath;
+    await this.initialize();
   }
 
   async initialize() {
-    if (await fileExists(this._filepath)) {
-      await this.loadAndMigrate();
-    } else {
-      await this.save(await this.createDefaults());
+
+    this.#settings = doMigrations(await loadJSON<SettingsType>(this.#filepath) ?? await this.createDefaults());
+
+    await this.plugins.init(this.#settings.directories.plugins);
+
+    if (!this.plugins.hasAnyPlugins) {
+
+      await this.plugins.installDefaultPlugins(() => browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL));
+
+      if (!this.plugins.hasAnyPlugins) {
+        log.error("@load-plugins/default: Failed to install default plugins");
+        browserWindows.main?.webContents.send(ON_PLUGINS_INITIAL_INSTALL_ERROR);
+      }
     }
 
-    await loadPlugins(this._settings.directories.plugins);
+    await this.save();
+
   }
 
   get() {
-    return this._settings;
+    return this.#settings;
   }
 
-  async disablePlugins(pluginsToDisable: string[]) {
-    await this.save({
-      plugins: {
-        ...this._settings.plugins,
-        enabled: this._settings.plugins.enabled.filter(p => !pluginsToDisable.includes(p)),
-      }
-    })
+  async disablePlugins(pluginIds: string[]) {
+
+    const plugins = this.enabledPlugins.filter(p => pluginIds.includes(p.id));
+    const pluginNames = plugins.map(p => p.name);
+
+    if (plugins.length) {
+      await this.save({
+        plugins: {
+          ...this.#settings.plugins,
+          enabled: this.#settings.plugins.enabled.filter(p => !pluginNames.includes(p)),
+        }
+      })
+
+      return plugins;
+    }
+
   }
 
-  async enablePlugins(pluginNames: string[]) {
-    await this.save({
-      plugins: {
-        ...this._settings.plugins,
-        enabled: [...this._settings.plugins.enabled, ...pluginNames],
-      }
-    })
+  async enablePlugins(pluginIds: string[]) {
+
+    const plugins = this.disabledPlugins.filter(p => pluginIds.includes(p.id));
+
+    if (plugins.length) {
+      await this.save({
+        plugins: {
+          ...this.#settings.plugins,
+          enabled: [...this.#settings.plugins.enabled, ...plugins.map(p => p.name)],
+
+        }
+      })
+
+      return plugins;
+
+    }
+
   }
 
   async getMeta(): Promise<SettingsMeta> {
@@ -85,15 +143,15 @@ export class Settings {
     ];
 
     for (const file of files) {
-      if (!(await fileExists(this._settings.directories[file as keyof SettingsType["directories"]]))) {
+      if (!(await fileExists(this.#settings.directories[file as keyof SettingsType["directories"]]))) {
         errors.push(`${file} directory is not a valid path. `);
       }
     }
 
-    const isCascStorage = await foldersExist(this._settings.directories["starcraft"], ["Data", "locales"]);
-    const isBareDirectory = await foldersExist(this._settings.directories["starcraft"], ["anim", "arr"]);
+    const isCascStorage = await foldersExist(this.#settings.directories["starcraft"], ["Data", "locales"]);
+    const isBareDirectory = await foldersExist(this.#settings.directories["starcraft"], ["anim", "arr"]);
     if (!isCascStorage) {
-      if (await fileExists(path.join(this._settings.directories["starcraft"], "STARDAT.MPQ"))) {
+      if (await fileExists(path.join(this.#settings.directories["starcraft"], "STARDAT.MPQ"))) {
         errors.push("The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported.");
       } else if (!isBareDirectory) {
         errors.push("The StarCraft directory is not a valid path.");
@@ -103,60 +161,29 @@ export class Settings {
     const localLanguage = supportedLanguages.includes(getEnvLocale() as string)
       ? (getEnvLocale() as string)
       : "en-US";
-    this._settings.language = supportedLanguages.includes(
-      this._settings.language
+    this.#settings.language = supportedLanguages.includes(
+      this.#settings.language
     )
-      ? this._settings.language
+      ? this.#settings.language
       : localLanguage;
 
-    const macros = sanitizeMacros(this._settings.macros, {
-      data: this._settings,
-      enabledPlugins: getEnabledPluginPackages(),
+    const macros = sanitizeMacros(this.#settings.macros, {
+      data: this.#settings,
+      enabledPlugins: this.enabledPlugins,
     }, logService);
 
     return {
-      data: { ...this._settings, macros },
+      data: { ...this.#settings, macros },
       errors,
       isCascStorage,
       initialInstall: false,
-      enabledPlugins: getEnabledPluginPackages(),
-      disabledPlugins: getDisabledPluginPackages(),
+      enabledPlugins: this.enabledPlugins,
+      disabledPlugins: this.disabledPlugins,
       phrases: {
         ...phrases["en-US"],
-        ...phrases[this._settings.language as keyof typeof phrases],
+        ...phrases[this.#settings.language as keyof typeof phrases],
       },
     };
-  }
-
-  /**
-   * Loads the settings.yml file from disk and parses the contents into a JS object.
-   * Emits the "change" event.
-   */
-  async load(): Promise<SettingsType> {
-    try {
-      const contents = await fsPromises.readFile(this._filepath, {
-        encoding: "utf8",
-      });
-      const json = JSON.parse(contents) as SettingsType;
-      return json;
-    } catch (e) {
-      throw new Error(withErrorMessage(e, `@settings/load: Error loading settings.json from ${this._filepath}`));
-    }
-  }
-
-  async loadAndMigrate() {
-    try {
-      const settings = await this.load();
-      const migratedSettings = doMigrations(settings);
-      if (migratedSettings !== settings) {
-        await this.save(migratedSettings);
-        this._settings = { ...(await this.createDefaults()), ...migratedSettings };
-      } else {
-        this._settings = { ...(await this.createDefaults()), ...settings };
-      }
-    } catch (e) {
-      log.error(withErrorMessage(e, "@settings/load-and-migrate"));
-    }
   }
 
   /**
@@ -164,18 +191,18 @@ export class Settings {
    * Emits the "change" event.
    * @param settings 
    */
-  async save(settings: Partial<SettingsType>) {
-    this._settings = Object.assign({}, this._settings, settings);
-    this._settings.plugins.enabled = [...new Set(this._settings.plugins.enabled)];
-    this._settings.macros = sanitizeMacros(this._settings.macros, {
-      data: this._settings,
-      enabledPlugins: getEnabledPluginPackages(),
+  async save(settings: Partial<SettingsType> = {}) {
+    this.#settings = Object.assign({}, this.#settings, settings);
+    this.#settings.plugins.enabled = [...new Set(this.#settings.plugins.enabled)];
+    this.#settings.macros = sanitizeMacros(this.#settings.macros, {
+      data: this.#settings,
+      enabledPlugins: this.enabledPlugins,
     }, logService);
 
-    await fsPromises.writeFile(this._filepath, JSON.stringify(this._settings, null, 4), {
+    await fsPromises.writeFile(this.#filepath, JSON.stringify(this.#settings, null, 4), {
       encoding: "utf8",
     });
-    return this._settings;
+    return this.#settings;
   }
 
   /**
@@ -195,10 +222,6 @@ export class Settings {
         replays: await findReplaysPath(),
         assets: app.getPath("documents"),
         plugins: await findPluginsPath(),
-      },
-      macros: {
-        revision: 0,
-        macros: []
       }
     };
   }

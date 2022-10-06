@@ -3,16 +3,12 @@ import shallow from "zustand/shallow";
 import { iscriptHeaders } from "common/enums";
 import { interactiveOpCodes } from "../utils/framesets";
 import useDirectionalFrame from "../utils/useDirectionalFrame";
-import { useIScriptahStore, useIscriptStore, setBaseFrame } from "../stores";
+import { useIscriptStore, setBaseFrame } from "../stores";
 import { useGameStore } from "@stores/game-store";
 import { Block } from "common/types";
 
 export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
   const bwDat = useGameStore((state) => state.assets!.bwDat);
-
-  const { cameraDirection } = useIScriptahStore((state) => ({
-    cameraDirection: state.cameraDirection,
-  }));
 
   const { blockFrameCount } = useIscriptStore(
     (store) => ({
@@ -31,6 +27,8 @@ export const Commands = ({ selectedBlock }: { selectedBlock: Block }) => {
   const animationBlocks = bwDat.iscript.animations;
   const cmds = animationBlocks[offset];
   const headerLabel = iscriptHeaders[header];
+  //TODO: set to main camera direction :()
+  const cameraDirection = 0;
   const [getDirectionalFrame, areFrameSetsEnabled] = useDirectionalFrame(
     cmds,
     !!selectedBlock.image.gfxTurns,
