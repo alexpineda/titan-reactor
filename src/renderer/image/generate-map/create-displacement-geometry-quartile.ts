@@ -18,7 +18,7 @@ export const createDisplacementGeometryQuartile = (
   const geom =
     new PlaneGeometry(width, height, widthSegments, heightSegments);
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
 
   if (!ctx) {
 

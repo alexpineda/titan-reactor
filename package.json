@@ -49,10 +49,12 @@
             "category": "Game",
             "icon": "icon256x256.ico"
         },
-        "extraResources": [{
-            "from": "bundled",
-            "to": "bundled"
-        }]
+        "extraResources": [
+            {
+                "from": "bundled",
+                "to": "bundled"
+            }
+        ]
     },
     "debug": {
         "env": {
@@ -63,7 +65,7 @@
     },
     "dependencies": {
         "@codemirror/lang-javascript": "^6.1.0",
-        "@npmcli/package-json": "^1.0.1",
+        "@npmcli/package-json": "^2.0.0",
         "@types/lodash.set": "^4.3.7",
         "@typescript/vfs": "^1.4.0",
         "bl": "^5.0.0",
@@ -76,7 +78,7 @@
         "deep-diff": "^1.0.2",
         "deepmerge": "^4.2.2",
         "electron-devtools-installer": "^3.2.0",
-        "electron-is-dev": "^1.2.0",
+        "electron-is-dev": "^2.0.0",
         "express": "^4.17.3",
         "iconv-lite": "0.6.3",
         "immer": "^9.0.15",
@@ -91,7 +93,7 @@
         "lodash.throttle": "^4.1.1",
         "mkdirp": "^1.0.4",
         "node-fetch": "2",
-        "pacote": "^13.0.3",
+        "pacote": "^14.0.0",
         "pkware-wasm": "^1.0.0",
         "postprocessing": "6.28.7",
         "random": "^3.0.6",
@@ -110,7 +112,7 @@
         "three-janitor": "^2.0.1",
         "threejs-shader-materials": "MasatoMakino/threejs-shader-materials",
         "troika-three-utils": "^0.46.0",
-        "ts-morph": "^15.1.0",
+        "ts-morph": "^16.0.0",
         "typescript": "^4.8.4",
         "winreg": "^1.2.4",
         "zustand": "4.1.1"
@@ -136,13 +138,13 @@
         "@types/react-dom": "18.0.6",
         "@types/react-helmet": "^6.1.5",
         "@types/semver": "^7.3.9",
-        "@types/three": "^0.142.0",
+        "@types/three": "^0.144.0",
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
         "@vitejs/plugin-react": "^2.1.0",
         "dotenv": "^8.2.0",
-        "electron": "20.0.0",
-        "electron-builder": "^22.8.1",
+        "electron": "21.1.0",
+        "electron-builder": "^23.3.3",
         "eslint": "^7.16.0",
         "eslint-config-airbnb": "^18.2.1",
         "eslint-import-resolver-alias": "^1.1.2",

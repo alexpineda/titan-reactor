@@ -7,7 +7,6 @@ import {
 import { Terrain } from "@core/terrain";
 import { BorderTiles } from "./border-tiles";
 import { Sunlight } from "./sunlight";
-import { Janitor } from "three-janitor";
 
 export class BaseScene extends Scene {
   #borderTiles: BorderTiles;
@@ -29,7 +28,7 @@ export class BaseScene extends Scene {
     envMap?: Texture
   ) {
     super();
-    this.autoUpdate = false;
+    this.matrixWorldAutoUpdate = false;
 
     this.sunlight = new Sunlight(mapWidth, mapHeight);
     this.add(...this.sunlight.children);
