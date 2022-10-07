@@ -5,12 +5,12 @@ import { Janitor } from "three-janitor";
 import { Borrowed } from "@utils/object-utils";
 import { DamageType, Explosion } from "common/enums";
 import { SceneInputHandler, UserInputCallbacks } from "common/types";
-import { easeCubicIn } from "d3-ease";
 import { Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
 import { createInputComposer } from "./input-composer";
 import { World } from "./world";
 import { SceneController } from "@plugins/scene-controller";
+import { easeInCubic } from "@utils/function-utils";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {
@@ -53,7 +53,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             viewport.width = surface.bufferWidth;
             viewport.height = surface.bufferHeight;
             viewport.aspect = surface.aspect;
-        };
+        }
     });
 
     world.events!.on("dispose", () => {
@@ -197,7 +197,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
                 viewport.width = gameSurface.bufferWidth;
                 viewport.height = gameSurface.bufferHeight;
                 viewport.aspect = gameSurface.aspect;
-            };
+            }
 
             await newController.onEnterScene(prevData);
             sceneController = new WeakRef(newController);
@@ -250,7 +250,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
                     }
                     const distance = v.camera.position.distanceTo(spritePos);
                     if (distance < v.cameraShake.maxShakeDistance) {
-                        const calcStrength = _bulletStrength[0] * easeCubicIn(1 - distance / v.cameraShake.maxShakeDistance) * exp[2];
+                        const calcStrength = _bulletStrength[0] * easeInCubic(1 - distance / v.cameraShake.maxShakeDistance) * exp[2];
                         if (calcStrength > v.shakeCalculation.strength.getComponent(_bulletStrength[1])) {
                             v.shakeCalculation.strength.setComponent(_bulletStrength[1], calcStrength);
                             v.shakeCalculation.duration.setComponent(_bulletStrength[1], exp[1] * 1000);

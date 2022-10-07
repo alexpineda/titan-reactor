@@ -104,7 +104,7 @@ export const MacroPanel = ({
             onKeyDown={(e) => {
               if (e.code === "Enter") {
                 e.preventDefault();
-                e.target.blur();
+                e.currentTarget.blur();
               }
             }}
             onBlur={(e) => renameMacro(e.target.textContent)}

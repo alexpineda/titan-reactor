@@ -29,3 +29,7 @@ export function last<T extends any[]>(array: T) {
     const length = array == null ? 0 : array.length;
     return length ? array[length - 1] : undefined;
 }
+
+export function easeInCubic(x: number): number {
+    return x * x * x;
+}

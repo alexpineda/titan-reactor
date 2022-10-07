@@ -1,4 +1,5 @@
 import { Surface } from "@image/canvas";
+import { log } from "@ipc/log";
 import { getDirection32 } from "@utils/camera-utils";
 import CameraControls from "camera-controls";
 import { MathUtils, OrthographicCamera, PerspectiveCamera, Vector2, Vector3, Vector4 } from "three";
@@ -7,7 +8,7 @@ import { ProjectedCameraView } from "./projected-camera-view";
 
 const _target = new Vector3;
 
-const isNumber = (value: any): value is Number => {
+const isNumber = (value: any): value is number => {
     return typeof value === "number";
 }
 export class GameViewPort {
@@ -54,7 +55,7 @@ export class GameViewPort {
 
     set enabled(val: boolean) {
         if (val === false && this.#isPrimary) {
-            console.warn("Cannot disable primary viewport");
+            log.warn("Cannot disable primary viewport");
             return;
         }
         this.#enabled = val;
@@ -107,6 +108,10 @@ export class GameViewPort {
         return this.#center;
     }
 
+    get height() {
+        return this.#height;
+    }
+
     set height(val: number) {
         this.#height = val <= 1 ? this.#surface.bufferHeight * val : val;
         if (this.constrainToAspect) {
@@ -127,9 +132,7 @@ export class GameViewPort {
         return this.#width;
     }
 
-    get height() {
-        return this.#height;
-    }
+
 
     get left() {
         return this.#left;

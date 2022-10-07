@@ -4,7 +4,7 @@ import { PluginBase } from "./plugin-base";
 
 export interface SceneController extends PluginBase, SceneInputHandler {
     viewports: GameViewPort[];
-};
+}
 
 export class SceneController extends PluginBase {
     override isSceneController = true;

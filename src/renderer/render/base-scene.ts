@@ -28,6 +28,7 @@ export class BaseScene extends Scene {
     envMap?: Texture
   ) {
     super();
+    //@ts-ignore
     this.matrixWorldAutoUpdate = false;
 
     this.sunlight = new Sunlight(mapWidth, mapHeight);
