@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry, PlaneBufferGeometry, Vector2, Vector3 } from "three";
+import { BufferAttribute, BufferGeometry, PlaneGeometry, Vector2, Vector3 } from "three";
 
 export const createDisplacementGeometry = (
   existingGeom: BufferGeometry | null,
@@ -12,7 +12,7 @@ export const createDisplacementGeometry = (
 ) => {
   const geom =
     existingGeom ||
-    new PlaneBufferGeometry(width, height, widthSegments, heightSegments);
+    new PlaneGeometry(width, height, widthSegments, heightSegments);
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     throw new Error("Could not get context");

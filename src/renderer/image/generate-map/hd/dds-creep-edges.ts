@@ -1,7 +1,7 @@
 import { Janitor } from "three-janitor";
 import { DDSGrpFrameType, CreepTexture, UnitTileScale } from "common/types";
 import {
-  DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneBufferGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget
+  DoubleSide, Mesh, MeshBasicMaterial, NearestFilter, OrthographicCamera, PlaneGeometry, Scene, sRGBEncoding, Vector3, WebGLRenderer, WebGLRenderTarget
 } from "three";
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 
@@ -87,7 +87,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
 
   const scene = new Scene();
   scene.name = "creep-edges-ortho-scene";
-  const plane = new PlaneBufferGeometry();
+  const plane = new PlaneGeometry();
 
   for (let i = 0; i < creepGrp.length; i++) {
     const x = i;

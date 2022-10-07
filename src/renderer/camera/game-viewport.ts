@@ -83,7 +83,6 @@ export class GameViewPort {
         this.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.wheel = CameraControls.ACTION.NONE;
-        this.orbit.mouseButtons.shiftLeft = CameraControls.ACTION.NONE;
         this.orbit.setLookAt(0, 50, 0, 0, 0, 0, false);
 
         this.cameraShake = new CameraShake();

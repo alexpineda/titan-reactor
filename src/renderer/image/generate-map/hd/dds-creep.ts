@@ -5,7 +5,7 @@ import {
   OrthographicCamera,
   Scene,
   Vector3,
-  PlaneBufferGeometry,
+  PlaneGeometry,
   Mesh,
   sRGBEncoding,
   WebGLRenderer,
@@ -51,7 +51,7 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
 
   const scene = new Scene();
   scene.name = "creep-ortho-scene";
-  const plane = new PlaneBufferGeometry();
+  const plane = new PlaneGeometry();
 
 
   for (let i = 0; i < width; i++) {

@@ -22,7 +22,7 @@ import {
     Mesh,
     MeshBasicMaterial,
     Scene,
-    SphereBufferGeometry,
+    SphereGeometry,
     Texture,
     Vector2,
     Vector3,
@@ -227,7 +227,7 @@ export async function createWraithScene() {
         fog: false,
     });
 
-    const sunGeometry = new SphereBufferGeometry(0.75, 32, 32);
+    const sunGeometry = new SphereGeometry(0.75, 32, 32);
     const sun = janitor.mop(new Mesh(sunGeometry, sunMaterial));
     sun.name = "sun";
     sun.frustumCulled = false;

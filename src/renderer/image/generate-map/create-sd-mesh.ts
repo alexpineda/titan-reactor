@@ -1,7 +1,9 @@
 import { LookupTextures } from "./lookup-textures";
-import * as THREE from "three";
 import {
+  CanvasTexture,
   Mesh,
+  MeshStandardMaterial,
+  PlaneGeometry,
   Vector2,
 } from "three";
 
@@ -23,10 +25,10 @@ export const createSDMesh = async (
 ) => {
 
   const tileAnimationCounterUniform = { value: 0 };
-  const sdMapMaterial = new THREE.MeshStandardMaterial({
+  const sdMapMaterial = new MeshStandardMaterial({
     map: sdMap,
     displacementScale: geomOptions.maxTerrainHeight,
-    displacementMap: new THREE.CanvasTexture(displacementCanvas)
+    displacementMap: new CanvasTexture(displacementCanvas)
 
   });
   sdMapMaterial.onBeforeCompile = function (shader) {
@@ -91,9 +93,9 @@ export const createSDMesh = async (
     drawMode: { value: 0 },
   };
 
-  const elevationsMaterial = new THREE.MeshStandardMaterial({
+  const elevationsMaterial = new MeshStandardMaterial({
     displacementScale: geomOptions.maxTerrainHeight,
-    displacementMap: new THREE.CanvasTexture(displacementCanvas),
+    displacementMap: new CanvasTexture(displacementCanvas),
     map: sdMap,
     roughness: 1,
   });
@@ -116,7 +118,7 @@ export const createSDMesh = async (
   };
   elevationsMaterial.userData = elevationOptions;
 
-  const geometry = new THREE.PlaneBufferGeometry(
+  const geometry = new PlaneGeometry(
     mapWidth,
     mapHeight,
     mapWidth * geomOptions.tesselation,
@@ -139,7 +141,7 @@ export const createSDMesh = async (
   sdTerrain.castShadow = true;
   sdTerrain.receiveShadow = true;
   sdTerrain.rotation.x = -Math.PI / 2;
-  sdTerrain.userData.displace = new THREE.CanvasTexture(displacementCanvas);
+  sdTerrain.userData.displace = new CanvasTexture(displacementCanvas);
   sdTerrain.userData.map = sdMap;
   sdTerrain.userData.mat = sdMapMaterial;
   sdTerrain.userData.elevationsMaterial = elevationsMaterial;

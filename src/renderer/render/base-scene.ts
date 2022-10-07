@@ -70,21 +70,8 @@ export class BaseScene extends Scene {
   addTerrain(
     terrain: Terrain
   ) {
-    this.userData.terrain = terrain;
     this.add(terrain);
     terrain.updateMatrixWorld();
-  }
-
-  replaceTerrain(
-    terrain: Terrain
-  ) {
-    Janitor.trash("old terrain", this.userData.terrain)
-    this.remove(this.userData.terrain);
-    this.addTerrain(terrain);
-  }
-
-  get terrain() {
-    return this.userData.terrain;
   }
 
   dispose() {

@@ -3,7 +3,7 @@ import {
   OrthographicCamera,
   Scene,
   Vector3,
-  PlaneBufferGeometry,
+  PlaneGeometry,
   Mesh,
   sRGBEncoding,
   WebGLRenderer,
@@ -120,7 +120,7 @@ export const createHdQuartiles = (
       const mat = new MeshBasicMaterial({
         side: DoubleSide,
       });
-      const plane = new PlaneBufferGeometry();
+      const plane = new PlaneGeometry();
       const mesh = new Mesh(plane, mat);
 
       for (let x = 0; x < quartileWidth; x++) {

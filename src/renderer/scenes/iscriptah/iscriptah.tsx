@@ -6,7 +6,7 @@ import {
   MOUSE,
   Vector3,
   Mesh,
-  PlaneBufferGeometry,
+  PlaneGeometry,
   AxesHelper,
   Group,
   MeshStandardMaterial,
@@ -113,7 +113,7 @@ const bootup = async () => {
   scene.add(dirLight);
 
   const plane = new Mesh(
-    new PlaneBufferGeometry(3, 3),
+    new PlaneGeometry(3, 3),
     new MeshStandardMaterial({ color: 0x339933 })
   );
   plane.rotation.x = -Math.PI / 2;

@@ -2,7 +2,7 @@ import { CursorMaterial } from "@image/effects/cursor-material";
 import { MinimapMaterial } from "@render/minimap-material";
 import { unitTypes } from "common/enums";
 import { Assets } from "@image/assets";
-import { Intersection, Mesh, Object3D, PlaneBufferGeometry, Raycaster, Scene, Vector2 } from "three";
+import { Intersection, Mesh, Object3D, PlaneGeometry, Raycaster, Scene, Vector2 } from "three";
 import { SceneComposer } from "./scene-composer";
 import { World } from "./world";
 import { WorldEvents } from "./world-events";
@@ -58,7 +58,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     world.events!.on("unit-selection-enabled", (value) => visualBox.enabled = value);
 
     const cursorMaterial = new CursorMaterial(assets);
-    const cursorGraphics = new Mesh(new PlaneBufferGeometry(1, 1), cursorMaterial);
+    const cursorGraphics = new Mesh(new PlaneGeometry(1, 1), cursorMaterial);
 
     cursorGraphics.frustumCulled = false;
     cursorGraphics.matrixAutoUpdate = false;
@@ -93,7 +93,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     let minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
     minimapMaterial.mode = world.settings!.getState().minimap.mode;
 
-    const minimap = new Mesh(new PlaneBufferGeometry(1, 1), minimapMaterial);
+    const minimap = new Mesh(new PlaneGeometry(1, 1), minimapMaterial);
     minimap.frustumCulled = false;
     minimap.renderOrder = 1;
     minimap.matrixAutoUpdate = false;

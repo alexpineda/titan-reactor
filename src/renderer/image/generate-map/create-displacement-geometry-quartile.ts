@@ -1,4 +1,4 @@
-import { BufferAttribute, PlaneBufferGeometry, Vector2, Vector3 } from "three";
+import { BufferAttribute, PlaneGeometry, Vector2, Vector3 } from "three";
 import simplifyGeometry from "./simplify-geometry";
 
 export const createDisplacementGeometryQuartile = (
@@ -16,7 +16,7 @@ export const createDisplacementGeometryQuartile = (
 ) => {
 
   const geom =
-    new PlaneBufferGeometry(width, height, widthSegments, heightSegments);
+    new PlaneGeometry(width, height, widthSegments, heightSegments);
 
   const ctx = canvas.getContext("2d");
 
