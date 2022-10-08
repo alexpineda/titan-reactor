@@ -46,7 +46,7 @@ export const MacroPanel = ({
 
   useEffect(() => {
     if (nameRef.current) {
-      nameRef.current.innerText = macro.name;
+      nameRef.current.innerText = macro.name.split(":").slice(-1)[0];
     }
   }, []);
 
@@ -76,10 +76,9 @@ export const MacroPanel = ({
     >
       <span
         style={{
-          display: "grid",
-          gridGap: "var(--size-3)",
+          display: "flex",
+          gap: "var(--size-3)",
           padding: "var(--size-3)",
-          gridTemplateColumns: "auto auto  1fr",
           alignItems: "center",
           justifyContent: "start",
           marginBottom: "var(--size-5)",
@@ -91,23 +90,24 @@ export const MacroPanel = ({
             alignItems: "center",
           }}
         >
-          <i
-            className="material-icons"
-            style={{ fontSize: "var(--font-size-3)" }}
-          >
-            beenhere
-          </i>
-          &nbsp;
           <span
             ref={nameRef}
             contentEditable
+            onFocus={() => {
+              nameRef.current!.innerText = macro.name;
+            }}
             onKeyDown={(e) => {
               if (e.code === "Enter") {
                 e.preventDefault();
                 e.currentTarget.blur();
               }
             }}
-            onBlur={(e) => renameMacro(e.target.textContent)}
+            onBlur={(e) => {
+              renameMacro(e.target.textContent);
+              nameRef.current!.innerText = e.target
+                .textContent!.split(":")
+                .slice(-1)[0];
+            }}
           ></span>
         </h4>
 
@@ -137,11 +137,11 @@ export const MacroPanel = ({
 
         <div
           style={{
-            display: "grid",
-            justifyContent: "end",
+            display: "flex",
+            justifySelf: "end",
             alignItems: "center",
-            gridTemplateColumns: "auto auto",
-            gridGap: "var(--size-4)",
+            gap: "var(--size-4)",
+            marginLeft: "auto",
           }}
         >
           <label>
@@ -190,7 +190,13 @@ export const MacroPanel = ({
 
       <ConfigureTrigger macro={macro} />
 
-      <div style={{ display: "flex" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: "var(--size-2)",
+          paddingBlock: "var(--size-4)",
+        }}
+      >
         <CreateMacroConditionOrAction
           label="Condition"
           onCreate={() => {
@@ -223,7 +229,11 @@ export const MacroPanel = ({
             macro.actionSequence !== MacroActionSequence.AllSync
           }
         >
-          <p>Conditions (Optional)</p>
+          {macro.conditions.length > 0 && (
+            <p style={{ fontStyle: "italic", marginBlock: "var(--size-8)" }}>
+              Conditions
+            </p>
+          )}
           {macro.conditions.map((condition) => (
             <ActionablePanel
               key={condition.id}
@@ -234,7 +244,11 @@ export const MacroPanel = ({
               setActiveAction={setActiveActionOrCondition}
             />
           ))}
-          <p>Actions</p>
+          {macro.actions.length > 0 && (
+            <p style={{ fontStyle: "italic", marginBlock: "var(--size-8)" }}>
+              Actions
+            </p>
+          )}
           {macro.actions.map((action) => (
             <ActionablePanel
               macro={macro}

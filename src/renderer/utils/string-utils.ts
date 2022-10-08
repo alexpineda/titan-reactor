@@ -9,7 +9,6 @@ export const capitalizeFirstLetters = (str: string) => {
     });
 }
 
-
 export const raceToString = (race: Race) => {
     switch (race) {
         case Race.Zerg:
@@ -20,4 +19,12 @@ export const raceToString = (race: Race) => {
             return "protoss";
     }
     return "";
+}
+
+export function isEmoji(s: string) {
+    return /\p{Emoji}/u.test(s);
+}
+
+export function stripEmojis(s: string) {
+    return s.replace(/\p{Emoji}/gu, "");
 }

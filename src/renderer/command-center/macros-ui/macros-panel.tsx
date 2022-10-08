@@ -3,11 +3,10 @@ import ErrorBoundary from "../error-boundary";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
 import { useSettingsStore } from "@stores/settings-store";
-import groupBy from "lodash.groupby";
 import { useMacroStore } from "./use-macros-store";
+import { TreeList } from "./treelist";
 
 export const MacrosPanel = () => {
-  const [collapsedGroups, setCollapsedGroups] = useState<string[]>([]);
   const settings = useSettingsStore();
   const {
     macros: { macros },
@@ -36,75 +35,13 @@ export const MacrosPanel = () => {
         >
           <aside>
             <CreateMacro onCreated={selectMacroId} />
-            {Object.entries(
-              groupBy(macros, (m) => {
-                const s = m.name.split(":");
-                return s.length === 1 ? "General" : s[0].trim();
-              })
-            ).map(([groupName, macros]) => (
-              <div
-                key={groupName}
-                style={{
-                  margin: "var(--size-7)",
-                }}
-              >
-                {groupName && (
-                  <div
-                    style={{
-                      color: "var(--gray-6)",
-                    }}
-                  >
-                    <span
-                      style={{ cursor: "pointer" }}
-                      onClick={() => {
-                        if (collapsedGroups.includes(groupName)) {
-                          setCollapsedGroups(
-                            collapsedGroups.filter((g) => g !== groupName)
-                          );
-                        } else {
-                          setCollapsedGroups([...collapsedGroups, groupName]);
-                        }
-                      }}
-                    >
-                      <i
-                        className="material-icons"
-                        style={{
-                          fontSize: "var(--font-size-3)",
-                          marginRight: "var(--size-2)",
-                        }}
-                      >
-                        folder
-                      </i>
-                      <span>{groupName}</span>
-                    </span>
-                    {!collapsedGroups.includes(groupName) && (
-                      <ul>
-                        {macros.map((macro) => (
-                          <li
-                            key={macro.id}
-                            style={{
-                              color:
-                                macro.id === selectedMacroId
-                                  ? "var(--blue-5)"
-                                  : "var(--gray-8)",
-                              cursor: "pointer",
-                            }}
-                            onClick={(evt) => {
-                              evt.stopPropagation();
-                              selectMacroId(macro.id);
-                            }}
-                          >
-                            {macro.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
+            <TreeList
+              macros={macros}
+              selected={selectedMacroId}
+              onSelect={selectMacroId}
+            />
           </aside>
-          <main>
+          <main style={{ flex: 1 }}>
             {macros.find((m) => m.id === selectedMacroId) && (
               <MacroPanel
                 key={selectedMacroId}

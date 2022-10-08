@@ -57,10 +57,12 @@ export const ConfigureTrigger = ({ macro }: { macro: MacroDTO }) => {
     /* trigger configuration */
   }
   return (
-    <div style={{ display: "flex", padding: "1rem", alignItems: "center" }}>
-      <div>
+    <>
+      <div
+        style={{ display: "flex", alignItems: "center", gap: "var(--size-2)" }}
+      >
         <label>
-          Trigger Type:
+          Trigger Type:&nbsp;
           <select
             onChange={(e) => {
               const type =
@@ -96,9 +98,7 @@ export const ConfigureTrigger = ({ macro }: { macro: MacroDTO }) => {
             ))}
           </select>
         </label>
-      </div>
-      <div>
-        <label>
+        <div>
           {hotkeyTrigger && (
             <div>
               <input
@@ -107,7 +107,7 @@ export const ConfigureTrigger = ({ macro }: { macro: MacroDTO }) => {
                 readOnly={true}
               />
               <label>
-                On KeyUp
+                On KeyUp&nbsp;
                 <input
                   type="checkbox"
                   checked={hotkeyTrigger.onKeyUp}
@@ -141,17 +141,25 @@ export const ConfigureTrigger = ({ macro }: { macro: MacroDTO }) => {
               ))}
             </select>
           )}
-        </label>
+        </div>
       </div>
-
       {macro.trigger.type === TriggerType.Hotkey && (
         <KeyboardPreview
           previewKey={
             HotkeyTrigger.deserialize(macro.trigger.value).value.codes[0]
           }
-          svgProps={{ width: "100px" }}
+          svgProps={{
+            style: {
+              // margin: "0 var(--size-3) 0 auto",
+              width: "var(--size-11)",
+              filter: "brightness(1) saturate(0.3) hue-rotate(133deg)",
+              position: "absolute",
+              right: "var(--size-6)",
+              top: "var(--size-12)",
+            },
+          }}
         />
       )}
-    </div>
+    </>
   );
 };
