@@ -39,7 +39,12 @@ function TreeListNodeChildren({
     <ul>
       {node.children.map((child) =>
         isMacroTreeNode(child) ? (
-          <TreeListNode node={child} selected={selected} onSelect={onSelect} />
+          <TreeListNode
+            key={child.folderId}
+            node={child}
+            selected={selected}
+            onSelect={onSelect}
+          />
         ) : (
           <li
             key={child.id}

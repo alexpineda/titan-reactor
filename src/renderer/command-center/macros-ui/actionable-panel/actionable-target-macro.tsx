@@ -14,7 +14,7 @@ export const ActionableTargetMacro = (props: ActionablePanelProps) => {
   const {
     macros: { macros },
   } = useMacroStore();
-  const { action, viewOnly, macro } = props;
+  const { action, macro } = props;
   const { updateActionable } = useMacroStore();
 
   const levaConfig = {
@@ -55,7 +55,6 @@ export const ActionableTargetMacro = (props: ActionablePanelProps) => {
           }
         }}
         value={action.path[1]}
-        disabled={viewOnly}
       >
         {macros.map((macro) => {
           return (
@@ -68,7 +67,6 @@ export const ActionableTargetMacro = (props: ActionablePanelProps) => {
 
       <select
         value={action.path[2]}
-        disabled={viewOnly}
         onChange={(evt) => {
           updateActionable(macro, {
             ...action,
@@ -87,24 +85,7 @@ export const ActionableTargetMacro = (props: ActionablePanelProps) => {
         <ActionableOpsSelector {...props} />
       </ErrorBoundary>
 
-      {viewOnly &&
-        ((action.type === "action" && action.operator === Operator.Set) ||
-          action.type === "condition") && (
-          <p
-            style={{
-              background: "var(--green-0)",
-              paddingBlock: "var(--size-2)",
-              borderRadius: "var(--radius-2)",
-              paddingInline: "var(--size-3)",
-              color: "var(--green-9)",
-            }}
-          >
-            {action.value}
-          </p>
-        )}
-
-      {viewOnly === false &&
-        levaConfig &&
+      {levaConfig &&
         levaConfig[action.path[2] as keyof typeof levaConfig] &&
         action.value !== undefined &&
         ((action.type === "action" && action.operator === Operator.Set) ||

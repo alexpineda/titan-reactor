@@ -21,13 +21,9 @@ import { PreviewContext } from "./PreviewContext";
 export const MacroPanel = ({
   macro,
   pluginsMetadata,
-  activeAction: activeActionOrCondition,
-  setActiveAction: setActiveActionOrCondition,
 }: {
   macro: MacroDTO;
   pluginsMetadata: PluginMetaData[];
-  activeAction: string | null;
-  setActiveAction: (id: string) => void;
 }) => {
   const { updateMacro, createActionable, deleteMacro, macros } =
     useMacroStore();
@@ -240,8 +236,6 @@ export const MacroPanel = ({
               macro={macro}
               action={condition}
               pluginsMetadata={pluginsMetadata}
-              viewOnly={activeActionOrCondition !== condition.id}
-              setActiveAction={setActiveActionOrCondition}
             />
           ))}
           {macro.actions.length > 0 && (
@@ -255,8 +249,6 @@ export const MacroPanel = ({
               key={action.id}
               action={action}
               pluginsMetadata={pluginsMetadata}
-              viewOnly={activeActionOrCondition !== action.id}
-              setActiveAction={setActiveActionOrCondition}
             />
           ))}
         </PreviewContext.Provider>

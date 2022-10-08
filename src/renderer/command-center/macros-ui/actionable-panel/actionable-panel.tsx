@@ -7,13 +7,9 @@ import { useMacroStore } from "../use-macros-store";
 import { TargetType } from "common/types";
 import { ActionableTargetMacro } from "./actionable-target-macro";
 
-export const ActionablePanel = (
-  props: ActionablePanelProps & {
-    setActiveAction: (actionId: string) => void;
-  }
-) => {
+export const ActionablePanel = (props: ActionablePanelProps) => {
   const { deleteActionable, updateActionable } = useMacroStore();
-  const { action, setActiveAction, viewOnly, macro } = props;
+  const { action, macro } = props;
 
   return (
     <div
@@ -60,22 +56,6 @@ export const ActionablePanel = (
             <option value=":function">Function</option>
           </select>
         </span>
-        <button
-          onClick={() => setActiveAction(action.id)}
-          style={{
-            padding: "var(--size-1)",
-          }}
-        >
-          <i
-            className="material-icons small"
-            style={{
-              fontSize: "var(--size-3)",
-              color: viewOnly ? "inherit" : "var(--red-4)",
-            }}
-          >
-            edit
-          </i>
-        </button>
         <button
           style={{
             justifySelf: "end",

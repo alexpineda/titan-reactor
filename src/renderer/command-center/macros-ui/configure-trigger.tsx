@@ -150,7 +150,6 @@ export const ConfigureTrigger = ({ macro }: { macro: MacroDTO }) => {
           }
           svgProps={{
             style: {
-              // margin: "0 var(--size-3) 0 auto",
               width: "var(--size-11)",
               filter: "brightness(1) saturate(0.3) hue-rotate(133deg)",
               position: "absolute",

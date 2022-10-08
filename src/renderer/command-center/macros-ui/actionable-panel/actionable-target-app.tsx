@@ -1,8 +1,5 @@
 import { settingsStore } from "@stores/settings-store";
-import {
-  getAppFieldDefinition,
-  getFieldDefinitionDisplayValue,
-} from "common/macros/field-utilities";
+import { getAppFieldDefinition } from "common/macros/field-utilities";
 import { ConditionComparator, Operator, TargetedPath } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
@@ -13,17 +10,12 @@ import { ActionablePanelProps } from "./actionable-pane-props";
 
 export const ActionableTargetApp = (props: ActionablePanelProps) => {
   const settings = settingsStore();
-  const { action, viewOnly, macro } = props;
+  const { action, macro } = props;
   const { updateActionable } = useMacroStore();
 
   const levaConfig = getAppFieldDefinition(
     settings,
     action.path as TargetedPath<":app">
-  );
-
-  const displayValue = getFieldDefinitionDisplayValue(
-    levaConfig?.options,
-    action.value
   );
 
   return (
@@ -55,29 +47,12 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
           }
         }}
         value={action.path.slice(1).join(".")}
-        disabled={viewOnly}
       />
       <ErrorBoundary message="Error with effects">
         <ActionableOpsSelector {...props} />
       </ErrorBoundary>
-      {viewOnly &&
-        ((action.type === "action" && action.operator === Operator.Set) ||
-          action.type === "condition") && (
-          <p
-            style={{
-              background: "var(--green-0)",
-              paddingBlock: "var(--size-2)",
-              borderRadius: "var(--radius-2)",
-              paddingInline: "var(--size-3)",
-              color: "var(--green-9)",
-            }}
-          >
-            {displayValue}
-          </p>
-        )}
 
-      {viewOnly === false &&
-        levaConfig !== null &&
+      {levaConfig !== null &&
         action.value !== undefined &&
         ((action.type === "action" && action.operator === Operator.Set) ||
           action.type === "condition") && (

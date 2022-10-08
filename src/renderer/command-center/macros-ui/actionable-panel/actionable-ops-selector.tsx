@@ -24,7 +24,6 @@ const getValidOps = (
 
 export const ActionableOpsSelector = ({
   action,
-  viewOnly,
   macro,
 }: ActionablePanelProps) => {
   const { updateActionable } = useMacroStore();
@@ -50,7 +49,6 @@ export const ActionableOpsSelector = ({
         }
       }}
       value={action.type === "action" ? action.operator : action.comparator}
-      disabled={viewOnly}
     >
       {validInstructions.map((key) => (
         <option key={key} value={key}>

@@ -7,7 +7,7 @@ import { useMacroStore } from "../use-macros-store";
 
 export const ActionableTargetPlugin = (props: ActionablePanelProps) => {
   const { updateActionable } = useMacroStore();
-  const { action, pluginsMetadata, viewOnly, macro } = props;
+  const { action, pluginsMetadata, macro } = props;
 
   const pluginName = action.path[1];
   const fieldKey = action.path.slice(2)[0];
@@ -54,7 +54,6 @@ export const ActionableTargetPlugin = (props: ActionablePanelProps) => {
               }
             }}
             value={pluginName}
-            disabled={viewOnly}
           >
             {pluginsMetadata.map((pluginMetadata) => (
               <option key={pluginMetadata.name} value={pluginMetadata.name}>
@@ -84,7 +83,6 @@ export const ActionableTargetPlugin = (props: ActionablePanelProps) => {
               }
             }}
             value={fieldKey}
-            disabled={viewOnly}
           >
             {plugin.config &&
               Object.keys(plugin.config)
@@ -102,24 +100,8 @@ export const ActionableTargetPlugin = (props: ActionablePanelProps) => {
         <ErrorBoundary message="Error with effects">
           <ActionableOpsSelector {...props} />
         </ErrorBoundary>
-
-        {viewOnly &&
-          (action.type === "condition" || action.operator === Operator.Set) && (
-            <p
-              style={{
-                background: "var(--green-0)",
-                paddingBlock: "var(--size-2)",
-                borderRadius: "var(--radius-2)",
-                paddingInline: "var(--size-3)",
-                color: "var(--green-9)",
-              }}
-            >
-              {action.value}
-            </p>
-          )}
       </div>
       {(action.type === "condition" || action.operator === Operator.Set) &&
-        !viewOnly &&
         action.value !== undefined && (
           <div style={{ margin: "var(--size-2)" }}>
             <ErrorBoundary message="Error with modifier">

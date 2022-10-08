@@ -15,16 +15,6 @@ export const MacrosPanel = () => {
     macros[0]?.id ?? null
   );
 
-  const [activeAction, _setActiveAction] = useState<string | null>(null);
-
-  const setActiveAction = (id: string) => {
-    if (activeAction === id) {
-      _setActiveAction(null);
-    } else {
-      _setActiveAction(id);
-    }
-  };
-
   return (
     <div>
       <ErrorBoundary message="There was an error with Macros.">
@@ -47,8 +37,6 @@ export const MacrosPanel = () => {
                 key={selectedMacroId}
                 macro={macros.find((m) => m.id === selectedMacroId)!}
                 pluginsMetadata={settings.enabledPlugins}
-                activeAction={activeAction}
-                setActiveAction={setActiveAction}
               />
             )}
           </main>
