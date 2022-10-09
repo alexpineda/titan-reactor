@@ -12,7 +12,7 @@ import { ViewInputComposer } from "./view-composer";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
-import { createUnitSelectionBox } from "@input/create-unit-selection";
+import { createUnitSelectionBox, UnitSelectionStatus } from "@input/create-unit-selection";
 import { ImageHD } from "@core/image-hd";
 import { Image3D } from "@core/image-3d";
 import { canSelectUnit } from "@utils/unit-utils";
@@ -191,7 +191,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
             unitSelectionBox.enabled = _intersects.length === 0 && !views.inputs!.mouse.interrupted ? world.settings!.getState().input.unitSelection : false;
 
-            cursorMaterial.update(delta, views.inputs!.mouse.move, unitSelectionBox.status);
+            cursorMaterial.update(delta, views.inputs!.mouse.move, _insideMinimap ? UnitSelectionStatus.None : unitSelectionBox.status);
 
             unitSelectionBox.update();
 

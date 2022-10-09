@@ -67,6 +67,7 @@
         "@codemirror/lang-javascript": "^6.1.0",
         "@npmcli/package-json": "^2.0.0",
         "@types/lodash.set": "^4.3.7",
+        "@types/rbush": "^3.0.0",
         "@typescript/vfs": "^1.4.0",
         "bl": "^5.0.0",
         "bw-casclib": "^2.0.1",

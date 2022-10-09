@@ -292,7 +292,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     if (raycaster.camera === null) {
 
-      console.error('THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.');
+      console.error("THREE.Sprite: \"Raycaster.camera\" needs to be set in order to raycast against sprites.");
 
     }
 

@@ -18,4 +18,4 @@ export interface ImageBase extends Object3D {
   // for iscript sprite
   readonly unitTileScale: UnitTileScale;
 
-};
+}

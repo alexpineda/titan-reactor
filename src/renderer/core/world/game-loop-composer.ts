@@ -18,8 +18,8 @@ export const createGameLoopComposer = (world: Borrowed<World>) => {
 
     };
 
-    world.events!.on('dispose', () => {
-        log.debug('dispose game loop');
+    world.events!.on("dispose", () => {
+        log.debug("dispose game loop");
         renderComposer.getWebGLRenderer().setAnimationLoop(null);
     })
 

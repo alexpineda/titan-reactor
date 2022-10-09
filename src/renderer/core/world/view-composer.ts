@@ -33,7 +33,7 @@ const empty: GameViewPort[] = [];
 
 export type ViewInputComposer = ReturnType<typeof createViewInputComposer>;
 
-export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }: Pick<SurfaceComposer, "gameSurface">) => {
+export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }: Borrowed<SurfaceComposer>) => {
 
     let activating = false;
 
@@ -183,20 +183,20 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             }
 
             sceneController = null;
-            gameSurface.togglePointerLock(false);
+            gameSurface!.togglePointerLock(false);
 
             if (newController.viewports.length === 0) {
                 newController.viewports = [
-                    new GameViewPort(gameSurface, true),
-                    new GameViewPort(gameSurface, false),
+                    new GameViewPort(gameSurface!, true),
+                    new GameViewPort(gameSurface!, false),
                 ]
             }
 
             for (const viewport of newController.viewports) {
                 viewport.reset();
-                viewport.width = gameSurface.bufferWidth;
-                viewport.height = gameSurface.bufferHeight;
-                viewport.aspect = gameSurface.aspect;
+                viewport.width = gameSurface!.bufferWidth;
+                viewport.height = gameSurface!.bufferHeight;
+                viewport.aspect = gameSurface!.aspect;
             }
 
             await newController.onEnterScene(prevData);

@@ -15,7 +15,8 @@ const typeIdSort = (a: Unit, b: Unit) => {
 const _hasAnyUnit = (unit: Unit) => !unit.extras.dat.isBuilding;
 const _selectRayCaster = new Raycaster();
 let _unit: Unit | null;
-let _mouseV = new Vector2();
+
+const _mouseV = new Vector2();
 
 export enum UnitSelectionStatus {
     None,
@@ -32,26 +33,18 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
     let _status = UnitSelectionStatus.None;
     let _selectBoxStarted = false;
 
+    const _lastPosition = new Vector2();
+
     const _selectDown = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
         if (mouse.move.z !== 0) return;
         _selectActivated = true;
         _selectBoxStarted = false;
-        _status = UnitSelectionStatus.None;
 
         selectionBox.startPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
         world.events!.emit("unit-selection-start");
 
     };
-
-    // const hoverUnit = throttle((event: PointerEvent) => {
-    //     const unit = getUnitFromMouseIntersect(_mouse.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1));
-    //     if (unit) {
-    //         mouseCursor.hover();
-    //     } else {
-    //         mouseCursor.pointer();
-    //     }
-    // }, 100);
 
     const largerThanMinDrag = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
         return (Math.abs(mouse.move.x - selectionBox.startPoint.x) > MIN_DRAG_SIZE &&
@@ -81,15 +74,23 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
             }
 
         } else {
-            // hoverUnit(event)
+            const mouse = _lastPosition;
+            selectionBox.startPoint.set(mouse.x - 0.1, mouse.y - 0.1, 0.5);
+            selectionBox.endPoint.set(mouse.x + 0.1, mouse.y + 0.1, 0.5);
+
+            const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.x, mouse.y), selectionBox.scene);
+
+            if (unit) {
+                _status = UnitSelectionStatus.Hovering;
+            }
         }
 
     }
 
-    const getUnitFromMouseIntersect = (clipV: Vector2) => {
+    const getUnitFromMouseIntersect = (clipV: Vector2, obj: Object3D) => {
         _selectRayCaster.setFromCamera(clipV, selectionBox.camera);
         // const intersects = _selectRayCaster.intersectObjects(spritesGroup.children, true);
-        const intersects = _selectRayCaster.intersectObjects(selectionBox.scene.children, true);
+        const intersects = _selectRayCaster.intersectObject(obj, true);
         if (intersects.length) {
             let closestUnit: Unit | undefined;
             let closestRenderOrder = -1;
@@ -123,7 +124,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
         if (!_selectBoxStarted) {
 
-            const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.move.x, mouse.move.y));
+            const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.move.x, mouse.move.y), selectionBox.scene);
 
             if (unit) {
                 draft.push(unit);
@@ -202,13 +203,19 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
             if (!mouse || !_enabled) return;
 
-            if (mouse!.clicked) {
+
+            if (mouse.clicked) {
                 _selectDown(mouse);
             } else if (mouse!.released) {
                 _selectUp(mouse);
             } else {
+                if (!_selectActivated) {
+                    _status = UnitSelectionStatus.None;
+                }
                 _selectMove(mouse);
             }
+
+            _lastPosition.set(mouse.move.x, mouse.move.y);
         }
     }
 

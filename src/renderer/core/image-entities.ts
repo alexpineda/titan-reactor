@@ -1,4 +1,4 @@
-import { ImageBase } from "@core/image";
+import { ImageBase } from "@core/image-base";
 import { Image3D } from "@core/image-3d";
 import { ImageHD } from "@core/image-hd";
 // import { ImageHDInstanced } from "@core/image-hd-instanced";

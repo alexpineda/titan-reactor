@@ -23,7 +23,7 @@ import { renderComposer } from "@render/render-composer";
 import { createViewInputComposer } from "./view-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World } from "./world";
-import { borrow, expose, mix } from "@utils/object-utils";
+import { borrow, mix } from "@utils/object-utils";
 import { mixer } from "@core/global";
 import processStore from "@stores/process-store";
 import { WorldEvents } from "./world-events";
@@ -63,7 +63,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
     const surfaceComposer = createSurfaceComposer(_world);
     const sceneComposer = await createSceneComposer(_world, assets);
     const commandsComposer = createCommandsComposer(_world, commands);
-    const viewInputComposer = createViewInputComposer(_world, expose(surfaceComposer, ["gameSurface"]));
+    const viewInputComposer = createViewInputComposer(_world, borrow(surfaceComposer));
     const sandboxApi = createSandboxApi(_world, sceneComposer.pxToWorldInverse);
     const openBwComposer = createOpenBWComposer(_world, borrow(sceneComposer), borrow(viewInputComposer));
 

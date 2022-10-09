@@ -60,7 +60,7 @@ export class CursorMaterial extends ShaderMaterial {
     }
 
     update(delta: number, mousePosition: { x: number, y: number }, selectionStatus: UnitSelectionStatus) {
-        this.uniforms.uTime.value += delta;
+        this.uniforms.uTime.value += delta / 2;
 
         this.uniforms.uCursorPosition.value.set(mousePosition.x, mousePosition.y);
 

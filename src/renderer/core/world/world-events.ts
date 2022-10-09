@@ -17,6 +17,7 @@ export const worldEventsList: (keyof WorldEvents)[] = [
     "minimap-enter",
     "minimap-leave",
     "image-destroyed",
+    "image-updated",
     "image-created",
     "units-cleared",
     "settings-changed",
@@ -52,6 +53,7 @@ export interface WorldEvents {
     "minimap-leave": void;
 
     "image-destroyed": ImageBase;
+    "image-updated": ImageBase;
     "image-created": ImageBase;
     "units-cleared": void;
 

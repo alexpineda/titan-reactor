@@ -246,6 +246,9 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
                 image.updateMatrix();
                 image.updateMatrixWorld();
             }
+
+            world.events!.emit("image-updated", image);
+
             imageCounter++;
         }
 
