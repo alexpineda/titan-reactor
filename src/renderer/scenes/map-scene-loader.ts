@@ -42,6 +42,8 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
   updateWindowTitle(map.title);
 
   useReplayAndMapStore.setState({ map, mapImage: await createMapImage(map) });
+  settingsStore().set({ session: { type: "map", "sandbox": false } });
+
   janitor.mop(() => useReplayAndMapStore.getState().reset(), "reset replayMapStore");
 
   process.increment();

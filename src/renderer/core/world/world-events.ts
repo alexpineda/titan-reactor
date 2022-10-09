@@ -23,14 +23,16 @@ export const worldEventsList: (keyof WorldEvents)[] = [
     "settings-changed",
     "plugin-configuration-changed",
     "resize",
-    "unit-selection-start",
-    "unit-selection-move",
-    "unit-selection-end",
-    "unit-selection-enabled",
+    "box-selection-start",
+    "box-selection-move",
+    "box-selection-end",
+    "box-selection-enabled",
 
     "scene-controller-exit",
     "scene-controller-enter",
 
+    "world-start",
+    "world-end",
     "dispose",
 
     "mouse-click",
@@ -61,13 +63,16 @@ export interface WorldEvents {
     "plugin-configuration-changed": { settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> };
     "resize": GameSurface;
 
-    "unit-selection-start": void;
-    "unit-selection-move": void;
-    "unit-selection-end": Unit[];
-    "unit-selection-enabled": boolean;
+    "box-selection-start": void;
+    "box-selection-move": void;
+    "box-selection-end": Unit[];
+    "box-selection-enabled": boolean;
 
     "scene-controller-exit": string;
     "scene-controller-enter": string;
+
+    "world-start": void;
+    "world-end": void;
 
     "dispose": void;
 

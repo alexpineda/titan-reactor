@@ -49,13 +49,13 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"), "visualBox");
 
-    world.events!.on("unit-selection-start", () => visualBox.start(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
+    world.events!.on("box-selection-start", () => visualBox.start(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
 
-    world.events!.on("unit-selection-move", () => visualBox.end(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
+    world.events!.on("box-selection-move", () => visualBox.end(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
 
-    world.events!.on("unit-selection-end", () => visualBox.clear());
+    world.events!.on("box-selection-end", () => visualBox.clear());
 
-    world.events!.on("unit-selection-enabled", (value) => visualBox.enabled = value);
+    world.events!.on("box-selection-enabled", (value) => visualBox.enabled = value);
 
     const cursorMaterial = new CursorMaterial(assets);
     const cursorGraphics = new Mesh(new PlaneGeometry(1, 1), cursorMaterial);

@@ -42,7 +42,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
         selectionBox.startPoint.set(mouse.move.x, mouse.move.y, 0.5);
 
-        world.events!.emit("unit-selection-start");
+        world.events!.emit("box-selection-start");
 
     };
 
@@ -67,7 +67,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
             } else {
 
-                world.events!.emit("unit-selection-move");
+                world.events!.emit("box-selection-move");
 
                 _status = UnitSelectionStatus.Dragging;
 
@@ -129,7 +129,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
             if (unit) {
                 draft.push(unit);
             } else {
-                world.events!.emit("unit-selection-end", []);
+                world.events!.emit("box-selection-end", []);
                 return;
             }
 
@@ -174,7 +174,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
         draft.sort(typeIdSort).splice(12);
 
-        world.events!.emit("unit-selection-end", draft);
+        world.events!.emit("box-selection-end", draft);
 
     }
 
@@ -187,7 +187,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
         },
         set enabled(value: boolean) {
             if (value !== _enabled) {
-                world.events!.emit("unit-selection-enabled", value);
+                world.events!.emit("box-selection-enabled", value);
             }
             _enabled = value;
             _selectActivated = value && _selectActivated;

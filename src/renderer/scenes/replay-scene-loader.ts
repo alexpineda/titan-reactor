@@ -100,6 +100,8 @@ export const replaySceneLoader = async (filepath: string): Promise<SceneState> =
   log.info(`@load-replay/game-type: ${GameTypes[replay.header.gameType]}`);
 
   useReplayAndMapStore.setState({ replay, map, mapImage: await createMapImage(map) });
+  settingsStore().set({ session: { type: "replay", "sandbox": false } });
+
   janitor.mop(() => useReplayAndMapStore.getState().reset(), "reset replay and map store");
 
   // wait for initial assets to load

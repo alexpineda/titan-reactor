@@ -177,6 +177,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
             if (reloadPlugins) {
 
+                events.emit("world-end");
                 unsetSceneController();
 
             }
@@ -191,6 +192,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
 
             events.emit("resize", surfaceComposer.gameSurface);
             events.emit("settings-changed", { settings: settings.getState(), rhs: settings.getState() });
+            events.emit("world-start");
 
             gameLoopComposer.start();
 
@@ -201,6 +203,7 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         sceneComposer,
 
         dispose: () => {
+            events.emit("world-end");
             events.emit("dispose");
             janitor.dispose();
             surfaceComposer.gameSurface.hide();

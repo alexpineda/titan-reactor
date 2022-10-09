@@ -72,7 +72,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
     const followedUnits = new IterableSet<Unit>((units) => world.events!.emit("followed-units-changed", units));
     const selectedUnits = new IterableSet<Unit>((units) => world.events!.emit("selected-units-changed", units));
 
-    world.events!.on("unit-selection-end", units => {
+    world.events!.on("box-selection-end", units => {
         selectedUnits.set(units);
     })
 
