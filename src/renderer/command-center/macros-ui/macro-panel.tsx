@@ -143,6 +143,17 @@ export const MacroPanel = ({
           <label>
             <input
               type="checkbox"
+              checked={macro.enabled}
+              onChange={(e) =>
+                updateMacro({ ...macro, enabled: e.target.checked })
+              }
+            />
+            Enabled On Default
+          </label>
+
+          <label>
+            <input
+              type="checkbox"
               checked={activePreview}
               onChange={(e) => setActivePreview(e.target.checked)}
             />{" "}

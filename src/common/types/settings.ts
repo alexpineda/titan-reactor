@@ -89,6 +89,10 @@ export type SettingsV5 = {
 export type SettingsV6 = {
     version: 6;
     language: string;
+    session: {
+        type: "replay" | "live" | "map";
+        sandbox: boolean;
+    },
     directories: {
         starcraft: string;
         maps: string;
@@ -121,7 +125,6 @@ export type SettingsV6 = {
     },
     input: {
         sceneController: string;
-        sandBoxMode: boolean;
         dampingFactor: number;
         movementSpeed: number;
         rotateSpeed: number;
@@ -188,4 +191,4 @@ export type SettingsMeta = {
     isCascStorage: boolean;
 };
 
-export type SessionSettingsData = Pick<Settings, "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d">;
+export type SessionSettingsData = Pick<Settings, "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d" | "session">;

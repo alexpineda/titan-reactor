@@ -36,6 +36,7 @@ export type SessionVariables = {
 };
 
 const partialSettings = (data: Settings) => ({
+    session: data.session,
     audio: data.audio,
     input: data.input,
     minimap: data.minimap,

@@ -19,6 +19,7 @@ jest.mock("three-janitor");
 const initialState = {
     enabledPlugins: [],
     data: {
+        session: {},
         audio: {
             music: 0
         },

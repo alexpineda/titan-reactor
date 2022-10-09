@@ -16,6 +16,10 @@ export const DEFAULT_PLUGIN_PACKAGES: string[] = [
 export const defaultSettingsV6: SettingsV6 = {
   version: 6,
   language: "en-US",
+  session: {
+    type: "replay",
+    sandbox: false,
+  },
   directories: {
     starcraft: "",
     maps: "",
@@ -43,7 +47,6 @@ export const defaultSettingsV6: SettingsV6 = {
   },
   input: {
     sceneController: "@titan-reactor-plugins/camera-standard",
-    sandBoxMode: false,
     dampingFactor: 0.1,
     cameraShakeStrength: 1,
     movementSpeed: 1.15,

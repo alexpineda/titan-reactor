@@ -24,11 +24,11 @@ const createOpenBW = async () => {
 
   const openBW = Object.create(wasm) as OpenBW;
 
-  const tryCatch = (cb: Function) => {
+  const tryCatch = (cb: () => any) => {
     try {
       return cb();
     } catch (e) {
-      if (typeof e === 'number') {
+      if (typeof e === "number") {
         throw new Error(wasm.getExceptionMessage(e));
       } else {
         throw e;

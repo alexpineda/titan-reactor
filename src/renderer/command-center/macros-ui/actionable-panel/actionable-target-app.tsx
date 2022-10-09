@@ -47,6 +47,7 @@ export const ActionableTargetApp = (props: ActionablePanelProps) => {
           }
         }}
         value={action.path.slice(1).join(".")}
+        onlyConditional={action.type === "condition"}
       />
       <ErrorBoundary message="Error with effects">
         <ActionableOpsSelector {...props} />

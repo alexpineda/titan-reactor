@@ -21,12 +21,21 @@ export const mapSingleConfigToLeva = (fieldConfig: any, onChange: (value: any, k
     });
 }
 
-export const attachOnChangeAndGroupByFolder = ({
-    config,
-    onChange,
-    overwriteOnChange = true,
-    groupByFolder = true
-}: { config: any, onChange: (value: any, key?: string) => void, overwriteOnChange?: boolean, groupByFolder?: boolean }) => {
+type AttachParams = { config: any, onChange: (value: any, key?: string) => void, overwriteOnChange?: boolean, groupByFolder?: boolean, includeHidden?: boolean };
+const defaultOptions: Partial<AttachParams> = {
+    overwriteOnChange: true,
+    groupByFolder: true,
+    includeHidden: false
+}
+
+export const attachOnChangeAndGroupByFolder = (userOptions: AttachParams) => {
+    const {
+        config,
+        onChange,
+        overwriteOnChange,
+        groupByFolder,
+        includeHidden
+    } = { ...defaultOptions, ...userOptions };
     const values = [];
     for (const k in config || {}) {
         if (
@@ -34,6 +43,9 @@ export const attachOnChangeAndGroupByFolder = ({
             typeof config[k] === "object" &&
             "value" in config[k]
         ) {
+            if (config[k].hidden && !includeHidden) {
+                continue;
+            }
             const obj = mapSingleConfigToLeva(config[k], onChange, k, overwriteOnChange);
 
             obj.folder = config[k].folder || "Configuration";

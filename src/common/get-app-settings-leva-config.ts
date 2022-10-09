@@ -46,6 +46,7 @@ export const getSessionSettingsPropertyInLevaFormat = (
 };
 
 export const getSessionSettingsInLevaFormat = (settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
+    ...getGlobalConfig(settings.session),
     ...getAudioConfig(settings.audio),
     ...getMinimapConfig(settings.minimap),
     ...getInputConfig(settings.input, plugins.filter((p) => p.isSceneController)),
@@ -53,6 +54,28 @@ export const getSessionSettingsInLevaFormat = (settings: SessionSettingsData, pl
     ...getPostProcessing3DConfig(settings.postprocessing3d, maxAnisotropy, maxAntiAlias),
 });
 
+type GlobalConfig = {
+    [key in `session.${string}`]: any;
+}
+
+const getGlobalConfig = (config: SettingsMeta["data"]["session"]): GlobalConfig => ({
+    "session.type": {
+        label: "SessionType",
+        value: config.type,
+        options: {
+            "Replay": "replay",
+            "Map": "map",
+            "Live": "live",
+        },
+        hidden: true,
+        conditionOnly: true
+    },
+    "session.sandbox": {
+        label: "Sandbox Game Mode",
+        value: config.sandbox,
+        hidden: true,
+    }
+});
 
 type GraphicsConfig = {
     [key in `graphics.${string}`]: any;
@@ -205,10 +228,6 @@ type InputConfig = {
 }
 
 const getInputConfig = (input: SettingsMeta["data"]["input"], sceneControllers: PluginMetaData[]): InputConfig => ({
-    "input.sandBoxMode": {
-        label: "Sandbox Mode",
-        value: input.sandBoxMode,
-    },
     "input.sceneController": {
         label: "Scene Controller (Default)",
         value: input.sceneController,

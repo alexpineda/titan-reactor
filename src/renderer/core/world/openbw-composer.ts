@@ -37,8 +37,8 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
     };
 
     world.events!.on("settings-changed", ({ rhs }) => {
-        if (rhs.input?.sandBoxMode !== undefined) {
-            if (world.openBW!.setSandboxMode(rhs.input.sandBoxMode) === undefined) {
+        if (rhs?.session?.sandbox !== undefined) {
+            if (world.openBW!.setSandboxMode(rhs?.session?.sandbox) === undefined) {
                 return false;
             }
         }

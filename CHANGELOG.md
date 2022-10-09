@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+- Exposed default enabled/disabled switch for macros
+- Game & sandbox modes for conditional testing
+
 
 ## [0.6.5]
 

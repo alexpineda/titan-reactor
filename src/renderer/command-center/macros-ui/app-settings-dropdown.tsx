@@ -7,11 +7,13 @@ interface Props {
   onChange: (evt: React.ChangeEvent<HTMLSelectElement>) => void;
   value: string;
   disabled?: boolean;
+  onlyConditional?: boolean;
 }
 export const SessionSettingsDropDown = ({
   onChange,
   value,
   disabled,
+  onlyConditional,
 }: Props) => {
   const settings = settingsStore();
   const config = getSessionSettingsInLevaFormat(
@@ -23,6 +25,9 @@ export const SessionSettingsDropDown = ({
     <select onChange={onChange} value={value} disabled={disabled}>
       {Object.keys(config).map((key) => {
         const field = config[key as keyof typeof config];
+        if (field.conditionOnly && !onlyConditional) {
+          return null;
+        }
         return (
           <option key={key} value={key}>
             {capitalizeFirstLetters(key.split(".")[0])} &gt;{" "}

@@ -9,6 +9,7 @@ export const v5tov6 = (oldSettings: PreviousSettings): PreviousSettings => {
     const settings: Settings = {
         ...oldSettings,
         version: 6,
+        session: defaultSettingsV6.session,
         input: defaultSettingsV6.input,
         minimap: defaultSettingsV6.minimap,
         postprocessing: defaultSettingsV6.postprocessing,
