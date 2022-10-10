@@ -13,6 +13,7 @@ export type GameStore = {
 export const useGameStore = create<GameStore>((set) => ({
   assets: null,
   dimensions: {
+    matrix: [],
     minimapWidth: 0,
     minimapHeight: 0
   },

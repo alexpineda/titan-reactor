@@ -1,8 +1,8 @@
 import { CursorMaterial } from "@image/effects/cursor-material";
-import { MinimapMaterial } from "@render/minimap-material";
+import { BasicOverlayMaterial, MinimapMaterial } from "@render/minimap-material";
 import { unitTypes } from "common/enums";
 import { Assets } from "@image/assets";
-import { Intersection, Mesh, Object3D, PlaneGeometry, Raycaster, Scene, Vector2 } from "three";
+import { Intersection, Matrix3, Matrix4, Mesh, Object3D, PlaneGeometry, Raycaster, Vector2 } from "three";
 import { SceneComposer } from "./scene-composer";
 import { World } from "./world";
 import { WorldEvents } from "./world-events";
@@ -21,6 +21,7 @@ import { VisualSelectionBox } from "@input/mouse-selection-box";
 import { Janitor } from "three-janitor";
 import { Borrowed } from "@utils/object-utils";
 import { SurfaceComposer } from "./surface-composer";
+import { PostProcessingComposer } from "./postprocessing-composer";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
@@ -38,10 +39,9 @@ const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D
 
 };
 
-export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: Borrowed<ViewInputComposer>, assets: Assets) => {
+export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: Borrowed<ViewInputComposer>, post: PostProcessingComposer, assets: Assets) => {
 
     const janitor = new Janitor("OverlayComposer");
-    const overlayGroup = new Scene();
 
     const unitSelectionBox = createUnitSelectionBox(world, new WeakRef(views.inputs!.mouse), scene, _getSelectionUnit(images));
     const selectionDisplayComposer = createSelectionDisplayComposer(assets);
@@ -91,7 +91,6 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     }
 
     let minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
-    minimapMaterial.mode = world.settings!.getState().minimap.mode;
 
     const minimap = new Mesh(new PlaneGeometry(1, 1), minimapMaterial);
     minimap.frustumCulled = false;
@@ -101,70 +100,86 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     const rayCast = new Raycaster();
     const [mapWidth, mapHeight] = world.map!.size;
 
-    // const minimapConsoleMaterial = new BasicOverlayMaterial(assets.minimapConsole.square);
-    // const minimapConsole = new Mesh(new PlaneBufferGeometry(1, 1), minimapConsoleMaterial);
-    // minimapConsole.material.depthTest = false;
-    // minimapConsole.material.depthWrite = false;
-    // minimapConsole.material.transparent = true;
-    // minimapConsole.visible = false;
+    const minimapConsoleMaterial = new BasicOverlayMaterial(assets.minimapConsole.clock);
+    const minimapConsole = new Mesh(new PlaneGeometry(1, 1), minimapConsoleMaterial);
+    minimapConsole.material.depthTest = false;
+    minimapConsole.material.depthWrite = false;
+    minimapConsole.material.transparent = true;
+    minimapConsole.visible = false;
 
-    // minimapConsole.frustumCulled = false;
-    // minimapConsole.renderOrder = 0;
-    // minimapConsole.matrixAutoUpdate = false;
+    minimapConsole.frustumCulled = false;
+    minimapConsole.renderOrder = 0;
+    minimapConsole.matrixAutoUpdate = false;
 
-    // const minimapClockConsole = new Mesh(new PlaneBufferGeometry(1, 1), new MeshBasicMaterial({ map: assets.minimapConsole.clock }));
 
-    overlayGroup.add(minimap, cursorGraphics);
+    post.overlayScene.add(minimap, cursorGraphics);
 
     const ignoreOnMinimap = [unitTypes.darkSwarm, unitTypes.disruptionWeb];
 
     cursorMaterial.uniforms.uResolution.value.set(surfaces.gameSurface!.bufferWidth, surfaces.gameSurface!.bufferHeight);
 
+    const setDimensions = () => {
+        const rect = surfaces.gameSurface!.getMinimapDimensions!(world.settings!.getState().minimap.scale);
+
+        minimap.updateWorldMatrix(true, true);
+        const m4 = new Matrix4().copy(minimap.matrixWorld);
+
+        m4.multiplyMatrices(post.overlayCamera.matrixWorldInverse, m4);
+        m4.multiplyMatrices(post.overlayCamera.projectionMatrix, m4);
+
+        const s4 = new Matrix4();
+        s4.makeScale(surfaces.gameSurface!.bufferWidth, surfaces.gameSurface!.bufferHeight, 1);
+
+        m4.multiplyMatrices(s4, m4);
+
+        const m3 = new Matrix3().setFromMatrix4(m4);
+
+        gameStore().setDimensions({
+            matrix: m3.toArray(),
+            minimapWidth: rect.minimapWidth,
+            minimapHeight: world.settings!.getState().minimap.enabled ? rect.minimapHeight : 0,
+        });
+    }
+
     world.events!.on("resize", () => {
 
         applySettings({ settings: world.settings!.getState(), rhs: {} });
 
-        const rect = surfaces.gameSurface!.getMinimapDimensions!(world.settings!.getState().minimap.scale);
+        setDimensions();
 
-        // TODO: send transform matrix as well
-        gameStore().setDimensions({
-            minimapWidth: rect.minimapWidth,
-            minimapHeight: world.settings!.getState().minimap.enabled ? rect.minimapHeight : 0,
-        });
+    });
 
-    })
+    setDimensions();
 
-    function applySettings({ settings, rhs }: WorldEvents["settings-changed"]) {
-        if (rhs.minimap?.mode) {
-            minimapMaterial.mode = rhs.minimap.mode;
-        }
 
-        if (settings.minimap.mode === "3d") {
-            minimapMaterial.rotation.set(settings.minimap.rotation[0], settings.minimap.rotation[1], settings.minimap.rotation[2]);
-        } else {
-            minimapMaterial.rotation.set(0, 0, 0);
-        }
+    function applySettings({ settings }: WorldEvents["settings-changed"]) {
 
-        minimapMaterial.scale.set(settings.minimap.scale, settings.minimap.scale, 1);
-        minimapMaterial.scale.divide(surfaces.gameSurface!.screenAspect);
-        minimapMaterial.position.set(settings.minimap.position[0], -settings.minimap.position[1], 0);
+        minimap.rotation.set(settings.minimap.rotation[0], settings.minimap.rotation[1], settings.minimap.rotation[2])
+
+        minimap.scale.set(settings.minimap.scale, settings.minimap.scale, 1);
+        minimap.scale.divide(surfaces.gameSurface!.screenAspect);
+        minimap.position.set(settings.minimap.position[0], -settings.minimap.position[1], 0);
 
         minimapMaterial.uniforms.uOpacity.value = settings.minimap.opacity;
         minimapMaterial.uniforms.uSoftEdges.value = settings.minimap.softEdges ? 1 : 0;
         minimapMaterial.visible = settings.minimap.enabled;
         minimapMaterial.uniformsNeedUpdate = true;
 
-        minimapMaterial.updateMatrix();
-        // ignore the built in material camera for raycaster
-        minimap.matrixWorld.copy(minimapMaterial.localMatrix);
+        minimap.updateMatrix();
 
-        // minimapConsoleMaterial.uniforms.uOpacity.value = settings.minimap.opacity;
-        // minimapConsoleMaterial.worldMatrix.copy(minimapMaterial.worldMatrix);
-        // minimapConsoleMaterial.uniformsNeedUpdate = true;
+        minimapConsole.rotation.copy(minimap.rotation);
+        minimapConsole.scale.copy(minimap.scale).addScalar(0.1);
+        minimapConsole.position.copy(minimap.position);
+        minimapConsole.updateMatrix();
+
+        minimapConsoleMaterial.uniforms.uOpacity.value = settings.minimap.opacity;
+        minimapConsoleMaterial.uniformsNeedUpdate = true;
 
         cursorMaterial.uniforms.uResolution.value.set(surfaces.gameSurface!.bufferWidth, surfaces.gameSurface!.bufferHeight);
         cursorMaterial.uniforms.uCursorSize.value = settingsStore().data.graphics.cursorSize;
         cursorMaterial.uniformsNeedUpdate = true;
+
+        setDimensions();
 
     }
 
@@ -185,7 +200,6 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     world.events!.on("dispose", () => janitor.dispose());
 
     return {
-        overlayGroup,
         unitSelectionBox,
         update(delta: number) {
 
@@ -208,10 +222,9 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
             }
 
-            rayCast.setFromCamera(views.inputs!.mouse.move, minimapMaterial.camera);
+            rayCast.setFromCamera(views.inputs!.mouse.move, post.overlayCamera);
 
             _intersects.length = 0;
-            minimap.matrixWorld.copy(minimapMaterial.localMatrix);
             minimap.raycast(rayCast, _intersects);
 
             if (_insideMinimap && _intersects.length === 0) {

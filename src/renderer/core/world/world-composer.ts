@@ -67,8 +67,8 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
     const sandboxApi = createSandboxApi(_world, sceneComposer.pxToWorldInverse);
     const openBwComposer = createOpenBWComposer(_world, borrow(sceneComposer), borrow(viewInputComposer));
 
-    const overlayComposer = createOverlayComposer(_world, sceneComposer, borrow(surfaceComposer), borrow(viewInputComposer), assets);
-    const postProcessingComposer = createPostProcessingComposer(_world, sceneComposer, viewInputComposer, overlayComposer, assets);
+    const postProcessingComposer = createPostProcessingComposer(_world, sceneComposer, viewInputComposer, assets);
+    const overlayComposer = createOverlayComposer(_world, sceneComposer, borrow(surfaceComposer), borrow(viewInputComposer), postProcessingComposer, assets);
 
     events.on("settings-changed", ({ settings }) => mixer.setVolumes(settings.audio));
 

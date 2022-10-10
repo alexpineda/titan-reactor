@@ -62,7 +62,10 @@ export class PostProcessingBundler {
 
     #outlineEffect?: OutlineEffect;
 
-    constructor(camera: Camera, scene: Scene, overlayScene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
+    readonly overlayScene = new Scene();
+    readonly overlayCamera = new PerspectiveCamera(45, 1, 0.1, 100);
+
+    constructor(camera: Camera, scene: Scene, options: Settings["postprocessing"] | Settings["postprocessing3d"], fogOfWar: FogOfWarEffect) {
 
         this.camera = camera;
         this.scene = scene;
@@ -71,7 +74,10 @@ export class PostProcessingBundler {
         this.#renderPass = new RenderPass(scene, camera);
         this.#renderPass.clear = true;
 
-        this.#overlayPass = new RenderPass(overlayScene, camera);
+        this.overlayCamera.position.set(0, 0, 10);
+        this.overlayCamera.updateProjectionMatrix();
+        this.overlayCamera.updateMatrixWorld();
+        this.#overlayPass = new RenderPass(this.overlayScene, this.overlayCamera);
         this.#overlayPass.clear = false;
         this.#overlayPass.skipShadowMapUpdate = true;
         this.#overlayPass.ignoreBackground = true;
@@ -236,7 +242,7 @@ export class PostProcessingBundler {
     }
 
     dispose() {
-        log.debug('disposing passes');
+        log.debug("disposing passes");
         this.#passes.forEach((pass) => pass.dispose());
     }
 

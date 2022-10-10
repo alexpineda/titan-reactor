@@ -1,6 +1,5 @@
 import GameSurface from "@render/game-surface";
 import { renderComposer } from "@render/render-composer";
-import gameStore from "@stores/game-store";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { Borrowed } from "@utils/object-utils";
@@ -19,8 +18,6 @@ export const createSurfaceComposer = (world: Borrowed<World>) => {
     janitor.mop(document.body.appendChild(gameSurface.canvas), "appendChild");
 
     renderComposer.targetSurface = gameSurface;
-
-    gameStore().setDimensions(gameSurface.getMinimapDimensions(settingsStore().data.minimap.scale));
 
     const _sceneResizeHandler = () => {
 

@@ -116,7 +116,7 @@ export class GameSurface extends Surface {
 
   }
 
-  getMinimapDimensions(minimapScale: number): MinimapDimensions {
+  getMinimapDimensions(minimapScale: number): Pick<MinimapDimensions, "minimapWidth" | "minimapHeight"> {
 
     const max = Math.max(this.#mapWidth, this.#mapHeight);
     const wAspect = this.#mapWidth / max;

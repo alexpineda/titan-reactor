@@ -3,7 +3,7 @@ import { BufferAttribute, BufferGeometry, Mesh, MeshBasicMaterial, StaticDrawUsa
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import gameStore from "@stores/game-store";
 
-export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
+export class SelectionCircleHD extends Mesh<BufferGeometry, MeshBasicMaterial> {
   #spriteDat?: SpriteDAT;
 
   constructor() {
@@ -49,7 +49,7 @@ export class SelectionCircle extends Mesh<BufferGeometry, MeshBasicMaterial> {
 
     this.material.depthTest = false;
     this.material.transparent = true;
-    this.name = "SelectionCircle";
+    this.name = "SelectionCircleHD";
   }
 
   update(spriteDat: SpriteDAT) {

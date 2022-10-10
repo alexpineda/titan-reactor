@@ -430,6 +430,7 @@ const updateDimensionsCss = (dimensions: MinimapDimensions) => {
     `:root {
         --minimap-width: ${dimensions.minimapWidth}px;
         --minimap-height: ${dimensions.minimapHeight}px;
+        --minimap-matrix: matrix3d(${dimensions.matrix.join(",")});
       }`
   );
 };

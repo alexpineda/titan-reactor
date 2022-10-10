@@ -15,21 +15,21 @@ import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
-import { OverlayComposer } from "./overlay-composer";
 import { Borrowed } from "@utils/object-utils";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
 const ignoreCastShadow = [347, 349, 351];
 
-export const createPostProcessingComposer = (world: Borrowed<World>, { scene, images, sprites, terrain }: SceneComposer, viewportsComposer: ViewInputComposer, overlayComposer: OverlayComposer, assets: Assets) => {
+export type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
+
+export const createPostProcessingComposer = (world: Borrowed<World>, { scene, images, sprites, terrain }: SceneComposer, viewportsComposer: ViewInputComposer, assets: Assets) => {
     const janitor = new Janitor("PostProcessingComposer");
 
     const postProcessingBundle = janitor.mop(
         new PostProcessingBundler(
             new PerspectiveCamera,
             scene,
-            overlayComposer.overlayGroup,
             settingsStore().data.postprocessing,
             world.fogOfWarEffect!),
         "postProcessingBundle"
@@ -127,6 +127,13 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
     return Object.freeze({
 
         changeRenderMode,
+        get overlayScene() {
+            return postProcessingBundle.overlayScene;
+        },
+
+        get overlayCamera() {
+            return postProcessingBundle.overlayCamera;
+        },
 
         updatePostProcessingOptions(options: Settings["postprocessing"] | Settings["postprocessing3d"]) {
 

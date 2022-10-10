@@ -13,7 +13,6 @@ import {
 import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
 import gameStore from "@stores/game-store";
-import loadSelectionCircles from "./load-selection-circles";
 import { generateAllIcons } from "./generate-icons/generate-icons";
 import { log } from "@ipc/log"
 import { loadEnvironmentMap } from "./environment/env-map";
@@ -63,11 +62,20 @@ export const createAssets = async (directories: Settings["directories"]) => {
     const sdAnim = parseAnim(sdAnimBuf);
 
     log.debug("@load-assets/selection-circles");
-    const selectionCirclesHD = await loadSelectionCircles(UnitTileScale.HD);
+    const selectionCirclesHD: AnimAtlas[] = [];
+    for (let i = 561; i < 571; i++) {
+        const selCircleGRP = await loadAnimAtlas(
+            await readCascFile(`anim/main_${i}.anim`),
+            i,
+            UnitTileScale.HD,
+        )
+
+        selectionCirclesHD.push(selCircleGRP);
+    }
 
     const minimapConsole = {
-        clock: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareRight.DDS")),
-        square: await createDDSTexture(await readCascFile("game/observer/UIObserverSquareFull.DDS")),
+        clock: createDDSTexture(await readCascFile("game/observer/UIObserverSquareRight.DDS")),
+        square: createDDSTexture(await readCascFile("game/observer/UIObserverSquareFull.DDS")),
     }
 
     log.debug("@load-assets/envmap");
