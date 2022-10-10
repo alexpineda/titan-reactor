@@ -151,7 +151,7 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
 
                     if (v.needsUpdate) {
                         changeRenderMode(v.renderMode3D);
-                        world.reset!();
+                        // world.reset!();
                         v.needsUpdate = false;
                     }
 

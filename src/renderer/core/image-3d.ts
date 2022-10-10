@@ -23,6 +23,7 @@ export class Image3D extends Object3D implements ImageBase {
   atlas: GltfAtlas;
   mixer?: AnimationMixer;
   model: GltfAtlas["model"];
+  mesh!: Mesh;
 
   boundingBox = new Box3()
   boundingSphere = new Sphere()
@@ -52,6 +53,7 @@ export class Image3D extends Object3D implements ImageBase {
 
     this.model.traverse((o: Object3D) => {
       if (o instanceof Mesh) {
+        this.mesh = o;
         o.material = this.material;
         const geometry = (o.geometry as BufferGeometry);
 
@@ -77,7 +79,7 @@ export class Image3D extends Object3D implements ImageBase {
 
         //TODO: why do skinned meshes not update unless this is here? wtf
         const b = new Box3Helper(this.boundingBox, new Color("blue"));
-        b.visible = false;
+        // b.visible = false;
         this.add(b);
 
       }

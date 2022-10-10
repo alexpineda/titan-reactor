@@ -12,11 +12,7 @@ export class ThingyBufferView
     protected _address = 0;
     protected _sprite?: SpritesBufferView;
 
-    #bwRef: WeakRef<OpenBW>;
-
-    protected get _bw() {
-        return this.#bwRef.deref()!;
-    }
+    _bw: OpenBW;
 
     get address() {
         return this._address;
@@ -28,8 +24,7 @@ export class ThingyBufferView
     }
 
     constructor(bw: OpenBW) {
-        this.#bwRef = new WeakRef(bw);
-        // this._sprite = new SpritesBufferView(bw);
+        this._bw = bw;
     }
 
     protected get _addr8() {

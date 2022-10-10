@@ -4,7 +4,7 @@ export class ImageBufferView
   implements ImageStruct {
 
   _address = 0;
-  _bw: WeakRef<OpenBW>;
+  #bw: OpenBW;
   #iscriptState: IScriptBufferView;
 
   get(address: number) {
@@ -12,12 +12,8 @@ export class ImageBufferView
     return this;
   }
 
-  get #bw() {
-    return this._bw.deref()!;
-  }
-
   constructor(bw: OpenBW) {
-    this._bw = new WeakRef(bw);
+    this.#bw = bw;
     this.#iscriptState = new IScriptBufferView(bw);
   }
 

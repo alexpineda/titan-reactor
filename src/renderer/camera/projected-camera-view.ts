@@ -35,6 +35,14 @@ export class ProjectedCameraView {
   tl: [number, number] = [0, 0];
   center = new Vector3();
 
+  static mouseOnWorldPlane(mouse: { x: number, y: number }, camera: Camera) {
+    _vector.set(mouse.x, mouse.y, 1).unproject(camera);
+    return _plane.intersectLine(
+      new Line3(camera.position, _vector),
+      _vector
+    )
+  }
+
   update(camera: Camera, target: Vector3) {
 
     for (let i = 0; i < 5; i++) {

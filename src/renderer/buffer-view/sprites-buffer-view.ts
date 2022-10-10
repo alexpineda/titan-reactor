@@ -11,13 +11,9 @@ export class SpritesBufferView
   readonly images: IntrusiveList;
 
   #address = 0;
-  #bwRef: WeakRef<OpenBW>;
+  #bw: OpenBW;
 
   #mainImage: ImageBufferView;
-
-  get #bw() {
-    return this.#bwRef.deref()!;
-  }
 
   get(address: number) {
     this.#address = address;
@@ -26,7 +22,7 @@ export class SpritesBufferView
   }
 
   constructor(bw: OpenBW) {
-    this.#bwRef = new WeakRef(bw);
+    this.#bw = bw;
     this.images = new IntrusiveList(bw.HEAPU32, 0);
     this.#mainImage = new ImageBufferView(bw);
   }

@@ -80,7 +80,8 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
         update(elapsed: number) {
 
             lastElapsed = elapsed;
-            _currentFrame = world.openBW!.tryCatch(world.openBW!.nextFrame);
+            _currentFrame = world.openBW!.nextFrame();
+            // _currentFrame = world.openBW!.tryCatch(world.openBW!.nextFrame);
             pauseTimer.update();
 
 

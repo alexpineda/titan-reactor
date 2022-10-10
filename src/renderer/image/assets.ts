@@ -20,6 +20,7 @@ import { imageTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader } from "three";
 import { settingsStore } from "@stores/settings-store";
 import { modelSetFileRefIds } from "@core/model-effects-configuration";
+import { renderComposer } from "@render/render-composer";
 
 if (module.hot) {
     module.hot.accept("@core/model-effects-configuration")
@@ -71,6 +72,7 @@ export const createAssets = async (directories: Settings["directories"]) => {
         )
 
         selectionCirclesHD.push(selCircleGRP);
+        renderComposer.getWebGLRenderer().initTexture(selCircleGRP.diffuse);
     }
 
     const minimapConsole = {
@@ -148,6 +150,8 @@ export const createAssets = async (directories: Settings["directories"]) => {
 
         const anim = await loadAnimAtlas(await loadAnimBuffer(refImageId, res), imageId, res);
 
+        renderComposer.getWebGLRenderer().initTexture(anim.diffuse);
+
         if (atlases[imageId]?.isHD2 && anim.isHD) {
 
             setHDMipMaps(anim, atlases[imageId]);
@@ -179,6 +183,10 @@ export const createAssets = async (directories: Settings["directories"]) => {
 
             atlases[imageId] = Object.assign({}, atlases[imageId], glb);
             atlases[refImageId] = Object.assign({}, atlases[refImageId], glb);
+
+            if (glb?.mesh?.material.map) {
+                renderComposer.getWebGLRenderer().initTexture(glb.mesh.material.map);
+            }
 
         }
 

@@ -1,11 +1,14 @@
 import { Unit } from "@core/unit";
 import { inverse } from "@utils/function-utils";
 import { canOnlySelectOne } from "@utils/unit-utils";
-import { Camera, Object3D, PerspectiveCamera, Raycaster, Scene, Vector2 } from "three";
+import { Camera, Object3D, PerspectiveCamera, Raycaster, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
 import { World } from "@core/world/world";
 import { Borrowed } from "@utils/object-utils";
 import { ViewInputComposer } from "@core/world/view-composer";
+import BaseScene from "@render/base-scene";
+import { ImageBase } from "@core/image-base";
+import { ProjectedCameraView } from "../camera/projected-camera-view";
 
 const MIN_DRAG_SIZE = 0.01;
 
@@ -25,7 +28,7 @@ export enum UnitSelectionStatus {
 }
 
 //TODO: weaken scene handle
-export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef<ViewInputComposer["inputs"]["mouse"]>, scene: Scene, onGetUnit: (objects: Object3D) => Unit | null) => {
+export const createUnitSelectionBox = (world: Borrowed<World>, mouse: ViewInputComposer["inputs"]["mouse"], scene: BaseScene, simpleIndex: Record<string, ImageBase[]>, onGetUnit: (objects: Object3D) => Unit | null) => {
     const selectionBox = new SelectionBox(new PerspectiveCamera, scene);
 
     let _selectActivated = false;
@@ -33,9 +36,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
     let _status = UnitSelectionStatus.None;
     let _selectBoxStarted = false;
 
-    const _lastPosition = new Vector2();
-
-    const _selectDown = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
+    const _selectDown = () => {
         if (mouse.move.z !== 0) return;
         _selectActivated = true;
         _selectBoxStarted = false;
@@ -46,12 +47,12 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
     };
 
-    const largerThanMinDrag = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
+    const largerThanMinDrag = () => {
         return (Math.abs(mouse.move.x - selectionBox.startPoint.x) > MIN_DRAG_SIZE &&
             Math.abs(mouse.move.y - selectionBox.startPoint.y) > MIN_DRAG_SIZE)
     }
 
-    const _selectMove = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
+    const _selectMove = () => {
 
         if (_selectActivated) {
 
@@ -59,7 +60,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
             if (_selectBoxStarted === false) {
 
-                if (largerThanMinDrag(mouse)) {
+                if (largerThanMinDrag()) {
 
                     _selectBoxStarted = true;
 
@@ -74,23 +75,31 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
             }
 
         } else {
-            const mouse = _lastPosition;
-            selectionBox.startPoint.set(mouse.x - 0.1, mouse.y - 0.1, 0.5);
-            selectionBox.endPoint.set(mouse.x + 0.1, mouse.y + 0.1, 0.5);
 
-            const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.x, mouse.y), selectionBox.scene);
+            const intersection = ProjectedCameraView.mouseOnWorldPlane(mouse.move, selectionBox.camera);/// RaycastHelper.intersectObject(scene.terrain, true, selectionBox.camera, mouse.move);
 
-            if (unit) {
-                _status = UnitSelectionStatus.Hovering;
+            if (intersection) {
+                const images = simpleIndex[`${Math.floor(intersection.x / scene.mapWidth * 4)}${Math.floor(intersection.z / scene.mapHeight * 4)}`];
+
+                if (images && images.length) {
+                    const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.move.x, mouse.move.y), images);
+
+                    selectionBox.startPoint.set(mouse.move.x - 0.1, mouse.move.y - 0.1, 0.5);
+                    selectionBox.endPoint.set(mouse.move.x + 0.1, mouse.move.y + 0.1, 0.5);
+
+                    if (unit) {
+                        _status = UnitSelectionStatus.Hovering;
+                    }
+                }
             }
+
         }
 
     }
 
-    const getUnitFromMouseIntersect = (clipV: Vector2, obj: Object3D) => {
+    const getUnitFromMouseIntersect = (clipV: Vector2, obj: Object3D[]) => {
         _selectRayCaster.setFromCamera(clipV, selectionBox.camera);
-        // const intersects = _selectRayCaster.intersectObjects(spritesGroup.children, true);
-        const intersects = _selectRayCaster.intersectObject(obj, true);
+        const intersects = _selectRayCaster.intersectObjects(obj, true);
         if (intersects.length) {
             let closestUnit: Unit | undefined;
             let closestRenderOrder = -1;
@@ -113,7 +122,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
         }
     };
 
-    const _selectUp = (mouse: ViewInputComposer["inputs"]["mouse"]) => {
+    const _selectUp = () => {
         if (!_selectActivated) return;
 
         _selectActivated = false;
@@ -124,7 +133,7 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
 
         if (!_selectBoxStarted) {
 
-            const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.move.x, mouse.move.y), selectionBox.scene);
+            const unit = getUnitFromMouseIntersect(_mouseV.set(mouse.move.x, mouse.move.y), selectionBox.scene.children);
 
             if (unit) {
                 draft.push(unit);
@@ -199,23 +208,19 @@ export const createUnitSelectionBox = (world: Borrowed<World>, mouseRef: WeakRef
             return _selectActivated;
         },
         update() {
-            const mouse = mouseRef.deref();
-
-            if (!mouse || !_enabled) return;
-
+            if (!_enabled) return;
 
             if (mouse.clicked) {
-                _selectDown(mouse);
+                _selectDown();
             } else if (mouse!.released) {
-                _selectUp(mouse);
+                _selectUp();
             } else {
                 if (!_selectActivated) {
                     _status = UnitSelectionStatus.None;
                 }
-                _selectMove(mouse);
+                _selectMove();
             }
 
-            _lastPosition.set(mouse.move.x, mouse.move.y);
         }
     }
 

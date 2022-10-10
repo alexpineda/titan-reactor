@@ -28,6 +28,7 @@ import { IterableSet } from "@utils/iterable-set";
 import { Borrowed } from "@utils/object-utils";
 import { getJanitorLogLevel } from "@core/global";
 import { getMapTiles } from "@utils/chk-utils";
+import { ImageBase } from "..";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
@@ -97,6 +98,13 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         units.clear();
         sprites.group.clear();
     })
+
+    const simpleIndex: Record<string, ImageBase[]> = {};
+    for (let i = -2; i < 2; i++) {
+        for (let j = -2; j < 2; j++) {
+            simpleIndex[`${i}${j}`] = [];
+        }
+    }
 
     const unitsBufferViewIterator = new UnitsBufferViewIterator(world.openBW!);
 
@@ -213,6 +221,8 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
             if (imageData.index === spriteData.mainImageIndex) {
 
+                simpleIndex[`${Math.floor(sprite.position.x / world.map!.size[0] * 4)}${Math.floor(sprite.position.z / world.map!.size[1] * 4)}`].push(image);
+
                 sprite.userData.mainImage = image;
 
                 if (image instanceof Image3D) {
@@ -246,7 +256,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
                 image.updateMatrixPosition(sprite.position);
             } else if (image instanceof Image3D) {
                 image.updateMatrix();
-                image.updateMatrixWorld();
+                // image.updateMatrixWorld();
             }
 
             world.events!.emit("image-updated", image);
@@ -268,6 +278,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         images,
         sprites,
         units,
+        simpleIndex,
         selectedUnits,
         followedUnits,
         scene,
@@ -311,6 +322,12 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
             for (const imageIndex of deletedImageIterator(world.openBW!)) {
                 images.free(imageIndex);
+            }
+
+            for (let i = -2; i < 2; i++) {
+                for (let j = -2; j < 2; j++) {
+                    simpleIndex[`${i}${j}`] = [];
+                }
             }
 
             for (const sprite of spritesIterator) {

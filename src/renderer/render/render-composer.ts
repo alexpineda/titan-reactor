@@ -47,6 +47,9 @@ const createWebGLRenderer = () => {
 export class TitanRenderComposer {
     #renderer?: WebGLRenderer;
     #surfaceRef = new WeakRef(new Surface());
+    // small optimization
+    #prevBundle: any = null;
+
     onRestoreContext?: () => void;
     composer = new EffectComposer(undefined, {
         frameBufferType: HalfFloatType,
@@ -88,16 +91,19 @@ export class TitanRenderComposer {
         return renderer;
     }
 
-    setBundlePasses(...args: { passes: Pass[] }[]) {
+    setBundlePasses(bundle: { passes: Pass[] }) {
+        if (bundle === this.#prevBundle) {
+            return;
+        }
+        this.#prevBundle = bundle;
+
         this.composer.removeAllPasses();
         let lastPass: any = null;
-        for (const bundle of args) {
-            for (const pass of bundle.passes) {
-                pass.renderToScreen = false;
-                if (pass.enabled) {
-                    lastPass = pass;
-                    this.composer.addPass(pass);
-                }
+        for (const pass of bundle.passes) {
+            pass.renderToScreen = false;
+            if (pass.enabled) {
+                lastPass = pass;
+                this.composer.addPass(pass);
             }
         }
         lastPass.renderToScreen = true;

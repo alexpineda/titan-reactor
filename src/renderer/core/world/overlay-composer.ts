@@ -6,8 +6,6 @@ import { Intersection, Matrix3, Matrix4, Mesh, Object3D, PlaneGeometry, Raycaste
 import { SceneComposer } from "./scene-composer";
 import { World } from "./world";
 import { WorldEvents } from "./world-events";
-import fragmentShader from "../../render/minimap-frag.glsl?raw";
-import vertexShader from "../../render/minimap-vert.glsl?raw";
 import { ViewInputComposer } from "./view-composer";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
@@ -39,11 +37,11 @@ const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D
 
 };
 
-export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: Borrowed<ViewInputComposer>, post: PostProcessingComposer, assets: Assets) => {
+export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene, simpleIndex }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: Borrowed<ViewInputComposer>, post: PostProcessingComposer, assets: Assets) => {
 
     const janitor = new Janitor("OverlayComposer");
 
-    const unitSelectionBox = createUnitSelectionBox(world, new WeakRef(views.inputs!.mouse), scene, _getSelectionUnit(images));
+    const unitSelectionBox = createUnitSelectionBox(world, views.inputs!.mouse, scene, simpleIndex, _getSelectionUnit(images));
     const selectionDisplayComposer = createSelectionDisplayComposer(assets);
     scene.add(...selectionDisplayComposer.objects);
 
@@ -64,33 +62,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     cursorGraphics.matrixAutoUpdate = false;
     cursorGraphics.renderOrder = 1000;
 
-    if (module.hot) {
-
-        module.hot.accept("../../render/minimap-frag.glsl?raw", () => {
-
-            minimapMaterial.fragmentShader = fragmentShader;
-            minimapMaterial.needsUpdate = true;
-
-        });
-
-        module.hot.accept("../../render/minimap-vert.glsl?raw", () => {
-
-            minimapMaterial.vertexShader = vertexShader;
-            minimapMaterial.needsUpdate = true;
-
-        });
-
-        module.hot.accept("@render/minimap-material", () => {
-
-            minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
-            minimap.material = minimapMaterial;
-            applySettings({ settings: world.settings!.getState(), rhs: {} });
-
-        });
-
-    }
-
-    let minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
+    const minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
 
     const minimap = new Mesh(new PlaneGeometry(1, 1), minimapMaterial);
     minimap.frustumCulled = false;
