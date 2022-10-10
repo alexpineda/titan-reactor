@@ -5,6 +5,8 @@ import { normalizePluginConfiguration } from "@utils/function-utils";
 import { NativePlugin, PluginPackage } from "common/types";
 
 export interface PluginBase extends NativePlugin, GameTimeApi { }
+
+const structuredClone = globalThis.structuredClone ?? ((x: any) => JSON.parse(JSON.stringify(x)));
 export class PluginBase implements NativePlugin {
     readonly id: string;
     readonly name: string;
@@ -20,7 +22,7 @@ export class PluginBase implements NativePlugin {
     constructor(pluginPackage: PluginPackage) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
-        this.config = pluginPackage.config;
+        this.config = structuredClone(pluginPackage.config);
     }
 
     callCustomHook: (hook: string, ...args: any[]) => any = () => { };

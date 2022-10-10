@@ -9,7 +9,6 @@ export class SpriteEntities {
     #spritesMap: IterableMap<number, SpriteType> = new IterableMap();
     #spritePool: SpriteType[] = [];
 
-    // duplicate access
     #unitsBySprite: Map<number, Unit> = new Map();
 
     constructor() {

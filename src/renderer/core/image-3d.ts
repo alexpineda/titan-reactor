@@ -1,36 +1,21 @@
 import "three/examples/jsm/utils/SkeletonUtils";
 
-import { AnimationAction, AnimationMixer, Bone, Color, Mesh, Object3D, SkinnedMesh } from "three";
+import { AnimationAction, AnimationMixer, Bone, Box3, Box3Helper, BufferGeometry, Color, Mesh, Object3D, SkinnedMesh, Sphere, Vector3 } from "three";
 
 import type { GltfAtlas } from "common/types";
 import type { ImageBase } from ".";
 import { standardMaterialToImage3DMaterial } from "@utils/material-utils";
 import { Image3DMaterial } from "./image-3d-material";
 import gameStore from "@stores/game-store";
+import { calculateAABB, parallelTraverse } from "@utils/mesh-utils";
 
 const white = new Color(0xffffff);
 
+const _v1 = new Vector3();
 
 const sourceLookup = new Map();
 const cloneLookup = new Map();
 
-function parallelTraverse(a: Object3D, b: Object3D, callback: (a: Object3D, b: Object3D) => void) {
-
-  callback(a, b);
-
-  for (let i = 0; i < a.children.length; i++) {
-
-    parallelTraverse(a.children[i], b.children[i], callback);
-
-  }
-
-}
-
-const _remapFrames = (x: number) => x;
-
-/**
- * An image instance that may include a 3d model
- */
 export class Image3D extends Object3D implements ImageBase {
   isImage3d = true;
   isInstanced = false;
@@ -38,13 +23,16 @@ export class Image3D extends Object3D implements ImageBase {
   atlas: GltfAtlas;
   mixer?: AnimationMixer;
   model: GltfAtlas["model"];
-  remapFrames = _remapFrames;
+
+  boundingBox = new Box3()
+  boundingSphere = new Sphere()
 
   #frame = 0;
   #times = new Float32Array();
   #action?: AnimationAction;
-  //@ts-ignore
+
   readonly material: Image3DMaterial;
+
   _zOff: number;
 
   constructor(
@@ -53,15 +41,45 @@ export class Image3D extends Object3D implements ImageBase {
     super();
     this.atlas = atlas;
 
-    // @ts-ignore
     this.model = Image3D.clone(atlas.model);
 
     this.material = standardMaterialToImage3DMaterial(atlas.mesh.material);
     this.add(this.model);
 
+    if (this.model instanceof SkinnedMesh) {
+      this.model.pose();
+    }
+
     this.model.traverse((o: Object3D) => {
       if (o instanceof Mesh) {
         o.material = this.material;
+        const geometry = (o.geometry as BufferGeometry);
+
+        if (o instanceof SkinnedMesh) {
+          geometry.boundingBox = calculateAABB(this, o, atlas.animations[0], 0);
+
+          // modified Box3.getBoundingSphere to be a bit smaller 0.5 -> 0.4
+          geometry.boundingSphere = new Sphere();
+          geometry.boundingBox.getCenter(geometry.boundingSphere.center);
+          geometry.boundingSphere.radius = geometry.boundingBox.getSize(_v1).length() * 0.4;
+
+        } else {
+          geometry.computeBoundingSphere();
+          geometry.computeBoundingBox();
+        }
+
+        this.boundingBox = o.geometry.boundingBox!;
+        this.boundingSphere = o.geometry.boundingSphere!;
+
+        // const sphereHelper = new Mesh(new SphereGeometry(this.boundingSphere.radius), new MeshBasicMaterial({ color: 0xff0000 }));
+        // sphereHelper.position.copy(this.boundingSphere.center);
+        // this.add(sphereHelper);
+
+        //TODO: why do skinned meshes not update unless this is here? wtf
+        const b = new Box3Helper(this.boundingBox, new Color("blue"));
+        b.visible = false;
+        this.add(b);
+
       }
     });
 

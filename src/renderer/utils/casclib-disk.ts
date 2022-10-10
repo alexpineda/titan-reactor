@@ -57,5 +57,5 @@ const _findFile = async (fileName: string, dir: string, relDir = ""): Promise<st
 };
 
 export const findFile = async (fileName: string) => {
-  return await _findFile(fileName, `D:/dev/bwdata/`);
+  return await _findFile(fileName, settingsStore().data.directories.starcraft);
 };

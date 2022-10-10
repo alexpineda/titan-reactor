@@ -1,13 +1,5 @@
+import { ImageBase } from "@core/image-base";
 import { Group } from "three";
-
-export type CanvasDimensions = {
-  left: number;
-  top: number;
-  right: number;
-  bottom: number;
-  width: number;
-  height: number;
-};
 
 export enum UnitTileScale {
   SD = 1,
@@ -17,17 +9,11 @@ export enum UnitTileScale {
 
 export interface SpriteType extends Group {
   userData: {
+    mainImage: ImageBase;
     typeId: number;
     // we use this to know whether to damp y height or set it immediately
     isNew: boolean;
   }
-}
-
-export enum ShadowLevel {
-  Off,
-  Low,
-  Medium,
-  High
 }
 
 export enum GameAspect {
@@ -35,4 +21,4 @@ export enum GameAspect {
   Native = "Native",
   FourThree = "FourThree",
   SixteenNine = "SixteenNine",
-};
+}

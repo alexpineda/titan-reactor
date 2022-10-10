@@ -14,11 +14,7 @@ export class BaseScene extends Scene {
   mapHeight: number;
 
   sunlight: Sunlight;
-
-  //@ts-ignore
-  userData: {
-    terrain: Terrain
-  }
+  terrain: Terrain;
 
   constructor(
     mapWidth: number,
@@ -33,7 +29,10 @@ export class BaseScene extends Scene {
 
     this.sunlight = new Sunlight(mapWidth, mapHeight);
     this.add(...this.sunlight.children);
-    this.addTerrain(terrain);
+
+    this.add(terrain);
+    this.terrain = terrain;
+    terrain.updateMatrixWorld();
 
     this.#borderTiles = new BorderTiles(terrain);
     this.add(this.#borderTiles);
@@ -65,13 +64,6 @@ export class BaseScene extends Scene {
 
   setBorderTileColor(color: number) {
     this.#borderTiles.color = color;
-  }
-
-  addTerrain(
-    terrain: Terrain
-  ) {
-    this.add(terrain);
-    terrain.updateMatrixWorld();
   }
 
   dispose() {

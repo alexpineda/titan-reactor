@@ -1,13 +1,16 @@
-import { BufferGeometry, Mesh, MeshBasicMaterial, Shader, RingGeometry } from "three";
+import { BufferGeometry, Mesh, MeshBasicMaterial, Shader, PlaneGeometry } from "three";
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
-import gameStore from "@stores/game-store";
+import { Image3D } from "./image-3d";
 
 export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
     #spriteDat?: SpriteDAT;
+    #uniforms = {
+        uSize: { value: 1 },
+    }
 
     constructor() {
-        const _geometry = new RingGeometry();
+        const _geometry = new PlaneGeometry(1, 1);
 
         super(
             _geometry,
@@ -19,34 +22,50 @@ export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
                         "#include <map_fragment>",
                         `
                 #include <map_fragment>
-                diffuseColor = vec4(0., 1., 0., diffuseColor.a * 0.5);
+
+                float dst = distance(vUv, vec2(0.5, 0.5)) / 0.5;
+
+                float thickness = 0.05 * uSize;
+                diffuseColor = vec4(0., 1., 0., smoothstep(0.98 - thickness, 1. - thickness, dst) * smoothstep(0., 0.02, 1. - dst));
             `
                     );
+                    shader.fragmentShader = `
+                uniform float uSize;
+                                ${shader.fragmentShader}
+                            `
 
+                    shader.uniforms.uSize = this.#uniforms.uSize;
                 },
+
             })
         );
-
-        this.material.depthTest = false;
+        this.material.defines = {
+            USE_UV: ""
+        }
+        // this.material.depthTest = false;
         this.material.transparent = true;
+        this.rotation.x = -Math.PI / 2;
         this.name = "SelectionCircle3D";
     }
 
-    update(spriteDat: SpriteDAT) {
+    update(spriteDat: SpriteDAT, image: Image3D) {
         if (spriteDat !== this.#spriteDat) {
-            const circle = spriteDat.selectionCircle;
-            const grp = gameStore().assets!.selectionCircles[circle.index];
-            this.material.map = grp.diffuse;
-            this.material.needsUpdate = true;
-            this.position.y = -spriteDat.selectionCircleOffset / 32;
 
-            const unitTileScale = (grp.unitTileScale / 4) * 128;
-            this.scale.set(
-                (grp?.textureWidth as number) / unitTileScale,
-                (grp?.textureHeight as number) / unitTileScale,
-                1
-            );
+            const r = (image.boundingSphere.radius ?? 1)
+            const m = r > 1 ? r * 1.6 : r * 1.1;
+            this.geometry.dispose();
+
+            // const v = image.boundingBox.min;
+            // const v2 = image.boundingBox.max;
+            // const m = Math.max(Math.abs(v.x - v2.x), Math.abs(v.z - v2.z));
+
+            this.#uniforms.uSize.value = 1 / m;
+            this.geometry = new PlaneGeometry(m, m)
+
+            this.material.needsUpdate = true;
             this.#spriteDat = spriteDat;
+
+            this.position.setY(image.boundingBox.min.y);
         }
     }
 

@@ -213,6 +213,8 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
             if (imageData.index === spriteData.mainImageIndex) {
 
+                sprite.userData.mainImage = image;
+
                 if (image instanceof Image3D) {
                     overlayEffectsMainImage.image = image;
                 }
