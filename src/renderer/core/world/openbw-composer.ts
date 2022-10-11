@@ -85,6 +85,8 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
 
             if (_currentFrame !== _previousBwFrame) {
 
+                world.openBW!.generateFrame();
+                
                 if (_currentFrame % 24 === 0) {
 
                     updateCompletedUpgrades(_currentFrame);

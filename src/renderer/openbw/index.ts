@@ -38,8 +38,17 @@ const createOpenBW = async () => {
 
   openBW.unitGenerationSize = 3;
 
+  openBW.generateFrame = () => wasm._generate_frame();
+  
   openBW.getFowSize = () => wasm._counts(10);
-  openBW.getFowPtr = (visibility: number, instant: boolean) => wasm._get_fow_ptr(visibility, instant);
+  openBW.getFowPtr = () => wasm._get_buffer(16);
+  openBW.setPlayerVisibility = (visibility: number) => wasm._set_player_visibility(visibility);
+
+  openBW.getCreepSize = () => wasm._counts(2);
+  openBW.getCreepPtr = () => wasm._get_buffer(14);
+
+  openBW.getCreepEdgesSize = () => wasm._counts(3);
+  openBW.getCreepEdgesPtr = () => wasm._get_buffer(15);
 
   openBW.getTilesPtr = () => wasm._get_buffer(0);
   openBW.getTilesSize = () => wasm._counts(0);

@@ -8,14 +8,21 @@ export interface OpenBWWasm {
     _load_map: (buffer: number, length: number) => void;
     _upload_height_map: (buffer: number, length: number, width: number, height: number) => void;
     _load_replay_with_height_map: (replayBuffer: number, replayLength: number, buffer: number, length: number, width: number, height: number) => void;
+    
     _next_frame: () => number;
     _next_no_replay: () => number;
     _create_unit: (unitId: number, playerId: number, x: number, y: number) => number;
+
     _counts: (index: number) => number;
     _get_buffer: (index: number) => number;
+
     _replay_get_value: (index: number) => number;
     _replay_set_value: (index: number, value: number) => void;
-    _get_fow_ptr: (visiblity: number, instant: boolean) => number;
+
+    _set_player_visibility: (playerId: number) => void;
+
+    _generate_frame: () => void;
+
     get_util_funcs: () => ({
         get_sounds: () => SoundStruct[],
         dump_unit: (unitAddr: number) => {
@@ -66,8 +73,18 @@ export interface OpenBW extends OpenBWWasm {
     isSandboxMode: () => boolean;
     setSandboxMode: (mode: boolean) => boolean | void;
 
+    // updates frame and creep data
+    generateFrame: () => void;
+
     getFowSize: () => number;
-    getFowPtr: (visibility: number, instant: boolean) => number;
+    getFowPtr: () => number;
+    setPlayerVisibility: (visibility: number) => void;
+
+    getCreepSize: () => number;
+    getCreepPtr: () => number;
+
+    getCreepEdgesSize: () => number;
+    getCreepEdgesPtr: () => number;
 
     getTilesPtr: () => number;
     getTilesSize: () => number;

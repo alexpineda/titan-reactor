@@ -4,14 +4,6 @@ import {
 } from "common/types";
 import { Color } from "three";
 
-const _pVision = (p: Player) => {
-  return p.vision;
-}
-
-const _gFlags = (flags: number, { id }: Pick<Player, "id">) => {
-  return (flags |= 1 << id);
-}
-
 const makeColor = (color: string) => new Color().setStyle(color);
 const makeColors = (players: Pick<BasePlayer, "color">[]) => players.map(
   ({ color }) => makeColor(color)
@@ -28,6 +20,8 @@ export class Players extends Array<Player> {
   originalColors: readonly string[];
   originalNames: readonly PlayerName[];
 
+  #visionFlags = 0;
+
   constructor(
     players: BasePlayer[]
   ) {
@@ -40,6 +34,7 @@ export class Players extends Array<Player> {
     })));
 
     const colors = makeColors(players);
+    const visionChanged = () => this.#visionChanged();
 
     this.push(
       ...players.map((player, i) => ({
@@ -47,13 +42,22 @@ export class Players extends Array<Player> {
         id: player.id,
         name: player.name,
         race: player.race,
-        vision: true,
+        _vision: true,
+        get vision() {
+          return this._vision;
+        },
+        set vision(vision) {
+          this._vision = vision;
+          visionChanged();
+        }
       }))
     );
 
     for (const player of this) {
       this.playersById[player.id] = player;
     }
+
+    visionChanged();
   }
 
   get(id: number): Player | undefined {
@@ -64,9 +68,17 @@ export class Players extends Array<Player> {
     return Array;
   }
 
+  #visionChanged() {
+    this.#visionFlags = 0;
+    for (const player of this) {
+      if (player.vision) {
+        this.#visionFlags |= 1 << player.id;
+      }
+    }
+  }
+
   getVisionFlag() {
-    return this.filter(_pVision)
-      .reduce(_gFlags, 0);
+    return this.#visionFlags;
   }
 
   setPlayerColors = (colors: string[]) => {

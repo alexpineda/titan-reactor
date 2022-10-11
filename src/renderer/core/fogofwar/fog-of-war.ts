@@ -10,6 +10,8 @@ export class FogOfWar {
     forceInstantUpdate = false;
     enabled = true;
 
+    #lastPlayerVision = -1;
+
     constructor(width: number, height: number, openBw: OpenBW, effect: FogOfWarEffect) {
         this.#openBW = openBw;
 
@@ -37,8 +39,14 @@ export class FogOfWar {
     }
 
     onFrame(playerVision: number) {
+
+        if (this.#lastPlayerVision !== playerVision || this.forceInstantUpdate) {
+            this.#openBW.setPlayerVisibility(playerVision);
+            this.#lastPlayerVision = playerVision;
+        }
+
         const tilesize = this.#openBW.getFowSize();
-        const ptr = this.#openBW.getFowPtr(playerVision, this.forceInstantUpdate);
+        const ptr = this.#openBW.getFowPtr();
 
         this.buffer = this.#openBW.HEAPU8.subarray(ptr, ptr + tilesize);
         this.texture.image.data.set(this.buffer);
@@ -63,4 +71,4 @@ export class FogOfWar {
         return this.buffer[y * this.texture.image.width + x] > 0;
     }
 
-};
+}

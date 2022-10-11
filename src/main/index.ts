@@ -81,6 +81,7 @@ if (!gotTheLock) {
   app.commandLine.appendSwitch("strict-origin-isolation");
   app.commandLine.appendSwitch("js-flags", "--expose-gc");
   app.commandLine.appendSwitch("--disable-gpu-process-crash-limit")
+  app.commandLine.appendSwitch("--disable-frame-rate-limit")
   app.disableDomainBlockingFor3DAPIs()
 
   nativeTheme.themeSource = "light";

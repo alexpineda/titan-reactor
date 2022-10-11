@@ -70,8 +70,10 @@ export class ImageHDMaterial extends MeshBasicMaterial {
   }
 
   set teamMask(val: Texture | undefined) {
-    this.#dynamicUniforms.teamMask.value = val;
-    this.#generateProgramCacheKey();
+    if (val !== this.#dynamicUniforms.teamMask.value) {
+      this.#dynamicUniforms.teamMask.value = val;
+      this.#generateProgramCacheKey();
+    }
   }
 
   get teamMask() {
@@ -107,8 +109,10 @@ export class ImageHDMaterial extends MeshBasicMaterial {
   }
 
   set modifier(val: number) {
-    this.#dynamicUniforms.modifier.value = val;
-    this.#generateProgramCacheKey();
+    if (val !== this.#dynamicUniforms.modifier.value) {
+      this.#dynamicUniforms.modifier.value = val;
+      this.#generateProgramCacheKey();
+    }
   }
 
   get modifier() {
@@ -116,8 +120,10 @@ export class ImageHDMaterial extends MeshBasicMaterial {
   }
 
   set flatProjection(val: boolean) {
-    this.#dynamicUniforms.uFlatProjection.value = val;
-    this.#generateProgramCacheKey();
+    if (val !== this.#dynamicUniforms.uFlatProjection.value) {
+      this.#dynamicUniforms.uFlatProjection.value = val;
+      this.#generateProgramCacheKey();
+    }
   }
 
   get flatProjection() {

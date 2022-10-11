@@ -6,7 +6,7 @@ import { log } from "@ipc/log";
 import { settingsStore } from "@stores/settings-store";
 
 import filepaths from "./extra/filepaths";
-import filelist from "./extra/list";
+import filelist from "./extra/search-list";
 interface Callbacks {
   beforeFrame: () => void;
   afterFrame: () => void;
@@ -34,8 +34,8 @@ export default class OpenBWFileList {
         return this.buffers[index].byteLength; // get file size: ;
       },
       js_read_data: (index: number, dst: number, offset: number, size: number) => { // get file buffer
-        var data = this.buffers[index];
-        for (var i2 = 0; i2 != size; ++i2) {
+        const data = this.buffers[index];
+        for (let i2 = 0; i2 != size; ++i2) {
           openBw.HEAP8[dst + i2] = data[offset + i2];
         }
       },
