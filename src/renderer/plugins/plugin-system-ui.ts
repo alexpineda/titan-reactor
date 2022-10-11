@@ -276,7 +276,7 @@ export class PluginSystemUI {
             // upgrades = id, level, progress
             // research = id, progress
 
-            const productionData = new StdVector(openBW.HEAP32, productionDataAddr >> 2);
+            const productionData = new StdVector(openBW.HEAP32, productionDataAddr);
 
             _productionTransferables.length = 0;
             _productionTransferables.push(playerData.buffer);
@@ -285,13 +285,13 @@ export class PluginSystemUI {
             for (let player = 0; player < 8; player++) {
                 _replayPosition.payload.unitProduction[player] = productionData.copyData();
                 _productionTransferables.push(_replayPosition.payload.unitProduction[player].buffer);
-                productionData.addr32 += 3;
+                productionData.address += 3;
                 _replayPosition.payload.upgrades[player] = productionData.copyData();
                 _productionTransferables.push(_replayPosition.payload.upgrades[player].buffer);
-                productionData.addr32 += 3;
+                productionData.address += 3;
                 _replayPosition.payload.research[player] = productionData.copyData();
                 _productionTransferables.push(_replayPosition.payload.research[player].buffer);
-                productionData.addr32 += 3;
+                productionData.address += 3;
             }
 
             _replayPosition.payload.frame = currentFrame;

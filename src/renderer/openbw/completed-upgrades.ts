@@ -9,17 +9,17 @@ export const createCompletedUpgradesHelper = (openBW: OpenBW, onUpgradeCompleted
     const completedUpgradesReset = range(0, 8).map(() => [] as number[][]);
     const completedResearchReset = range(0, 8).map(() => [] as number[][]);
 
-    let productionData: StdVector;
+    let productionData: StdVector<Int32Array>;
 
     const updateCompletedUpgrades = (currentBwFrame: number) => {
         if (!productionData) {
-            productionData = new StdVector(openBW.HEAP32, openBW._get_buffer(9) >> 2);
+            productionData = new StdVector(openBW.HEAP32, openBW._get_buffer(9));
         }
         const addr32 = openBW._get_buffer(9) >> 2;
         for (let player = 0; player < 8; player++) {
-            productionData.addr32 = addr32 + (player * 9) + 3;
+            productionData.address = addr32 + (player * 9) + 3;
             _updateCompleted(completedUpgrades[player], completedUpgradesReset[player], 3, currentBwFrame, player, onUpgradeCompleted);
-            productionData.addr32 += 3;
+            productionData.address += 3;
             _updateCompleted(completedResearch[player], completedResearchReset[player], 2, currentBwFrame, player, onResearchCompleted);
         }
     }
