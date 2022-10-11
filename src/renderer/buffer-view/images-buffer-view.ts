@@ -3,7 +3,9 @@ import { IScriptBufferView } from "./iscript-buffer-view";
 export class ImageBufferView
   implements ImageStruct {
 
-  _address = 0;
+  #address = 0;
+  #address32 = 0;
+
   #bw: OpenBW;
   #iscriptState: IScriptBufferView;
 
@@ -12,66 +14,71 @@ export class ImageBufferView
     return this;
   }
 
+  get _address() {
+    return this.#address;
+  }
+
+  set _address(val: number) {
+    this.#address = val;
+    this.#address32 = val >> 2;
+  }
+
   constructor(bw: OpenBW) {
     this.#bw = bw;
     this.#iscriptState = new IScriptBufferView(bw);
   }
 
-  private get _index32() {
-    return (this._address >> 2);
-  }
-
   get index() {
-    return this.#bw.HEAPU32[this._index32 + 2];
+    return this.#bw.HEAPU32[this.#address32 + 2];
   }
 
   get typeId() {
-    const addr = this.#bw.HEAPU32[this._index32 + 3];
+    const addr = this.#bw.HEAPU32[this.#address32 + 3];
     return this.#bw.HEAP32[addr >> 2];
   }
 
   get modifier() {
-    return this.#bw.HEAP32[this._index32 + 4];
+    return this.#bw.HEAP32[this.#address32 + 4];
   }
 
   get modifierData1() {
-    return this.#bw.HEAP32[this._index32 + 5];
+    return this.#bw.HEAP32[this.#address32 + 5];
   }
 
   get modifierData2() {
-    return this.#bw.HEAP32[this._index32 + 6];
+    return this.#bw.HEAP32[this.#address32 + 6];
   }
 
   get frameIndex() {
-    return this.#bw.HEAPU32[this._index32 + 7];
+    return this.#bw.HEAPU32[this.#address32 + 7];
   }
 
   get frameIndexBase() {
-    return this.#bw.HEAPU32[this._index32 + 8];
+    return this.#bw.HEAPU32[this.#address32 + 8];
   }
 
   get frameIndexOffset() {
-    return this.#bw.HEAPU32[this._index32 + 9];
+    return this.#bw.HEAPU32[this.#address32 + 9];
   }
 
   get flags() {
-    return this.#bw.HEAP32[this._index32 + 10];
+    return this.#bw.HEAP32[this.#address32 + 10];
   }
 
   get x() {
-    return this.#bw.HEAP32[this._index32 + 11];
+    return this.#bw.HEAP32[this.#address32 + 11];
   }
 
   get y() {
-    return this.#bw.HEAP32[this._index32 + 12];
+    return this.#bw.HEAP32[this.#address32 + 12];
   }
 
   get iscript() {
-    return this.#iscriptState.get((this._index32 + 13) << 2);
+    return this.#iscriptState.get((this.#address32 + 13) << 2);
   }
 
   get nextNode() {
-    return this.#bw.HEAPU32[this._index32];
+    return this.#bw.HEAPU32[this.#address32];
   }
 
   *[Symbol.iterator]() {

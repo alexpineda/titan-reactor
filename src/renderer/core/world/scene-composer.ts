@@ -184,18 +184,15 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
                 continue;
             }
 
-            // only draw shadow if main image is not 3d
             const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || image.dat.drawFunction === drawFunctions.rleShadow && !renderMode3D;
-
             image.visible = sprite.visible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
-            image.matrixWorldNeedsUpdate = false;
 
-            // if (image.visible) {
+            if (image.visible === false) continue;
+
             image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
             image.setTeamColor(getPlayerColor(spriteData.owner));
             image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
             image.position.set(0, 0, 0)
-            image.rotation.set(0, 0, 0);
 
             //overlay offsets typically
             if (image instanceof ImageHD) {
@@ -256,7 +253,6 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
                 image.updateMatrixPosition(sprite.position);
             } else if (image instanceof Image3D) {
                 image.updateMatrix();
-                // image.updateMatrixWorld();
             }
 
             world.events!.emit("image-updated", image);
@@ -326,7 +322,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
             for (let i = -2; i < 2; i++) {
                 for (let j = -2; j < 2; j++) {
-                    simpleIndex[`${i}${j}`] = [];
+                    simpleIndex[`${i}${j}`].length = 0;
                 }
             }
 

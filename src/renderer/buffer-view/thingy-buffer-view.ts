@@ -10,6 +10,8 @@ export class ThingyBufferView
     implements ThingyStruct {
 
     protected _address = 0;
+    protected _addr32 = 0;
+    protected _addr8 = 0;
     protected _sprite?: SpritesBufferView;
 
     _bw: OpenBW;
@@ -20,19 +22,14 @@ export class ThingyBufferView
 
     get(address: number) {
         this._address = address;
+        this._addr32 = (address >> 2) + 2 //skip link base
+        this._addr8 = address + (2 << 2); //skip link base
+
         return this;
     }
 
     constructor(bw: OpenBW) {
         this._bw = bw;
-    }
-
-    protected get _addr8() {
-        return this._address + (2 << 2); //skip link base
-    }
-
-    protected get _addr32() {
-        return (this._address >> 2) + 2; //skip link base
     }
 
     get hp() {

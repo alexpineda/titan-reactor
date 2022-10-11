@@ -19,13 +19,13 @@ export class Timer {
 
         // use Page Visibility API to avoid large time delta values
 
-        this.#usePageVisibilityAPI = (typeof document !== 'undefined' && document.hidden !== undefined);
+        this.#usePageVisibilityAPI = (typeof document !== "undefined" && document.hidden !== undefined);
 
         if (this.#usePageVisibilityAPI === true) {
 
             this.#pageVisibilityHandler = handleVisibilityChange.bind(this);
 
-            document.addEventListener('visibilitychange', this.#pageVisibilityHandler, false);
+            document.addEventListener("visibilitychange", this.#pageVisibilityHandler, false);
 
         }
 
@@ -43,7 +43,7 @@ export class Timer {
 
         if (this.#usePageVisibilityAPI === true) {
 
-            document.removeEventListener('visibilitychange', this.#pageVisibilityHandler!);
+            document.removeEventListener("visibilitychange", this.#pageVisibilityHandler!);
 
         }
 
@@ -115,7 +115,7 @@ export class Timer {
 
     }
 
-    update() {
+    update(elapsed?: number) {
 
         if (this.#useFixedDelta === true) {
 
@@ -124,7 +124,7 @@ export class Timer {
         } else {
 
             this.#previousTime = this.#currentTime;
-            this.#currentTime = this._now();
+            this.#currentTime = elapsed ?? this._now();
 
             this.#delta = this.#currentTime - this.#previousTime;
 
@@ -142,7 +142,7 @@ export class Timer {
 
     _now() {
 
-        return (typeof performance === 'undefined' ? Date : performance).now();
+        return (typeof performance === "undefined" ? Date : performance).now();
 
     }
 

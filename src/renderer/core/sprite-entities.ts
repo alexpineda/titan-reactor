@@ -9,7 +9,7 @@ export class SpriteEntities {
     #spritesMap: IterableMap<number, SpriteType> = new IterableMap();
     #spritePool: SpriteType[] = [];
 
-    #unitsBySprite: Map<number, Unit> = new Map();
+    #unitsBySprite: Unit[] = [];
 
     constructor() {
         this.group.name = "sprites";
@@ -58,7 +58,7 @@ export class SpriteEntities {
             this.#spritesMap.delete(spriteIndex);
             this.#resetSpriteUserData(sprite);
         }
-        this.#unitsBySprite.delete(spriteIndex);
+        delete this.#unitsBySprite[spriteIndex];
     }
 
     #resetSpriteUserData(sprite: SpriteType) {
@@ -71,15 +71,15 @@ export class SpriteEntities {
             this.#spritePool.push(sprite);
         }
         this.#spritesMap.clear();
-        this.#unitsBySprite.clear();
+        this.#unitsBySprite.length = 0;
         // we do not clear this.group as we do that before first frame to avoid flickering
     }
 
     getUnit(spriteIndex: number) {
-        return this.#unitsBySprite.get(spriteIndex);
+        return this.#unitsBySprite[spriteIndex];
     }
 
     setUnit(spriteIndex: number, unit: Unit) {
-        this.#unitsBySprite.set(spriteIndex, unit);
+        this.#unitsBySprite[spriteIndex] = unit;
     }
 }

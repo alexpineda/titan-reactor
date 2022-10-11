@@ -68,6 +68,16 @@ export async function terrainComposer(mapWidth: number, mapHeight: number, tiles
     lookupTextures.creepEdgesTexUniform.value
   ), "creep");
 
+  // gpu init
+  renderComposer.getWebGLRenderer().initTexture(lookupTextures.creepTexUniform.value);
+  renderComposer.getWebGLRenderer().initTexture(lookupTextures.creepEdgesTexUniform.value);
+  for (const t of textures.mapQuartiles.flat()) {
+    renderComposer.getWebGLRenderer().initTexture(t);
+  }
+  for (const t of textures.waterMaskQuartiles.flat()) {
+    renderComposer.getWebGLRenderer().initTexture(t);
+  }
+
   return {
     terrain,
     minimapTex: lookupTextures.mapDiffuseTex,

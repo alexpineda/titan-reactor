@@ -200,6 +200,8 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     this.material.needsUpdate = true;
 
+    this.rotation.set(0, 0, 0);
+
     return this;
   }
 

@@ -10,13 +10,15 @@ export class SpritesBufferView
 
   readonly images: IntrusiveList;
 
-  #address = 0;
+  #address32 = 0;
+
   #bw: OpenBW;
 
   #mainImage: ImageBufferView;
 
   get(address: number) {
-    this.#address = address;
+    this.#address32 = (address >> 2) + 2; //skip link base
+
     this.images.addr = address + (15 << 2);
     return this;
   }
@@ -27,55 +29,52 @@ export class SpritesBufferView
     this.#mainImage = new ImageBufferView(bw);
   }
 
-  private get _index32() {
-    return (this.#address >> 2) + 2; //skip link base
-  }
 
   get index() {
-    return this.#bw.HEAPU32[this._index32];
+    return this.#bw.HEAPU32[this.#address32];
   }
 
   get typeId() {
-    const addr = this.#bw.HEAPU32[this._index32 + 1];
+    const addr = this.#bw.HEAPU32[this.#address32 + 1];
     return this.#bw.HEAP32[addr >> 2];
   }
 
   get owner() {
-    return this.#bw.HEAP32[this._index32 + 2];
+    return this.#bw.HEAP32[this.#address32 + 2];
   }
 
   get elevation() {
-    return this.#bw.HEAP32[this._index32 + 5];
+    return this.#bw.HEAP32[this.#address32 + 5];
   }
 
   get flags() {
-    return this.#bw.HEAP32[this._index32 + 6];
+    return this.#bw.HEAP32[this.#address32 + 6];
   }
 
   get x() {
-    return this.#bw.HEAP32[this._index32 + 10];
+    return this.#bw.HEAP32[this.#address32 + 10];
   }
 
   get y() {
-    return this.#bw.HEAP32[this._index32 + 11];
+    return this.#bw.HEAP32[this.#address32 + 11];
   }
 
   get mainImage() {
-    const addr = this.#bw.HEAPU32[this._index32 + 12];
+    const addr = this.#bw.HEAPU32[this.#address32 + 12];
     return this.#mainImage.get(addr);
   }
 
   get mainImageIndex() {
-    const addr = this.#bw.HEAPU32[this._index32 + 12];
+    const addr = this.#bw.HEAPU32[this.#address32 + 12];
     return this.#bw.HEAPU32[(addr >> 2) + 2];
   }
 
   get extYValue() {
-    return this.#bw.HEAP32[this._index32 + 15] / 255;
+    return this.#bw.HEAP32[this.#address32 + 15] / 255;
   }
 
   get extFlyOffset() {
-    return this.#bw.HEAP32[this._index32 + 16] / 255;
+    return this.#bw.HEAP32[this.#address32 + 16] / 255;
   }
 
 }

@@ -106,6 +106,9 @@ export class Image3D extends Object3D implements ImageBase {
   }
 
   updateImageType() {
+
+    this.rotation.set(0, 0, 0);
+
     return this;
   }
 

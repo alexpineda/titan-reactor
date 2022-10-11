@@ -82,8 +82,6 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
             lastElapsed = elapsed;
             _currentFrame = world.openBW!.nextFrame();
             // _currentFrame = world.openBW!.tryCatch(world.openBW!.nextFrame);
-            pauseTimer.update();
-
 
             if (_currentFrame !== _previousBwFrame) {
 
@@ -101,6 +99,8 @@ export const createOpenBWComposer = (world: Borrowed<World>, scene: Borrowed<Pic
                 return true;
 
             } else if (world.openBW!.isPaused()) {
+                pauseTimer.update(elapsed);
+
                 if (pauseTimer.getElapsed() > 42) {
                     pauseTimer.resetElapsed();
                     return true;
