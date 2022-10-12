@@ -29,7 +29,7 @@ export class SourceOfTruth<T extends object> {
 
     }
 
-    snapshot() {
+    clone() {
         return structuredClone(this.#data);
     }
 

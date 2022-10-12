@@ -7,7 +7,6 @@ export class SoundChannel {
 
   isPlaying = false;
   isQueued = false;
-  lastPlayed = 0;
 
   // sound data
   buffer?: AudioBufferSourceNode;
@@ -69,10 +68,9 @@ export class SoundChannel {
     this.priority = priority;
   }
 
-  play(elapsed: number, buffer: AudioBuffer) {
+  play(buffer: AudioBuffer) {
     this.isPlaying = true;
     this.isQueued = false;
-    this.lastPlayed = elapsed;
 
     // quick fade in since some sounds are clipping at the start (eg probe harvest)
     const gain = this.#getGain()

@@ -10,6 +10,7 @@ export class SoundChannels {
   maxChannels = 8;
   channels: SoundChannel[];
   buffers: Map<number, AudioBuffer> = new Map();
+  #lastPlayed: WeakMap<AudioBuffer, number> = new WeakMap();
   #loading: Map<number, boolean> = new Map();
   #mixerRef: WeakRef<MainMixer>;
 
@@ -25,10 +26,22 @@ export class SoundChannels {
   }
 
   async _load(typeId: number) {
+
     this.#loading.set(typeId, true);
-    const result = await this.#mixer.loadAudioBuffer(typeId);
+
+    const buffer = await this.#mixer.loadAudioBuffer(typeId);
+
+    this.#lastPlayed.set(buffer, 0);
     this.#loading.delete(typeId);
-    return result
+
+    return buffer
+
+  }
+
+  reset() {
+    for (const [, buffer] of this.buffers) {
+      this.#lastPlayed.set(buffer, 0);
+    }
   }
 
   _getAvailableChannel(dat: SoundDAT, typeId: number, unitTypeId: number) {
@@ -87,17 +100,18 @@ export class SoundChannels {
 
   play(elapsed: number, typeId: number, unitTypeId: number, dat: SoundDAT, mapCoords: Vector3, volume: number | null, pan: number | null) {
 
-
     const buffer = this.buffers.get(typeId);
 
     if (buffer) {
 
       const channel = this._getAvailableChannel(dat, typeId, unitTypeId);
-      if (!channel || elapsed - channel.lastPlayed <= 80) {
+      if (!channel || elapsed - this.#lastPlayed.get(buffer)! <= 80) {
         return;
       }
+
       channel.queue(typeId, unitTypeId, mapCoords, dat.flags, dat.priority, volume, pan);
-      channel.play(elapsed, buffer);
+      channel.play(buffer);
+      this.#lastPlayed.set(buffer, elapsed);
 
     } else {
 
@@ -113,8 +127,9 @@ export class SoundChannels {
       channel.queue(typeId, unitTypeId, mapCoords, dat.flags, dat.priority, volume, pan);
 
       this._load(typeId).then(buffer => {
-        channel.play(elapsed, buffer);
+        channel.play(buffer);
         this.buffers.set(typeId, buffer);
+        this.#lastPlayed.set(buffer, elapsed);
       })
 
     }

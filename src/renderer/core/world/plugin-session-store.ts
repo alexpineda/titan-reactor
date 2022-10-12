@@ -27,7 +27,7 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
 
     const sourceOfTruth = new SourceOfTruth(plugins.getConfigSnapshot());
     const sessionStore = createDeepStore({
-        initialState: sourceOfTruth.snapshot(),
+        initialState: sourceOfTruth.clone(),
         validateMerge: (_, __, path) => {
             // merged from source of truth
             if (path === undefined) {

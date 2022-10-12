@@ -61,7 +61,7 @@ export const createSettingsSessionStore = (
     const sourceOfTruth = new SourceOfTruth(partialSettings(settingsStore().data));
     const store = createOperatableStore(
         createDeepStore<PartialSettings>({
-            initialState: sourceOfTruth.snapshot(),
+            initialState: sourceOfTruth.clone(),
             validateMerge: (newSettings, rhs) =>
                 events.emit("settings-changed", { settings: newSettings, rhs }) !==
                 false,

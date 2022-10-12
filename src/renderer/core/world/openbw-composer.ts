@@ -68,6 +68,8 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
     let lastElapsed = 0;
     const pauseTimer = new Timer();
 
+    world.events.on("frame-reset", () => soundChannels.reset());
+
     // for game time api
     const gtapi_playSound = (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
         if (y !== undefined && volumeOrX !== undefined) {
@@ -103,7 +105,7 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
 
                 }
 
-                buildSounds(_currentFrame);
+                buildSounds(elapsed);
                 buildCreep(_currentFrame);
 
                 _previousBwFrame = _currentFrame;

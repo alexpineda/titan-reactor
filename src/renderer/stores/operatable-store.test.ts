@@ -16,7 +16,7 @@ describe("OperatableStore", () => {
 
         });
 
-        const store = createDeepStore({ initialState: sourceOfTruth.snapshot() });
+        const store = createDeepStore({ initialState: sourceOfTruth.clone() });
 
         expect(store.getState()).toStrictEqual({ "foo": "bar" });
 
@@ -44,7 +44,7 @@ describe("OperatableStore", () => {
 
         });
 
-        const store = createDeepStore({ initialState: sourceOfTruth.snapshot() });
+        const store = createDeepStore({ initialState: sourceOfTruth.clone() });
 
         const mutation = createOperatableStore(store, sourceOfTruth, () => ({
             value: "bar"
@@ -71,7 +71,7 @@ describe("OperatableStore", () => {
 
         });
 
-        const store = createDeepStore({ initialState: sourceOfTruth.snapshot() });
+        const store = createDeepStore({ initialState: sourceOfTruth.clone() });
 
         const mutation = createOperatableStore(store, sourceOfTruth, () => ({
             value: 0,
@@ -102,7 +102,7 @@ describe("OperatableStore", () => {
         });
 
         const store = createOperatableStore(createDeepStore({
-            initialState: sourceOfTruth.snapshot(),
+            initialState: sourceOfTruth.clone(),
         }), sourceOfTruth, () => ({
             value: null
         }));
