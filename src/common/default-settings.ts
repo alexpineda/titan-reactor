@@ -19,6 +19,7 @@ export const defaultSettingsV6: SettingsV6 = {
   session: {
     type: "replay",
     sandbox: false,
+    audioListenerDistance: 0.5
   },
   directories: {
     starcraft: "",

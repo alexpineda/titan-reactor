@@ -29,14 +29,14 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
             const y = world.openBW.HEAP32[addr + 2];
             const unitTypeId = world.openBW.HEAP32[addr + 3];
 
-            if (world.fogOfWar!.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
+            if (world.fogOfWar.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
                 buildSound(elapsed, x, y, typeId, unitTypeId, scene.pxToWorld, viewInput.audio, viewInput.primaryViewport!.projectedView, soundChannels);
             }
         }
 
     };
 
-    world.events!.on("settings-changed", ({ rhs }) => {
+    world.events.on("settings-changed", ({ rhs }) => {
         if (rhs?.session?.sandbox !== undefined) {
             if (world.openBW.setSandboxMode(rhs?.session?.sandbox) === undefined) {
                 return false;
@@ -45,12 +45,12 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
     })
 
     const { resetCompletedUpgrades, updateCompletedUpgrades, completedUpgrades } = createCompletedUpgradesHelper(world.openBW, (owner: number, typeId: number, level: number) => {
-        world.events!.emit("completed-upgrade", { owner, typeId, level });
+        world.events.emit("completed-upgrade", { owner, typeId, level });
     }, (owner: number, typeId: number) => {
-        world.events!.emit("completed-upgrade", { owner, typeId });
+        world.events.emit("completed-upgrade", { owner, typeId });
     });
 
-    world.events!.on("frame-reset", () => {
+    world.events.on("frame-reset", () => {
 
         _currentFrame = world.openBW.getCurrentFrame();
         _previousBwFrame = -1;
@@ -58,7 +58,6 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
 
     });
 
-    //TOOD: get rid of creep generation and use openbw
     const _tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, world.openBW.HEAPU8);
     const buildCreep = (frame: number) => {
         _tiles.ptrIndex = world.openBW.getTilesPtr();
@@ -97,7 +96,7 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
             if (_currentFrame !== _previousBwFrame) {
 
                 world.openBW.generateFrame();
-                
+
                 if (_currentFrame % 24 === 0) {
 
                     updateCompletedUpgrades(_currentFrame);
@@ -128,31 +127,31 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
             gtapi_playSound,
             gtapi_getCurrentFrame
         },
-        api: ((world: Borrowed<World, true>, _playSound: WeakRef<typeof gtapi_playSound>, _getCurrentFrame: WeakRef<typeof gtapi_getCurrentFrame>) => ({
+        api: ((b_world: Borrowed<World, true>, _playSound: WeakRef<typeof gtapi_playSound>, _getCurrentFrame: WeakRef<typeof gtapi_getCurrentFrame>) => ({
             getCurrentFrame() {
                 return _getCurrentFrame.deref()!();
             },
-            skipForward: skipHandler(world.openBW, 1, world.reset),
-            skipBackward: skipHandler(world.openBW, -1, world.reset),
-            speedUp: () => speedHandler(SpeedDirection.Up, world.openBW),
-            speedDown: () => speedHandler(SpeedDirection.Down, world.openBW),
+            skipForward: skipHandler(b_world.openBW, 1, b_world.reset),
+            skipBackward: skipHandler(b_world.openBW, -1, b_world.reset),
+            speedUp: () => speedHandler(SpeedDirection.Up, b_world.openBW),
+            speedDown: () => speedHandler(SpeedDirection.Down, b_world.openBW),
             togglePause: (setPaused?: boolean) => {
-                const openBW = world.openBW.deref()!;
+                const openBW = b_world.openBW.deref()!;
                 openBW.setPaused(setPaused ?? !openBW.isPaused());
                 return openBW.isPaused();
             },
             get gameSpeed() {
-                const openBW = world.openBW.deref()!;
+                const openBW = b_world.openBW.deref()!;
                 return openBW.getGameSpeed();
             },
             setGameSpeed(value: number) {
-                const openBW = world.openBW.deref()!;
+                const openBW = b_world.openBW.deref()!;
                 openBW.setGameSpeed(MathUtils.clamp(value, REPLAY_MIN_SPEED, REPLAY_MAX_SPEED));
             },
             gotoFrame: (frame: number) => {
-                const openBW = world.openBW.deref()!;
+                const openBW = b_world.openBW.deref()!;
                 openBW.setCurrentFrame(frame);
-                world.reset.deref()!();
+                b_world.reset.deref()!();
             },
             playSound(...args: Parameters<typeof gtapi_playSound>) {
                 _playSound.deref()!(...args);

@@ -48,7 +48,7 @@ export const getBwPanning = (x: number, y: number, mapCoords: Vector3, left: num
 }
 
 const SoundPlayMaxDistance = 100;
-let _soundCoords = new Vector3;
+const _soundCoords = new Vector3;
 let _soundDat: SoundDAT;
 
 export function buildSound(elapsed: number, x: number, y: number, typeId: number, unitTypeId: number, pxToWorld: PxToWorld, audio: ViewInputComposer["audio"], projectedView: ProjectedCameraView, soundChannels: SoundChannels) {

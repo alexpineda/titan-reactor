@@ -19,6 +19,7 @@ const validAppSettingsPaths: ValidAppSessionPath[] = [
     "postprocessing.",
     "postprocessing3d.",
     "minimap.",
+    "session.",
 ];
 
 const isValidkey = (key: string) => {

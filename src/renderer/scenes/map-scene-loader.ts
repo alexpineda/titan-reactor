@@ -42,7 +42,7 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
   updateWindowTitle(map.title);
 
   useReplayAndMapStore.setState({ map, mapImage: await createMapImage(map) });
-  settingsStore().set({ session: { type: "map", "sandbox": false } });
+  settingsStore().setSession("map");
 
   janitor.mop(() => useReplayAndMapStore.getState().reset(), "reset replayMapStore");
 
@@ -104,5 +104,5 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
       music.stop();
       disposeScene();
     }
-  };;
+  }
 };

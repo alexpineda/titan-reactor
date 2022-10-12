@@ -1,3 +1,6 @@
+import { SessionVariables } from "@core/world/settings-session-store";
+import { WorldEvents } from "@core/world/world-events";
+import { TypeEmitterProxy } from "@utils/type-emitter";
 import type { Vector2, Vector3 } from "three";
 
 export interface PluginPackage {
@@ -54,6 +57,11 @@ export interface NativePlugin {
     config: Record<string, any> | undefined;
 
     init?: () => void;
+
+
+    /** injected values */
+    settings: SessionVariables;
+    events: TypeEmitterProxy<WorldEvents>;
 
     /**
      * Unprocessed configuration data from the package.json.
@@ -145,14 +153,12 @@ export interface UserInputCallbacks {
     onCameraKeyboardUpdate(delta: number, elapsed: number, truck: Vector2): void;
 
     /**
-     * You must return a Vector3 with a position for the audio listener.
+     * An optional override for the position of the audio listener.
      * 
-     * @param delta - Time in milliseconds since last frame
-     * @param elapsed - Time in milliseconds since the game started
      * @param target - Vector3 of the current camera target
      * @param position - Vector 3 of the current camera position
      */
-    onUpdateAudioMixerLocation(delta: number, elapsed: number, target: Vector3, position: Vector3): Vector3;
+    onUpdateAudioMixerLocation(target: Vector3, position: Vector3): Vector3;
 
     /**
      * Updates when the minimap is clicked and dragged.

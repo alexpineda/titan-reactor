@@ -30,6 +30,9 @@ export const createMutationVariable = (operate: (operation: Operation) => void, 
 
     return Object.assign(fn, {
 
+        set: (value: any) => apply(Operator.Set, value),
+        get: () => getValue(path),
+
         /**
          * Increase the value of the property.
          */

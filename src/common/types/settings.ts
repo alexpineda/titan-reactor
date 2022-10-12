@@ -2,45 +2,6 @@ import { LogLevel } from "common/logging";
 import { MacrosDTO } from "common/types";
 import type { PluginMetaData } from "./plugin";
 
-export type SettingsV4 = {
-    version: 4;
-    language: string;
-    directories: {
-        starcraft: string;
-        maps: string;
-        replays: string;
-        assets: string;
-        plugins: string;
-    },
-    assets: {
-        images: "sd" | "hd";
-        terrain: "sd" | "hd";
-    },
-    audio: {
-        global: number;
-        music: number;
-        sound: number;
-    },
-    graphics: {
-        antialias: boolean;
-        pixelRatio: "high" | "med" | "low";
-        anisotropy: "high" | "med" | "low";
-        terrainShadows: boolean;
-    },
-    game: {
-        stopFollowingOnClick: boolean,
-    },
-    util: {
-        sanityCheckReplayCommands: boolean,
-        debugMode: boolean
-    },
-    plugins: {
-        serverPort: number;
-        developmentDirectory?: string;
-        enabled: string[],
-    }
-};
-
 export type SettingsV5 = {
     version: 5;
     language: string;
@@ -92,6 +53,7 @@ export type SettingsV6 = {
     session: {
         type: "replay" | "live" | "map";
         sandbox: boolean;
+        audioListenerDistance: number;
     },
     directories: {
         starcraft: string;

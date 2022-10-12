@@ -5,11 +5,18 @@ import { Janitor } from "three-janitor";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
 import { createDeepStore } from "@stores/deep-store";
-import { createOperatableStore } from "@stores/operatable-store";
+import { createOperatableStore, MutationVariable } from "@stores/operatable-store";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 import { PluginBase } from "@plugins/plugin-base";
 import { SourceOfTruth } from "@stores/source-of-truth";
+
+
+export type PluginVariables = {
+    [K: string]: {
+        [T: string]: MutationVariable | ((...args: any[]) => any);
+    };
+};
 
 /**
  * An api that allows the consumer to modify plugin values and have the system respond.
@@ -81,7 +88,6 @@ export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins:
             if (key !== "system") {
                 const compKey = [plugin.name, key];
                 lSet(acc, compKey, store.createVariable(compKey));
-                lSet(acc, [plugin.name, `get${key[0].toUpperCase() + key.slice(1)}`], () => lGet(acc, compKey));
             }
 
         });

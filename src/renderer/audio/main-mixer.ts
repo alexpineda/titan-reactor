@@ -7,6 +7,7 @@ import gameStore from "@stores/game-store";
 import { Settings } from "common/types";
 const MUSIC_REDUCTION_RATIO = 0.1;
 const _position = new Vector3;
+
 // mixes sound and music volumes
 export class MainMixer {
   intro: GainNode;
@@ -87,10 +88,6 @@ export class MainMixer {
     this.context.listener.positionZ.linearRampToValueAtTime(z, endTime);
   }
 
-  updateFromVector3(v: Vector3, delta: number) {
-    this.update(v.x, v.y, v.z, delta);
-  }
-
   get position() {
     _position.set(this.context.listener.positionX.value, this.context.listener.positionY.value, this.context.listener.positionZ.value);
     return _position;
@@ -105,7 +102,7 @@ export class MainMixer {
       this.context.sampleRate
     );
     for (let channel = 0; channel < arrayBuffer.numberOfChannels; channel++) {
-      let nowBuffering = arrayBuffer.getChannelData(channel);
+      const nowBuffering = arrayBuffer.getChannelData(channel);
       for (let i = 0; i < arrayBuffer.length; i++) {
         nowBuffering[i] = Math.random() * 2 - 1;
       }

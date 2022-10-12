@@ -1,10 +1,9 @@
-import { Settings, SettingsV4, SettingsV5 } from "common/types";
-import { v4Tov5 } from "./v4-v5";
+import { Settings, SettingsV5 } from "common/types";
 import { v5tov6 } from "./v5-v6";
 
-export type PreviousSettings = SettingsV4 | SettingsV5 | Settings;
+export type PreviousSettings = SettingsV5 | Settings;
 
-const migrations: ((settings: PreviousSettings) => PreviousSettings)[] = [v4Tov5, v5tov6];
+const migrations: ((settings: PreviousSettings) => PreviousSettings)[] = [v5tov6];
 
 export const doMigrations = (_settings: PreviousSettings): Settings => {
     let settings = _settings;

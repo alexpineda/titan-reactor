@@ -36,13 +36,12 @@ export const createViewInputComposer = (world: World, { gameSurface }: SurfaceCo
 
     let activating = false;
 
-    let sceneController: WeakRef<SceneController> | null = null;
-    const getSceneController = () => sceneController ? sceneController.deref() : null;
-    const getViewports = () => getSceneController()?.viewports ?? empty;
+    let sceneController: SceneController | null = null;
+    const getViewports = () => sceneController?.viewports ?? empty;
 
     const _target = new Vector3();
     const _position = new Vector3();
-    const _audioPositon = new Vector3();
+    const _audioPosition = new Vector3();
 
     const janitor = new Janitor("ViewInputComposer");
     const inputs = janitor.mop(createInputComposer(world), "inputs");
@@ -75,8 +74,6 @@ export const createViewInputComposer = (world: World, { gameSurface }: SurfaceCo
         },
         update(delta: number, elapsed: number) {
 
-            const sceneController = getSceneController();
-
             if (!sceneController) {
                 inputs.mouse.interrupted = true;
                 return;
@@ -90,12 +87,12 @@ export const createViewInputComposer = (world: World, { gameSurface }: SurfaceCo
 
             sceneController.onCameraKeyboardUpdate && sceneController.onCameraKeyboardUpdate(delta / 100, elapsed, inputs.keyboard.vector);
 
-            if (sceneController?.onUpdateAudioMixerLocation) {
-                sceneController.viewport.orbit.getTarget(_target);
-                sceneController.viewport.orbit.getPosition(_position);
-                _audioPositon.copy(sceneController.onUpdateAudioMixerLocation(delta, elapsed, _target, _position));
-                mixer.updateFromVector3(_audioPositon, delta);
-            }
+            sceneController.viewport.orbit.getTarget(_target);
+            sceneController.viewport.orbit.getPosition(_position);
+
+            _audioPosition.copy(sceneController.onUpdateAudioMixerLocation(_target, _position));
+
+            mixer.update(_audioPosition.x, _audioPosition.y, _audioPosition.z, delta);
 
             for (const viewport of this.activeViewports()) {
 
@@ -116,7 +113,7 @@ export const createViewInputComposer = (world: World, { gameSurface }: SurfaceCo
         },
 
         get getSceneController() {
-            return getSceneController();
+            return sceneController;
         },
 
         deactivate() {
@@ -143,15 +140,11 @@ export const createViewInputComposer = (world: World, { gameSurface }: SurfaceCo
 
         get audio(): SceneInputHandler["gameOptions"]["audio"] | null {
 
-            const sceneController = getSceneController();
-
             return sceneController?.gameOptions?.audio ?? null;
 
         },
 
         onMinimapDragUpdate(...args: Parameters<UserInputCallbacks["onMinimapDragUpdate"]>) {
-
-            const sceneController = getSceneController();
 
             sceneController?.onMinimapDragUpdate && sceneController.onMinimapDragUpdate(...args);
         },
@@ -170,12 +163,11 @@ export const createViewInputComposer = (world: World, { gameSurface }: SurfaceCo
             }
             activating = true;
             let prevData: any = firstRunData ?? this.generatePrevData();
-            const prevSceneController = getSceneController();
 
-            if (prevSceneController?.onExitScene) {
+            if (sceneController?.onExitScene) {
                 try {
-                    world.events.emit("scene-controller-exit", prevSceneController?.name);
-                    prevData = prevSceneController.onExitScene!(prevData);
+                    world.events.emit("scene-controller-exit", sceneController?.name);
+                    prevData = sceneController.onExitScene!(prevData);
                 } catch (e) {
                     log.error(e);
                 }
@@ -199,7 +191,7 @@ export const createViewInputComposer = (world: World, { gameSurface }: SurfaceCo
             }
 
             await newController.onEnterScene(prevData);
-            sceneController = new WeakRef(newController);
+            sceneController = newController;
 
             world.events.emit("scene-controller-enter", newController.name);
 

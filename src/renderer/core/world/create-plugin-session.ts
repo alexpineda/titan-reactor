@@ -15,6 +15,7 @@ import { globalEvents } from "@core/global-events";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
+
 export const createPluginSession = async (openBW: OpenBW) => {
 
     const janitor = new Janitor("PluginSession");

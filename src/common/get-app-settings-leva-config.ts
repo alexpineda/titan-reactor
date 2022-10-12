@@ -74,6 +74,14 @@ const getGlobalConfig = (config: SettingsMeta["data"]["session"]): GlobalConfig 
         label: "Sandbox Game Mode",
         value: config.sandbox,
         hidden: true,
+    },
+    "session.audioListenerDistance": {
+        label: "Audio Listener Distance",
+        value: config.audioListenerDistance,
+        min: 0,
+        max: 1,
+        step: 0.01,
+        hidden: true
     }
 });
 
