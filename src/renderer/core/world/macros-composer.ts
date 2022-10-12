@@ -55,12 +55,20 @@ export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings:
 
             const container = createCompartment(api);
 
+            const actions = new WeakMap<MacroAction, () => void>();
+
             targets.setHandler(":function", {
                 action: (action, context) => {
                     container.globalThis.context = context;
 
                     try {
-                        container.globalThis.Function(action.value)();
+                        if (actions.has(action)) {
+                            actions.get(action)!();
+                        } else {
+                            const fn = container.globalThis.Function(action.value);
+                            actions.set(action, fn);
+                            fn();
+                        }
                     } catch (e) {
                         log.error(`Error executing macro action: ${e}`);
                     }
