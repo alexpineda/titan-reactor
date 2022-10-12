@@ -25,7 +25,7 @@ import { createPlayersGameTimeApi } from "./players-api";
 import { World } from "./world";
 import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/iterable-set";
-import { Borrowed } from "@utils/object-utils";
+import { borrow, Borrowed } from "@utils/object-utils";
 import { getJanitorLogLevel } from "@core/global";
 import { getMapTiles } from "@utils/chk-utils";
 import { ImageBase } from "..";
@@ -34,65 +34,67 @@ export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
 
 // Primarily concerned about converting OpenBW state to three objects and animations
-export const createSceneComposer = async (world: Borrowed<World>, assets: Assets) => {
+export const createSceneComposer = async (world: World, assets: Assets) => {
 
     const janitor = new Janitor("SceneComposer");
 
     const { terrain, ...terrainExtra } = janitor.mop(await terrainComposer(
-        ...world.map!.size, world.map!.tileset, getMapTiles(world.map!), UnitTileScale.HD,
+        ...world.map.size, world.map.tileset, getMapTiles(world.map), UnitTileScale.HD,
     ), "terrain");
 
-    const pxToWorld = makePxToWorld(...world.map!.size, terrain.getTerrainY);
+    const pxToWorld = makePxToWorld(...world.map.size, terrain.getTerrainY);
 
-    const players = new Players(world.players!);
+    const players = new Players(world.players);
 
     const startLocations =
-        world.map!.units.filter((u) => u.unitId === unitTypes.startLocation)
+        world.map.units.filter((u) => u.unitId === unitTypes.startLocation)
             .map(location => pxToWorld.xyz(location.x, location.y, new Vector3()));
 
     const playerStartLocations =
-        world.map!.units.filter((u) => u.unitId === unitTypes.startLocation && world.players!.find((p) => p.id === u.player))
+        world.map.units.filter((u) => u.unitId === unitTypes.startLocation && world.players.find((p) => p.id === u.player))
             .map(location => pxToWorld.xyz(location.x, location.y, new Vector3()));
 
     const getPlayerColor = (playerId: number) => players.get(playerId)?.color ?? white;
 
+    const _world = borrow(world);
+
     const units = new UnitEntities();
-    units.externalOnClearUnits = () => world.events!.emit("units-cleared");
-    units.externalOnCreateUnit = (unit) => world.events!.emit("unit-created", unit);
+    units.externalOnClearUnits = () => _world.events!.emit("units-cleared");
+    units.externalOnCreateUnit = (unit) => _world.events!.emit("unit-created", unit);
 
-    world.openBW!.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.texture.image.width, terrainExtra.heightMaps.texture.image.height);
+    world.openBW.uploadHeightMap(terrainExtra.heightMaps.singleChannel, terrainExtra.heightMaps.texture.image.width, terrainExtra.heightMaps.texture.image.height);
 
-    const scene = janitor.mop(new BaseScene(...world.map!.size, terrain, assets.skyBox, assets.envMap), "scene");
+    const scene = janitor.mop(new BaseScene(...world.map.size, terrain, assets.skyBox, assets.envMap), "scene");
     const sprites = janitor.mop(new SpriteEntities(), "sprites");
     const images = janitor.mop(new ImageEntities(), "images");
-    images.onCreateImage = (image) => world.events!.emit("image-created", image);
-    images.onFreeImage = (image) => world.events!.emit("image-destroyed", image);
+    images.onCreateImage = (image) => _world.events!.emit("image-created", image);
+    images.onFreeImage = (image) => _world.events!.emit("image-destroyed", image);
 
     scene.add(sprites.group);
 
-    const followedUnits = new IterableSet<Unit>((units) => world.events!.emit("followed-units-changed", units));
-    const selectedUnits = new IterableSet<Unit>((units) => world.events!.emit("selected-units-changed", units));
+    const followedUnits = new IterableSet<Unit>((units) => _world.events!.emit("followed-units-changed", units));
+    const selectedUnits = new IterableSet<Unit>((units) => _world.events!.emit("selected-units-changed", units));
 
-    world.events!.on("box-selection-end", units => {
+    world.events.on("box-selection-end", units => {
         selectedUnits.set(units);
     })
 
-    world.events!.on("units-cleared", () => {
+    world.events.on("units-cleared", () => {
         selectedUnits.clear();
         followedUnits.clear();
     });
 
-    world.events!.on("unit-killed", (unit) => {
+    world.events.on("unit-killed", (unit) => {
         selectedUnits.delete(unit);
         followedUnits.delete(unit);
     });
 
-    world.events!.on("unit-destroyed", (unit) => {
+    world.events.on("unit-destroyed", (unit) => {
         selectedUnits.delete(unit);
         followedUnits.delete(unit);
     });
 
-    world.events!.on("frame-reset", () => {
+    world.events.on("frame-reset", () => {
         images.clear();
         sprites.clear();
         units.clear();
@@ -106,7 +108,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         }
     }
 
-    const unitsBufferViewIterator = new UnitsBufferViewIterator(world.openBW!);
+    const unitsBufferViewIterator = new UnitsBufferViewIterator(world.openBW);
 
     const buildUnit = (unitData: UnitsBufferView) => {
         const unit = units.getOrCreate(unitData);
@@ -135,8 +137,8 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
     let unit: Unit | undefined;
 
-    const spritesIterator = new SpritesBufferViewIterator(world.openBW!);
-    const imageBufferView = new ImageBufferView(world.openBW!);
+    const spritesIterator = new SpritesBufferViewIterator(world.openBW);
+    const imageBufferView = new ImageBufferView(world.openBW);
 
     let _spriteY = 0;
 
@@ -153,7 +155,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         sprite.visible = !spriteIsHidden(spriteData) && (
             spriteData.owner === 11 ||
             imageIsDoodad(dat.image) ||
-            world.fogOfWar!.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y)));
+            world.fogOfWar.isSomewhatVisible(floor32(spriteData.x), floor32(spriteData.y)));
 
         sprite.renderOrder = renderMode3D ? 0 : spriteSortOrder(spriteData);
 
@@ -218,7 +220,7 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
 
             if (imageData.index === spriteData.mainImageIndex) {
 
-                simpleIndex[`${Math.floor(sprite.position.x / world.map!.size[0] * 4)}${Math.floor(sprite.position.z / world.map!.size[1] * 4)}`].push(image);
+                simpleIndex[`${Math.floor(sprite.position.x / world.map.size[0] * 4)}${Math.floor(sprite.position.z / world.map.size[1] * 4)}`].push(image);
 
                 sprite.userData.mainImage = image;
 
@@ -255,14 +257,14 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
                 image.updateMatrix();
             }
 
-            world.events!.emit("image-updated", image);
+            world.events.emit("image-updated", image);
 
             imageCounter++;
         }
 
     }
 
-    world.events!.on("dispose", () => {
+    world.events.on("dispose", () => {
         if (Janitor.logLevel === JanitorLogLevel.Debug) {
             Janitor.logLevel = JanitorLogLevel.Verbose;
         }
@@ -288,23 +290,23 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         getPlayerColor,
         onFrame(delta: number, renderMode3D: boolean, direction: number) {
 
-            world.fogOfWar!.onFrame(players.getVisionFlag());
+            world.fogOfWar.onFrame(players.getVisionFlag());
 
             terrain.userData.update(delta);
 
-            for (const unitId of killedUnitIterator(world.openBW!)) {
+            for (const unitId of killedUnitIterator(world.openBW)) {
                 unit = units.get(unitId);
                 if (unit) {
                     units.free(unit);
-                    world.events!.emit("unit-killed", unit);
+                    world.events.emit("unit-killed", unit);
                 }
             }
 
-            for (const unitId of destroyedUnitsIterator(world.openBW!)) {
+            for (const unitId of destroyedUnitsIterator(world.openBW)) {
                 unit = units.get(unitId);
                 if (unit) {
                     units.free(unit);
-                    world.events!.emit("unit-destroyed", unit);
+                    world.events.emit("unit-destroyed", unit);
                 }
             }
 
@@ -312,11 +314,11 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
                 buildUnit(unit);
             }
 
-            for (const spriteIndex of deletedSpritesIterator(world.openBW!)) {
+            for (const spriteIndex of deletedSpritesIterator(world.openBW)) {
                 sprites.free(spriteIndex);
             }
 
-            for (const imageIndex of deletedImageIterator(world.openBW!)) {
+            for (const imageIndex of deletedImageIterator(world.openBW)) {
                 images.free(imageIndex);
             }
 
@@ -336,10 +338,13 @@ export const createSceneComposer = async (world: Borrowed<World>, assets: Assets
         resetImageCache() {
             images.dispose();
         },
-        sceneGameTimeApi: {
-            ...createPlayersGameTimeApi(players, world.players!, world.fogOfWar!),
+        api: ((
+            _players: WeakRef<typeof players>,
+            _world: Borrowed<World>,
+        ) => ({
+            ...createPlayersGameTimeApi(_players, _world),
             pxToWorld,
             scene
-        }
+        }))(new WeakRef(players), borrow(world))
     })
 }

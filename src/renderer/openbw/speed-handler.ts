@@ -7,7 +7,8 @@ export enum SpeedDirection {
 
 export const REPLAY_MIN_SPEED = 0.25;
 export const REPLAY_MAX_SPEED = 16;
-export const speedHandler = (direction: SpeedDirection, openBW: OpenBW) => {
+export const speedHandler = (direction: SpeedDirection, _openBW: WeakRef<OpenBW>) => {
+    const openBW = _openBW.deref()!;
     const currentSpeed = openBW.getGameSpeed();
     let newSpeed = 0;
 

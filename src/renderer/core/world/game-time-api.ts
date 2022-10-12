@@ -8,7 +8,7 @@ import { Color } from "three";
 import { createSandboxApi } from "@openbw/sandbox-api";
 
 export interface GameTimeApi {
-    sandboxApi: ReturnType<typeof createSandboxApi> | undefined,
+    sandboxApi: ReturnType<typeof createSandboxApi>,
     viewport: GameViewPort;
     secondViewport: GameViewPort
     simpleMessage(message: string): void;
@@ -21,11 +21,11 @@ export interface GameTimeApi {
     speedUp(): number;
     speedDown(): number;
     togglePause(setPaused?: boolean): boolean;
-    readonly gameSpeed: number;
+    getGameSpeed(): number;
     setGameSpeed(speed: number): void;
     refreshScene(): void;
     pxToWorld: PxToWorld;
-    readonly currentFrame: number;
+    getCurrentFrame(): number;
     gotoFrame(frame: number): void;
     exitScene(): void;
     setPlayerColors(colors: string[]): void;
@@ -36,6 +36,6 @@ export interface GameTimeApi {
     getPlayers(): BasePlayer[];
     playSound(typeId: number, volumeOrX?: number, y?: number, unitTypeId?: number): void;
     togglePointerLock(val: boolean): void;
-    readonly pointerLockLost: boolean;
+    isPointerLockLost(): boolean;
     changeRenderMode(renderMode3D: boolean): void
 }

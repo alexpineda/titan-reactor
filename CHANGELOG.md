@@ -8,7 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 - Exposed default enabled/disabled switch for macros
-- Game & sandbox modes for conditional testing
+- Game & sandbox modes for macro condition testing
+- Unlimited folders for macros
+- Improved default macros
+- Hover cursor over units, like in the game
+- Selection circles around 3d models - initial version
+
+## Fixed
+- Several small optimizations
 
 
 ## [0.6.5]

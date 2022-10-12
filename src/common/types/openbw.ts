@@ -134,4 +134,4 @@ export interface OpenBW extends OpenBWWasm {
 
     setUnitLimits: (unitLimits: number) => void;
 
-};
+}

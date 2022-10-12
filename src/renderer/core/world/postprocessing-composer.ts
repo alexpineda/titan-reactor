@@ -15,7 +15,6 @@ import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
-import { Borrowed } from "@utils/object-utils";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
@@ -23,7 +22,7 @@ const ignoreCastShadow = [347, 349, 351];
 
 export type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
 
-export const createPostProcessingComposer = (world: Borrowed<World>, { scene, images, sprites, terrain }: SceneComposer, viewportsComposer: ViewInputComposer, assets: Assets) => {
+export const createPostProcessingComposer = (world: World, { scene, images, sprites, terrain }: SceneComposer, viewportsComposer: ViewInputComposer, assets: Assets) => {
     const janitor = new Janitor("PostProcessingComposer");
 
     const postProcessingBundle = janitor.mop(
@@ -31,7 +30,7 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
             new PerspectiveCamera,
             scene,
             settingsStore().data.postprocessing,
-            world.fogOfWarEffect!),
+            world.fogOfWarEffect),
         "postProcessingBundle"
     );
 
@@ -69,7 +68,7 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
 
     }
 
-    world.events!.on("image-destroyed", (image) => {
+    world.events.on("image-destroyed", (image) => {
 
         if (postProcessingBundle.debugSelection) {
 
@@ -91,7 +90,7 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
 
     }
 
-    world.events!.on("image-created", (image) => {
+    world.events.on("image-created", (image) => {
 
         addToBloom(image);
 
@@ -108,7 +107,7 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
 
     const changeRenderMode = (renderMode3D: boolean) => {
 
-        const postprocessing = renderMode3D ? world.settings!.getState().postprocessing3d : world.settings!.getState().postprocessing;
+        const postprocessing = renderMode3D ? world.settings.getState().postprocessing3d : world.settings.getState().postprocessing;
 
         terrain.setTerrainQuality(renderMode3D, postprocessing.anisotropy);
         scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
@@ -119,8 +118,8 @@ export const createPostProcessingComposer = (world: Borrowed<World>, { scene, im
     }
 
     const _target = new Vector3();
-    const spritesIterator = new SpritesBufferViewIterator(world.openBW!);
-    const imageBufferView = new ImageBufferView(world.openBW!);
+    const spritesIterator = new SpritesBufferViewIterator(world.openBW);
+    const imageBufferView = new ImageBufferView(world.openBW);
 
     world.events!.on("dispose", () => janitor.dispose());
 

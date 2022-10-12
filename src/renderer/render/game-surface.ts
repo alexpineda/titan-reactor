@@ -75,7 +75,7 @@ export class GameSurface extends Surface {
 
   }
 
-  get pointerLockLost() {
+  isPointerLockLost() {
     return this.#shouldHavePointerLock && document.pointerLockElement !== this.canvas;
   }
 

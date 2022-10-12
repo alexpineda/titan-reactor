@@ -2,16 +2,15 @@ import GameSurface from "@render/game-surface";
 import { renderComposer } from "@render/render-composer";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
-import { Borrowed } from "@utils/object-utils";
 import debounce from "lodash.debounce";
 import { World } from "./world";
 
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
-export const createSurfaceComposer = (world: Borrowed<World>) => {
+export const createSurfaceComposer = (world: World) => {
 
     const janitor = new Janitor("SurfaceComposer");
-    const gameSurface = janitor.mop(new GameSurface(...world.map!.size, renderComposer.getWebGLRenderer().domElement), "GameSurface");
+    const gameSurface = janitor.mop(new GameSurface(...world.map.size, renderComposer.getWebGLRenderer().domElement), "GameSurface");
 
     gameSurface.canvas.style.cursor = "none";
     gameSurface.setDimensions(window.innerWidth, window.innerHeight, settingsStore().data.graphics.pixelRatio);
@@ -25,7 +24,7 @@ export const createSurfaceComposer = (world: Borrowed<World>) => {
 
         renderComposer.setSize(gameSurface.bufferWidth, gameSurface.bufferHeight);
 
-        world.events!.emit("resize", gameSurface);
+        world.events.emit("resize", gameSurface);
 
     };
 
@@ -58,31 +57,30 @@ export const createSurfaceComposer = (world: Borrowed<World>) => {
 
     }), "useSettingsStore.subscribe");
 
-    const surfaceRef = new WeakRef(gameSurface);
-
-    world.events!.on("dispose", () => {
+    world.events.on("dispose", () => {
         janitor.dispose();
     })
 
     return {
         gameSurface,
         resize,
-        //TODO should each api surface have a dispose?
-        surfaceGameTimeApi: {
+        // api: borrow(gameSurface, { keys: ["togglePointerLock", "isPointerLockLost"]})
+        
+        api: ((surfaceRef: WeakRef<typeof gameSurface>) => ({
             togglePointerLock: (val: boolean) => {
                 const surface = surfaceRef.deref();
                 if (surface) {
                     surface.togglePointerLock(val);
                 }
             },
-            get pointerLockLost() {
+            isPointerLockLost() {
                 const surface = surfaceRef.deref();
                 if (surface) {
-                    return surface.pointerLockLost;
+                    return surface.isPointerLockLost();
                 }
                 return false;
             },
-        }
+        }))(new WeakRef(gameSurface))
 
     }
 

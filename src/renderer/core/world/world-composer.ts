@@ -57,18 +57,16 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
     }
     let frameResetRequested = false;
 
-    const _world = borrow(world, { refRoot: false });
+    const gameLoopComposer = createGameLoopComposer(world);
+    const surfaceComposer = createSurfaceComposer(world);
+    const sceneComposer = await createSceneComposer(world, assets);
+    const commandsComposer = createCommandsComposer(world, commands);
+    const viewInputComposer = createViewInputComposer(world, surfaceComposer);
+    const sandboxApi = createSandboxApi(world, sceneComposer.pxToWorldInverse);
+    const openBwComposer = createOpenBWComposer(world, sceneComposer, viewInputComposer);
 
-    const gameLoopComposer = createGameLoopComposer(_world);
-    const surfaceComposer = createSurfaceComposer(_world);
-    const sceneComposer = await createSceneComposer(_world, assets);
-    const commandsComposer = createCommandsComposer(_world, commands);
-    const viewInputComposer = createViewInputComposer(_world, borrow(surfaceComposer));
-    const sandboxApi = createSandboxApi(_world, sceneComposer.pxToWorldInverse);
-    const openBwComposer = createOpenBWComposer(_world, borrow(sceneComposer), borrow(viewInputComposer));
-
-    const postProcessingComposer = createPostProcessingComposer(_world, sceneComposer, viewInputComposer, assets);
-    const overlayComposer = createOverlayComposer(_world, sceneComposer, borrow(surfaceComposer), borrow(viewInputComposer), postProcessingComposer, assets);
+    const postProcessingComposer = createPostProcessingComposer(world, sceneComposer, viewInputComposer, assets);
+    const overlayComposer = createOverlayComposer(world, sceneComposer, borrow(surfaceComposer), viewInputComposer, postProcessingComposer, assets);
 
     events.on("settings-changed", ({ settings }) => mixer.setVolumes(settings.audio));
 
@@ -145,12 +143,14 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         },
 
     },
-        surfaceComposer.surfaceGameTimeApi,
-        sceneComposer.sceneGameTimeApi,
-        openBwComposer.openBWGameTimeApi,
-        viewInputComposer.viewportsGameTimeApi) as GameTimeApi;
+        surfaceComposer.api,
+        sceneComposer.api,
+        openBwComposer.api,
+        viewInputComposer.api) as GameTimeApi;
 
     return {
+
+        world,
 
         // binding stuff we can' t do before hand
         init() {

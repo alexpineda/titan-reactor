@@ -7,7 +7,7 @@ import set from "lodash.set";
 import get from "lodash.get";
 
 // https://zellwk.com/blog/copy-properties-of-one-object-to-another-object/
-export function mix(dest: {}, ...sources: {}[]) {
+export function mix(dest: any, ...sources: any[]) {
     for (const source of sources) {
         const props = Object.keys(source)
         for (const prop of props) {
@@ -22,18 +22,18 @@ export function mix(dest: {}, ...sources: {}[]) {
     return dest;
 }
 
-export type Borrowed<T> = { [key in keyof T]: T[key] | undefined };
+export type Borrowed<T extends Record<any, object>, TKeepRefs extends boolean = false> = { [key in keyof T]: TKeepRefs extends true ? WeakRef<T[key]> : (T[key] | undefined) };
 
-function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string, result: any, retainGetters: boolean) {
+function borrowProperty<T extends boolean>(descriptor: PropertyDescriptor, source: any, key: string, opts: BorrowOptions<T> ) {
 
 
     if (descriptor.get) {
 
         // danger zone 
-        if (retainGetters) {
+        if (opts.retainGetters) {
 
             try {
-                Object.defineProperty(result, key, {
+                Object.defineProperty(opts.target, key, {
                     enumerable: true,
                     configurable: false,
                     get: () => descriptor.get!()
@@ -56,12 +56,13 @@ function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string
     } else if (descriptor.value !== undefined) {
 
         try {
-            const ref = new WeakRef(source[key]);
+            const ref = weak(source[key]);
+            const get= opts.retainRefs ? () => ref : () => ref.deref();
 
-            Object.defineProperty(result, key, {
+            Object.defineProperty(opts.target, key, {
                 enumerable: true,
                 configurable: false,
-                get: () => ref.deref(),
+                get
             });
 
 
@@ -74,24 +75,30 @@ function borrowProperty(descriptor: PropertyDescriptor, source: any, key: string
     return true;
 }
 
-type BorrowOptions = {
+type BorrowOptions<TKeepRefs extends boolean = false> = {
     target?: unknown,
     refRoot?: boolean,
-    retainGetters?: boolean
+    retainGetters?: boolean,
+    retainRefs?: TKeepRefs,
+    keys?: string[],
 }
 
 // Utility function for creating WeakRefs
-export function borrow<T extends object>(source: T, userOptions: BorrowOptions = {}): Borrowed<T> {
+export function borrow<T extends Record<keyof T, object>, TKeepRefs extends boolean = false>(source: T, userOptions: BorrowOptions<TKeepRefs> = {}): Borrowed<T, TKeepRefs> {
 
-    const { target, refRoot, retainGetters } = { target: {}, refRoot: true, retainGetters: false, ...userOptions };
+    const opts = { target: {}, refRoot: true, retainGetters: false, retainRefs: false, ...userOptions };
 
-    if (refRoot) {
+    if (opts.refRoot && opts.retainRefs === false) {
 
-        const ref = new WeakRef(source);
+        const ref = weak(source);
 
         for (const key in source) {
 
-            Object.defineProperty(target, key, {
+            if (opts.keys && opts.keys.includes(key) === false) {
+                continue;
+            }
+
+            Object.defineProperty(opts.target, key, {
                 enumerable: true,
                 configurable: false,
                 get: () => ref.deref()?.[key]
@@ -103,11 +110,15 @@ export function borrow<T extends object>(source: T, userOptions: BorrowOptions =
 
         for (const key in source) {
 
+            if (opts.keys && opts.keys.includes(key) === false) {
+                continue;
+            }
+
             const descriptor = getPropertyDescriptor(source, key);
 
             if (descriptor) {
 
-                borrowProperty(descriptor, source, key, target, retainGetters);
+                borrowProperty(descriptor, source, key, opts);
 
             }
 
@@ -115,7 +126,7 @@ export function borrow<T extends object>(source: T, userOptions: BorrowOptions =
 
     }
 
-    return target as Borrowed<T>;
+    return opts.target as Borrowed<T, TKeepRefs>;
 
 }
 
@@ -126,10 +137,16 @@ export function weak<T extends object>(o: T) {
 export type Exposed<T extends object, K extends keyof T> = { [key in K]: T[K] };
 
 export type ExposeOptions = {
+    /**
+     * Whether the getter fetches the property dynamically or at definition time. 
+     * Default is false (dynamic).
+     */
     asValues: boolean;
 }
 
-// expose only keys, including prototype chain
+/*
+ * Pick object keys, including prototype chain
+*/
 export function expose<T extends object, K extends keyof T>(source: T, keys: K[], { asValues }: ExposeOptions = { asValues: false }): Pick<T, K> {
 
     const result = {} as Pick<T, K>;

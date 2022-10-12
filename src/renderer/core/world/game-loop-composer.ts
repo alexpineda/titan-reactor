@@ -1,9 +1,8 @@
 import { log } from "@ipc/log";
 import { renderComposer } from "@render/render-composer";
-import { Borrowed } from "@utils/object-utils";
 import { World } from "./world";
 
-export const createGameLoopComposer = (world: Borrowed<World>) => {
+export const createGameLoopComposer = (world: World) => {
 
     let delta = 0;
     let lastElapsed = 0;
@@ -18,7 +17,7 @@ export const createGameLoopComposer = (world: Borrowed<World>) => {
 
     };
 
-    world.events!.on("dispose", () => {
+    world.events.on("dispose", () => {
         log.debug("dispose game loop");
         renderComposer.getWebGLRenderer().setAnimationLoop(null);
     })

@@ -1,6 +1,6 @@
 import { UnitsBufferView } from "@buffer-view/units-buffer-view";
 import { World } from "@core/world/world";
-import { Borrowed } from "@utils/object-utils";
+import { borrow } from "@utils/object-utils";
 import { UnitStruct } from "common/types";
 import { PxToWorld } from "common/utils/conversions";
 
@@ -13,7 +13,9 @@ const identityPxToWorld: PxToWorld = {
 
 export type SandboxAPI = ReturnType<typeof createSandboxApi>;
 
-export const createSandboxApi = (world: Borrowed<World>, pxToWorldInverse: PxToWorld) => {
+export const createSandboxApi = (_world: World, pxToWorldInverse: PxToWorld) => {
+
+    const world = borrow(_world);
 
     const sandBoxBufferViews = {
         units: new UnitsBufferView(world.openBW!)
@@ -42,7 +44,6 @@ export const createSandboxApi = (world: Borrowed<World>, pxToWorldInverse: PxToW
                 return null;
             }
 
-            console.log(unitTypeId, playerId, coords().x(x), coords().y(y));
             const unitAddress = world.openBW!._create_unit(unitTypeId, playerId, coords().x(x), coords().y(y));
             if (unitAddress === 0) {
 
@@ -77,7 +78,7 @@ export const createSandboxApi = (world: Borrowed<World>, pxToWorldInverse: PxToW
 
         },
 
-        orderUnitAttackMove(unitOrId: UnitStruct | number, targetUnitOrId?: UnitStruct | number | null, x: number = 0, y: number = 0) {
+        orderUnitAttackMove(unitOrId: UnitStruct | number, targetUnitOrId?: UnitStruct | number | null, x = 0, y = 0) {
 
             if (sandboxGaurd()) {
                 return;
@@ -87,7 +88,7 @@ export const createSandboxApi = (world: Borrowed<World>, pxToWorldInverse: PxToW
 
         },
 
-        orderUnitAttackUnit(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x: number = 0, y: number = 0) {
+        orderUnitAttackUnit(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x = 0, y = 0) {
 
             if (sandboxGaurd()) {
                 return;
@@ -97,7 +98,7 @@ export const createSandboxApi = (world: Borrowed<World>, pxToWorldInverse: PxToW
 
         },
 
-        orderUnitMove(unitOrId: UnitStruct | number, x: number = 0, y: number = 0) {
+        orderUnitMove(unitOrId: UnitStruct | number, x = 0, y = 0) {
 
             if (sandboxGaurd()) {
                 return;
@@ -127,7 +128,7 @@ export const createSandboxApi = (world: Borrowed<World>, pxToWorldInverse: PxToW
 
         },
 
-        orderUnitRightClick(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x: number = 0, y: number = 0) {
+        orderUnitRightClick(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x = 0, y = 0) {
 
             if (sandboxGaurd()) {
                 return;

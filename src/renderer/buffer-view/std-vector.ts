@@ -7,6 +7,7 @@ export class StdVector<T extends TypedArray> {
     address: number;
     #shift = 0;
 
+    
     constructor(heap: T, address: number) {
         this.heap = heap;
 

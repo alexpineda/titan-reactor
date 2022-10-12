@@ -1,12 +1,12 @@
 import { MouseInput } from "@input/mouse-input";
 import { ArrowKeyInput } from "@input/arrow-key-input";
 import { Janitor } from "three-janitor";
-import { Borrowed, expose } from "@utils/object-utils";
+import { expose } from "@utils/object-utils";
 import { World } from "./world";
 
 export type InputComposer = ReturnType<typeof createInputComposer>;
 
-export const createInputComposer = (world: Borrowed<World>) => {
+export const createInputComposer = (world: World) => {
 
     const janitor = new Janitor("InputComposer");
     const mouseInput = janitor.mop(new MouseInput(document.body), "mouseInput");
@@ -21,7 +21,7 @@ export const createInputComposer = (world: Borrowed<World>) => {
         },
         update() {
             if (this.mouse.clicked) {
-                if (world.events!.emit("mouse-click", this.mouse.event) === false) {
+                if (world.events.emit("mouse-click", this.mouse.event) === false) {
                     this.mouse.interrupted = true;
                 }
             }
@@ -30,7 +30,7 @@ export const createInputComposer = (world: Borrowed<World>) => {
             mouseInput.reset();
         },
         dispose: () => janitor.dispose(),
-        inputGameTimeApi: {
+        api: {
             mouse: expose(mouseInput, ["mouseScrollY", "screenDrag", "lookAt", "move", "modifiers", "clientX", "clientY", "clicked"], { asValues: false }),
             // get followedUnitsPosition() {
             //   if (!hasFollowedUnits()) {

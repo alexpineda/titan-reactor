@@ -2,7 +2,6 @@ import { mixer } from "@core/global";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import { log } from "@ipc/log";
 import { Janitor } from "three-janitor";
-import { Borrowed } from "@utils/object-utils";
 import { DamageType, Explosion } from "common/enums";
 import { SceneInputHandler, UserInputCallbacks } from "common/types";
 import { Vector3 } from "three";
@@ -33,7 +32,7 @@ const empty: GameViewPort[] = [];
 
 export type ViewInputComposer = ReturnType<typeof createViewInputComposer>;
 
-export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }: Borrowed<SurfaceComposer>) => {
+export const createViewInputComposer = (world: World, { gameSurface }: SurfaceComposer) => {
 
     let activating = false;
 
@@ -48,7 +47,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
     const janitor = new Janitor("ViewInputComposer");
     const inputs = janitor.mop(createInputComposer(world), "inputs");
 
-    world.events!.on("resize", (surface) => {
+    world.events.on("resize", (surface) => {
         for (const viewport of getViewports()) {
             viewport.width = surface.bufferWidth;
             viewport.height = surface.bufferHeight;
@@ -56,13 +55,13 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
         }
     });
 
-    world.events!.on("dispose", () => {
+    world.events.on("dispose", () => {
         janitor.dispose();
     });
 
     return {
         inputs,
-        viewportsGameTimeApi: {
+        api: {
             get viewport() {
                 return getViewports()[0];
             },
@@ -72,7 +71,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             changeRenderMode(renderMode3D?: boolean) {
                 getViewports()[0]!.renderMode3D = renderMode3D ?? !getViewports()[0]!.renderMode3D;
             },
-            ...inputs.inputGameTimeApi,
+            ...inputs.api,
         },
         update(delta: number, elapsed: number) {
 
@@ -175,7 +174,7 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
 
             if (prevSceneController?.onExitScene) {
                 try {
-                    world.events!.emit("scene-controller-exit", prevSceneController?.name);
+                    world.events.emit("scene-controller-exit", prevSceneController?.name);
                     prevData = prevSceneController.onExitScene!(prevData);
                 } catch (e) {
                     log.error(e);
@@ -183,26 +182,26 @@ export const createViewInputComposer = (world: Borrowed<World>, { gameSurface }:
             }
 
             sceneController = null;
-            gameSurface!.togglePointerLock(false);
+            gameSurface.togglePointerLock(false);
 
             if (newController.viewports.length === 0) {
                 newController.viewports = [
-                    new GameViewPort(gameSurface!, true),
-                    new GameViewPort(gameSurface!, false),
+                    new GameViewPort(gameSurface, true),
+                    new GameViewPort(gameSurface, false),
                 ]
             }
 
             for (const viewport of newController.viewports) {
                 viewport.reset();
-                viewport.width = gameSurface!.bufferWidth;
-                viewport.height = gameSurface!.bufferHeight;
-                viewport.aspect = gameSurface!.aspect;
+                viewport.width = gameSurface.bufferWidth;
+                viewport.height = gameSurface.bufferHeight;
+                viewport.aspect = gameSurface.aspect;
             }
 
             await newController.onEnterScene(prevData);
             sceneController = new WeakRef(newController);
 
-            world.events!.emit("scene-controller-enter", newController.name);
+            world.events.emit("scene-controller-enter", newController.name);
 
             activating = false;
         },

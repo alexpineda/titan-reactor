@@ -17,7 +17,7 @@ import { canSelectUnit } from "@utils/unit-utils";
 import { Unit } from "@core/unit";
 import { VisualSelectionBox } from "@input/mouse-selection-box";
 import { Janitor } from "three-janitor";
-import { Borrowed } from "@utils/object-utils";
+import { borrow, Borrowed } from "@utils/object-utils";
 import { SurfaceComposer } from "./surface-composer";
 import { PostProcessingComposer } from "./postprocessing-composer";
 
@@ -37,23 +37,25 @@ const _getSelectionUnit = (images: SceneComposer["images"]) => (object: Object3D
 
 };
 
-export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene, simpleIndex }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: Borrowed<ViewInputComposer>, post: PostProcessingComposer, assets: Assets) => {
+export const createOverlayComposer = (world: World, { terrainExtra, getPlayerColor, images, units, sprites, selectedUnits, scene, simpleIndex }: SceneComposer, surfaces: Borrowed<SurfaceComposer>, views: ViewInputComposer, post: PostProcessingComposer, assets: Assets) => {
 
     const janitor = new Janitor("OverlayComposer");
 
-    const unitSelectionBox = createUnitSelectionBox(world, views.inputs!.mouse, scene, simpleIndex, _getSelectionUnit(images));
+    const b_world = borrow(world);
+
+    const unitSelectionBox = createUnitSelectionBox(b_world, views.inputs!.mouse, scene, simpleIndex, _getSelectionUnit(images));
     const selectionDisplayComposer = createSelectionDisplayComposer(assets);
     scene.add(...selectionDisplayComposer.objects);
 
     const visualBox = janitor.mop(new VisualSelectionBox("#00cc00"), "visualBox");
 
-    world.events!.on("box-selection-start", () => visualBox.start(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
+    world.events.on("box-selection-start", () => visualBox.start(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
 
-    world.events!.on("box-selection-move", () => visualBox.end(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
+    world.events.on("box-selection-move", () => visualBox.end(views.inputs!.mouse.clientX, views.inputs!.mouse.clientY));
 
-    world.events!.on("box-selection-end", () => visualBox.clear());
+    world.events.on("box-selection-end", () => visualBox.clear());
 
-    world.events!.on("box-selection-enabled", (value) => visualBox.enabled = value);
+    world.events.on("box-selection-enabled", (value) => visualBox.enabled = value);
 
     const cursorMaterial = new CursorMaterial(assets);
     const cursorGraphics = new Mesh(new PlaneGeometry(1, 1), cursorMaterial);
@@ -62,7 +64,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     cursorGraphics.matrixAutoUpdate = false;
     cursorGraphics.renderOrder = 1000;
 
-    const minimapMaterial = new MinimapMaterial(...world.map!.size, terrainExtra.minimapTex);
+    const minimapMaterial = new MinimapMaterial(...world.map.size, terrainExtra.minimapTex);
 
     const minimap = new Mesh(new PlaneGeometry(1, 1), minimapMaterial);
     minimap.frustumCulled = false;
@@ -70,7 +72,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     minimap.matrixAutoUpdate = false;
 
     const rayCast = new Raycaster();
-    const [mapWidth, mapHeight] = world.map!.size;
+    const [mapWidth, mapHeight] = world.map.size;
 
     const minimapConsoleMaterial = new BasicOverlayMaterial(assets.minimapConsole.clock);
     const minimapConsole = new Mesh(new PlaneGeometry(1, 1), minimapConsoleMaterial);
@@ -91,7 +93,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
     cursorMaterial.uniforms.uResolution.value.set(surfaces.gameSurface!.bufferWidth, surfaces.gameSurface!.bufferHeight);
 
     const setDimensions = () => {
-        const rect = surfaces.gameSurface!.getMinimapDimensions!(world.settings!.getState().minimap.scale);
+        const rect = surfaces.gameSurface!.getMinimapDimensions!(world.settings.getState().minimap.scale);
 
         minimap.updateWorldMatrix(true, true);
         const m4 = new Matrix4().copy(minimap.matrixWorld);
@@ -109,13 +111,13 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
         gameStore().setDimensions({
             matrix: m3.toArray(),
             minimapWidth: rect.minimapWidth,
-            minimapHeight: world.settings!.getState().minimap.enabled ? rect.minimapHeight : 0,
+            minimapHeight: world.settings.getState().minimap.enabled ? rect.minimapHeight : 0,
         });
     }
 
-    world.events!.on("resize", () => {
+    world.events.on("resize", () => {
 
-        applySettings({ settings: world.settings!.getState(), rhs: {} });
+        applySettings({ settings: world.settings.getState(), rhs: {} });
 
         setDimensions();
 
@@ -155,7 +157,7 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     }
 
-    world.events!.on("settings-changed", ({ settings, rhs }) => {
+    world.events.on("settings-changed", ({ settings, rhs }) => {
 
         applySettings({ settings, rhs });
 
@@ -169,23 +171,23 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
     let _insideMinimap = false;
 
-    world.events!.on("dispose", () => janitor.dispose());
+    world.events.on("dispose", () => janitor.dispose());
 
     return {
         unitSelectionBox,
         update(delta: number) {
 
-            unitSelectionBox.enabled = _intersects.length === 0 && !views.inputs!.mouse.interrupted ? world.settings!.getState().input.unitSelection : false;
+            unitSelectionBox.enabled = _intersects.length === 0 && !views.inputs!.mouse.interrupted ? world.settings.getState().input.unitSelection : false;
 
             cursorMaterial.update(delta, views.inputs!.mouse.move, _insideMinimap ? UnitSelectionStatus.None : unitSelectionBox.status);
 
             unitSelectionBox.update();
 
-            if (unitSelectionBox.isActive || !(world.settings!.getState().minimap.interactive && world.settings!.getState().minimap.enabled) || views.inputs!.mouse.interrupted) {
+            if (unitSelectionBox.isActive || !(world.settings.getState().minimap.interactive && world.settings.getState().minimap.enabled) || views.inputs!.mouse.interrupted) {
 
                 if (_insideMinimap) {
 
-                    world.events!.emit("minimap-leave");
+                    world.events.emit("minimap-leave");
                     _insideMinimap = false;
 
                 }
@@ -201,10 +203,10 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
             if (_insideMinimap && _intersects.length === 0) {
                 _insideMinimap = false;
-                world.events!.emit("minimap-leave");
+                world.events.emit("minimap-leave");
             } else if (!_insideMinimap && _intersects.length > 0) {
                 _insideMinimap = true;
-                world.events!.emit("minimap-enter");
+                world.events.emit("minimap-enter");
             }
 
             unitSelectionBox.enabled = _intersects.length === 0;
@@ -227,11 +229,11 @@ export const createOverlayComposer = (world: Borrowed<World>, { terrainExtra, ge
 
             selectionDisplayComposer.update(views.primaryCamera!, sprites, completedUpgrades, selectedUnits.toArray());
 
-            minimapMaterial.update(world.fogOfWar!.buffer, terrainExtra.creep.minimapImageData, world.fogOfWar!.effect.opacity);
+            minimapMaterial.update(world.fogOfWar.buffer, terrainExtra.creep.minimapImageData, world.fogOfWar.effect.opacity);
 
             for (const unit of units) {
                 if (!ignoreOnMinimap.includes(unit.typeId)) {
-                    minimapMaterial.buildUnitMinimap(unit, assets.bwDat.units[unit.typeId], world.fogOfWar!, getPlayerColor)
+                    minimapMaterial.buildUnitMinimap(unit, assets.bwDat.units[unit.typeId], world.fogOfWar, getPlayerColor)
                 }
             }
 
