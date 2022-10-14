@@ -3,6 +3,7 @@ import { drawFunctions } from "common/enums";
 import { AnimAtlas } from "common/types";
 import {
   Color,
+  Matrix4,
   MeshBasicMaterial,
   Shader,
   SpriteMaterialParameters,
@@ -30,7 +31,13 @@ type DynamicUniforms = {
   };
   uFlatProjection: {
     value: boolean;
-  }
+  },
+  uLocalMatrix: {
+    value: Matrix4;
+  },
+  uParentMatrix: {
+    value: Matrix4;
+  },
 };
 
 export class ImageHDMaterial extends MeshBasicMaterial {
@@ -53,6 +60,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
       warpInFlashTexture: {
         value: undefined,
       },
+      //TODO: move to vec3
       modifierData1: {
         value: 0,
       },
@@ -64,6 +72,12 @@ export class ImageHDMaterial extends MeshBasicMaterial {
       },
       uFlatProjection: {
         value: true
+      },
+      uLocalMatrix: {
+        value: new Matrix4()
+      },
+      uParentMatrix: {
+        value: new Matrix4()
       }
     };
 
@@ -128,6 +142,22 @@ export class ImageHDMaterial extends MeshBasicMaterial {
 
   get flatProjection() {
     return this.#dynamicUniforms.uFlatProjection.value;
+  }
+
+  set localMatrix(val: Matrix4) {
+    this.#dynamicUniforms.uLocalMatrix.value = val;
+  }
+
+  get localMatrix() {
+    return this.#dynamicUniforms.uLocalMatrix.value;
+  }
+
+  set parentMatrix(val: Matrix4) {
+    this.#dynamicUniforms.uParentMatrix.value = val;
+  }
+
+  get parentMatrix() {
+    return this.#dynamicUniforms.uParentMatrix.value;
   }
 
   override onBeforeCompile(shader: Shader) {
@@ -214,6 +244,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
     extend("fragmentShader", "#include <map_fragment>", mapFragments);
 
     if (this.flatProjection) {
+      // flatProjectionGroup(shader);
       flatProjection(shader);
     }
 

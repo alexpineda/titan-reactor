@@ -3,10 +3,11 @@ import gameStore from "@stores/game-store";
 import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
 import { imageHasDirectionalFrames, imageIsFlipped, imageIsHidden } from "@utils/image-utils";
 import { getAngle } from "@utils/unit-utils";
+import { SpriteType } from "common/types";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
 import { ImageHDInstanced } from "./image-hd-instanced";
-import { spriteModelEffects } from "./model-effects-configuration";
+import { spriteModelEffects as modelSetModifiers } from "./model-effects-configuration";
 import { Unit } from "./unit";
 
 if (module.hot) {
@@ -22,13 +23,33 @@ export const overlayEffectsMainImage: { image: Image3D | null } = { image: null 
  * 3D models require additional contextual information to render and cooperate with overlays properly
 *
 */
+export const applyRenderModeToSprite = (spriteTypeId: number, sprite: SpriteType) => {
+
+    if (modelSetModifiers.sprites[spriteTypeId]) {
+        for (const effect of modelSetModifiers.sprites[spriteTypeId]) {
+            switch (effect.type) {
+                // set emissive on main image if I'm visible
+                case "flat-on-ground":
+                    sprite.rotation.x = -Math.PI / 2;
+                    break;
+            }
+        }
+    }
+
+}
+
+/**
+ * 
+ * 3D models require additional contextual information to render and cooperate with overlays properly
+*
+*/
 let imageTypeId: number;
 export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image: ImageHD | ImageHDInstanced) => {
 
     imageTypeId = gameStore().assets!.refId(imageBuffer.typeId);
 
-    if (spriteModelEffects.images[imageTypeId]) {
-        for (const effect of spriteModelEffects.images[imageTypeId]) {
+    if (modelSetModifiers.images[imageTypeId]) {
+        for (const effect of modelSetModifiers.images[imageTypeId]) {
             switch (effect.type) {
                 // set emissive on main image if I'm visible
                 case "emissive:overlay-visible":
@@ -38,7 +59,7 @@ export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image
                     break;
                 case "flat-on-ground":
                     image.material.flatProjection = false;
-                    image.rotation.x = -Math.PI / 2;
+                    image.parent!.rotation.x = -Math.PI / 2;
                     break;
             }
         }
@@ -68,9 +89,9 @@ export const applyRenderModeToImageHD = (imageBuffer: ImageBufferView, image: Im
 
     }
 
-    if (renderMode3D && spriteModelEffects.images[imageTypeId]) {
+    if (renderMode3D && modelSetModifiers.images[imageTypeId]) {
 
-        for (const effect of spriteModelEffects.images[imageTypeId]) {
+        for (const effect of modelSetModifiers.images[imageTypeId]) {
             switch (effect.type) {
                 case "fixed-frame":
                     _frameInfo.frame = effect.frame;
@@ -104,9 +125,9 @@ export const applyModelEffectsToImage3d = (imageBufferView: ImageBufferView, ima
         image.rotation.y = !image.isLooseFrame ? getAngle(unit.direction) : 0;
     }
 
-    if (spriteModelEffects.images[imageTypeId]) {
+    if (modelSetModifiers.images[imageTypeId]) {
 
-        for (const effect of spriteModelEffects.images[imageTypeId]) {
+        for (const effect of modelSetModifiers.images[imageTypeId]) {
 
             switch (effect.type) {
                 // set emissive to myself if I'm on the right animation frame

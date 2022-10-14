@@ -1,54 +1,62 @@
-type SpriteModelImageEffectEmissiveFrames = {
+type ModelSetModifierEmmissiveFrames = {
     type: "emissive:frames";
     frames: number[];
 }
 
-type SpriteModelImageEffectEmissiveOverlay = {
+type ModelSetModifierEmissiveOverlay = {
     type: "emissive:overlay-visible";
 }
 
-type SpriteModelImageEffectHideSprite = {
+type ModelSetModifierHideSprite = {
     type: "hide-sprite";
 }
 
-type SpriteModelImageEffectFlatOnGround = {
+type ModelSetModifierFlatOnGround = {
     type: "flat-on-ground";
 }
 
-type SpriteModelImageEffectRemapFrame = {
+type ModelSetModifierRemapFrame = {
     type: "remap-frames";
     remap: (frame: number) => number;
 }
 
-type SpriteModelImageEffectFixedFrame = {
+type ModelSetModifierFixedFrame = {
     type: "fixed-frame";
     frame: number
 }
 
-type SpriteModelImageEffectScale = {
+type ModelSetModifierScale = {
     type: "scale";
     scale: number;
 }
 
-type SpriteModelImageEffectRotate = {
+type ModelSetModifierRotate = {
     type: "rotate";
     rotation: number;
 }
 
-type SpriteModelImageEffects = SpriteModelImageEffectEmissiveFrames | SpriteModelImageEffectEmissiveOverlay | SpriteModelImageEffectHideSprite | SpriteModelImageEffectFlatOnGround | SpriteModelImageEffectRemapFrame | SpriteModelImageEffectScale | SpriteModelImageEffectRotate | SpriteModelImageEffectFixedFrame;
+type ModelSetModifierImage = ModelSetModifierEmmissiveFrames | ModelSetModifierEmissiveOverlay | ModelSetModifierHideSprite | ModelSetModifierRemapFrame | ModelSetModifierScale | ModelSetModifierRotate | ModelSetModifierFixedFrame | ModelSetModifierFlatOnGround;
 
-type SpriteModelEffects<T> = {
+type ModelSetModifierSprite = ModelSetModifierFlatOnGround;
+
+type ModelSetModifiers = {
     images: {
-        [key: number]: T[];
+        [key: number]: ModelSetModifierImage[];
+    },
+    sprites: {
+        [key: number]: ModelSetModifierSprite[];
     }
 }
 
 const remnants = [7, 16, 20, 24, 32, 37, 53, 57, 89, 124, 230, 241, 920, 946];
 // guardian birth 27?, devourer 917
 const births = [2, 15, 19, 27, 31, 40, 44, 49, 52, 56, 917, 919]
-const placeFlatOnGround = [...remnants, ...births].map(id => ({ [id]: [{ type: "flat-on-ground" }] })).reduce((a, b) => ({ ...a, ...b }), {});
+const placeFlatOnGround = [...remnants, ...births].map(id => ({ [id]: [{ type: "flat-on-ground" }] })).reduce((a, b) => ({ ...a, ...b }), {}) as ({ [key: number]: ModelSetModifierFlatOnGround[] });
 
-export const spriteModelEffects: SpriteModelEffects<SpriteModelImageEffects> = {
+export const spriteModelEffects: ModelSetModifiers = {
+    sprites: {
+
+    },
     images: {
 
         // egg

@@ -29,6 +29,7 @@ import { borrow, Borrowed } from "@utils/object-utils";
 import { getJanitorLogLevel } from "@core/global";
 import { getMapTiles } from "@utils/chk-utils";
 import { ImageBase } from "..";
+import { ImageHDMaterial } from "@core/image-hd-material";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color(0xffffff);
@@ -141,7 +142,7 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
     const imageBufferView = new ImageBufferView(world.openBW);
 
     let _spriteY = 0;
-    const _images: (ImageStruct | ImageBase)[] = [];
+    const _images: (ImageBase)[] = [];
 
     const buildSprite = (spriteData: SpritesBufferView, delta: number, renderMode3D: boolean, direction: number) => {
 
@@ -171,16 +172,12 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
             sprite.position.set(pxToWorld.x(spriteData.x), _spriteY, pxToWorld.y(spriteData.y))
         }
 
-        sprite.updateMatrix();
-        sprite.matrixWorld.copy(sprite.matrix);
-        sprite.matrixWorldNeedsUpdate = false;
-
         // const groundY = terrain.getTerrainY(sprite.position.x, sprite.position.y);
 
-        let imageCounter = 1;
         overlayEffectsMainImage.image = null
 
         _images.length = 0;
+
         for (const imgAddr of spriteData.images.reverse()) {
             const imageData = imageBufferView.get(imgAddr);
 
@@ -210,7 +207,7 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
 
             }
 
-            image.renderOrder = imageCounter;
+            image.renderOrder = _images.length;
 
             // if we're a shadow, we act independently from a sprite since our Y coordinate
             // needs to be in world space
@@ -245,20 +242,35 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
                 // set frame
                 applyRenderModeToImageHD(imageData, image, renderMode3D, direction);
 
+                // image.material.flatProjection = false;
+
             } else if (image instanceof Image3D) {
 
                 applyModelEffectsToImage3d(imageData, image, unit);
 
             }
 
+            _images.push(image);
+
+        }
+
+        sprite.updateMatrix();
+        sprite.matrixWorld.copy(sprite.matrix);
+        sprite.matrixWorldNeedsUpdate = false;
+
+        for (const image of _images) {
             if (image instanceof ImageHDInstanced) {
                 image.updateInstanceMatrix(sprite.matrixWorld);
             } else if (image instanceof ImageHD) {
+
                 image.position.add(sprite.position);
                 image.updateMatrix();
                 // cheaper than updateMatrixWorld since parents are all identity
                 image.matrixWorld.copy(image.matrix);
                 image.matrixWorldNeedsUpdate = false;
+
+                (image.material as ImageHDMaterial).parentMatrix.copy(sprite.matrixWorld);
+                (image.material as ImageHDMaterial).localMatrix.copy(image.matrix);
 
             } else if (image instanceof Image3D) {
                 image.updateMatrix();
@@ -267,7 +279,6 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
 
             world.events.emit("image-updated", image);
 
-            imageCounter++;
         }
 
     }
