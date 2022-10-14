@@ -25,7 +25,7 @@ export class BaseScene extends Scene {
   ) {
     super();
     //@ts-expect-error
-    this.matrixWorldAutoUpdate = true;
+    this.matrixWorldAutoUpdate = false;
 
     this.sunlight = new Sunlight(mapWidth, mapHeight);
     this.add(...this.sunlight.children);

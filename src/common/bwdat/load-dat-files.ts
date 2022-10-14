@@ -37,7 +37,7 @@ export async function loadDATFiles(readFile: ReadFile): Promise<BwDAT> {
   const sounds = await new SoundsDAT(readFile).load();
 
   const units = (
-    await new UnitsDAT(readFile, images, flingy, sounds).load()
+    await new UnitsDAT(readFile, flingy, sounds).load()
   ).map((u) => new UnitDAT(u));
 
   const tech = await new TechDatasDAT(readFile).load();

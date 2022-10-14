@@ -116,7 +116,6 @@ export const createAssets = async (directories: Settings["directories"]) => {
 
         const refImageId = refId(imageId);
         const glbRefImageId = modelSetFileRefIds.get(refImageId) ?? refImageId
-        const imageDat = bwDat.images[imageId];
         const settings = settingsStore().data.graphics.useHD2 as "auto" | "ignore" | "force";
 
         let res = UnitTileScale.HD2;
@@ -177,7 +176,7 @@ export const createAssets = async (directories: Settings["directories"]) => {
                 // use grp frames for convenience since we might fake being another image for re-use
                 // and we'll need access to those original frames in order to manipulate things
                 bwDat.grps[glbRefImageId].frames,
-                imageDat,
+                bwDat.images[imageId],
                 envMap,
             );
 
@@ -192,6 +191,7 @@ export const createAssets = async (directories: Settings["directories"]) => {
 
     }
 
+    // preload some assets that will not be loaded otherwise?
     await loadImageAtlas(imageTypes.warpInFlash);
 
     log.debug("@load-assets/skybox");
@@ -217,9 +217,12 @@ export const createAssets = async (directories: Settings["directories"]) => {
         ...await generateAllIcons(readCascFile),
         minimapConsole,
         envMap,
-        loadImageAtlas: (imageId: number) => {
+        loadImageAtlas(imageId: number) {
             loadImageAtlas(imageId);
-            return atlases[imageId];
+            return this.getImageAtlas(imageId);
+        },
+        getImageAtlas(imageId: number) {
+            return atlases[refId(imageId)];
         },
         loadImageAtlasAsync: (imageId: number) => loadImageAtlas(imageId),
         skyBox,

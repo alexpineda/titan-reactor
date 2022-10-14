@@ -49,21 +49,16 @@ export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image
 let _frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
 let _needsUpdateFrame = false;
 
-export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, image: ImageHD, renderMode3D: boolean, direction: number) => {
+//TODO: figure out which are sprite level rather than image level (eg remnants)
+export const applyRenderModeToImageHD = (imageBuffer: ImageBufferView, image: ImageHD, renderMode3D: boolean, direction: number) => {
 
     imageTypeId = gameStore().assets!.refId(imageBuffer.typeId);
-
-
-    // if (image.material.depthTest !== viewport.renderMode3D) {
 
     image.material.depthTest = renderMode3D;
     image.material.depthWrite = false;
 
-    // }
-
     if (imageHasDirectionalFrames(imageBuffer)) {
 
-        //TODO: applyCameraDirectionToImageFrameOffset?
         _frameInfo = applyCameraDirectionToImageFrame(direction, imageBuffer);
 
     } else {
@@ -92,9 +87,15 @@ export const applyViewportToFrameOnImageHD = (imageBuffer: ImageBufferView, imag
 
     image.setFrame(_frameInfo.frame, _frameInfo.flipped);
 
+    if (renderMode3D) {
+
+        applyOverlayEffectsToImageHD(imageBuffer, image);
+
+    }
+
 }
 
-export const applyModelEffectsOnImage3d = (imageBufferView: ImageBufferView, image: Image3D, unit: Unit | undefined) => {
+export const applyModelEffectsToImage3d = (imageBufferView: ImageBufferView, image: Image3D, unit: Unit | undefined) => {
 
     imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
     _needsUpdateFrame = true;

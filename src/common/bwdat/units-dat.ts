@@ -1,7 +1,6 @@
 import range from "../utils/range";
 import { DAT } from "./dat";
 import { FlingyDAT } from "./flingy-dat";
-import { ImageDAT } from "./images-dat";
 import { SoundDAT } from "./sounds-dat";
 import { ReadFile } from "../types";
 
@@ -106,7 +105,7 @@ export interface UnitDATIncomingType {
   subUnit1: number;
   subUnit2: number;
   infestation: number[];
-  constructionAnimation: any,
+  constructionImage: number,
   direction: number;
   shieldsEnabled: boolean;
   shields: number;
@@ -152,14 +151,13 @@ export interface UnitDATIncomingType {
   buildScore: number;
   destroyScore: number;
   starEditAvailabilityFlags: number;
-};
+}
 
 export class UnitsDAT extends DAT<UnitDATIncomingType> {
   sounds: SoundDAT[];
 
   constructor(
     readFile: ReadFile,
-    images: ImageDAT[] = [],
     flingy: FlingyDAT[] = [],
     sounds: SoundDAT[] = []
   ) {
@@ -174,7 +172,7 @@ export class UnitsDAT extends DAT<UnitDATIncomingType> {
         name: "infestation",
         range: () => range(106, 202),
       },
-      { size: 4, name: "constructionAnimation", get: (i) => images[i] },
+      { size: 4, name: "constructionImage" },
       { size: 1, name: "direction" },
       { size: 1, name: "shieldsEnabled", get: (val) => Boolean(val) },
       { size: 2, name: "shields" },

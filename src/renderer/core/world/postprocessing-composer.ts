@@ -2,7 +2,7 @@ import { ImageBufferView } from "@buffer-view/images-buffer-view";
 import { SpritesBufferViewIterator } from "@buffer-view/sprites-buffer-view-iterator";
 import { Image3D } from "@core/image-3d";
 import { ImageHD } from "@core/image-hd";
-import { applyViewportToFrameOnImageHD } from "@core/model-effects";
+import { applyRenderModeToImageHD } from "@core/model-effects";
 import { EffectivePasses, PostProcessingBundler } from "@render/postprocessing-bundler";
 import { renderComposer } from "@render/render-composer";
 import { settingsStore } from "@stores/settings-store";
@@ -177,7 +177,7 @@ export const createPostProcessingComposer = (world: World, { scene, images, spri
                             const image = images.get(imageBuffer.index);
 
                             if (image instanceof ImageHD) {
-                                applyViewportToFrameOnImageHD(imageBuffer, image, v.renderMode3D, v.camera.userData.direction);
+                                applyRenderModeToImageHD(imageBuffer, image, v.renderMode3D, v.camera.userData.direction);
                             }
 
                         }

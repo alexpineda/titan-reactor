@@ -149,7 +149,8 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     this.#pos = posAttribute;
 
     this.matrixAutoUpdate = false;
-    this.matrixWorldNeedsUpdate = false;
+    // @ts-expect-error
+    this.matrixWorldAutoUpdate = false;
 
     this.name = "ImageHD";
   }
@@ -278,15 +279,6 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     this.matrix.compose(this.position.add(parentPosition), this.quaternion, this.scale);
     this.matrixWorld.copy(this.matrix);
     this.matrixWorldNeedsUpdate = false;
-
-  }
-
-  override updateMatrix(): void {
-
-  }
-
-  override updateMatrixWorld(): void {
-
   }
 
   //TODO confine to frame offsets

@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 - Several small optimizations
+- Audio no longer has silences (regression in 0.6.0)
+- Small visual glitch with creep colony construction and other images that shared atlases
 
 
 ## [0.6.5]

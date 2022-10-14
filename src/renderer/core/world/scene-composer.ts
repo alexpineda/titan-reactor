@@ -6,13 +6,13 @@ import { Image3D } from "@core/image-3d";
 import { ImageEntities } from "@core/image-entities";
 import { ImageHD } from "@core/image-hd";
 import { ImageHDInstanced } from "@core/image-hd-instanced";
-import { applyModelEffectsOnImage3d, applyOverlayEffectsToImageHD, applyViewportToFrameOnImageHD, overlayEffectsMainImage } from "@core/model-effects";
+import { applyModelEffectsToImage3d, applyRenderModeToImageHD, overlayEffectsMainImage } from "@core/model-effects";
 import { Players } from "@core/players";
 import { SpriteEntities } from "@core/sprite-entities";
 import { UnitEntities } from "@core/unit-entities";
 import { terrainComposer } from "@image/generate-map/terrain-composer";
 import BaseScene from "@render/base-scene";
-import { imageIsDoodad, imageIsFrozen, imageIsHidden, imageNeedsRedraw } from "@utils/image-utils";
+import { imageIsDoodad, imageIsFrozen, imageIsHidden } from "@utils/image-utils";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import { unitIsFlying } from "@utils/unit-utils";
@@ -141,6 +141,7 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
     const imageBufferView = new ImageBufferView(world.openBW);
 
     let _spriteY = 0;
+    const _images: (ImageStruct | ImageBase)[] = [];
 
     const buildSprite = (spriteData: SpritesBufferView, delta: number, renderMode3D: boolean, direction: number) => {
 
@@ -172,12 +173,14 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
 
         sprite.updateMatrix();
         sprite.matrixWorld.copy(sprite.matrix);
+        sprite.matrixWorldNeedsUpdate = false;
 
         // const groundY = terrain.getTerrainY(sprite.position.x, sprite.position.y);
 
         let imageCounter = 1;
         overlayEffectsMainImage.image = null
 
+        _images.length = 0;
         for (const imgAddr of spriteData.images.reverse()) {
             const imageData = imageBufferView.get(imgAddr);
 
@@ -188,13 +191,16 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
 
             const drawShadow = image.dat.drawFunction !== drawFunctions.rleShadow || image.dat.drawFunction === drawFunctions.rleShadow && !renderMode3D;
             image.visible = sprite.visible && !imageIsHidden(imageData as ImageStruct) && drawShadow;
+            image.userData.imageAddress = imageData._address;
 
             if (image.visible === false) continue;
 
-            image.matrixWorldNeedsUpdate = imageNeedsRedraw(imageData as ImageStruct);
+            //TODO: optimize depending on imageNeedsRedraw
+
             image.setTeamColor(getPlayerColor(spriteData.owner));
             image.setModifiers(imageData.modifier, imageData.modifierData1, imageData.modifierData2);
             image.position.set(0, 0, 0)
+
 
             //overlay offsets typically
             if (image instanceof ImageHD) {
@@ -229,32 +235,34 @@ export const createSceneComposer = async (world: World, assets: Assets) => {
                 }
 
                 if (unit) {
-                    // only rotate if we're 3d and the frame is part of a frame set
                     images.setUnit(image, unit);
                 }
 
             }
 
-            //debug
-            image.userData.imageAddress = imageData._address;
-
             if (image instanceof ImageHD) {
 
-                applyViewportToFrameOnImageHD(imageData, image, renderMode3D, direction);
-                applyOverlayEffectsToImageHD(imageData, image);
+                // set frame
+                applyRenderModeToImageHD(imageData, image, renderMode3D, direction);
 
             } else if (image instanceof Image3D) {
 
-                applyModelEffectsOnImage3d(imageData, image, unit);
+                applyModelEffectsToImage3d(imageData, image, unit);
 
             }
 
             if (image instanceof ImageHDInstanced) {
                 image.updateInstanceMatrix(sprite.matrixWorld);
             } else if (image instanceof ImageHD) {
-                image.updateMatrixPosition(sprite.position);
+                image.position.add(sprite.position);
+                image.updateMatrix();
+                // cheaper than updateMatrixWorld since parents are all identity
+                image.matrixWorld.copy(image.matrix);
+                image.matrixWorldNeedsUpdate = false;
+
             } else if (image instanceof Image3D) {
                 image.updateMatrix();
+                image.updateMatrixWorld();
             }
 
             world.events.emit("image-updated", image);
