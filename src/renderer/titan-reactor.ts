@@ -13,7 +13,11 @@ import { mapSceneLoader } from "./scenes/map-scene-loader";
 import { replaySceneLoader } from "./scenes/replay-scene-loader";
 import { interstitialSceneLoader } from "./scenes/interstitial-scene/interstitial-scene-loader";
 import { useSettingsStore } from "@stores/settings-store";
-import { logBoth, logClient } from "@ipc/log";
+import { log, logBoth, logClient } from "@ipc/log";
+import { waitForTruthy } from "@utils/wait-for";
+import { useGameStore } from "./stores";
+
+performance.mark("start");
 
 globalEvents.on("command-center-save-settings", payload => {
 
@@ -54,8 +58,11 @@ lockdown_();
 
   await sceneStore().execSceneLoader(preHomeSceneLoader);
 
-  sceneStore().execSceneLoader(homeSceneLoader);
+  await sceneStore().execSceneLoader(homeSceneLoader);
 
+  waitForTruthy(() => useGameStore.getState().assets?.remaining === 0);
+
+  log.debug(`startup in ${performance.measure("start").duration}ms`);
 })()
 
 if (process.env.NODE_ENV === "development") {

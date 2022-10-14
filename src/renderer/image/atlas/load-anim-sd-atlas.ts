@@ -6,6 +6,7 @@ import {
 
 import { AnimDds, AnimFrame, ImageDAT, UnitTileScale } from "common/types";
 import { createDDSTexture, Grp } from "../formats";
+import { parseDDS } from "@image/formats/parse-dds";
 
 export const loadAnimSdAtlas = async ({
     readGrp,
@@ -27,7 +28,7 @@ export const loadAnimSdAtlas = async ({
         sprite.buf.slice(map.ddsOffset + offset, map.ddsOffset + map.size);
 
     const ddsBuf = getBuf(sprite.maps.diffuse);
-    const diffuse = await createDDSTexture(ddsBuf);
+    const diffuse = await createDDSTexture(parseDDS(ddsBuf));
 
     let teammask;
     if (sprite.maps.teamcolor) {

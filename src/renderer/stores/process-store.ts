@@ -67,24 +67,27 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
   },
 
   increment: (id: string, step = 1) => {
-    const process = get().processes.find((p) => p.id === id);
+    requestAnimationFrame(() => {
 
-    if (process) {
-      const next = Math.min(process.current + step, process.max);
+      const process = get().processes.find((p) => p.id === id);
 
-      set((state) => ({
-        processes: (state.processes as IncrementalProcess[]).map(
-          (p) => (p.id === id ? { ...p, current: next } : p)
-        ),
-      }));
+      if (process) {
+        const next = Math.min(process.current + step, process.max);
 
-      if (next === process.max) {
-        const perf = performance.measure(`process-${id}`);
-        performance.clearMarks(`process-${id}`);
-        performance.clearMeasures(`process-${id}`);
-        log.info(`@process/complete: ${process.label} ${perf.duration}ms`);
+        set((state) => ({
+          processes: (state.processes as IncrementalProcess[]).map(
+            (p) => (p.id === id ? { ...p, current: next } : p)
+          ),
+        }));
+
+        if (next === process.max) {
+          const perf = performance.measure(`process-${id}`);
+          performance.clearMarks(`process-${id}`);
+          performance.clearMeasures(`process-${id}`);
+          log.debug(`@process/complete: ${process.label} ${perf.duration}ms`);
+        }
       }
-    }
+    });
   },
   clearAll: () => {
     set({
@@ -104,6 +107,7 @@ export const useProcessStore = create<ProcessStore>((set, get) => ({
     const total = get().processes.reduce((acc, p) => acc + p.max, 0);
     const process = get().processes.reduce((acc, p) => acc + p.current, 0);
     const t = total > 0 ? process / total : 0;
+
     return t;
   }
 }));

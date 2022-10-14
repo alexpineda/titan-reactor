@@ -1,56 +1,54 @@
-import { Audio, AudioListener, AudioLoader } from "three";
+import { mixer } from "@core/global";
+import { Audio, AudioListener } from "three";
 const rand = (n: number) => Math.floor(Math.random() * n);
 
 export class Music {
-  audio: Audio;
+  #audio: Audio;
   races = ["terran", "zerg", "protoss"];
 
   constructor(listener: AudioListener) {
-    this.audio = new Audio(listener);
+    this.#audio = new Audio(listener);
   }
 
   getAudio() {
-    return this.audio;
+    return this.#audio;
   }
 
   playGame() {
-    if (!this.audio) return;
-    this.audio.onEnded = this.playGame.bind(this);
-    this._play(
+    if (!this.#audio) return;
+    this.#audio.onEnded = this.playGame.bind(this);
+    this.#play(
       `music/${this.races[rand(this.races.length)]}${rand(4) + 1}.ogg`
     );
   }
 
   playMenu() {
     const race = ["t", "z", "p"];
-    this.audio.onEnded = this.playMenu.bind(this);
-    this._play(race[rand(2)] + "rdyroom.ogg");
+    this.#audio.onEnded = this.playMenu.bind(this);
+    this.#play(race[rand(2)] + "rdyroom.ogg");
   }
 
-  _play(filepath: string) {
+  async #play(filepath: string) {
 
-    const audioLoader = new AudioLoader();
-
-    const { audio } = this;
-    if (audio.isPlaying) {
-      audio.stop();
+    if (this.#audio.isPlaying) {
+      this.#audio.stop();
     }
 
-    audioLoader.load(filepath, function (buffer) {
-      audio.setBuffer(buffer);
-      audio.play();
-    });
+    const buffer = await mixer.loadAudioBuffer(`casc:${filepath}`);
+
+    this.#audio.setBuffer(buffer);
+    this.#audio.play();
 
   }
 
   stop() {
-    this.audio.stop();
+    this.#audio.stop();
   }
 
   dispose() {
-    if (this.audio && this.audio.isPlaying) {
-      this.audio.stop();
+    if (this.#audio && this.#audio.isPlaying) {
+      this.#audio.stop();
     }
-    this.audio.disconnect();
+    this.#audio.disconnect();
   }
 }

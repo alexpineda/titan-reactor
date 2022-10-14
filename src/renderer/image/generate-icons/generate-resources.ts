@@ -2,12 +2,12 @@
 import { WebGLRenderer } from "three";
 import { renderIconsToBlob } from "./render-icons";
 
-export const generateResourceIcons = async (renderer: WebGLRenderer, dds: Buffer[]) => {
+export const generateResourceIcons = async (renderer: WebGLRenderer, dds: Uint8Array[]) => {
     const renderIcon = renderIconsToBlob(
         renderer,
         56,
         56,
-        dds
+        dds,
     );
 
     const getNext = async () => {

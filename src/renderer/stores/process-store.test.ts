@@ -9,27 +9,36 @@ describe("ProcessStore", () => {
 
         processStore().clearAll();
 
+        //@ts-expect-error
+        jest.spyOn(window, "requestAnimationFrame").mockImplementation(cb => cb());
+
+
         //TODO: fix this hack
-        Object.defineProperty(window.performance, 'mark', {
+        Object.defineProperty(window.performance, "mark", {
             configurable: true,
             value: jest.fn(),
         });
 
-        Object.defineProperty(window.performance, 'clearMeasures', {
+        Object.defineProperty(window.performance, "clearMeasures", {
             configurable: true,
             value: jest.fn(),
         });
 
-        Object.defineProperty(window.performance, 'clearMarks', {
+        Object.defineProperty(window.performance, "clearMarks", {
             configurable: true,
             value: jest.fn(),
         });
 
-        Object.defineProperty(window.performance, 'measure', {
+        Object.defineProperty(window.performance, "measure", {
             configurable: true,
             value: jest.fn(() => ({ duration: 100 })),
         });
 
+    });
+
+    afterEach(() => {
+        //@ts-expect-error
+        window.requestAnimationFrame.mockRestore();
     });
 
     it("total should default to 0 with no processes", () => {
@@ -52,7 +61,7 @@ describe("ProcessStore", () => {
 
     });
 
-    it("should increment increment a process", () => {
+    it("should increment a process", () => {
 
         const wrapper = processStore().create("test", 2);
 

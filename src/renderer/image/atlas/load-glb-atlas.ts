@@ -1,6 +1,6 @@
 import { Mesh, Object3D, Texture } from "three";
 import { ImageDAT, GltfAtlas, AnimFrame } from "common/types";
-import loadGlb from "../formats/load-glb";
+import { loadGlb } from "../formats/load-glb";
 
 
 export const loadGlbAtlas = async (

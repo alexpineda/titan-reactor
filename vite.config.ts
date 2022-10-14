@@ -46,6 +46,9 @@ export default defineConfig((env) => {
             minify: false,
         },
 
+        worker: {
+            format: "es"
+        },
         plugins: [
             react(),
             esmodule(["minipass-fetch", "make-fetch-happen", "libnpmsearch"]),
@@ -87,7 +90,8 @@ export default defineConfig((env) => {
                         return [
                             "bw-casclib", "events", "util", "fs/promises", "stream", "buffer", "string_decoder", "url", "zlib", "os"
                         ]
-                    }
+                    },
+
                 },
             }),
         ],

@@ -34,6 +34,10 @@ export async function setAsset<T extends keyof Assets>(key: T, asset: Assets[T])
       remaining: assets.remaining - 1,
     }
   })
+
+  if (useGameStore.getState().assets!.remaining < 0) {
+    throw new Error("Remaining assets is less than 0");
+  }
 }
 
 export default () => useGameStore.getState();

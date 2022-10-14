@@ -13,7 +13,7 @@ export const createAsteroids = () => {
     return {
         async load(envmap: Texture) {
 
-            const { model: asteroid } = await loadGlb(path.join(__static, "./asteroid.glb"), envmap);
+            const { model: asteroid } = await loadGlb(path.join(__static, "_ast.glb"), envmap);
 
             asteroid.name = "asteroid.glb";
             asteroid.traverse((o: Object3D) => {
@@ -48,7 +48,7 @@ export const createAsteroids = () => {
                         MathUtils.randInt(0, 360)
                     )
                 );
-                const s = Math.random() + 0.5;
+                const s = (Math.random() + 0.5) * 0.05;
 
                 m.compose(pos, q, new Vector3(1, 1, 1).setScalar(Math.min(5, s * s * s)));
                 asteroids.setMatrixAt(i, m);

@@ -1,15 +1,52 @@
 import { ReadFile } from "common/types";
 
-import parseDdsGrp from "../formats/parse-dds-grp";
-import { generateWireframes } from "./generate-wireframes";
+import { parseDdsGrp } from "../formats/parse-dds-grp";
 import { generateCursors } from "./generate-cursors";
-import { generateCommandIcons } from "./generate-cmds";
 import { generateRaceIcons } from "./generate-races";
 import { generateResourceIcons } from "./generate-resources";
 import { renderComposer } from "@render/render-composer";
 import { RepeatWrapping } from "three";
+import { b2ba } from "@utils/bin-utils";
+import { setAsset } from "@stores/game-store";
+import { range } from "lodash";
+
+
+const createOffScreenCanvas = () => {
+  const canvas = document.createElement("canvas");
+  return canvas.transferControlToOffscreen();
+}
+
+// somewhat expensive (~1second), so we do it w/ fancy web workers
+const generateWireframeOffscreen = async (readFile: ReadFile) => {
+
+  const c1 = createOffScreenCanvas(), c2 = createOffScreenCanvas();
+  const worker = new Worker(new URL("./icons.worker.ts", import.meta.url), { type: "module" });
+
+  const wireframeData = await readFile("HD2/unit/wirefram/wirefram.dds.grp");
+  worker.postMessage({
+    canvas: c1,
+    destCanvas: c2,
+    icons: parseDdsGrp(wireframeData).map((dds) => b2ba(dds))
+  }, [c1, c2]);
+
+  worker.onmessage = function ({ data }) {
+    setAsset("wireframeIcons", data);
+    worker.terminate();
+  }
+
+}
+
 
 export const generateAllIcons = async (readFile: ReadFile) => {
+
+  const b = async (f: string) => new Blob([(await readFile(f)).buffer], { type: "octet/stream" });
+
+  generateWireframeOffscreen(readFile);
+
+  const cmdIcons: Blob[] = [];
+  for (const i of range(0, 389)) {
+    cmdIcons[i] = await b(`webui\\dist\\lib\\images\\cmdicons.${i}.png`)
+  }
 
   renderComposer.preprocessStart();
   const renderer = renderComposer.getWebGLRenderer();
@@ -18,17 +55,12 @@ export const generateAllIcons = async (readFile: ReadFile) => {
 
   const gameIcons = await generateResourceIcons(
     renderer,
-    parseDdsGrp(await readFile("game/icons.dds.grp"))
-  );
-
-  const cmdIcons = await generateCommandIcons(
-    renderer,
-    parseDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
+    parseDdsGrp(await readFile("game/icons.dds.grp")),
   );
 
   const raceInsetIcons = await generateRaceIcons(
     renderer,
-    parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
+    parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp")),
   );
 
   const arrowIconsGPU = (await generateCursors(
@@ -52,14 +84,8 @@ export const generateAllIcons = async (readFile: ReadFile) => {
 
   dragIconsGPU.texture.wrapS = dragIconsGPU.texture.wrapT = RepeatWrapping;
 
-  const wireframeIcons = await generateWireframes(
-    renderer,
-    parseDdsGrp(await readFile("HD2/unit/wirefram/wirefram.dds.grp"))
-  );
-
   renderComposer.preprocessEnd();
 
-  const b = async (f: string) => new Blob([(await readFile(f)).buffer], { type: "octet/stream" });
 
   const workerIcons = {
     apm: await b("webui/dist/lib/images/icon_apm.png"),
@@ -69,11 +95,10 @@ export const generateAllIcons = async (readFile: ReadFile) => {
   };
 
   return {
-    gameIcons,
     cmdIcons,
+    gameIcons,
     raceInsetIcons,
     workerIcons,
-    wireframeIcons,
     arrowIconsGPU,
     hoverIconsGPU,
     dragIconsGPU

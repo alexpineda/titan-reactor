@@ -1,8 +1,17 @@
 import { ipcRenderer } from "electron";
 import { LOG_MESSAGE } from "common/ipc-handle-names";
 import { LogLevel } from "common/logging";
+import { settingsStore } from "@stores/settings-store";
 
 type ErrorOrUnknown = Error | unknown;
+
+const logLevels = ["info", "warn", "error", "debug"];
+
+const isActiveLevel = (level: LogLevel): boolean => {
+
+  return logLevels.indexOf(level) <= logLevels.indexOf(settingsStore().data.utilities.logLevel);
+
+}
 
 export const log = {
   error(msg: string | ErrorOrUnknown) {
@@ -33,10 +42,21 @@ export const logBoth = (message: string, level: LogLevel = "info") => {
 }
 
 export const logServer = async (message: string, level: LogLevel = "info") => {
+
+  if (isActiveLevel(level) === false) {
+    return;
+  }
+
   ipcRenderer.send(LOG_MESSAGE, { level, message });
+
 }
 
 export const logClient = (message: string, level: LogLevel = "info") => {
+
+  if (isActiveLevel(level) === false) {
+    return;
+  }
+
   if (level === "error") {
     console.error(message);
   } else if (level === "warn") {
@@ -46,4 +66,5 @@ export const logClient = (message: string, level: LogLevel = "info") => {
   } else if (level === "debug") {
     console.debug(message);
   }
+
 }

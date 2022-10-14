@@ -1,9 +1,8 @@
-import path from "path";
 import { FileLoader, ImageLoader } from "three";
 
 function createElementNS(name: string) {
 
-  return document.createElementNS('http://www.w3.org/1999/xhtml', name);
+  return document.createElementNS("http://www.w3.org/1999/xhtml", name);
 
 }
 
@@ -14,8 +13,9 @@ type LoadingCallbacks = {
 };
 const loading: Record<string, LoadingCallbacks[]> = {};
 
-export default (openFile: (file: string) => Promise<Buffer>) => {
+export default (openFile: (file: string, path: string) => Promise<ArrayBuffer | string>) => {
   FileLoader.prototype.load = function (url, onLoad, onProgress, onError) {
+
     if (loading[url] !== undefined) {
       loading[url].push({
         onLoad: onLoad,
@@ -40,11 +40,11 @@ export default (openFile: (file: string) => Promise<Buffer>) => {
 
     this.manager.itemStart(url);
 
-    openFile(url)
-      .then((buf) => {
+    openFile(url, this.path)
+      .then((result) => {
         for (let i = 0, il = callbacks.length; i < il; i++) {
           const callback = callbacks[i];
-          if (callback.onLoad) callback.onLoad(buf.buffer);
+          if (callback.onLoad) callback.onLoad(result);
         }
 
         this.manager.itemEnd(url);
@@ -64,19 +64,17 @@ export default (openFile: (file: string) => Promise<Buffer>) => {
 
   ImageLoader.prototype.load = function (url, onLoad) {
 
-    const image = createElementNS('img') as HTMLImageElement;
+    const image = createElementNS("img") as HTMLImageElement;
 
     function onImageLoad() {
-      image.removeEventListener('load', onImageLoad, false);
+      image.removeEventListener("load", onImageLoad, false);
       onLoad && onLoad(image);
     }
 
-    image.addEventListener('load', onImageLoad, false);
+    image.addEventListener("load", onImageLoad, false);
 
-    openFile(path.join(this.path, url)).then(buf => `data:image/png;base64,${(
-      buf
-    ).toString("base64")}`).then(src => {
-      image.src = src;
+    openFile(url, this.path).then(result => new Blob([result], { type: "octet/stream" })).then(blob => {
+      image.src = URL.createObjectURL(blob);
     })
 
     return image;

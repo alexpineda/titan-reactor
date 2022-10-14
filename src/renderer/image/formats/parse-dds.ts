@@ -16,7 +16,7 @@ export type DDS = {
   isCubemap: boolean;
 }
 
-export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
+export function parseDDS(buffer: Uint8Array | Buffer, loadMipmaps = true) {
   const dds: DDS = {
     mipmaps: [],
     width: 0,
@@ -82,7 +82,7 @@ export default function parseDDS(buffer: Buffer, loadMipmaps: boolean) {
   }
 
   function loadARGBMip(
-    buffer: Buffer,
+    buffer: Uint8Array,
     dataOffset: number,
     width: number,
     height: number

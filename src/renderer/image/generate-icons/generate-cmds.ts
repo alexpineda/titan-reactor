@@ -1,10 +1,10 @@
 
 import { WebGLRenderer } from "three";
-import { renderIconsToBlob } from "./render-icons";
+import { renderIconsToBlobOffscreen } from "./render-icons-offscreen";
 
-export const generateCommandIcons = async (renderer: WebGLRenderer, dds: Buffer[]) => {
-    const renderIcon = renderIconsToBlob(
-        renderer, 64, 64, dds, 0, "#ff0000"
+export const generateCommandIcons = async (renderer: WebGLRenderer, dds: Uint8Array[]) => {
+    const renderIcon = renderIconsToBlobOffscreen(
+        renderer, 64, 64, dds, "#ff0000"
     );
 
     const icons = [];

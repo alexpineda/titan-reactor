@@ -10,6 +10,16 @@ import {
 } from "three";
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { MeshoptDecoder } from "./mesh-opt-decoder";
+import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
+import { renderComposer } from "@render/render-composer";
+import path from "path";
+
+const ktx2Loader = new KTX2Loader();
+ktx2Loader.setTranscoderPath(path.join(__static, "basis"));
+ktx2Loader.detectSupport(renderComposer.getWebGLRenderer());
+
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).setKTX2Loader(ktx2Loader);
 
 export type GlbResponse = {
   model: Group;
@@ -22,7 +32,7 @@ export function loadGlb(
   meshCb: (mesh: Mesh) => void = () => { }
 ): Promise<GlbResponse> {
   return new Promise((resolve, reject) => {
-    new GLTFLoader().load(
+    loader.load(
       file,
       (glb: any) => {
         const { scene: model, animations } = glb;
@@ -57,4 +67,3 @@ export function loadGlb(
     );
   });
 }
-export default loadGlb;

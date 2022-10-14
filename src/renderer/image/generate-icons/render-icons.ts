@@ -1,12 +1,13 @@
 
 import { OrthographicCamera, Scene, WebGLRenderer } from "three";
+import { parseDDS } from "../formats/parse-dds";
 import { createDDSTexture } from "../formats/create-dds-texture";
 
 export const renderIconsToBlob = async function* (
     renderer: WebGLRenderer,
     fixedWidth: number | null,
     fixedHeight: number | null,
-    dds: Buffer[],
+    dds: Uint8Array[],
     alpha = 0,
     color: string | null = null
 ) {
@@ -15,7 +16,7 @@ export const renderIconsToBlob = async function* (
     const scene = new Scene();
 
     for (let i = 0; i < dds.length; i++) {
-        const texture = createDDSTexture(dds[i]);
+        const texture = createDDSTexture(parseDDS(dds[i]));
 
         const canvas = document.createElement("canvas");
         const ctx = canvas.getContext("2d");

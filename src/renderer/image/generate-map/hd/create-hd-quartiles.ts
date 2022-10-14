@@ -14,10 +14,11 @@ import {
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures, UnitTileScale } from "common/types";
-import { createCompressedDDSTexture } from "./common";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { getJanitorLogLevel } from "@core/global";
 import { LookupTextures } from "../lookup-textures";
+import { createDDSTexture, parseDDS } from "@image/formats";
+import processStore from "@stores/process-store";
 
 if (module.hot) {
   module.hot.accept();
@@ -37,6 +38,7 @@ export const createHdQuartiles = (
 ): WrappedQuartileTextures => {
 
   renderer.clear();
+
 
   const PX_PER_TILE_HD = res === UnitTileScale.HD ? 128 : 64;
 
@@ -80,6 +82,9 @@ export const createHdQuartiles = (
 
   renderer.setSize(renderWidth, renderHeight);
   const renderTargets: WebGLRenderTarget[] = [];
+
+  const process = processStore().create("quartiles", quartileWidth * quartileStrideH);
+
 
   for (let qx = 0; qx < quartileStrideW; qx++) {
 
@@ -130,7 +135,7 @@ export const createHdQuartiles = (
           const mx = x + qx * quartileWidth;
           const tile = mapTilesData[my * mapWidth + mx];
           if (hdTiles[tile]) {
-            const texture = hdCache.get(tile) || createCompressedDDSTexture(hdTiles[tile]);
+            const texture = hdCache.get(tile) || createDDSTexture(parseDDS(hdTiles[tile]));
             if (!hdCache.has(tile)) {
               hdCache.set(tile, texture);
             }
@@ -164,10 +169,14 @@ export const createHdQuartiles = (
 
             }
 
+
           } else {
             console.error("no tile", tile);
           }
         }
+
+        process.increment();
+
       }
 
       mapQuartiles[qx][qy] = rt.texture;

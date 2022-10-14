@@ -5,8 +5,8 @@ import {
 } from "three";
 import { parseDdsGrpWithFrameData } from "../../formats/parse-dds-grp";
 
-import { createCompressedDDSTexture } from "./common";
 import { UTEX } from "@utils/UTEX";
+import { createDDSTexture, parseDDS } from "@image/formats";
 
 const bottomEdges = [0, 1, 2, 3];
 const rightEdges = [4];
@@ -93,7 +93,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
     const x = i;
     const y = 0;
     const grp = creepGrp[i];
-    const texture = createCompressedDDSTexture(grp.dds);
+    const texture = createDDSTexture(parseDDS(grp.dds));
     texture.encoding = sRGBEncoding;
 
     const mesh = new Mesh(plane, new MeshBasicMaterial({
@@ -116,7 +116,7 @@ export const ddsToCreepEdgesTexture = (buffer: Buffer, res: UnitTileScale, rende
 
   const data = new Uint8Array(renderWidth * renderHeight * 4);
   renderer.readRenderTargetPixels(rt, 0, 0, renderWidth, renderHeight, data);
-  const texture = createCompressedDDSTexture(Buffer.from(UTEX.DDS.encode(data, renderWidth, renderHeight)));
+  const texture = createDDSTexture(parseDDS(Buffer.from(UTEX.DDS.encode(data, renderWidth, renderHeight))));
   rt.dispose();
 
   texture.encoding = sRGBEncoding;

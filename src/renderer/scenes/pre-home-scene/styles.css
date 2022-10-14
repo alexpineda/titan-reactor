@@ -56,3 +56,12 @@ ul {
   list-style: none;
   padding-inline-start: 0;
 }
+
+@keyframes hue {
+  0%, 100%  { filter: saturate(none); } /* hue-rotate(0deg) } */
+  50% { filter: saturate(3) ; } /* hue-rotate(180deg)} */
+}
+
+.hue {
+  animation: hue 10s infinite;
+}

@@ -4,20 +4,15 @@ import {
   LinearFilter,
   sRGBEncoding,
 } from "three";
-import { log } from "@ipc/log";
 
-import parseDDS from "./parse-dds";
+import { DDS } from "./parse-dds";
 
 export const createDDSTexture = (
-  buf: Buffer,
+  texDatas: DDS,
   encoding = sRGBEncoding
 ) => {
-  const texDatas = parseDDS(buf, true);
 
   //ported from https://github.com/mrdoob/three.js/blob/45b0103e4dd9904b341d05ed991113f2f9edcc70/src/loaders/CompressedTextureLoader.js
-  if (texDatas.isCubemap) {
-    log.error("cubemap dds not supported");
-  }
 
   const texture = new CompressedTexture(
     texDatas.mipmaps,

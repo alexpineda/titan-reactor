@@ -21,6 +21,8 @@ import { settingsStore } from "@stores/settings-store";
 import { modelSetFileRefIds } from "@core/model-effects-configuration";
 import { renderComposer } from "@render/render-composer";
 import { loadDatFilesRemote } from "@ipc/files";
+import { parseDDS } from "./formats/parse-dds";
+import { b2ba } from "@utils/bin-utils";
 
 if (module.hot) {
     module.hot.accept("@core/model-effects-configuration")
@@ -40,30 +42,38 @@ const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
 
 export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture,
-    bwDat: BwDAT
-} & Awaited<ReturnType<typeof generateAllIcons>>;
+    bwDat: BwDAT;
+    wireframeIcons?: Blob[],
+} & Partial<Awaited<ReturnType<typeof generateAllIcons>>>;
 
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
 
+const _hardfiles = [".glb", ".hdr", ".png", ".exr", ".js", ".wasm"];
+
 export const initializeAssets = async (directories: Settings["directories"]) => {
 
-    electronFileLoader((file: string) => {
+    electronFileLoader((file: string, directory: string) => {
+
         log.debug(file);
 
-        if (file.includes(".glb") || file.includes(".hdr") || file.includes(".png") || file.includes(".exr")) {
-            return fsPromises.readFile(file);
-        } else {
-            return readCascFile(file);
+        if (file.startsWith("blob:")) {
+
+            return fetch(file).then(r => r.arrayBuffer());
         }
+        if (_hardfiles.some((ext) => file.endsWith(ext))) {
+
+            const fullPath = path.join(directory ?? "", file);
+            return file.endsWith(".js") ? fsPromises.readFile(fullPath, { encoding: "utf-8" }) : fsPromises.readFile(fullPath).then(buffer => buffer.buffer);
+
+        } else {
+
+            return readCascFile(file);
+
+        }
+
     });
 
     await openCascStorage(directories.starcraft);
-
-    loadDatFilesRemote().then(dat => {
-        setAsset("bwDat", dat);
-        // preload some assets that will not be loaded otherwise?
-        loadImageAtlas(imageTypes.warpInFlash, dat);
-    })
 
     log.debug("@load-assets/images");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
@@ -83,33 +93,22 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
     }
 
     const minimapConsole = {
-        clock: createDDSTexture(await readCascFile("game/observer/UIObserverSquareRight.DDS")),
-        square: createDDSTexture(await readCascFile("game/observer/UIObserverSquareFull.DDS")),
+        clock: createDDSTexture(parseDDS(b2ba(await readCascFile("game/observer/UIObserverSquareRight.DDS")))),
+        square: createDDSTexture(parseDDS(b2ba(await readCascFile("game/observer/UIObserverSquareFull.DDS")))),
     }
 
-    log.debug("@load-assets/envmap");
     const envEXRAssetFilename = path.join(
         directories.assets,
         "envmap.exr"
     )
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : path.join(__static, "./envmap.hdr")
+    log.debug(`@load-assets/envmap: ${envMapFilename}`);
     loadEnvironmentMap(envMapFilename).then(tex => {
         setAsset("envMap", tex);
-
+        renderComposer.getWebGLRenderer().initTexture(tex);
     });
 
-    generateAllIcons(readCascFile).then(icons => {
-
-        setAsset("gameIcons", icons.gameIcons);
-        setAsset("cmdIcons", icons.cmdIcons);
-        setAsset("raceInsetIcons", icons.raceInsetIcons);
-        setAsset("workerIcons", icons.workerIcons);
-        setAsset("wireframeIcons", icons.wireframeIcons);
-        setAsset("arrowIconsGPU", icons.arrowIconsGPU);
-        setAsset("hoverIconsGPU", icons.hoverIconsGPU);
-        setAsset("dragIconsGPU", icons.dragIconsGPU);
-
-    });
+    const someIcons = await generateAllIcons(readCascFile);
 
     const refId = (id: number) => {
         if (sdAnim?.[id]?.refId !== undefined) {
@@ -140,10 +139,6 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
         const refImageId = refId(imageId);
         const glbRefImageId = modelSetFileRefIds.get(refImageId) ?? refImageId
         const settings = settingsStore().data.graphics.useHD2 as "auto" | "ignore" | "force";
-
-        if (imageId === imageTypes.warpInFlash) {
-            console.log(imageId, refImageId);
-        }
 
         let res = UnitTileScale.HD2;
         if (loadingHD.has(refImageId)) {
@@ -218,8 +213,6 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
 
     }
 
-
-
     log.debug("@load-assets/skybox");
     const loader = new CubeTextureLoader();
     const rootPath = path.join(__static, "/skybox/sparse");
@@ -236,8 +229,15 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
         "back.png",
     ], res)) as CubeTexture;
 
+    loadDatFilesRemote().then(dat => {
+        setAsset("bwDat", dat);
+        // preload some assets that will not be loaded otherwise?
+        loadImageAtlas(imageTypes.warpInFlash, dat);
+    })
+
     const r = {
-        remaining: 10,
+        remaining: 3,
+        ...someIcons,
         atlases,
         selectionCircles: selectionCirclesHD,
         minimapConsole,

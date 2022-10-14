@@ -1,5 +1,6 @@
-import { createCompressedDDSTexture } from "@image/generate-map/hd/common";
 import { DDSGrpFrameType } from "common/types";
+import createDDSTexture from "./create-dds-texture";
+import { parseDDS } from "./parse-dds";
 
 export const parseDdsGrp = (buf: Buffer) => {
   const frameCount = buf.readUInt16LE(4);
@@ -16,7 +17,6 @@ export const parseDdsGrp = (buf: Buffer) => {
   }
   return frames;
 };
-export default parseDdsGrp;
 
 export const parseDdsGrpWithFrameData = (buf: Buffer) => {
   const frameCount = buf.readUInt16LE(4);
@@ -40,7 +40,7 @@ export const parseDdsGrpWithFrameData = (buf: Buffer) => {
 export const parseDdsGrpAsTextures = (buf: Buffer) => {
   const textures = [];
   for (const dds of parseDdsGrp(buf)) {
-    textures.push(createCompressedDDSTexture(dds));
+    textures.push(createDDSTexture(parseDDS(dds)));
   }
   return textures;
 }

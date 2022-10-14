@@ -146,10 +146,9 @@ export const getJanitorLogLevel = () => {
     switch (settingsStore().data.utilities.logLevel) {
         case "debug":
             return JanitorLogLevel.Debug;
-        case "info":
-            return JanitorLogLevel.Info;
         case "warn":
         case "error":
+            return JanitorLogLevel.Info;
     }
 
     return JanitorLogLevel.None;

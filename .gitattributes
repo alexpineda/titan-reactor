@@ -6,3 +6,9 @@ bundled/battlecruiser.glb filter=lfs diff=lfs merge=lfs -text
 bundled/asteroid.glb filter=lfs diff=lfs merge=lfs -text
 bundled/FireBall03_8x8.exr filter=lfs diff=lfs merge=lfs -text
 bundled/remix.ogg filter=lfs diff=lfs merge=lfs -text
+bundled/basis/basis_transcoder.js filter=lfs diff=lfs merge=lfs -text
+bundled/basis/basis_transcoder.wasm filter=lfs diff=lfs merge=lfs -text
+src/renderer/image/formats/mesh-opt-decoder.ts filter=lfs diff=lfs merge=lfs -text
+bundled/_ast.glb filter=lfs diff=lfs merge=lfs -text
+bundled/_bc.glb filter=lfs diff=lfs merge=lfs -text
+bundled/_w.glb filter=lfs diff=lfs merge=lfs -text
