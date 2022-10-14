@@ -29,6 +29,6 @@ export const preloadMapUnitsAndSpriteFiles = async (assets: Assets, map: Chk, re
 
     const preload = processStore().create("preload", allImages.length);
 
-    await Promise.all(allImages.map((imageId) => assets.loadImageAtlasAsync(imageId).then(() => preload.increment())));
+    await Promise.all(allImages.map((imageId) => assets.loadImageAtlasAsync(imageId, assets.bwDat).then(() => preload.increment())));
 
 }

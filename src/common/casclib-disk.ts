@@ -1,12 +1,9 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
-import { log } from "@ipc/log";
-import { settingsStore } from "@stores/settings-store";
 
-export const readCascFile = (filePath: string, encoding?: BufferEncoding) => {
-  return fsPromises.readFile(path.join(settingsStore().data.directories.starcraft, filePath), encoding);
+export const readCascFile = (filePath: string, scPath: string) => {
+  return fsPromises.readFile(path.join(scPath, filePath));
 };
-export default readCascFile;
 
 const _fileMatches = async (files: string[], fileName: string, dir: string, relDir: string) => {
   for (const file of files) {
@@ -19,7 +16,6 @@ const _fileMatches = async (files: string[], fileName: string, dir: string, relD
         return path.join(relDir, file);
       }
     } catch (e: unknown) {
-      log.error((e as Error).message);
     }
   }
 };
@@ -34,7 +30,6 @@ const _getSubdirectories = async (dir: string) => {
         dirs.push(file);
       }
     } catch (e: unknown) {
-      log.error((e as Error).message);
     }
   }
   return dirs;
@@ -56,6 +51,6 @@ const _findFile = async (fileName: string, dir: string, relDir = ""): Promise<st
   }
 };
 
-export const findFile = async (fileName: string) => {
-  return await _findFile(fileName, settingsStore().data.directories.starcraft);
+export const findFile = async (fileName: string, scPath: string) => {
+  return await _findFile(fileName, scPath);
 };

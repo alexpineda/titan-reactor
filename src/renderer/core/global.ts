@@ -22,6 +22,7 @@ import { AudioListener } from "three";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { globalEvents } from "./global-events";
+import { setStorageIsCasc, setStoragePath } from "common/casclib";
 
 export const mixer = new MainMixer();
 export const music = new Music(mixer as unknown as AudioListener);
@@ -154,8 +155,11 @@ export const getJanitorLogLevel = () => {
     return JanitorLogLevel.None;
 }
 
-useSettingsStore.subscribe(() => {
+useSettingsStore.subscribe((settings) => {
 
     Janitor.logLevel = getJanitorLogLevel();
+
+    setStorageIsCasc(settings.isCascStorage);
+    setStoragePath(settings.data.directories.starcraft);
 
 });

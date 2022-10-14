@@ -1,14 +1,13 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
 import fileExists from "common/utils/file-exists";
-import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { AnimAtlas, Settings, UnitTileScale } from "common/types";
+import { AnimAtlas, BwDAT, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import {
     openCascStorage,
     readCascFile,
-} from "@utils/casclib";
+} from "common/casclib";
 
 import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
@@ -21,6 +20,7 @@ import { CubeTexture, CubeTextureLoader, Texture } from "three";
 import { settingsStore } from "@stores/settings-store";
 import { modelSetFileRefIds } from "@core/model-effects-configuration";
 import { renderComposer } from "@render/render-composer";
+import { loadDatFilesRemote } from "@ipc/files";
 
 if (module.hot) {
     module.hot.accept("@core/model-effects-configuration")
@@ -39,7 +39,8 @@ const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
 
 
 export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
-    envMap?: Texture
+    envMap?: Texture,
+    bwDat: BwDAT
 }
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
 
@@ -57,8 +58,11 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
 
     await openCascStorage(directories.starcraft);
 
-    log.debug("@load-assets/dat");
-    const bwDat = await loadDATFiles(readCascFile);
+    loadDatFilesRemote().then(dat => {
+        setAsset("bwDat", dat);
+        // preload some assets that will not be loaded otherwise?
+        loadImageAtlas(imageTypes.warpInFlash, dat);
+    })
 
     log.debug("@load-assets/images");
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
@@ -90,6 +94,7 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : path.join(__static, "./envmap.hdr")
     loadEnvironmentMap(envMapFilename).then(tex => {
         setAsset("envMap", tex);
+
     });
 
     const refId = (id: number) => {
@@ -116,11 +121,15 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
      * refImageId means we use the same images and iscript with another image id.
      * glbRefImageId means we use the same glb/frame count with another image id.
      */
-    const loadImageAtlas = async (imageId: number) => {
+    const loadImageAtlas = async (imageId: number, bwDat: BwDAT) => {
 
         const refImageId = refId(imageId);
         const glbRefImageId = modelSetFileRefIds.get(refImageId) ?? refImageId
         const settings = settingsStore().data.graphics.useHD2 as "auto" | "ignore" | "force";
+
+        if (imageId === imageTypes.warpInFlash) {
+            console.log(imageId, refImageId);
+        }
 
         let res = UnitTileScale.HD2;
         if (loadingHD.has(refImageId)) {
@@ -195,8 +204,7 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
 
     }
 
-    // preload some assets that will not be loaded otherwise?
-    await loadImageAtlas(imageTypes.warpInFlash);
+
 
     log.debug("@load-assets/skybox");
     const loader = new CubeTextureLoader();
@@ -215,20 +223,21 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
     ], res)) as CubeTexture;
 
     const r = {
-        remaining: 1,
-        bwDat,
+        remaining: 2,
         atlases,
         selectionCircles: selectionCirclesHD,
         ...await generateAllIcons(readCascFile),
         minimapConsole,
-        loadImageAtlas(imageId: number) {
-            loadImageAtlas(imageId);
+        loadImageAtlas(imageId: number, bwDat: BwDAT) {
+            loadImageAtlas(imageId, bwDat);
             return this.getImageAtlas(imageId);
         },
         getImageAtlas(imageId: number) {
             return atlases[refId(imageId)];
         },
-        loadImageAtlasAsync: (imageId: number) => loadImageAtlas(imageId),
+        loadImageAtlasAsync(imageId: number, bwDat: BwDAT) {
+            return loadImageAtlas(imageId, bwDat);
+        },
         skyBox,
         refId,
         resetAssetCache: () => {
@@ -239,7 +248,7 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
         }
     }
 
-    gameStore().setAssets(r);
+    gameStore().setAssets(r as Assets);
 
     return r;
 };

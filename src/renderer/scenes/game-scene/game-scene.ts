@@ -14,7 +14,7 @@ import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createWorldComposer } from "@core/world/world-composer";
-import readCascFile from "@utils/casclib";
+import readCascFile from "common/casclib";
 
 export async function makeGameScene(
   map: Chk,

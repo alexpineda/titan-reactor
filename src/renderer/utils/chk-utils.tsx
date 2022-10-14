@@ -1,5 +1,5 @@
 import { rgbToCanvas } from "@image/canvas";
-import { readCascFile } from "@utils/casclib";
+import { readCascFile } from "common/casclib";
 import Chk from "bw-chk";
 import { charColor } from "common/enums";
 

@@ -1,4 +1,4 @@
-import "./open-file";
+import "./files";
 import "./casclib";
 import "./dialogs";
 import "./log";

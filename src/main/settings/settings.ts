@@ -20,6 +20,7 @@ import { logService } from "../logger/singleton";
 import { PluginManager } from "../plugins/plugin-manager";
 import browserWindows from "../windows";
 import { ON_PLUGINS_INITIAL_INSTALL, ON_PLUGINS_INITIAL_INSTALL_ERROR } from "common/ipc-handle-names";
+import { setStorageIsCasc, setStoragePath } from "common/casclib";
 
 const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
 
@@ -117,6 +118,10 @@ export class Settings {
 
   }
 
+  async isCascStorage() {
+    return await foldersExist(this.#settings.directories["starcraft"], ["Data", "locales"]);
+  }
+
   async enablePlugins(pluginIds: string[]) {
 
     const plugins = this.disabledPlugins.filter(p => pluginIds.includes(p.id));
@@ -148,9 +153,8 @@ export class Settings {
       }
     }
 
-    const isCascStorage = await foldersExist(this.#settings.directories["starcraft"], ["Data", "locales"]);
     const isBareDirectory = await foldersExist(this.#settings.directories["starcraft"], ["anim", "arr"]);
-    if (!isCascStorage) {
+    if (!await this.isCascStorage()) {
       if (await fileExists(path.join(this.#settings.directories["starcraft"], "STARDAT.MPQ"))) {
         errors.push("The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported.");
       } else if (!isBareDirectory) {
@@ -175,7 +179,7 @@ export class Settings {
     return {
       data: { ...this.#settings, macros },
       errors,
-      isCascStorage,
+      isCascStorage: await this.isCascStorage(),
       initialInstall: false,
       enabledPlugins: this.enabledPlugins,
       disabledPlugins: this.disabledPlugins,
@@ -202,6 +206,10 @@ export class Settings {
     await fsPromises.writeFile(this.#filepath, JSON.stringify(this.#settings, null, 4), {
       encoding: "utf8",
     });
+
+    setStorageIsCasc(await this.isCascStorage());
+    setStoragePath(this.#settings.directories.starcraft);
+
     return this.#settings;
   }
 

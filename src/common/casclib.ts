@@ -1,19 +1,27 @@
 import * as casclibDisk from "./casclib-disk";
 import * as casclib from "bw-casclib";
-import { settingsStore } from "@stores/settings-store";
-let _storageHandle: any;
+
+let _storageHandle: any, _storagePath: string, _storageIsCasc: boolean;
+
+export const setStoragePath = (path: string) => {
+  _storagePath = path;
+}
+
+export const setStorageIsCasc = (isCasc: boolean) => {
+  _storageIsCasc = isCasc;
+}
 
 export const readCascFile = async (filePath: string): Promise<Buffer> => {
-  if (!settingsStore().isCascStorage) {
-    return casclibDisk.readCascFile(filePath) as Promise<Buffer>;
+  if (!_storageIsCasc) {
+    return casclibDisk.readCascFile(filePath, _storagePath) as Promise<Buffer>;
   }
   return await casclib.readFile(_storageHandle, filePath);
 
 };
 
 export const findFile = async (fileName: string) => {
-  if (!settingsStore().isCascStorage) {
-    return casclibDisk.findFile(fileName);
+  if (!_storageIsCasc) {
+    return casclibDisk.findFile(fileName, _storagePath);
   }
   const files = await casclib.findFiles(_storageHandle, `*${fileName}`);
   if (files.length === 0) {
@@ -23,14 +31,14 @@ export const findFile = async (fileName: string) => {
 };
 
 export const findFiles = async (fileName: string) => {
-  if (!settingsStore().isCascStorage) {
+  if (!_storageIsCasc) {
     throw new Error("Not implemented");
   }
   return (await casclib.findFiles(_storageHandle, `*${fileName}`)).map(({ fullName }) => fullName);
 };
 
 export const openCascStorage = async (bwPath: string) => {
-  if (!settingsStore().isCascStorage) {
+  if (!_storageIsCasc) {
     return;
   }
   if (_storageHandle) {
@@ -40,7 +48,7 @@ export const openCascStorage = async (bwPath: string) => {
 };
 
 export const closeCascStorage = () => {
-  if (!settingsStore().isCascStorage) {
+  if (!_storageIsCasc) {
     return;
   }
   _storageHandle && casclib.closeStorage(_storageHandle);

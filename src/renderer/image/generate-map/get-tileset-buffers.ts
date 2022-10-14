@@ -1,4 +1,4 @@
-import { readCascFile } from "@utils/casclib";
+import { readCascFile } from "common/casclib";
 
 // platform, install
 const noWaterMasks = [1, 2];

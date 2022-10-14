@@ -12,13 +12,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unlimited folders for macros
 - Improved default macros
 - Hover cursor over units, like in the game
-- Selection circles around 3d models - initial version
-
+- Selection circles around 3d models - initial vers
 ## Fixed
 - Several small optimizations
 - Audio no longer has silences (regression in 0.6.0)
 - Small visual glitch with creep colony construction and other images that shared atlases
-
+- ~3s improvement on initial loading screen
 
 ## [0.6.5]
 
