@@ -156,7 +156,8 @@ export class PluginSystemUI {
 
             setInteractivity(false)
 
-            const assets = await waitForTruthy<Assets>(() => gameStore().assets);
+            await waitForTruthy<Assets>(() => gameStore().assets?.remaining === 0);
+            const assets = gameStore().assets!;
 
             const payload = {
                 plugins: pluginPackages.map(plugin => ({ ...plugin, config: normalizePluginConfiguration(plugin.config ?? {}) })),

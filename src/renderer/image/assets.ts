@@ -12,12 +12,12 @@ import {
 
 import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
-import gameStore from "@stores/game-store";
+import gameStore, { setAsset } from "@stores/game-store";
 import { generateAllIcons } from "./generate-icons/generate-icons";
 import { log } from "@ipc/log"
 import { loadEnvironmentMap } from "./environment/env-map";
 import { imageTypes } from "common/enums";
-import { CubeTexture, CubeTextureLoader } from "three";
+import { CubeTexture, CubeTextureLoader, Texture } from "three";
 import { settingsStore } from "@stores/settings-store";
 import { modelSetFileRefIds } from "@core/model-effects-configuration";
 import { renderComposer } from "@render/render-composer";
@@ -38,10 +38,12 @@ const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
 }
 
 
-export type Assets = Awaited<ReturnType<typeof createAssets>>;
+export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
+    envMap?: Texture
+}
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
 
-export const createAssets = async (directories: Settings["directories"]) => {
+export const initializeAssets = async (directories: Settings["directories"]) => {
 
     electronFileLoader((file: string) => {
         log.debug(file);
@@ -86,7 +88,9 @@ export const createAssets = async (directories: Settings["directories"]) => {
         "envmap.exr"
     )
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : path.join(__static, "./envmap.hdr")
-    const envMap = await loadEnvironmentMap(envMapFilename);
+    loadEnvironmentMap(envMapFilename).then(tex => {
+        setAsset("envMap", tex);
+    });
 
     const refId = (id: number) => {
         if (sdAnim?.[id]?.refId !== undefined) {
@@ -177,7 +181,7 @@ export const createAssets = async (directories: Settings["directories"]) => {
                 // and we'll need access to those original frames in order to manipulate things
                 bwDat.grps[glbRefImageId].frames,
                 bwDat.images[imageId],
-                envMap,
+                null,
             );
 
             atlases[imageId] = Object.assign({}, atlases[imageId], glb);
@@ -210,13 +214,13 @@ export const createAssets = async (directories: Settings["directories"]) => {
         "back.png",
     ], res)) as CubeTexture;
 
-    return {
+    const r = {
+        remaining: 1,
         bwDat,
         atlases,
         selectionCircles: selectionCirclesHD,
         ...await generateAllIcons(readCascFile),
         minimapConsole,
-        envMap,
         loadImageAtlas(imageId: number) {
             loadImageAtlas(imageId);
             return this.getImageAtlas(imageId);
@@ -234,6 +238,10 @@ export const createAssets = async (directories: Settings["directories"]) => {
             glbExists.clear();
         }
     }
+
+    gameStore().setAssets(r);
+
+    return r;
 };
 
 export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) => {
@@ -264,7 +272,7 @@ export const loadImageAtlasDirect = async (imageId: number, image3d: boolean) =>
             ...anim, ...await loadGlbAtlas(
                 glbFileName, anim.frames,
                 imageDat,
-                assets.envMap
+                assets.envMap!
             )
         };
 

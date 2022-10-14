@@ -1,6 +1,6 @@
 import sceneStore from "@stores/scene-store";
 import { settingsStore } from "@stores/settings-store";
-import { createAssets } from "@image/assets";
+import { initializeAssets } from "@image/assets";
 import { log } from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
@@ -9,7 +9,6 @@ import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
 import path from "path";
 import { Filter } from "@audio/filter";
 import { SceneState } from "../scene";
-import gameStore from "@stores/game-store";
 import { mixer } from "@core/global";
 
 let _lastErrorMessage = "";
@@ -38,7 +37,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     return settingsStore().errors.length === 0;
   });
 
-  gameStore().setAssets(await createAssets(settings.data.directories));
+  await initializeAssets(settings.data.directories);
 
   log.debug("Loading intro");
   await preloadIntro();

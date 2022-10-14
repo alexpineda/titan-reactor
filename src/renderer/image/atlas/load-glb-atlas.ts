@@ -7,7 +7,7 @@ export const loadGlbAtlas = async (
     glbFileName: string,
     frames: AnimFrame[],
     imageDef: ImageDAT,
-    envMap: Texture,
+    envMap: Texture | null,
 ): Promise<Partial<GltfAtlas> | null> => {
 
     try {

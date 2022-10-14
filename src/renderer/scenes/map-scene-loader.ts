@@ -50,13 +50,13 @@ export const mapSceneLoader = async (chkFilepath: string): Promise<SceneState> =
 
   log.debug("initializing scene");
 
-  const assets = await waitForTruthy<Assets>(() => gameStore().assets);
+  await waitForTruthy<Assets>(() => gameStore().assets?.remaining === 0);
 
   process.increment();
 
   // wait for initial assets to load
   if (settingsStore().data.graphics.preload) {
-    await preloadMapUnitsAndSpriteFiles(assets, map);
+    await preloadMapUnitsAndSpriteFiles(gameStore().assets!, map);
   }
 
 

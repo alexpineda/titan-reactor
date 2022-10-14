@@ -1,6 +1,7 @@
 import create from "zustand";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { Assets } from "@image/assets";
+import { waitForTruthy } from "@utils/wait-for";
 
 
 export type GameStore = {
@@ -18,8 +19,22 @@ export const useGameStore = create<GameStore>((set) => ({
     minimapHeight: 0
   },
   setAssets: (assets: Assets | null) => set({ assets }),
+
   setDimensions: (dimensions: MinimapDimensions) => set({ dimensions }),
 }));
+
+export async function setAsset<T extends keyof Assets>(key: T, asset: Assets[T]) {
+  await waitForTruthy(() => useGameStore.getState().assets !== null);
+  const assets = useGameStore.getState().assets!;
+
+  useGameStore.setState({
+    assets: {
+      ...assets,
+      [key]: asset,
+      remaining: assets.remaining - 1,
+    }
+  })
+}
 
 export default () => useGameStore.getState();
 

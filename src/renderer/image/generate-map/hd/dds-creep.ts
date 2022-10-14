@@ -15,7 +15,7 @@ import {
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 
-import { createCompressedTexture } from "./common";
+import { createCompressedDDSTexture } from "./common";
 
 const width = 13;
 const height = 1;
@@ -58,7 +58,7 @@ export const ddsToCreepTexture = (buffer: Buffer, tilegroupU16: Uint16Array, res
     const x = i;
     const y = 0;
     // get the 13 creep tiles in the 2nd tile group including a first empty tile
-    const texture = createCompressedTexture(tiles[tilegroupU16[36 + i]]);
+    const texture = createCompressedDDSTexture(tiles[tilegroupU16[36 + i]]);
     texture.encoding = sRGBEncoding;
 
     const mat = new MeshBasicMaterial({

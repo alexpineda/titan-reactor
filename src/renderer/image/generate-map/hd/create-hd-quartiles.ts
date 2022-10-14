@@ -14,7 +14,7 @@ import {
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures, UnitTileScale } from "common/types";
-import { createCompressedTexture } from "./common";
+import { createCompressedDDSTexture } from "./common";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { getJanitorLogLevel } from "@core/global";
 import { LookupTextures } from "../lookup-textures";
@@ -130,7 +130,7 @@ export const createHdQuartiles = (
           const mx = x + qx * quartileWidth;
           const tile = mapTilesData[my * mapWidth + mx];
           if (hdTiles[tile]) {
-            const texture = hdCache.get(tile) || createCompressedTexture(hdTiles[tile]);
+            const texture = hdCache.get(tile) || createCompressedDDSTexture(hdTiles[tile]);
             if (!hdCache.has(tile)) {
               hdCache.set(tile, texture);
             }

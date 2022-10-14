@@ -26,7 +26,7 @@ import { RenderPass } from "postprocessing";
 import { renderComposer } from "@render/render-composer";
 import { root } from "@render/root";
 import { settingsStore } from "@stores/settings-store";
-import { createAssets, loadImageAtlasDirect } from "@image/assets";
+import { initializeAssets, loadImageAtlasDirect } from "@image/assets";
 import gameStore from "@stores/game-store";
 import { IScriptRunner } from "./iscript-runner";
 import {
@@ -43,7 +43,8 @@ import { IScriptImage } from "./iscript-sprite";
 
 const bootup = async () => {
   const settings = await settingsStore().load();
-  gameStore().setAssets(await createAssets(settings.data.directories));
+
+  await initializeAssets(settings.data.directories);
 
   const janitor = new Janitor("iscriptah-scene-loader");
 

@@ -88,10 +88,7 @@ export const createSelectionDisplayComposer = (assets: Assets) => {
                 sprite = sprites.get(unit.spriteIndex)
                 if (sprite) {
                     objects[i].update(unit, sprite, assets.bwDat.sprites[sprite.userData.typeId], completedUpgrades[unit.owner]);
-                } else {
-                    console.warn("No sprite found for unit", unit);
                 }
-
             }
         }
     }

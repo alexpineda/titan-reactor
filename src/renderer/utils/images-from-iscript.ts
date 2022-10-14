@@ -76,8 +76,8 @@ const calculateImagesFromIScript = (
       getAllImages(bwDat.weapons[unit.airWeapon].flingy.sprite.image);
     }
 
-    if (unit.constructionAnimation.index > 0) {
-      getAllImages(unit.constructionAnimation);
+    if (unit.constructionImage > 0) {
+      getAllImages(bwDat.images[unit.constructionImage]);
     }
   }
   return [...preload].filter((v) => v !== undefined);

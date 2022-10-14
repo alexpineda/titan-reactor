@@ -7,7 +7,7 @@ import {
   Intersection,
   Matrix4,
   Mesh,
-  NearestMipMapNearestFilter,
+  NearestFilter,
   NormalBlending,
   Raycaster,
   SubtractiveBlending,
@@ -153,6 +153,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     this.matrixWorldAutoUpdate = false;
 
     this.name = "ImageHD";
+
   }
 
   protected createMaterial(): ImageHDMaterial | ImageHDInstancedMaterial {
@@ -164,9 +165,6 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
   }
 
   updateImageType(atlas: AnimAtlas, force: boolean) {
-    if (this.atlas && this.atlas.imageIndex !== atlas.imageIndex) {
-      console.warn("changing image type");
-    }
     if (this.atlas?.imageIndex === atlas.imageIndex && this.atlas?.unitTileScale === atlas.unitTileScale && !force) {
       return this;
     }
@@ -175,6 +173,7 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
     this.material.map = atlas.diffuse;
     this.material.teamMask = atlas.teammask;
     this.material.warpInFlashGRP = gameStore().assets?.atlases[210];
+    this.material.flatProjection = true;
 
     this.material.alphaTest = 0.01;
     this.scale.set(
@@ -195,8 +194,8 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
     // command center / armory overlay scale up a bit to remove border issues
     if (atlas.imageIndex === 276 || atlas.imageIndex === 269) {
-      this.material.map.minFilter = NearestMipMapNearestFilter;
-      this.material.map.magFilter = NearestMipMapNearestFilter;
+      this.material.map.minFilter = NearestFilter;
+      this.material.map.magFilter = NearestFilter;
     }
 
     this.material.needsUpdate = true;
@@ -261,7 +260,6 @@ export class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInsta
 
   setFrame(frame: number, flip: boolean) {
     if (this.atlas.frames[frame] === undefined) {
-      console.warn("invalid frame", frame, this.atlas.imageIndex);
       return;
     }
 
