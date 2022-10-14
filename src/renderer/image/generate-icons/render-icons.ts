@@ -2,7 +2,7 @@
 import { OrthographicCamera, Scene, WebGLRenderer } from "three";
 import { createDDSTexture } from "../formats/create-dds-texture";
 
-export const renderIconsToDataURI = function* (
+export const renderIconsToBlob = async function* (
     renderer: WebGLRenderer,
     fixedWidth: number | null,
     fixedHeight: number | null,
@@ -67,10 +67,11 @@ export const renderIconsToDataURI = function* (
             actx.scale(1, -1);
             actx.globalAlpha = alpha;
             actx.drawImage(renderer.domElement, 0, 0, width, -height);
-            yield alphaCanvas.toDataURL("image/png");
+
+            yield new Promise(res => alphaCanvas.toBlob(res, "image/png"));
 
         } else {
-            yield canvas.toDataURL("image/png");
+            yield new Promise(res => canvas.toBlob(res, "image/png"));
         }
 
     }

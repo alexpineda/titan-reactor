@@ -1,9 +1,9 @@
 
 import { WebGLRenderer } from "three";
-import { renderIconsToDataURI } from "./render-icons";
+import { renderIconsToBlob } from "./render-icons";
 
-export default (renderer: WebGLRenderer, dds: Buffer[]) => {
-    const renderIcon = renderIconsToDataURI(
+export const generateRaceIcons = async (renderer: WebGLRenderer, dds: Buffer[]) => {
+    const renderIcon = renderIconsToBlob(
         renderer,
         null,
         null,
@@ -11,8 +11,8 @@ export default (renderer: WebGLRenderer, dds: Buffer[]) => {
         0.4
     );
 
-    const getNext = () => {
-        const next = renderIcon.next().value;
+    const getNext = async () => {
+        const next = (await renderIcon.next()).value;
         if (!next) {
             throw new Error("No more icons");
         }
@@ -20,8 +20,8 @@ export default (renderer: WebGLRenderer, dds: Buffer[]) => {
     }
 
     return {
-        "zerg": getNext(),
-        "terran": getNext(),
-        "protoss": getNext(),
+        "zerg": await getNext(),
+        "terran": await getNext(),
+        "protoss": await getNext(),
     };
 };

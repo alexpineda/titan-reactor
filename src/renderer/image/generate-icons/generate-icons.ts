@@ -1,11 +1,11 @@
 import { ReadFile } from "common/types";
 
 import parseDdsGrp from "../formats/parse-dds-grp";
-import generateWireframes from "./generate-wireframes";
+import { generateWireframes } from "./generate-wireframes";
 import { generateCursors } from "./generate-cursors";
-import generateCmdIcons from "./generate-cmds";
-import generateRaceInsetIcons from "./generate-races";
-import generateResourceIcons from "./generate-resources";
+import { generateCommandIcons } from "./generate-cmds";
+import { generateRaceIcons } from "./generate-races";
+import { generateResourceIcons } from "./generate-resources";
 import { renderComposer } from "@render/render-composer";
 import { RepeatWrapping } from "three";
 
@@ -16,17 +16,17 @@ export const generateAllIcons = async (readFile: ReadFile) => {
 
   const palette = new Uint8Array((await readFile("TileSet/jungle.wpe")).buffer).subarray(0, 1024);
 
-  const gameIcons = generateResourceIcons(
+  const gameIcons = await generateResourceIcons(
     renderer,
     parseDdsGrp(await readFile("game/icons.dds.grp"))
   );
 
-  const cmdIcons = generateCmdIcons(
+  const cmdIcons = await generateCommandIcons(
     renderer,
     parseDdsGrp(await readFile("HD2/unit/cmdicons/cmdicons.dds.grp"))
   );
 
-  const raceInsetIcons = generateRaceInsetIcons(
+  const raceInsetIcons = await generateRaceIcons(
     renderer,
     parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp"))
   );
@@ -59,19 +59,13 @@ export const generateAllIcons = async (readFile: ReadFile) => {
 
   renderComposer.preprocessEnd();
 
+  const b = async (f: string) => new Blob([(await readFile(f)).buffer], { type: "octet/stream" });
+
   const workerIcons = {
-    apm: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_apm.png")
-    ).toString("base64")}`,
-    terran: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_worker_terran.png")
-    ).toString("base64")}`,
-    zerg: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_worker_zerg.png")
-    ).toString("base64")}`,
-    protoss: `data:image/png;base64,${(
-      await readFile("webui/dist/lib/images/icon_worker_protoss.png")
-    ).toString("base64")}`,
+    apm: await b("webui/dist/lib/images/icon_apm.png"),
+    terran: await b("webui/dist/lib/images/icon_worker_terran.png"),
+    zerg: await b("webui/dist/lib/images/icon_worker_zerg.png"),
+    protoss: await b("webui/dist/lib/images/icon_worker_protoss.png")
   };
 
   return {

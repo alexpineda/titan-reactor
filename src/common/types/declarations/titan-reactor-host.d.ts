@@ -157,14 +157,14 @@ declare module "titan-reactor/host" {
         mouseCursor: boolean;
     }
     export type SceneStateID = "@home" | "@loading" | "@replay" | "@map" | "@iscriptah" | "@interstitial"
-    export type UIStateAssets = { bwDat: BwDAT; gameIcons: ResourceIcons; cmdIcons: string[]; raceInsetIcons: RaceInsetIcons; workerIcons: WorkerIcons; wireframeIcons: string[]; }
+    export type UIStateAssets = { bwDat: BwDAT; gameIcons: ResourceIcons; cmdIcons: (Blob | string)[]; raceInsetIcons: RaceInsetIcons; workerIcons: WorkerIcons; wireframeIcons: (Blob | string)[]; }
     export interface WorkerIcons extends RaceInsetIcons {
-        apm: string;
+        apm: (Blob | string);
     }
     export interface RaceInsetIcons {
-        terran: string;
-        zerg: string;
-        protoss: string;
+        terran: (Blob | string);
+        zerg: (Blob | string);
+        protoss: (Blob | string);
     }
     export interface CenteredCursorIcons {
         icons: string[];
@@ -172,11 +172,11 @@ declare module "titan-reactor/host" {
         offY: number;
     }
     export interface ResourceIcons extends RaceInsetIcons {
-        minerals: string;
-        vespeneZerg: string;
-        vespeneTerran: string;
-        vespeneProtoss: string;
-        energy: string;
+        minerals: (Blob | string);
+        vespeneZerg: (Blob | string);
+        vespeneTerran: (Blob | string);
+        vespeneProtoss: (Blob | string);
+        energy: (Blob | string);
     }
     export interface Unit extends UnitStruct {
         extras: {

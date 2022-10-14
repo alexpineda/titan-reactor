@@ -1,17 +1,17 @@
 
 import { WebGLRenderer } from "three";
-import { renderIconsToDataURI } from "./render-icons";
+import { renderIconsToBlob } from "./render-icons";
 
-export default (renderer: WebGLRenderer, dds: Buffer[]) => {
-    const renderIcon = renderIconsToDataURI(
+export const generateResourceIcons = async (renderer: WebGLRenderer, dds: Buffer[]) => {
+    const renderIcon = renderIconsToBlob(
         renderer,
         56,
         56,
         dds
     );
 
-    const getNext = () => {
-        const next = renderIcon.next().value;
+    const getNext = async () => {
+        const next = (await renderIcon.next()).value as Blob | null;
         if (!next) {
             throw new Error("No more icons");
         }
@@ -19,13 +19,13 @@ export default (renderer: WebGLRenderer, dds: Buffer[]) => {
     }
 
     return {
-        "minerals": getNext(),
-        "vespeneZerg": getNext(),
-        "vespeneTerran": getNext(),
-        "vespeneProtoss": getNext(),
-        "zerg": getNext(),
-        "terran": getNext(),
-        "protoss": getNext(),
-        "energy": getNext(),
+        "minerals": await getNext(),
+        "vespeneZerg": await getNext(),
+        "vespeneTerran": await getNext(),
+        "vespeneProtoss": await getNext(),
+        "zerg": await getNext(),
+        "terran": await getNext(),
+        "protoss": await getNext(),
+        "energy": await getNext(),
     };
 };

@@ -5,5 +5,5 @@ onmessage = function ({ data: { buffer } }) {
     const exrLoader = new EXRLoader();
     const parsed = exrLoader.parse(buffer.buffer);
 
-    postMessage(parsed);
+    (this as DedicatedWorkerGlobalScope).postMessage(parsed, [parsed.data.buffer]);
 }

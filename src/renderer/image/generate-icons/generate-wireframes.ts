@@ -1,7 +1,7 @@
 import { OrthographicCamera, Scene, WebGLRenderer } from "three";
 import { createDDSTexture } from "../formats/create-dds-texture";
 
-export default async (renderer: WebGLRenderer, dds: Buffer[]) => {
+export const generateWireframes = async (renderer: WebGLRenderer, dds: Buffer[]) => {
     const wireframes = [];
 
     const ortho = new OrthographicCamera(-1, 1, 1, -1);
@@ -70,7 +70,9 @@ export default async (renderer: WebGLRenderer, dds: Buffer[]) => {
         );
         ctx.restore();
 
-        wireframes[i] = `url(${canvas.toDataURL("image/png")})`;
+        wireframes[i] = await new Promise(res => canvas.toBlob(res, "image/png"));
+
     }
+
     return wireframes;
 };

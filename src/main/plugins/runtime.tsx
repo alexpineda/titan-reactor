@@ -414,6 +414,14 @@ export class PlayerInfo {
   }
 }
 
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, _) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.readAsDataURL(blob);
+  });
+}
+
 const playerInfo = new PlayerInfo();
 const getPlayerInfo = (
   playerId: number,
@@ -438,6 +446,66 @@ const updateDimensionsCss = (dimensions: MinimapDimensions) => {
   );
 };
 
+async function convertIcons() {
+  for (let i = 0; i < assets.cmdIcons.length; i++) {
+    const icon = assets.cmdIcons[i];
+    if (icon instanceof Blob) {
+      assets.cmdIcons[i] = URL.createObjectURL(icon);
+    }
+  }
+
+  for (let i = 0; i < assets.wireframeIcons.length; i++) {
+    const icon = assets.wireframeIcons[i];
+    if (icon instanceof Blob) {
+      assets.wireframeIcons[i] = URL.createObjectURL(icon);
+    }
+  }
+
+  assets.raceInsetIcons.protoss = URL.createObjectURL(
+    assets.raceInsetIcons.protoss as Blob
+  );
+  assets.raceInsetIcons.zerg = URL.createObjectURL(
+    assets.raceInsetIcons.zerg as Blob
+  );
+  assets.raceInsetIcons.terran = URL.createObjectURL(
+    assets.raceInsetIcons.terran as Blob
+  );
+
+  assets.workerIcons.protoss = URL.createObjectURL(
+    assets.workerIcons.protoss as Blob
+  );
+  assets.workerIcons.zerg = URL.createObjectURL(
+    assets.workerIcons.zerg as Blob
+  );
+  assets.workerIcons.terran = URL.createObjectURL(
+    assets.workerIcons.terran as Blob
+  );
+
+  assets.gameIcons.energy = URL.createObjectURL(
+    assets.gameIcons.energy as Blob
+  );
+  assets.gameIcons.minerals = URL.createObjectURL(
+    assets.gameIcons.minerals as Blob
+  );
+
+  assets.gameIcons.protoss = URL.createObjectURL(
+    assets.gameIcons.protoss as Blob
+  );
+  assets.gameIcons.terran = URL.createObjectURL(
+    assets.gameIcons.terran as Blob
+  );
+  assets.gameIcons.vespeneProtoss = URL.createObjectURL(
+    assets.gameIcons.vespeneProtoss as Blob
+  );
+  assets.gameIcons.vespeneTerran = URL.createObjectURL(
+    assets.gameIcons.vespeneTerran as Blob
+  );
+  assets.gameIcons.vespeneZerg = URL.createObjectURL(
+    assets.gameIcons.vespeneZerg as Blob
+  );
+  assets.gameIcons.zerg = URL.createObjectURL(assets.gameIcons.zerg as Blob);
+}
+
 const _messageListener = function (event: MessageEvent) {
   if (event.data.type.startsWith("system:")) {
     if (event.data.type === "system:ready") {
@@ -446,6 +514,9 @@ const _messageListener = function (event: MessageEvent) {
       updateDimensionsCss(event.data.payload.initialStore.dimensions);
 
       Object.assign(assets, event.data.payload.assets);
+
+      convertIcons();
+
       Object.assign(enums, event.data.payload.enums);
 
       event.data.payload.plugins.forEach(_addPlugin);

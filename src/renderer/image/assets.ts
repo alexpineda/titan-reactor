@@ -41,7 +41,8 @@ const setHDMipMaps = (hd: AnimAtlas, hd2: AnimAtlas) => {
 export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture,
     bwDat: BwDAT
-}
+} & Awaited<ReturnType<typeof generateAllIcons>>;
+
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
 
 export const initializeAssets = async (directories: Settings["directories"]) => {
@@ -94,6 +95,19 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
     const envMapFilename = await fileExists(envEXRAssetFilename) ? envEXRAssetFilename : path.join(__static, "./envmap.hdr")
     loadEnvironmentMap(envMapFilename).then(tex => {
         setAsset("envMap", tex);
+
+    });
+
+    generateAllIcons(readCascFile).then(icons => {
+
+        setAsset("gameIcons", icons.gameIcons);
+        setAsset("cmdIcons", icons.cmdIcons);
+        setAsset("raceInsetIcons", icons.raceInsetIcons);
+        setAsset("workerIcons", icons.workerIcons);
+        setAsset("wireframeIcons", icons.wireframeIcons);
+        setAsset("arrowIconsGPU", icons.arrowIconsGPU);
+        setAsset("hoverIconsGPU", icons.hoverIconsGPU);
+        setAsset("dragIconsGPU", icons.dragIconsGPU);
 
     });
 
@@ -223,10 +237,9 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
     ], res)) as CubeTexture;
 
     const r = {
-        remaining: 2,
+        remaining: 10,
         atlases,
         selectionCircles: selectionCirclesHD,
-        ...await generateAllIcons(readCascFile),
         minimapConsole,
         loadImageAtlas(imageId: number, bwDat: BwDAT) {
             loadImageAtlas(imageId, bwDat);

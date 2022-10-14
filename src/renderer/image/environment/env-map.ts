@@ -1,7 +1,6 @@
 import { readFile } from "fs/promises";
 import { ClampToEdgeWrapping, DataTexture, EquirectangularReflectionMapping, LinearFilter, LinearMipmapLinearFilter, Texture } from "three";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader";
-// import EXRWorker from './exworker?worker'
 
 export async function loadEnvironmentMap(
   filepath: string
@@ -14,12 +13,6 @@ export async function loadEnvironmentMap(
 
     return tex;
   } else if (filepath.endsWith(".exr")) {
-    // const loader = new EXRLoader();
-
-    // const tex = await loader.loadAsync(filepath);
-    // tex.mapping = EquirectangularReflectionMapping;
-
-    // return tex;
 
     const worker = new Worker(new URL("./exr.worker.ts", import.meta.url), { type: "module" });
     const buffer = new Uint8Array(await (await readFile(filepath)).buffer);
