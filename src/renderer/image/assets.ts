@@ -12,7 +12,7 @@ import {
 import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
 import gameStore, { setAsset } from "@stores/game-store";
-import { generateAllIcons } from "./generate-icons/generate-icons";
+import { generateCursorIcons, generateUIIcons } from "./generate-icons/generate-icons";
 import { log } from "@ipc/log"
 import { loadEnvironmentMap } from "./environment/env-map";
 import { imageTypes } from "common/enums";
@@ -44,7 +44,7 @@ export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture,
     bwDat: BwDAT;
     wireframeIcons?: Blob[],
-} & Partial<Awaited<ReturnType<typeof generateAllIcons>>>;
+} & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
 
 export type UIStateAssets = Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
 
@@ -80,7 +80,7 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
     const sdAnim = parseAnim(sdAnimBuf);
 
     log.debug("@load-assets/selection-circles");
-    const selectionCirclesHD: AnimAtlas[] = [];
+    const selectionCircles: AnimAtlas[] = [];
     for (let i = 561; i < 571; i++) {
         const selCircleGRP = await loadAnimAtlas(
             await readCascFile(`anim/main_${i}.anim`),
@@ -88,7 +88,7 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
             UnitTileScale.HD,
         )
 
-        selectionCirclesHD.push(selCircleGRP);
+        selectionCircles.push(selCircleGRP);
         renderComposer.getWebGLRenderer().initTexture(selCircleGRP.diffuse);
     }
 
@@ -108,7 +108,14 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
         renderComposer.getWebGLRenderer().initTexture(tex);
     });
 
-    const someIcons = await generateAllIcons(readCascFile);
+    generateUIIcons(readCascFile).then(icons => {
+        setAsset("gameIcons", icons.gameIcons);
+        setAsset("cmdIcons", icons.cmdIcons);
+        setAsset("raceInsetIcons", icons.raceInsetIcons);
+        setAsset("workerIcons", icons.workerIcons);
+    });
+
+    const cursorIcons = await generateCursorIcons(readCascFile);
 
     const refId = (id: number) => {
         if (sdAnim?.[id]?.refId !== undefined) {
@@ -236,10 +243,10 @@ export const initializeAssets = async (directories: Settings["directories"]) => 
     })
 
     const r = {
-        remaining: 3,
-        ...someIcons,
+        remaining: 7,
         atlases,
-        selectionCircles: selectionCirclesHD,
+        ...cursorIcons,
+        selectionCircles,
         minimapConsole,
         loadImageAtlas(imageId: number, bwDat: BwDAT) {
             loadImageAtlas(imageId, bwDat);

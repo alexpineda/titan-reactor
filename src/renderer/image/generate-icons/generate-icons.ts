@@ -36,32 +36,9 @@ const generateWireframeOffscreen = async (readFile: ReadFile) => {
 
 }
 
-
-export const generateAllIcons = async (readFile: ReadFile) => {
-
-  const b = async (f: string) => new Blob([(await readFile(f)).buffer], { type: "octet/stream" });
-
-  generateWireframeOffscreen(readFile);
-
-  const cmdIcons: Blob[] = [];
-  for (const i of range(0, 389)) {
-    cmdIcons[i] = await b(`webui\\dist\\lib\\images\\cmdicons.${i}.png`)
-  }
-
-  renderComposer.preprocessStart();
-  const renderer = renderComposer.getWebGLRenderer();
+export const generateCursorIcons = async (readFile: ReadFile) => {
 
   const palette = new Uint8Array((await readFile("TileSet/jungle.wpe")).buffer).subarray(0, 1024);
-
-  const gameIcons = await generateResourceIcons(
-    renderer,
-    parseDdsGrp(await readFile("game/icons.dds.grp")),
-  );
-
-  const raceInsetIcons = await generateRaceIcons(
-    renderer,
-    parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp")),
-  );
 
   const arrowIconsGPU = (await generateCursors(
     await readFile("cursor/arrow.grp"),
@@ -84,23 +61,52 @@ export const generateAllIcons = async (readFile: ReadFile) => {
 
   dragIconsGPU.texture.wrapS = dragIconsGPU.texture.wrapT = RepeatWrapping;
 
-  renderComposer.preprocessEnd();
 
+  return {
+    arrowIconsGPU,
+    hoverIconsGPU,
+    dragIconsGPU
+  }
+
+}
+
+export const generateUIIcons = async (readFile: ReadFile) => {
+
+  const r = (f: string) => readFile(f).then((b) => b.buffer);
+
+  generateWireframeOffscreen(readFile);
+
+  const cmdIcons: ArrayBuffer[] = [];
+  for (const i of range(0, 389)) {
+    cmdIcons[i] = await r(`webui\\dist\\lib\\images\\cmdicons.${i}.png`);
+  }
 
   const workerIcons = {
-    apm: await b("webui/dist/lib/images/icon_apm.png"),
-    terran: await b("webui/dist/lib/images/icon_worker_terran.png"),
-    zerg: await b("webui/dist/lib/images/icon_worker_zerg.png"),
-    protoss: await b("webui/dist/lib/images/icon_worker_protoss.png")
+    apm: await r("webui/dist/lib/images/icon_apm.png"),
+    terran: await r("webui/dist/lib/images/icon_worker_terran.png"),
+    zerg: await r("webui/dist/lib/images/icon_worker_zerg.png"),
+    protoss: await r("webui/dist/lib/images/icon_worker_protoss.png")
   };
+
+  renderComposer.preprocessStart();
+  const renderer = renderComposer.getWebGLRenderer();
+
+  const gameIcons = await generateResourceIcons(
+    renderer,
+    parseDdsGrp(await readFile("game/icons.dds.grp")),
+  );
+
+  const raceInsetIcons = await generateRaceIcons(
+    renderer,
+    parseDdsGrp(await readFile("glue/scoretd/iScore.dds.grp")),
+  );
+
+  renderComposer.preprocessEnd();
 
   return {
     cmdIcons,
     gameIcons,
     raceInsetIcons,
     workerIcons,
-    arrowIconsGPU,
-    hoverIconsGPU,
-    dragIconsGPU
   };
 };

@@ -439,10 +439,13 @@ const updateDimensionsCss = (dimensions: MinimapDimensions) => {
 };
 
 async function convertIcons() {
+  const b = (data: ArrayBuffer) =>
+    URL.createObjectURL(new Blob([data], { type: "octet/stream" }));
+
   for (let i = 0; i < assets.cmdIcons.length; i++) {
     const icon = assets.cmdIcons[i];
-    if (icon instanceof Blob) {
-      assets.cmdIcons[i] = URL.createObjectURL(icon);
+    if (icon instanceof ArrayBuffer) {
+      assets.cmdIcons[i] = b(icon);
     }
   }
 
@@ -463,15 +466,10 @@ async function convertIcons() {
     assets.raceInsetIcons.terran as Blob
   );
 
-  assets.workerIcons.protoss = URL.createObjectURL(
-    assets.workerIcons.protoss as Blob
-  );
-  assets.workerIcons.zerg = URL.createObjectURL(
-    assets.workerIcons.zerg as Blob
-  );
-  assets.workerIcons.terran = URL.createObjectURL(
-    assets.workerIcons.terran as Blob
-  );
+  assets.workerIcons.protoss = b(assets.workerIcons.protoss as ArrayBuffer);
+  assets.workerIcons.zerg = b(assets.workerIcons.zerg as ArrayBuffer);
+  assets.workerIcons.terran = b(assets.workerIcons.terran as ArrayBuffer);
+  assets.workerIcons.apm = b(assets.workerIcons.apm as ArrayBuffer);
 
   assets.gameIcons.energy = URL.createObjectURL(
     assets.gameIcons.energy as Blob

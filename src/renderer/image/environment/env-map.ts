@@ -80,6 +80,8 @@ export async function loadEnvironmentMap(
 
 
         res(texture);
+
+        worker.terminate();
       };
 
     });

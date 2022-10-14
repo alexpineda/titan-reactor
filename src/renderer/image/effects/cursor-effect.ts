@@ -22,7 +22,7 @@ export class CursorEffect extends Effect {
                 ["uArrowSize", new Uniform(new Vector2(cursor.texture.image.width, cursor.texture.image.height))],
                 ["uResolution", new Uniform(new Vector2())],
                 ["uCursorPosition", new Uniform(new Vector2())],
-                ["uFrame", new Uniform(new Vector2(cursor.frames?.length!, 1))],
+                ["uFrame", new Uniform(new Vector2(cursor.frames!.length!, 1))],
                 ["uGraphicOffset", new Uniform(new Vector2(-0.01, -0.01))],
             ]),
         });
@@ -34,7 +34,7 @@ export class CursorEffect extends Effect {
         if (cursor.texture !== this.uniforms.get("uArrowTex")!.value) {
             this.uniforms.get("uArrowTex")!.value = cursor.texture;
             this.uniforms.get("uArrowSize")!.value.set(cursor.texture.image.width, cursor.texture.image.height);
-            this.uniforms.get("uFrame")!.value.set(cursor.frames?.length!, 1);
+            this.uniforms.get("uFrame")!.value.set(cursor.frames!.length!, 1);
         }
     }
 
