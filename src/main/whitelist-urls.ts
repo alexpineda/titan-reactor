@@ -3,8 +3,8 @@ export const whitelistUrls = [
     "http://discord.imbateam.gg",
     "https://github.com/imbateam-gg/titan-reactor",
     "https://www.patreon.com/imbateam",
-    "https://ko-fi.com/imbateam"
-]
+    "https://ko-fi.com/imbateam",
+];
 
 export const whiteListRegex = [
     /\.imbateam\.gg$/,
@@ -13,4 +13,4 @@ export const whiteListRegex = [
     /^https:\/\/repmastered\.app/,
     /^https:\/\/www\.starcraftworld\.net/,
     /^https:\/\/sscaitournament\.com/,
-]
+];

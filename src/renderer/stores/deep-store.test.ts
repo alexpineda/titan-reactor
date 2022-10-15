@@ -1,114 +1,86 @@
-import { describe, it } from "@jest/globals";
+import { describe, it, expect } from "@jest/globals";
 import { createDeepStore } from "./deep-store";
 
-describe("SessionStore", () => {
-
-    it("should create store", () => {
-
+describe( "SessionStore", () => {
+    it( "should create store", () => {
         const initialState = {
-
-            foo: "bar"
-
-        }
-
-        const store = createDeepStore({ initialState });
-
-        expect(store.getState()).toStrictEqual({ "foo": "bar" });
-
-    });
-
-    it("should get value at path", () => {
-
-        const initialState = {
-
-            foo: "bar"
-
+            foo: "bar",
         };
-        const store = createDeepStore({ initialState });
 
-        expect(store.getValue(["foo"])).toBe("bar");
+        const store = createDeepStore( { initialState } );
 
-    });
+        expect( store.getState() ).toStrictEqual( { foo: "bar" } );
+    } );
 
-    it("should set value at path", () => {
-
+    it( "should get value at path", () => {
         const initialState = {
+            foo: "bar",
+        };
+        const store = createDeepStore( { initialState } );
 
-            foo: "bar"
+        expect( store.getValue( ["foo"] ) ).toBe( "bar" );
+    } );
 
-        }
-        const store = createDeepStore({ initialState });
-
-        expect(store.setValue(["foo"], "baz"));
-
-        expect(store.getValue(["foo"])).toBe("baz");
-
-    });
-
-    it("should merge", () => {
-
+    it( "should set value at path", () => {
         const initialState = {
+            foo: "bar",
+        };
+        const store = createDeepStore( { initialState } );
 
-            foo: "bar"
+        expect( store.setValue( ["foo"], "baz" ) );
 
-        }
-        const store = createDeepStore({ initialState });
+        expect( store.getValue( ["foo"] ) ).toBe( "baz" );
+    } );
 
-        expect(store.merge({ foo: "baz" }));
+    it( "should merge", () => {
+        const initialState = {
+            foo: "bar",
+        };
+        const store = createDeepStore( { initialState } );
 
-        expect(store.getValue(["foo"])).toBe("baz");
+        expect( store.merge( { foo: "baz" } ) );
 
-    });
+        expect( store.getValue( ["foo"] ) ).toBe( "baz" );
+    } );
 
-    it("should merge deep", () => {
-
+    it( "should merge deep", () => {
         const initialState = {
             foo: {
-                bar: "baz"
-            }
+                bar: "baz",
+            },
         };
-        const store = createDeepStore({ initialState });
+        const store = createDeepStore( { initialState } );
 
-        expect(store.merge({ foo: { bar: "foo" } }));
+        expect( store.merge( { foo: { bar: "foo" } } ) );
 
-        expect(store.getValue(["foo", "bar"])).toBe("foo");
+        expect( store.getValue( ["foo", "bar"] ) ).toBe( "foo" );
+    } );
 
-    });
-
-    it("should merge if validate is true", () => {
-
+    it( "should merge if validate is true", () => {
         const initialState = {
-
-            foo: "bar"
-
+            foo: "bar",
         };
-        const store = createDeepStore({
+        const store = createDeepStore( {
             initialState,
-            validateMerge: () => true
-        });
+            validateMerge: () => true,
+        } );
 
-        expect(store.merge({ foo: "baz" }));
+        expect( store.merge( { foo: "baz" } ) );
 
-        expect(store.getValue(["foo"])).toBe("baz");
+        expect( store.getValue( ["foo"] ) ).toBe( "baz" );
+    } );
 
-    });
-
-    it("should not merge if validate is false", () => {
-
+    it( "should not merge if validate is false", () => {
         const initialState = {
-
-            foo: "bar"
-
-        }
-        const store = createDeepStore({
+            foo: "bar",
+        };
+        const store = createDeepStore( {
             initialState,
-            validateMerge: () => false
-        });
+            validateMerge: () => false,
+        } );
 
-        expect(store.merge({ foo: "baz" }));
+        expect( store.merge( { foo: "baz" } ) );
 
-        expect(store.getValue(["foo"])).toBe("bar");
-
-    });
-
-});
+        expect( store.getValue( ["foo"] ) ).toBe( "bar" );
+    } );
+} );

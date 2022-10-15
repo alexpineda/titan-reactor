@@ -11,16 +11,20 @@ export enum Operator {
     Execute = "Execute",
 }
 
-export type FieldDefinition = {
+export interface FieldDefinition<T = unknown> {
+    /**
+     * The type is usually inferred except for the case of Leva Plugins.
+     */
+    type?: string;
     label?: string;
-    value: any;//number | string | boolean | number[];
+    value: T; //number | string | boolean | number[];
     step?: number;
     min?: number;
     max?: number;
     options?: string[] | Record<string, string>;
 }
 
-export type Operation = {
+export interface Operation {
     operator: Operator;
     path: string[];
     value?: any;

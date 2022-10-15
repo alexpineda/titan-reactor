@@ -15,8 +15,8 @@ import {
 } from "common/ipc-handle-names";
 import electronIsDev from "electron-is-dev";
 
-const settingsPath = path.join(getUserDataPath());
-export const logFilePath = path.join(getUserDataPath(), "logs");
+const settingsPath = path.join( getUserDataPath() );
+export const logFilePath = path.join( getUserDataPath(), "logs" );
 
 export default (
     onOpenPluginManager: () => void,
@@ -32,7 +32,7 @@ export default (
                     label: "Open &Replay",
                     click: async function () {
                         const files = await showOpenReplayDialog();
-                        if (files && files.length > 0) {
+                        if ( files && files.length > 0 ) {
                             browserWindows.main!.webContents.send(
                                 OPEN_REPLAY_DIALOG,
                                 files[0]
@@ -44,7 +44,7 @@ export default (
                     label: "Open &Map (Sandbox)",
                     click: async function () {
                         const files = await showOpenMapDialog();
-                        if (files && files.length > 0) {
+                        if ( files && files.length > 0 ) {
                             browserWindows.main!.webContents.send(
                                 OPEN_MAP_DIALOG,
                                 files[0]
@@ -57,19 +57,19 @@ export default (
                 {
                     label: "View &Plugin File(s)",
                     click: function () {
-                        void shell.openPath(settings.get().directories.plugins);
+                        void shell.openPath( settings.get().directories.plugins );
                     },
                 },
                 {
                     label: "View &Log File(s)",
                     click: function () {
-                        void shell.openPath(logFilePath);
+                        void shell.openPath( logFilePath );
                     },
                 },
                 {
                     label: "View Raw Settings (settings.json)",
                     click: function () {
-                        void shell.openPath(settingsPath);
+                        void shell.openPath( settingsPath );
                     },
                 },
                 { type: "separator" },
@@ -111,12 +111,12 @@ export default (
                     label: "Reload Plugins",
                     click: async () => {
                         await settings.initialize();
-                        browserWindows.main?.webContents.send(RELOAD_PLUGINS);
+                        browserWindows.main?.webContents.send( RELOAD_PLUGINS );
                     },
                 },
-                ...(electronIsDev
+                ...( electronIsDev
                     ? [{ type: "separator" }, { role: "toggledevtools" }]
-                    : []),
+                    : [] ),
                 { type: "separator" },
                 {
                     label: "&IScriptah - Animation Viewer",
@@ -127,9 +127,7 @@ export default (
                 {
                     label: "Clear Asset Cache",
                     click: () => {
-                        browserWindows.main?.webContents.send(
-                            CLEAR_ASSET_CACHE
-                        );
+                        browserWindows.main?.webContents.send( CLEAR_ASSET_CACHE );
                     },
                 },
             ],
@@ -137,6 +135,6 @@ export default (
     ];
 
     // @ts-expect-error
-    const menu = Menu.buildFromTemplate(template);
-    Menu.setApplicationMenu(menu);
+    const menu = Menu.buildFromTemplate( template );
+    Menu.setApplicationMenu( menu );
 };

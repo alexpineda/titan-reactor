@@ -1,6 +1,6 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
-import fileExists from "common/utils/file-exists";
+import { fileExists } from "common/utils/file-exists";
 import { AnimAtlas, BwDAT, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
@@ -248,7 +248,7 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
             return this.getImageAtlas( imageId );
         },
         getImageAtlas( imageId: number ) {
-            return atlases[refId( imageId )] as AnimAtlas | undefined;
+            return atlases[refId( imageId )] ;
         },
         loadImageAtlasAsync( imageId: number, bwDat: BwDAT ) {
             return loadImageAtlas( imageId, bwDat );

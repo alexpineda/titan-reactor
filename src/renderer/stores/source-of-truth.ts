@@ -3,34 +3,31 @@ import { DeepPartial } from "common/types";
 import get from "lodash.get";
 import deepMerge from "deepmerge";
 
-const structuredClone = globalThis.structuredClone || ((x: object) => JSON.parse(JSON.stringify(x)));
+const structuredClone =
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    globalThis.structuredClone ||
+    ( ( x: object ) => JSON.parse( JSON.stringify( x ) ) as unknown );
 export class SourceOfTruth<T extends object> {
-
     #data: T;
-    onUpdate: ((diff: DeepPartial<T>) => void) | undefined;
+    onUpdate: ( ( diff: DeepPartial<T> ) => void ) | undefined;
 
-    constructor(data: T) {
-
+    constructor( data: T ) {
         this.#data = data;
-
     }
 
-    getValue(path: string[]): any {
-
-        return get(this.#data, path);
-
+    getValue( path: string[] ): any {
+        return get( this.#data, path );
     }
 
-    update(data: Partial<T>) {
-
-        const result = intersection(this.#data, data) as DeepPartial<T>;
-        this.#data = deepMerge(this.#data, result, { arrayMerge: arrayOverwriteMerge }) as Required<T>;
-        this.onUpdate && this.onUpdate(result);
-
+    update( data: Partial<T> ) {
+        const result = intersection( this.#data, data ) as DeepPartial<T>;
+        this.#data = deepMerge( this.#data, result, {
+            arrayMerge: arrayOverwriteMerge,
+        } ) as Required<T>;
+        this.onUpdate && this.onUpdate( result );
     }
 
     clone() {
-        return structuredClone(this.#data);
+        return structuredClone( this.#data );
     }
-
 }

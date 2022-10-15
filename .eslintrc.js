@@ -51,7 +51,7 @@ module.exports = {
                 consistent: true,
             },
         ],
-        "padded-blocks": [ "error", "never", { allowSingleLineBlocks: true }],
+        "padded-blocks": ["error", "never", { allowSingleLineBlocks: true }],
 
         "react/display-name": 0,
         "react/prop-types": 0,
@@ -63,10 +63,7 @@ module.exports = {
         "import/default": 0,
         "import/no-named-as-default-member": 0,
 
-        "@typescript-eslint/no-unused-vars": [
-            "error",
-            { argsIgnorePattern: "^_" },
-        ],
+        "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/no-explicit-any": "off",
@@ -78,8 +75,16 @@ module.exports = {
         "@typescript-eslint/no-floating-promises": "off",
 
         "@typescript-eslint/prefer-optional-chain": "off",
-        "@typescript-eslint/restrict-template-expressions" : ["error", {"allowNumber": true, "allowBoolean": true}],
+        "@typescript-eslint/restrict-template-expressions": [
+            "error",
+            { allowNumber: true, allowBoolean: true },
+        ],
+
+        "@typescript-eslint/no-dynamic-delete": "off",
+
+        // revisit these
         "@typescript-eslint/no-unsafe-call": "off",
+        "@typescript-eslint/no-unsafe-member-access": "off",
     },
     globals: {
         __static: true,
