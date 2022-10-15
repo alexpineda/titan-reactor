@@ -8,7 +8,7 @@ import { PluginsAndMacroSession } from "./create-plugins-and-macros-session";
 import { SettingsSessionStore } from "./settings-session-store";
 import { WorldEvents } from "./world-events";
 
-export type World = {
+export interface World {
     map: Chk;
     players: BasePlayer[];
     commands: CommandsStream;

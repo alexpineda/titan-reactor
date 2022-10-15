@@ -1,7 +1,12 @@
 import { SoundChannels } from "@audio/sound-channels";
 import { TilesBufferView } from "@buffer-view/tiles-buffer-view";
 import { skipHandler } from "@openbw/skip-handler";
-import { REPLAY_MAX_SPEED, REPLAY_MIN_SPEED, SpeedDirection, speedHandler } from "@openbw/speed-handler";
+import {
+    REPLAY_MAX_SPEED,
+    REPLAY_MIN_SPEED,
+    SpeedDirection,
+    speedHandler,
+} from "@openbw/speed-handler";
 import { buildSound } from "@utils/sound-utils";
 import { floor32 } from "common/utils/conversions";
 import { SceneComposer } from "./scene-composer";
@@ -13,71 +18,104 @@ import { mixer } from "@core/global";
 import { Timer } from "@utils/timer";
 import { borrow, Borrowed } from "@utils/object-utils";
 
-export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "pxToWorld" | "terrainExtra">, viewInput: ViewInputComposer) => {
+export const createOpenBWComposer = (
+    world: World,
+    scene: Pick<SceneComposer, "pxToWorld" | "terrainExtra">,
+    viewInput: ViewInputComposer
+) => {
     let _currentFrame = 0;
     let _previousBwFrame = -1;
 
-    const soundChannels = new SoundChannels(mixer);
+    const soundChannels = new SoundChannels( mixer );
 
-    const buildSounds = (elapsed: number) => {
-
-        const soundsAddr = world.openBW.getSoundsAddress!();
-        for (let i = 0; i < world.openBW.getSoundsCount!(); i++) {
-            const addr = (soundsAddr >> 2) + (i << 2);
+    const buildSounds = ( elapsed: number ) => {
+        const soundsAddr = world.openBW.getSoundsAddress();
+        for ( let i = 0; i < world.openBW.getSoundsCount(); i++ ) {
+            const addr = ( soundsAddr >> 2 ) + ( i << 2 );
             const typeId = world.openBW.HEAP32[addr];
             const x = world.openBW.HEAP32[addr + 1];
             const y = world.openBW.HEAP32[addr + 2];
             const unitTypeId = world.openBW.HEAP32[addr + 3];
 
-            if (world.fogOfWar.isVisible(floor32(x), floor32(y)) && typeId !== 0) {
-                buildSound(elapsed, x, y, typeId, unitTypeId, scene.pxToWorld, viewInput.audio, viewInput.primaryViewport!.projectedView, soundChannels);
+            if ( world.fogOfWar.isVisible( floor32( x ), floor32( y ) ) && typeId !== 0 ) {
+                buildSound(
+                    elapsed,
+                    x,
+                    y,
+                    typeId,
+                    unitTypeId,
+                    scene.pxToWorld,
+                    viewInput.audio,
+                    viewInput.primaryViewport!.projectedView,
+                    soundChannels
+                );
             }
         }
-
     };
 
-    world.events.on("settings-changed", ({ rhs }) => {
-        if (rhs?.session?.sandbox !== undefined) {
-            if (world.openBW.setSandboxMode(rhs?.session?.sandbox) === undefined) {
-                return false;
-            }
+    world.events.on( "settings-changed", ( { rhs } ) => {
+        if ( rhs.session?.sandbox !== undefined ) {
+            return world.openBW.setSandboxMode( rhs.session.sandbox ) !== undefined;
         }
-    })
+    } );
 
-    const { resetCompletedUpgrades, updateCompletedUpgrades, completedUpgrades } = createCompletedUpgradesHelper(world.openBW, (owner: number, typeId: number, level: number) => {
-        world.events.emit("completed-upgrade", { owner, typeId, level });
-    }, (owner: number, typeId: number) => {
-        world.events.emit("completed-upgrade", { owner, typeId });
-    });
+    const { resetCompletedUpgrades, updateCompletedUpgrades, completedUpgrades } =
+        createCompletedUpgradesHelper(
+            world.openBW,
+            ( owner: number, typeId: number, level: number ) => {
+                world.events.emit( "completed-upgrade", { owner, typeId, level } );
+            },
+            ( owner: number, typeId: number ) => {
+                world.events.emit( "completed-upgrade", { owner, typeId } );
+            }
+        );
 
-    world.events.on("frame-reset", () => {
-
+    world.events.on( "frame-reset", () => {
         _currentFrame = world.openBW.getCurrentFrame();
         _previousBwFrame = -1;
-        resetCompletedUpgrades(_currentFrame);
+        resetCompletedUpgrades( _currentFrame );
+    } );
 
-    });
-
-    const _tiles = new TilesBufferView(TilesBufferView.STRUCT_SIZE, 0, 0, world.openBW.HEAPU8);
-    const buildCreep = (frame: number) => {
+    const _tiles = new TilesBufferView(
+        TilesBufferView.STRUCT_SIZE,
+        0,
+        0,
+        world.openBW.HEAPU8
+    );
+    const buildCreep = ( frame: number ) => {
         _tiles.ptrIndex = world.openBW.getTilesPtr();
         _tiles.itemsCount = world.openBW.getTilesSize();
-        scene.terrainExtra!.creep.generate(_tiles, frame);
+        scene.terrainExtra.creep.generate( _tiles, frame );
     };
 
     let lastElapsed = 0;
     const pauseTimer = new Timer();
 
-    world.events.on("frame-reset", () => soundChannels.reset());
+    world.events.on( "frame-reset", () => soundChannels.reset() );
 
     // for game time api
-    const gtapi_playSound = (typeId: number, volumeOrX?: number, y?: number, unitTypeId = -1) => {
-        if (y !== undefined && volumeOrX !== undefined) {
-            buildSound(lastElapsed, volumeOrX, y, typeId, unitTypeId, scene.pxToWorld!, viewInput.audio!, viewInput.primaryViewport!.projectedView, soundChannels);
+    const gtapi_playSound = (
+        typeId: number,
+        volumeOrX?: number,
+        y?: number,
+        unitTypeId = -1
+    ) => {
+        if ( y !== undefined && volumeOrX !== undefined ) {
+            buildSound(
+                lastElapsed,
+                volumeOrX,
+                y,
+                typeId,
+                unitTypeId,
+                scene.pxToWorld,
+                viewInput.audio,
+                viewInput.primaryViewport!.projectedView,
+                soundChannels
+            );
         } else {
-            soundChannels.playGlobal(typeId, volumeOrX);
+            soundChannels.playGlobal( typeId, volumeOrX );
         }
-    }
+    };
 
     const gtapi_getCurrentFrame = () => _currentFrame;
 
@@ -89,75 +127,79 @@ export const createOpenBWComposer = (world: World, scene: Pick<SceneComposer, "p
         get previousBwFrame() {
             return _previousBwFrame;
         },
-        update(elapsed: number) {
-
+        update( elapsed: number ) {
             lastElapsed = elapsed;
             _currentFrame = world.openBW.nextFrame();
             // _currentFrame = world.openBW.tryCatch(world.openBW.nextFrame);
 
-            if (_currentFrame !== _previousBwFrame) {
-
+            if ( _currentFrame !== _previousBwFrame ) {
                 world.openBW.generateFrame();
 
-                if (_currentFrame % 24 === 0) {
-
-                    updateCompletedUpgrades(_currentFrame);
-
+                if ( _currentFrame % 24 === 0 ) {
+                    updateCompletedUpgrades( _currentFrame );
                 }
 
-                buildSounds(elapsed);
-                buildCreep(_currentFrame);
+                buildSounds( elapsed );
+                buildCreep( _currentFrame );
 
                 _previousBwFrame = _currentFrame;
 
                 return true;
+            } else if ( world.openBW.isPaused() ) {
+                pauseTimer.update( elapsed );
 
-            } else if (world.openBW.isPaused()) {
-                pauseTimer.update(elapsed);
-
-                if (pauseTimer.getElapsed() > 42) {
+                if ( pauseTimer.getElapsed() > 42 ) {
                     pauseTimer.resetElapsed();
                     return true;
                 }
             }
 
             return false;
-
         },
         // not used, kept to keep the object alive for game time api
         _refs: {
             gtapi_playSound,
-            gtapi_getCurrentFrame
+            gtapi_getCurrentFrame,
         },
-        api: ((b_world: Borrowed<World, true>, _playSound: WeakRef<typeof gtapi_playSound>, _getCurrentFrame: WeakRef<typeof gtapi_getCurrentFrame>) => ({
+        api: ( (
+            b_world: Borrowed<World, true>,
+            _playSound: WeakRef<typeof gtapi_playSound>,
+            _getCurrentFrame: WeakRef<typeof gtapi_getCurrentFrame>
+        ) => ( {
             getCurrentFrame() {
                 return _getCurrentFrame.deref()!();
             },
-            skipForward: skipHandler(b_world.openBW, 1, b_world.reset),
-            skipBackward: skipHandler(b_world.openBW, -1, b_world.reset),
-            speedUp: () => speedHandler(SpeedDirection.Up, b_world.openBW),
-            speedDown: () => speedHandler(SpeedDirection.Down, b_world.openBW),
-            togglePause: (setPaused?: boolean) => {
+            skipForward: skipHandler( b_world.openBW, 1, b_world.reset ),
+            skipBackward: skipHandler( b_world.openBW, -1, b_world.reset ),
+            speedUp: () => speedHandler( SpeedDirection.Up, b_world.openBW ),
+            speedDown: () => speedHandler( SpeedDirection.Down, b_world.openBW ),
+            togglePause: ( setPaused?: boolean ) => {
                 const openBW = b_world.openBW.deref()!;
-                openBW.setPaused(setPaused ?? !openBW.isPaused());
+                openBW.setPaused( setPaused ?? !openBW.isPaused() );
                 return openBW.isPaused();
             },
             get gameSpeed() {
                 const openBW = b_world.openBW.deref()!;
                 return openBW.getGameSpeed();
             },
-            setGameSpeed(value: number) {
+            setGameSpeed( value: number ) {
                 const openBW = b_world.openBW.deref()!;
-                openBW.setGameSpeed(MathUtils.clamp(value, REPLAY_MIN_SPEED, REPLAY_MAX_SPEED));
+                openBW.setGameSpeed(
+                    MathUtils.clamp( value, REPLAY_MIN_SPEED, REPLAY_MAX_SPEED )
+                );
             },
-            gotoFrame: (frame: number) => {
+            gotoFrame: ( frame: number ) => {
                 const openBW = b_world.openBW.deref()!;
-                openBW.setCurrentFrame(frame);
+                openBW.setCurrentFrame( frame );
                 b_world.reset.deref()!();
             },
-            playSound(...args: Parameters<typeof gtapi_playSound>) {
-                _playSound.deref()!(...args);
-            }
-        }))(borrow<World, true>(world, { retainRefs: true }), new WeakRef(gtapi_playSound), new WeakRef(gtapi_getCurrentFrame))
-    }
-}
+            playSound( ...args: Parameters<typeof gtapi_playSound> ) {
+                _playSound.deref()!( ...args );
+            },
+        } ) )(
+            borrow<World, true>( world, { retainRefs: true } ),
+            new WeakRef( gtapi_playSound ),
+            new WeakRef( gtapi_getCurrentFrame )
+        ),
+    };
+};

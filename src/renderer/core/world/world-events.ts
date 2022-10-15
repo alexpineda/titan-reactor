@@ -4,8 +4,7 @@ import GameSurface from "@render/game-surface";
 import { DeepPartial, SessionSettingsData } from "common/types";
 import { ImageBase } from "..";
 
-export const worldEventsList: (keyof WorldEvents)[] = [
-
+export const worldEventsList: ( keyof WorldEvents )[] = [
     "unit-created",
     "unit-killed",
     "unit-destroyed",
@@ -36,46 +35,49 @@ export const worldEventsList: (keyof WorldEvents)[] = [
     "dispose",
 
     "mouse-click",
-
 ];
 
 // do not put anything performance sensitive here as these are synchronous.
 // image created/destroyed is already pushing it
 export interface WorldEvents {
-
     "unit-created": Unit;
     "unit-killed": Unit;
     "unit-destroyed": Unit;
     "followed-units-changed": Unit[];
     "selected-units-changed": Unit[];
-    "completed-upgrade": { owner: number, typeId: number, level: number };
-    "completed-tech": { owner: number, typeId: number };
-    "frame-reset": void;
-    "minimap-enter": void;
-    "minimap-leave": void;
+    "completed-upgrade": { owner: number; typeId: number; level: number };
+    "completed-tech": { owner: number; typeId: number };
+    "frame-reset": undefined;
+    "minimap-enter": undefined;
+    "minimap-leave": undefined;
 
     "image-destroyed": ImageBase;
     "image-updated": ImageBase;
     "image-created": ImageBase;
-    "units-cleared": void;
+    "units-cleared": undefined;
 
-    "settings-changed": { settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> };
-    "plugin-configuration-changed": { settings: SessionSettingsData, rhs: DeepPartial<SessionSettingsData> };
+    "settings-changed": {
+        settings: SessionSettingsData;
+        rhs: DeepPartial<SessionSettingsData>;
+    };
+    "plugin-configuration-changed": {
+        settings: SessionSettingsData;
+        rhs: DeepPartial<SessionSettingsData>;
+    };
     "resize": GameSurface;
 
-    "box-selection-start": void;
-    "box-selection-move": void;
+    "box-selection-start": undefined;
+    "box-selection-move": undefined;
     "box-selection-end": Unit[];
     "box-selection-enabled": boolean;
 
     "scene-controller-exit": string;
     "scene-controller-enter": string;
 
-    "world-start": void;
-    "world-end": void;
+    "world-start": undefined;
+    "world-end": undefined;
 
-    "dispose": void;
+    "dispose": undefined;
 
     "mouse-click": MouseTriggerDTO;
-
 }

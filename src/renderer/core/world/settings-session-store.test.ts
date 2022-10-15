@@ -5,106 +5,103 @@ import { WorldEvents } from "./world-events";
 import * as settingsStore from "@stores/settings-store";
 import { Operator } from "common/types";
 
-jest.mock("@ipc/log");
-jest.mock("@utils/type-emitter");
-jest.mock("@stores/settings-store", () => ({
+jest.mock( "@ipc/log" );
+jest.mock( "@utils/type-emitter" );
+jest.mock( "@stores/settings-store", () => ( {
     __esModule: true,
     settingsStore: null,
     useSettingsStore: {
-        subscribe: jest.fn()
+        subscribe: jest.fn(),
     },
-}));
-jest.mock("three-janitor");
+} ) );
+jest.mock( "three-janitor" );
 
 const initialState = {
     enabledPlugins: [],
     data: {
         session: {},
         audio: {
-            music: 0
+            music: 0,
         },
         input: {
-            mouseSensitivity: 1
+            mouseSensitivity: 1,
         },
         minimap: {
-            zoom: 2
+            zoom: 2,
         },
         postprocessing: {
-            bloom: 3
+            bloom: 3,
         },
         postprocessing3d: {
-            bloom: 4
-        }
-    }
+            bloom: 4,
+        },
+    },
 };
-const createBaseStore = () => jest.fn(() => JSON.parse(JSON.stringify(initialState)));
+const createBaseStore = () =>
+    jest.fn( () => JSON.parse( JSON.stringify( initialState ) ) as unknown );
 
-describe("SettingsSessionStore", () => {
-
-    beforeEach(() => {
-        //@ts-ignore
+describe( "SettingsSessionStore", () => {
+    beforeEach( () => {
+        //@ts-expect-error
         settingsStore.settingsStore = createBaseStore();
-    });
+    } );
 
-    it("should have initial state", () => {
+    it( "should have initial state", () => {
         const events = new TypeEmitter<WorldEvents>();
-        const session = createSettingsSessionStore(events);
+        const session = createSettingsSessionStore( events );
 
-        expect(session.getState()).toStrictEqual(initialState.data);
-
-    });
+        expect( session.getState() ).toStrictEqual( initialState.data );
+    } );
 
     // expect this test to break once the diff merge is introduced
-    it("should merge from settings store and emit event", () => {
-        let callback: (args: any) => void;
+    it( "should merge from settings store and emit event", () => {
+        let callback: ( args: any ) => void;
 
-        //@ts-ignore
+        //@ts-expect-error
         settingsStore.useSettingsStore = {
-            subscribe: jest.fn((cb: (args: any) => void) => {
+            subscribe: jest.fn( ( cb: ( args: any ) => void ) => {
                 callback = cb;
-            })
+            } ),
         };
 
         const events = new TypeEmitter<WorldEvents>();
-        const session = createSettingsSessionStore(events);
+        const session = createSettingsSessionStore( events );
 
-        expect(session.getState()).toStrictEqual(initialState.data);
+        expect( session.getState() ).toStrictEqual( initialState.data );
 
         const rhs = { data: { audio: { music: 1 } } };
-        callback!(rhs);
+        callback!( rhs );
 
-        expect(events.emit).toBeCalledTimes(1);
-        expect(events.emit).toBeCalledWith("settings-changed", {
+        expect( events.emit ).toBeCalledTimes( 1 );
+        expect( events.emit ).toBeCalledWith( "settings-changed", {
             settings: {
                 ...initialState.data,
-                audio: { music: 1 }
+                audio: { music: 1 },
             },
-            rhs: rhs.data
-        });
-    });
+            rhs: rhs.data,
+        } );
+    } );
 
-
-    it("getRawValue should return value at path", () => {
+    it( "getRawValue should return value at path", () => {
         const events = new TypeEmitter<WorldEvents>();
-        const session = createSettingsSessionStore(events);
+        const session = createSettingsSessionStore( events );
 
-        expect(session.getValue(["minimap", "zoom"])).toBe(2);
-    });
+        expect( session.getValue( ["minimap", "zoom"] ) ).toBe( 2 );
+    } );
 
-    it("mutate should apply effect", () => {
-
+    it( "mutate should apply effect", () => {
         const events = new TypeEmitter<WorldEvents>();
-        const session = createSettingsSessionStore(events);
+        const session = createSettingsSessionStore( events );
 
-        session.operate({
+        session.operate( {
             path: ["audio", "music"],
             value: 0.5,
-            operator: Operator.Set
-        });
+            operator: Operator.Set,
+        } );
 
-        expect(session.getState()).toStrictEqual({
+        expect( session.getState() ).toStrictEqual( {
             ...initialState.data,
-            audio: { music: 0.5 }
-        });
-    });
-});
+            audio: { music: 0.5 },
+        } );
+    } );
+} );

@@ -4,14 +4,17 @@ import { savePluginsConfig } from "@ipc/plugins";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import { NativePlugin, PluginPackage } from "common/types";
 
-export interface PluginBase extends NativePlugin, GameTimeApi { }
+export interface PluginBase extends NativePlugin, GameTimeApi {}
 
-const structuredClone = globalThis.structuredClone ?? ((x: any) => JSON.parse(JSON.stringify(x)));
+const structuredClone =
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    globalThis.structuredClone ??
+    ( ( x: any ) => JSON.parse( JSON.stringify( x ) ) as unknown );
 export class PluginBase implements NativePlugin {
     readonly id: string;
     readonly name: string;
     isSceneController = false;
-    #config: Record<string, any> | undefined = {}
+    #config: Record<string, any> | undefined = {};
 
     /**
      * @internal
@@ -19,43 +22,47 @@ export class PluginBase implements NativePlugin {
      */
     #normalizedConfig: Record<string, any> | undefined;
 
-    constructor(pluginPackage: PluginPackage) {
+    constructor( pluginPackage: PluginPackage ) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
-        this.config = structuredClone(pluginPackage.config);
+        this.config = structuredClone( pluginPackage.config );
     }
 
-    callCustomHook: (hook: string, ...args: any[]) => any = () => { };
-    sendUIMessage: (message: any) => void = () => { };
+    callCustomHook: ( hook: string, ...args: any[] ) => any = () => {};
+    sendUIMessage: ( message: any ) => void = () => {};
 
     /**
-     * 
+     *
      * @param key The configuration key.
      * @param value  The configuration value.
-     * @returns 
+     * @returns
      */
-    setConfig(key: string, value: any, persist = true): void {
-        if (!this.#config) {
+    setConfig( key: string, value: unknown, persist = true ): void {
+        if ( !this.#config ) {
             return;
         }
 
-        if (!(key in this.#config)) {
-            log.warn(`Plugin ${this.id} tried to set config key ${key} but it was not found`);
+        if ( !( key in this.#config ) ) {
+            log.warn(
+                `Plugin ${this.id} tried to set config key ${key} but it was not found`
+            );
             return undefined;
         }
 
         this.#config[key].value = value;
-        if (persist) {
-            savePluginsConfig(this.id, this.#config);
+        if ( persist ) {
+            savePluginsConfig( this.id, this.#config );
         }
     }
 
     /*
-    * Generates the normalized config object.
-    * Same as config but simplified to [key] = value | [key] = value * factor
-    */
+     * Generates the normalized config object.
+     * Same as config but simplified to [key] = value | [key] = value * factor
+     */
     refreshConfig() {
-        this.#normalizedConfig = this.#config ? normalizePluginConfiguration(this.#config) : undefined;
+        this.#normalizedConfig = this.#config
+            ? normalizePluginConfiguration( this.#config )
+            : undefined;
     }
 
     get configExists() {
@@ -72,7 +79,7 @@ export class PluginBase implements NativePlugin {
     /**
      * Set the config from unnormalized data (ie leva config schema).
      */
-    set config(value: any) {
+    set config( value: unknown ) {
         this.#config = value;
         this.refreshConfig();
     }
@@ -81,11 +88,11 @@ export class PluginBase implements NativePlugin {
      * @param key The configuration key.
      * @returns the leva configuration for a particular field
      */
-    getFieldDefinition(key: string) {
-        if (!this.#config) {
+    getFieldDefinition( key: string ) {
+        if ( !this.#config ) {
             return undefined;
         }
-        return this.#config[key];
+        return this.#config[key] as unknown;
     }
 
     get rawConfig() {

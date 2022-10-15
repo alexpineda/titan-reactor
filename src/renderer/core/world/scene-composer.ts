@@ -17,6 +17,7 @@ import { ImageHDInstanced } from "@core/image-hd-instanced";
 import {
     applyModelEffectsToImage3d,
     applyRenderModeToImageHD,
+    applyRenderModeToSprite,
     overlayEffectsMainImage,
 } from "@core/model-effects";
 import { Players } from "@core/players";
@@ -303,6 +304,12 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
             _images.push( image );
         }
+
+        applyRenderModeToSprite(
+            spriteData.typeId,
+            sprite,
+            terrain.getTerrainY( sprite.position.x, sprite.position.z )
+        );
 
         sprite.updateMatrix();
         sprite.matrixWorld.copy( sprite.matrix );

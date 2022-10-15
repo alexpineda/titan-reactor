@@ -10,100 +10,108 @@ import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
 import { PluginBase } from "@plugins/plugin-base";
 import { SourceOfTruth } from "@stores/source-of-truth";
+import { FieldDefinition } from "common/types";
 
-
-export type PluginVariables = {
-    [K: string]: {
-        [T: string]: MutationVariable | ((...args: any[]) => any);
-    };
-};
+export type PluginVariables = Record<
+    string,
+    Record<string, MutationVariable | ( ( ...args: any[] ) => any )>
+>;
 
 /**
  * An api that allows the consumer to modify plugin values and have the system respond.
  */
-export const createPluginSessionStore = (plugins: PluginSystemNative, uiPlugins: PluginSystemUI) => {
+export const createPluginSessionStore = (
+    plugins: PluginSystemNative,
+    uiPlugins: PluginSystemUI
+) => {
+    const janitor = new Janitor( "ReactivePluginApi" );
 
-    const janitor = new Janitor("ReactivePluginApi");
-
-    const sourceOfTruth = new SourceOfTruth(plugins.getConfigSnapshot());
-    const sessionStore = createDeepStore({
+    const sourceOfTruth = new SourceOfTruth( plugins.getConfigSnapshot() );
+    const sessionStore = createDeepStore( {
         initialState: sourceOfTruth.clone(),
-        validateMerge: (_, __, path) => {
+        validateMerge: ( _, __, path ) => {
             // merged from source of truth
-            if (path === undefined) {
+            if ( path === undefined ) {
                 return true;
             }
-            const plugin = plugins.getByName(path[0]);
+            const plugin = plugins.getByName( path[0] );
 
-            if (!plugin) {
-                log.error(`@validate-merge: Plugin ${path[0]} not found`);
+            if ( !plugin ) {
+                log.error( `@validate-merge: Plugin ${path[0]} not found` );
                 return false;
             }
 
-            if (!plugins.isRegularPluginOrActiveSceneController(plugin)) {
+            if ( !plugins.isRegularPluginOrActiveSceneController( plugin ) ) {
                 return false;
             }
 
-            if (!plugin.configExists) {
+            if ( !plugin.configExists ) {
                 return false;
             }
 
-            const field = plugin.getFieldDefinition(path[1]);
+            const field = plugin.getFieldDefinition( path[1] );
 
-            if (field === undefined) {
+            if ( field === undefined ) {
                 return false;
             }
 
             return true;
         },
-        onUpdate: (_, __, path, value) => {
+        onUpdate: ( _, __, path, value ) => {
             // merged from source of truth
-            if (path === undefined) {
+            if ( path === undefined ) {
                 return;
             }
 
-            const plugin = plugins.getByName(path[0])!;
+            const plugin = plugins.getByName( path[0] )!;
 
-            plugins.hook_onConfigChanged(plugin.id, lSet(plugin.rawConfig!, [path[1], "value"], value));
+            plugins.hook_onConfigChanged(
+                plugin.id,
+                lSet( plugin.rawConfig!, [path[1], "value"], value )
+            );
 
-            uiPlugins.sendMessage({
+            uiPlugins.sendMessage( {
                 type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
                 payload: {
                     pluginId: plugin.id,
                     config: plugin.config,
-                }
-            });
+                },
+            } );
+        },
+    } );
 
-        }
-    });
+    const getValue = ( path: string[] ) =>
+        lGet( plugins.getByName( path[0] )?.rawConfig ?? {}, path[1] ) as
+            | FieldDefinition
+            | undefined;
 
-    const getValue = (path: string[]) => lGet(plugins.getByName(path[0])?.rawConfig ?? {}, path[1]);
+    const store = createOperatableStore( sessionStore, sourceOfTruth, getValue );
 
-    const store = createOperatableStore(sessionStore, sourceOfTruth, getValue);
-
-    const vars = plugins.reduce((acc, plugin) => {
-
-        Object.keys(plugin.rawConfig ?? {}).forEach((key) => {
-
-            if (key !== "system") {
+    const vars = plugins.reduce( ( acc, plugin ) => {
+        Object.keys( plugin.rawConfig ?? {} ).forEach( ( key ) => {
+            if ( key !== "system" ) {
                 const compKey = [plugin.name, key];
-                lSet(acc, compKey, store.createVariable(compKey));
+                lSet( acc, compKey, store.createVariable( compKey ) );
             }
-
-        });
+        } );
 
         // callables
-        (settingsStore().enabledPlugins.find(p => p.id === plugin.id)?.externMethods ?? []).map((method) => {
-            lSet(acc, [plugin.name, method], (...args: any[]) => plugin[method as keyof PluginBase](...args));
-        })
+        (
+            settingsStore().enabledPlugins.find( ( p ) => p.id === plugin.id )
+                ?.externMethods ?? []
+        ).map( ( method ) => {
+            lSet( acc, [plugin.name, method], ( ...args: any[] ) =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+                plugin[method as keyof PluginBase]( ...args )
+            );
+        } );
 
         return acc;
-
-    }, {});
+    }, {} );
 
     return {
         ...store,
         vars,
         dispose: () => janitor.dispose(),
-    }
-}
+    };
+};

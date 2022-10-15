@@ -1,4 +1,3 @@
-
 export const UI_SYSTEM_READY = "system:ready";
 export const UI_SYSTEM_PLUGIN_CONFIG_CHANGED = "system:plugin-config-changed";
 export const UI_SYSTEM_MOUSE_CLICK = "system:mouse-click";

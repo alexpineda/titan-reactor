@@ -79,6 +79,7 @@ module.exports = {
 
         "@typescript-eslint/prefer-optional-chain": "off",
         "@typescript-eslint/restrict-template-expressions" : ["error", {"allowNumber": true, "allowBoolean": true}],
+        "@typescript-eslint/no-unsafe-call": "off",
     },
     globals: {
         __static: true,

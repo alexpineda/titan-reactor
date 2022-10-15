@@ -31,7 +31,9 @@ export class SelectionObject extends Group {
             import.meta.hot.accept( "./selection-circle-3d", ( module ) => {
                 if ( module && module.SelectionCircle3D ) {
                     this.remove( this.#circle3d );
-                    this.#circle3d = new module.SelectionCircle3D();
+                    this.#circle3d =
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+                        new module.SelectionCircle3D() as SelectionCircle3D;
                     this.add( this.#circle3d );
                 }
             } );

@@ -4,28 +4,40 @@ import { SoundStruct } from "./structs";
 
 export interface OpenBWWasm {
     _reset: () => void;
-    _load_replay: (buffer: number, length: number) => void;
-    _load_map: (buffer: number, length: number) => void;
-    _upload_height_map: (buffer: number, length: number, width: number, height: number) => void;
-    _load_replay_with_height_map: (replayBuffer: number, replayLength: number, buffer: number, length: number, width: number, height: number) => void;
-    
+    _load_replay: ( buffer: number, length: number ) => void;
+    _load_map: ( buffer: number, length: number ) => void;
+    _upload_height_map: (
+        buffer: number,
+        length: number,
+        width: number,
+        height: number
+    ) => void;
+    _load_replay_with_height_map: (
+        replayBuffer: number,
+        replayLength: number,
+        buffer: number,
+        length: number,
+        width: number,
+        height: number
+    ) => void;
+
     _next_frame: () => number;
     _next_no_replay: () => number;
-    _create_unit: (unitId: number, playerId: number, x: number, y: number) => number;
+    _create_unit: ( unitId: number, playerId: number, x: number, y: number ) => number;
 
-    _counts: (index: number) => number;
-    _get_buffer: (index: number) => number;
+    _counts: ( index: number ) => number;
+    _get_buffer: ( index: number ) => number;
 
-    _replay_get_value: (index: number) => number;
-    _replay_set_value: (index: number, value: number) => void;
+    _replay_get_value: ( index: number ) => number;
+    _replay_set_value: ( index: number, value: number ) => void;
 
-    _set_player_visibility: (playerId: number) => void;
+    _set_player_visibility: ( playerId: number ) => void;
 
     _generate_frame: () => void;
 
-    get_util_funcs: () => ({
-        get_sounds: () => SoundStruct[],
-        dump_unit: (unitAddr: number) => {
+    get_util_funcs: () => {
+        get_sounds: () => SoundStruct[];
+        dump_unit: ( unitAddr: number ) => {
             id: number;
             resourceAmount?: number;
             remainingTrainTime?: number;
@@ -40,12 +52,18 @@ export interface OpenBWWasm {
             };
             loaded?: number[];
             buildQueue?: number[];
-        },
-        kill_unit: (unitId: number) => number;
-        remove_unit: (unitId: number) => number;
-        issue_command: (unitId: number, command: number, targetId: number, x: number, y: number, extra: number) => boolean;
-
-    });
+        };
+        kill_unit: ( unitId: number ) => number;
+        remove_unit: ( unitId: number ) => number;
+        issue_command: (
+            unitId: number,
+            command: number,
+            targetId: number,
+            x: number,
+            y: number,
+            extra: number
+        ) => boolean;
+    };
     callMain: () => void;
     HEAP8: Int8Array;
     HEAPU8: Uint8Array;
@@ -53,9 +71,9 @@ export interface OpenBWWasm {
     HEAPU16: Uint16Array;
     HEAP32: Int32Array;
     HEAPU32: Uint32Array;
-    getExceptionMessage: (e: unknown) => string;
-    allocate: (buffer: ArrayBuffer, flags: number) => number;
-    _free: (buffer: number) => void;
+    getExceptionMessage: ( e: unknown ) => string;
+    allocate: ( buffer: ArrayBuffer, flags: number ) => number;
+    _free: ( buffer: number ) => void;
     ALLOC_NORMAL: number;
 }
 
@@ -71,14 +89,14 @@ export interface OpenBW extends OpenBWWasm {
     unitGenerationSize: number;
 
     isSandboxMode: () => boolean;
-    setSandboxMode: (mode: boolean) => boolean | void;
+    setSandboxMode: ( mode: boolean ) => boolean | undefined;
 
     // updates frame and creep data
     generateFrame: () => void;
 
     getFowSize: () => number;
     getFowPtr: () => number;
-    setPlayerVisibility: (visibility: number) => void;
+    setPlayerVisibility: ( visibility: number ) => void;
 
     getCreepSize: () => number;
     getCreepPtr: () => number;
@@ -94,7 +112,6 @@ export interface OpenBW extends OpenBWWasm {
     getLastError: () => number;
     getLastErrorMessage: () => string | null;
 
-
     getSpritesOnTileLineSize: () => number;
     getSpritesOnTileLineAddress: () => number;
 
@@ -102,36 +119,40 @@ export interface OpenBW extends OpenBWWasm {
 
     getUnitsAddr: () => number;
 
-    getBulletsAddress: () => number,
-    getBulletsDeletedCount: () => number,
-    getBulletsDeletedAddress: () => number,
+    getBulletsAddress: () => number;
+    getBulletsDeletedCount: () => number;
+    getBulletsDeletedAddress: () => number;
 
-    getSoundsAddress: () => number,
-    getSoundsCount: () => number,
+    getSoundsAddress: () => number;
+    getSoundsCount: () => number;
 
-    setGameSpeed: (speed: number) => void;
+    setGameSpeed: ( speed: number ) => void;
     getGameSpeed: () => number;
 
-    setCurrentFrame: (frame: number) => void;
+    setCurrentFrame: ( frame: number ) => void;
     getCurrentFrame: () => number;
 
     getIScriptProgramDataSize: () => number;
     getIScriptProgramDataAddress: () => number;
 
     isPaused: () => boolean;
-    setPaused: (paused: boolean) => void;
+    setPaused: ( paused: boolean ) => void;
 
     isReplay: () => boolean;
     nextFrame: () => number;
     nextFrameNoAdvance: () => number;
-    tryCatch: <T>(callback: () => T) => T;
-    loadReplay: (buffer: Buffer) => void;
-    loadMap: (buffer: Buffer) => void;
-    start: (readFile: ReadFile) => Promise<void>;
+    tryCatch: <T>( callback: () => T ) => T;
+    loadReplay: ( buffer: Buffer ) => void;
+    loadMap: ( buffer: Buffer ) => void;
+    start: ( readFile: ReadFile ) => Promise<void>;
 
-    uploadHeightMap: (data: Uint8ClampedArray, width: number, height: number) => void;
-    loadReplayWithHeightMap: (replayBuffer: Buffer, data: Uint8ClampedArray, width: number, height: number) => void;
+    uploadHeightMap: ( data: Uint8ClampedArray, width: number, height: number ) => void;
+    loadReplayWithHeightMap: (
+        replayBuffer: Buffer,
+        data: Uint8ClampedArray,
+        width: number,
+        height: number
+    ) => void;
 
-    setUnitLimits: (unitLimits: number) => void;
-
+    setUnitLimits: ( unitLimits: number ) => void;
 }

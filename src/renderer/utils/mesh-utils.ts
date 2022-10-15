@@ -3,8 +3,6 @@ import {
     AnimationMixer,
     Box3,
     BufferAttribute,
-    BufferGeometry,
-    Material,
     Matrix4,
     Object3D,
     SkinnedMesh,

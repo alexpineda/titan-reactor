@@ -15,35 +15,34 @@ import { ImageHDInstanced } from "./image-hd-instanced";
 import { spriteModelEffects as modelSetModifiers } from "./model-effects-configuration";
 import { Unit } from "./unit";
 
-// if ( module.hot ) {
-//     module.hot.accept( "./model-effects-configuration" );
-// }
+// @ts-expect-error
+if ( import.meta.hot ) {
+    // @ts-expect-error
+    import.meta.hot.accept( "./model-effects-configuration" );
+}
 
 export const overlayEffectsMainImage: { image: Image3D | null } = { image: null };
 
-/**
- *
- * 3D models require additional contextual information to render and cooperate with overlays properly
- *
- */
-export const applyRenderModeToSprite = ( spriteTypeId: number, sprite: SpriteType ) => {
+export const applyRenderModeToSprite = (
+    spriteTypeId: number,
+    sprite: SpriteType,
+    terrainY: number
+) => {
     if ( modelSetModifiers.sprites[spriteTypeId] ) {
         for ( const effect of modelSetModifiers.sprites[spriteTypeId] ) {
             switch ( effect.type ) {
                 // set emissive on main image if I'm visible
                 case "flat-on-ground":
                     sprite.rotation.x = -Math.PI / 2;
+                    sprite.position.y = terrainY + 0.1;
                     break;
+                default:
+                    sprite.rotation.x = 0;
             }
         }
     }
 };
 
-/**
- *
- * 3D models require additional contextual information to render and cooperate with overlays properly
- *
- */
 let imageTypeId: number;
 export const applyOverlayEffectsToImageHD = (
     imageBuffer: ImageBufferView,
@@ -64,7 +63,6 @@ export const applyOverlayEffectsToImageHD = (
                     break;
                 case "flat-on-ground":
                     image.material.flatProjection = false;
-                    image.parent!.rotation.x = -Math.PI / 2;
                     break;
             }
         }
@@ -74,7 +72,6 @@ export const applyOverlayEffectsToImageHD = (
 let _frameInfo: { frame: number; flipped: boolean } = { frame: 0, flipped: false };
 let _needsUpdateFrame = false;
 
-//TODO: figure out which are sprite level rather than image level (eg remnants)
 export const applyRenderModeToImageHD = (
     imageBuffer: ImageBufferView,
     image: ImageHD,

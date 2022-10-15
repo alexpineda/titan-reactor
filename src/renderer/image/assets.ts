@@ -21,8 +21,10 @@ import { loadDatFilesRemote } from "@ipc/files";
 import { parseDDS } from "./formats/parse-dds";
 import { b2ba } from "@utils/bin-utils";
 
-if ( module.hot ) {
-    module.hot.accept( "@core/model-effects-configuration" );
+//@ts-expect-error
+if ( import.meta.hot ) {
+    //@ts-expect-error
+    import.meta.hot.accept( "@core/model-effects-configuration" );
 }
 
 const genFileName = ( i: number, prefix = "" ) =>
@@ -57,7 +59,7 @@ export type UIStateAssets = Pick<
 const _hardfiles = [".glb", ".hdr", ".png", ".exr", ".js", ".wasm"];
 
 export const initializeAssets = async ( directories: Settings["directories"] ) => {
-    electronFileLoader( ( file: string, directory: string ) => {
+    electronFileLoader( ( file: string, directory?: string ) => {
         log.debug( file );
 
         if ( file.startsWith( "blob:" ) ) {
@@ -222,7 +224,7 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
 
     loader.setPath( rootPath );
 
-    const skyBox = await new Promise( ( res ) =>
+    const skyBox = await new Promise( ( res: ( t: CubeTexture ) => void ) =>
         loader.load(
             ["right.png", "left.png", "top.png", "bot.png", "front.png", "back.png"],
             res

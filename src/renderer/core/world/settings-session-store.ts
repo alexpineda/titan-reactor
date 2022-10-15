@@ -22,9 +22,9 @@ const validAppSettingsPaths: ValidAppSessionPath[] = [
     "session.",
 ];
 
-const isValidkey = (key: string) => {
-    for (const path of validAppSettingsPaths) {
-        if (key.startsWith(path)) {
+const isValidkey = ( key: string ) => {
+    for ( const path of validAppSettingsPaths ) {
+        if ( key.startsWith( path ) ) {
             return true;
         }
     }
@@ -36,38 +36,34 @@ export type SessionVariables = {
     };
 };
 
-const partialSettings = (data: Settings) => ({
+const partialSettings = ( data: Settings ) => ( {
     session: data.session,
     audio: data.audio,
     input: data.input,
     minimap: data.minimap,
     postprocessing: data.postprocessing,
     postprocessing3d: data.postprocessing3d,
-});
+} );
 
 type PartialSettings = ReturnType<typeof partialSettings>;
 
-export type SettingsSessionStore = ReturnType<
-    typeof createSettingsSessionStore
->;
+export type SettingsSessionStore = ReturnType<typeof createSettingsSessionStore>;
 /**
  * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
  */
-export const createSettingsSessionStore = (
-    events: TypeEmitter<WorldEvents>
-) => {
-    const janitor = new Janitor("ReactiveSessionVariables");
+export const createSettingsSessionStore = ( events: TypeEmitter<WorldEvents> ) => {
+    const janitor = new Janitor( "ReactiveSessionVariables" );
 
-    const sourceOfTruth = new SourceOfTruth(partialSettings(settingsStore().data));
+    const sourceOfTruth = new SourceOfTruth( partialSettings( settingsStore().data ) );
     const store = createOperatableStore(
-        createDeepStore<PartialSettings>({
+        createDeepStore<PartialSettings>( {
             initialState: sourceOfTruth.clone(),
-            validateMerge: (newSettings, rhs) =>
-                events.emit("settings-changed", { settings: newSettings, rhs }) !==
+            validateMerge: ( newSettings, rhs ) =>
+                events.emit( "settings-changed", { settings: newSettings, rhs } ) !==
                 false,
-        }),
+        } ),
         sourceOfTruth,
-        (path, state) =>
+        ( path, state ) =>
             getSessionSettingsPropertyInLevaFormat(
                 state,
                 settingsStore().enabledPlugins,
@@ -77,9 +73,9 @@ export const createSettingsSessionStore = (
 
     // keep the session up to date with user changed settings
     janitor.mop(
-        useSettingsStore.subscribe(({ data }) => {
-            store.sourceOfTruth.update(partialSettings(data));
-        }),
+        useSettingsStore.subscribe( ( { data } ) => {
+            store.sourceOfTruth.update( partialSettings( data ) );
+        } ),
         "settings-store-subscription"
     );
 
@@ -88,17 +84,13 @@ export const createSettingsSessionStore = (
         settingsStore().enabledPlugins
     );
 
-    const vars = Object.keys(sessionSettingsConfig).reduce((acc, key) => {
-        if (isValidkey(key)) {
-            const settingsKey = key.split(".");
-            lSet<SessionVariables>(
-                acc,
-                settingsKey,
-                store.createVariable(settingsKey)
-            );
+    const vars = Object.keys( sessionSettingsConfig ).reduce( ( acc, key ) => {
+        if ( isValidkey( key ) ) {
+            const settingsKey = key.split( "." );
+            lSet<SessionVariables>( acc, settingsKey, store.createVariable( settingsKey ) );
         }
         return acc;
-    }, {}) as SessionVariables;
+    }, {} ) as SessionVariables;
 
     return {
         ...store,

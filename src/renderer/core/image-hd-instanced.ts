@@ -102,10 +102,10 @@ export class ImageHDInstanced extends ImageHD {
         this.frame = frame;
         this.flip = flip;
         calculateFrame(
-            this.atlas.frames[frame],
+            this.atlas!.frames[frame],
             flip,
-            this.atlas.textureWidth,
-            this.atlas.textureHeight,
+            this.atlas!.textureWidth,
+            this.atlas!.textureHeight,
             this.spriteWidth,
             this.spriteHeight,
             this,
