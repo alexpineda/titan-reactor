@@ -70,16 +70,11 @@ lockdown_();
 } )();
 
 if ( process.env.NODE_ENV === "development" ) {
-    //@ts-expect-error
-    void import( "spectorjs" ).then( ( module: { Spector: Spector } ) => {
+    void import( "webgl-lint" );
+
+    void import( "spectorjs" ).then( ( module ) => {
         const spector = new module.Spector();
         spector.displayUI();
         spector.spyCanvases();
     } );
-
-    //@ts-expect-error
-    void import( "./utils/ShaderKit.min" );
-
-    //@ts-expect-error
-    void import( "./utils/webgl-lint" );
 }

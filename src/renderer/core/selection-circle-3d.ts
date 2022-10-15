@@ -7,16 +7,16 @@ export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
     #spriteDat?: SpriteDAT;
     #uniforms = {
         uSize: { value: 1 },
-    }
+    };
 
     constructor() {
-        const _geometry = new PlaneGeometry(1, 1);
+        const _geometry = new PlaneGeometry( 1, 1 );
 
         super(
             _geometry,
-            new MeshBasicMaterial({
-                // @ts-ignore
-                onBeforeCompile: (shader: Shader) => {
+            new MeshBasicMaterial( {
+                // @ts-expect-error
+                onBeforeCompile: ( shader: Shader ) => {
                     const fs = shader.fragmentShader;
                     shader.fragmentShader = fs.replace(
                         "#include <map_fragment>",
@@ -32,26 +32,24 @@ export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
                     shader.fragmentShader = `
                 uniform float uSize;
                                 ${shader.fragmentShader}
-                            `
+                            `;
 
                     shader.uniforms.uSize = this.#uniforms.uSize;
                 },
-
-            })
+            } )
         );
         this.material.defines = {
-            USE_UV: ""
-        }
+            USE_UV: "",
+        };
         // this.material.depthTest = false;
         this.material.transparent = true;
         this.rotation.x = -Math.PI / 2;
         this.name = "SelectionCircle3D";
     }
 
-    update(spriteDat: SpriteDAT, image: Image3D) {
-        if (spriteDat !== this.#spriteDat) {
-
-            const r = (image.boundingSphere.radius ?? 1)
+    update( spriteDat: SpriteDAT, image: Image3D ) {
+        if ( spriteDat !== this.#spriteDat ) {
+            const r = image.boundingSphere.radius;
             const m = r > 1 ? r * 1.6 : r * 1.1;
             this.geometry.dispose();
 
@@ -60,13 +58,12 @@ export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
             // const m = Math.max(Math.abs(v.x - v2.x), Math.abs(v.z - v2.z));
 
             this.#uniforms.uSize.value = 1 / m;
-            this.geometry = new PlaneGeometry(m, m)
+            this.geometry = new PlaneGeometry( m, m );
 
             this.material.needsUpdate = true;
             this.#spriteDat = spriteDat;
 
-            this.position.setY(image.boundingBox.min.y);
+            this.position.setY( image.boundingBox.min.y );
         }
     }
-
 }

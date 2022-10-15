@@ -13,39 +13,44 @@ import { AnimAtlas } from "common/types";
 export class ImageEntities {
     #freeImages = new IndexedObjectPool<ImageBase>();
     #freeImages3D = new IndexedObjectPool<ImageBase>();
-    #units: Map<ImageBase, Unit> = new Map()
-    #images: IterableMap<number, ImageBase> = new IterableMap();
+    #units = new Map<ImageBase, Unit>();
+    #images = new IterableMap<number, ImageBase>();
 
     use3dImages = true;
-    #janitor = new Janitor("ImageEntities", true);
+    #janitor = new Janitor( "ImageEntities", true );
 
-    onCreateImage?: (image: ImageBase) => void;
-    onFreeImage?: (image: ImageBase) => void;
+    onCreateImage?: ( image: ImageBase ) => void;
+    onFreeImage?: ( image: ImageBase ) => void;
 
     constructor() {
-        this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages.all()), "freeImages");
-        this.#janitor.mop(() => this.#janitor.dispose(this.#freeImages3D.all()), "freeImages3D");
-        this.#janitor.mop(this.#images, "images");
-        this.#janitor.mop(() => {
+        this.#janitor.mop(
+            () => this.#janitor.dispose( this.#freeImages.all() ),
+            "freeImages"
+        );
+        this.#janitor.mop(
+            () => this.#janitor.dispose( this.#freeImages3D.all() ),
+            "freeImages3D"
+        );
+        this.#janitor.mop( this.#images, "images" );
+        this.#janitor.mop( () => {
             this.clear();
-        }, "clear");
+        }, "clear" );
     }
 
-    #create(imageTypeId: number, atlas: AnimAtlas) {
-
-        if (isGltfAtlas(atlas) && this.use3dImages) {
-            const freeImage = this.#freeImages3D.get(imageTypeId);
-            if (freeImage) {
+    #create( imageTypeId: number, atlas: AnimAtlas ) {
+        if ( isGltfAtlas( atlas ) && this.use3dImages ) {
+            const freeImage = this.#freeImages3D.get( imageTypeId );
+            if ( freeImage ) {
                 return freeImage;
             }
-            return new Image3D(atlas);
+            return new Image3D( atlas );
         } else {
-            const freeImage = this.#freeImages.get(imageTypeId);
-            if (freeImage) {
+            const freeImage = this.#freeImages.get( imageTypeId );
+            if ( freeImage ) {
                 return freeImage;
             }
 
-            return (new ImageHD());
+            return new ImageHD();
         }
     }
 
@@ -53,96 +58,78 @@ export class ImageEntities {
         return this.#images[Symbol.iterator]();
     }
 
-    get(imageIndex: number) {
-        return this.#images.get(imageIndex);
+    get( imageIndex: number ) {
+        return this.#images.get( imageIndex );
     }
 
-    getOrCreate(imageIndex: number, imageTypeId: number) {
+    getOrCreate( imageIndex: number, imageTypeId: number ) {
         const assets = gameStore().assets!;
-        const atlas = assets.loadImageAtlas(imageTypeId, assets.bwDat);
+        const atlas = assets.loadImageAtlas( imageTypeId, assets.bwDat );
 
         // atlas hasn't loaded yet
-        if (!atlas) {
+        if ( !atlas ) {
             return;
         }
 
-        let image = this.#images.get(imageIndex);
-        if (!image || (image.isImage3d !== this.use3dImages && isGltfAtlas(atlas))) {
-            if (image) {
-                this.#free(image);
+        let image = this.#images.get( imageIndex );
+        if ( !image || ( image.isImage3d !== this.use3dImages && isGltfAtlas( atlas ) ) ) {
+            if ( image ) {
+                this.#free( image );
             }
-            image = this.#create(imageTypeId, atlas);
-            this.onCreateImage?.(image);
-            this.#images.set(imageIndex, image);
-            this.#units.delete(image);
+            image = this.#create( imageTypeId, atlas );
+            this.onCreateImage?.( image );
+            this.#images.set( imageIndex, image );
+            this.#units.delete( image );
 
-            image.updateImageType(atlas, true);
-
+            image.updateImageType( atlas, true );
         } else {
-
-            image.updateImageType(atlas);
-
+            image.updateImageType( atlas );
         }
 
         image.userData.imageIndex = imageIndex;
 
         return image;
-
     }
 
-    free(imageIndex: number) {
+    free( imageIndex: number ) {
+        const image = this.#images.get( imageIndex );
 
-        const image = this.#images.get(imageIndex);
-
-        if (image) {
-            this.#images.delete(imageIndex);
-            this.#free(image);
+        if ( image ) {
+            this.#images.delete( imageIndex );
+            this.#free( image );
         }
-
     }
 
-    #free(image: ImageBase) {
-
+    #free( image: ImageBase ) {
         image.removeFromParent();
-        this.#units.delete(image);
+        this.#units.delete( image );
 
-        if (image.isImage3d) {
-            this.#freeImages3D.add(image.dat.index, image);
+        if ( image.isImage3d ) {
+            this.#freeImages3D.add( image.dat.index, image );
         } else {
-            this.#freeImages.add(image.dat.index, image);
+            this.#freeImages.add( image.dat.index, image );
         }
 
-        this.onFreeImage?.(image);
-
+        this.onFreeImage?.( image );
     }
 
     clear() {
-
-        for (const image of this.#images) {
-
-            this.#free(image);
-
+        for ( const image of this.#images ) {
+            this.#free( image );
         }
 
         this.#images.clear();
-
     }
 
     dispose() {
-
         this.#janitor.dispose();
-
     }
 
-    setUnit(image: ImageBase, unit: Unit) {
-
-        this.#units.set(image, unit);
-
+    setUnit( image: ImageBase, unit: Unit ) {
+        this.#units.set( image, unit );
     }
 
-    getUnit(image: ImageBase) {
-
-        return this.#units.get(image);
-
+    getUnit( image: ImageBase ) {
+        return this.#units.get( image );
     }
 }

@@ -27,17 +27,16 @@ import { setStorageIsCasc, setStoragePath } from "common/casclib";
 export const mixer = new MainMixer();
 export const music = new Music( mixer as unknown as AudioListener );
 
-// todo: stores
-
 window.addEventListener(
     "message",
-    ( evt ) =>
-        evt.data?.type === UI_SYSTEM_OPEN_URL &&
+    ( evt: { data: { type?: string; payload?: string } } ) =>
+        evt.data.type === UI_SYSTEM_OPEN_URL &&
         globalEvents.emit( "unsafe-open-url", evt.data.payload )
 );
 
 ipcRenderer.on( GO_TO_START_PAGE, () => globalEvents.emit( "load-home-scene" ) );
 ipcRenderer.on( LOG_MESSAGE, ( _, message: string, level = "info" ) =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     globalEvents.emit( "log-message", { message, level } )
 );
 
@@ -60,7 +59,7 @@ ipcRenderer.on(
             type,
             payload,
         }: {
-            type: SendWindowActionType.CommitSettings;
+            type: SendWindowActionType;
             payload: SendWindowActionPayload<SendWindowActionType.CommitSettings>;
         }
     ) => {
@@ -78,7 +77,7 @@ ipcRenderer.on(
             type,
             payload,
         }: {
-            type: SendWindowActionType.LoadReplay;
+            type: SendWindowActionType;
             payload: SendWindowActionPayload<SendWindowActionType.LoadReplay>;
         }
     ) => {

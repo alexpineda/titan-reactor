@@ -8340,6 +8340,11 @@ web-streams-polyfill@^3.0.3:
   resolved "https://registry.yarnpkg.com/web-streams-polyfill/-/web-streams-polyfill-3.2.1.tgz#71c2718c52b45fd49dbeee88634b3a60ceab42a6"
   integrity sha512-e0MO3wdXWKrLbL0DgGnUV7WHVuw9OUvL4hjgnPkIeEvESk74gAITi5G606JtZPp39cd8HA9VQzCIvA49LpPN5Q==
 
+webgl-lint@^1.9.3:
+  version "1.9.3"
+  resolved "https://registry.yarnpkg.com/webgl-lint/-/webgl-lint-1.9.3.tgz#1be4d780180f199fafb9548e87e1e2407d900f78"
+  integrity sha512-GTcrsL1C+MKxZDODsjzw9oCWNeqtTls1C+RTq9iqpeROiBz2+pljk5P+T/Mkzyu5o3qi6tmjn0A9j9H7rLEjIg==
+
 webidl-conversions@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/webidl-conversions/-/webidl-conversions-7.0.0.tgz#256b4e1882be7debbf01d05f0aa2039778ea080a"

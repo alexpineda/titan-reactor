@@ -6,7 +6,7 @@ import { Group } from "three";
 export class SpriteEntities {
     group = new Group();
 
-    #spritesMap: IterableMap<number, SpriteType> = new IterableMap();
+    #spritesMap = new IterableMap<number, SpriteType>();
     #spritePool: SpriteType[] = [];
 
     #unitsBySprite: Unit[] = [];
@@ -26,26 +26,25 @@ export class SpriteEntities {
         return this.#spritesMap[Symbol.iterator]();
     }
 
-    get(spriteIndex: number) {
-        return this.#spritesMap.get(spriteIndex);
+    get( spriteIndex: number ) {
+        return this.#spritesMap.get( spriteIndex );
     }
 
-    getOrCreate(spriteIndex: number, spriteTypeId: number) {
-        let sprite = this.#spritesMap.get(spriteIndex);
-        if (!sprite) {
-            if (this.#spritePool.length) {
-                sprite = this.#spritePool.pop() as SpriteType;
+    getOrCreate( spriteIndex: number, spriteTypeId: number ) {
+        let sprite = this.#spritesMap.get( spriteIndex );
+        if ( !sprite ) {
+            if ( this.#spritePool.length ) {
+                sprite = this.#spritePool.pop()!;
             } else {
                 sprite = new Group() as SpriteType;
                 sprite.name = "sprite";
             }
-            this.#spritesMap.set(spriteIndex, sprite);
-            this.group.add(sprite);
+            this.#spritesMap.set( spriteIndex, sprite );
+            this.group.add( sprite );
             sprite.matrixAutoUpdate = false;
             // @ts-expect-error
             sprite.matrixWorldAutoUpdate = false;
             sprite.userData.isNew = true;
-
         }
 
         // if (sprite.userData.typeId !== spriteTypeId) {
@@ -55,36 +54,36 @@ export class SpriteEntities {
         return sprite;
     }
 
-    free(spriteIndex: number) {
-        const sprite = this.#spritesMap.get(spriteIndex);
-        if (sprite) {
+    free( spriteIndex: number ) {
+        const sprite = this.#spritesMap.get( spriteIndex );
+        if ( sprite ) {
             sprite.removeFromParent();
-            this.#spritePool.push(sprite);
-            this.#spritesMap.delete(spriteIndex);
-            this.#resetSpriteUserData(sprite);
+            this.#spritePool.push( sprite );
+            this.#spritesMap.delete( spriteIndex );
+            this.#resetSpriteUserData( sprite );
         }
         delete this.#unitsBySprite[spriteIndex];
     }
 
-    #resetSpriteUserData(sprite: SpriteType) {
+    #resetSpriteUserData( sprite: SpriteType ) {
         sprite.userData.typeId = -1;
     }
 
     clear() {
-        for (const sprite of this.#spritesMap) {
-            this.#resetSpriteUserData(sprite);
-            this.#spritePool.push(sprite);
+        for ( const sprite of this.#spritesMap ) {
+            this.#resetSpriteUserData( sprite );
+            this.#spritePool.push( sprite );
         }
         this.#spritesMap.clear();
         this.#unitsBySprite.length = 0;
         // we do not clear this.group as we do that before first frame to avoid flickering
     }
 
-    getUnit(spriteIndex: number) {
+    getUnit( spriteIndex: number ): Unit | undefined {
         return this.#unitsBySprite[spriteIndex];
     }
 
-    setUnit(spriteIndex: number, unit: Unit) {
+    setUnit( spriteIndex: number, unit: Unit ) {
         this.#unitsBySprite[spriteIndex] = unit;
     }
 }

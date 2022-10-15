@@ -57,7 +57,8 @@
         },
         "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
         "outDir": "generated",
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "types": ["vite/client"]
     },
     "include": ["src/**/*"],
     "exclude": ["./node_modules/**/*", "generated", "dist", "release"]

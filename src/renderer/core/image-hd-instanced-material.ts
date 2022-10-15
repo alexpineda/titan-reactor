@@ -9,7 +9,7 @@ import {
     Texture,
 } from "three";
 
-type DynamicUniforms = {
+interface DynamicUniforms {
     uTeamColor: {
         value: Color;
     };
@@ -28,7 +28,7 @@ type DynamicUniforms = {
     modifierData2: {
         value: number;
     };
-};
+}
 
 export class ImageHDInstancedMaterial extends MeshBasicMaterial {
     #dynamicUniforms: DynamicUniforms;
@@ -36,13 +36,13 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
     #customCacheKey = "";
     flatProjection = true;
 
-    constructor(parameters?: SpriteMaterialParameters) {
-        super(parameters);
+    constructor( parameters?: SpriteMaterialParameters ) {
+        super( parameters );
         this.isTeamSpriteMaterial = true;
 
         this.#dynamicUniforms = {
             uTeamColor: {
-                value: new Color(0xffffff),
+                value: new Color( 0xffffff ),
             },
             teamMask: {
                 value: undefined,
@@ -60,10 +60,9 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
                 value: 0,
             },
         };
-
     }
 
-    set teamMask(val: Texture | undefined) {
+    set teamMask( val: Texture | undefined ) {
         this.#dynamicUniforms.teamMask.value = val;
         this.#generateProgramCacheKey();
     }
@@ -72,7 +71,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         return this.#dynamicUniforms.teamMask.value;
     }
 
-    set teamColor(val) {
+    set teamColor( val ) {
         this.#dynamicUniforms.uTeamColor.value = val;
     }
 
@@ -80,11 +79,11 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         return this.#dynamicUniforms.uTeamColor.value;
     }
 
-    set warpInFlashGRP(val: AnimAtlas | undefined) {
+    set warpInFlashGRP( val: AnimAtlas | undefined ) {
         this.#dynamicUniforms.warpInFlashTexture.value = val?.diffuse;
     }
 
-    set modifierData1(val: number) {
+    set modifierData1( val: number ) {
         this.#dynamicUniforms.modifierData1.value = val;
     }
 
@@ -92,7 +91,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         return this.#dynamicUniforms.modifierData1.value;
     }
 
-    set modifierData2(val: number) {
+    set modifierData2( val: number ) {
         this.#dynamicUniforms.modifierData2.value = val;
     }
 
@@ -100,7 +99,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         return this.#dynamicUniforms.modifierData2.value;
     }
 
-    set modifier(val: number) {
+    set modifier( val: number ) {
         this.#dynamicUniforms.modifier.value = val;
         this.#generateProgramCacheKey();
     }
@@ -109,63 +108,63 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         return this.#dynamicUniforms.modifier.value;
     }
 
-    override onBeforeCompile(shader: Shader) {
+    override onBeforeCompile( shader: Shader ) {
         function extend(
             prop: "fragmentShader" | "vertexShader",
             replace: string,
             chunks: string[][],
             keep = true
         ) {
-            if (chunks.length === 0) {
+            if ( chunks.length === 0 ) {
                 return;
             }
 
             const header = [];
             const content = [];
-            if (keep) {
-                content.push(replace);
+            if ( keep ) {
+                content.push( replace );
             }
 
-            for (const [contentChunk, headerChunk] of chunks) {
-                if (contentChunk) {
-                    content.push(contentChunk);
+            for ( const [contentChunk, headerChunk] of chunks ) {
+                if ( contentChunk ) {
+                    content.push( contentChunk );
                 }
-                if (headerChunk) {
-                    header.push(headerChunk);
+                if ( headerChunk ) {
+                    header.push( headerChunk );
                 }
             }
 
-            shader[prop] = `${header.join("\n")}
-        ${shader[prop].replace(replace, content.join("\n"))}`;
+            shader[prop] = `${header.join( "\n" )}
+        ${shader[prop].replace( replace, content.join( "\n" ) )}`;
         }
 
         const mapFragments = [];
 
         // opacity
-        mapFragments.push([
+        mapFragments.push( [
             `
             diffuseColor.a = diffuseColor.a * vModifierData.z;
             `,
-        ]);
+        ] );
 
-        if (this.teamMask) {
-            mapFragments.push([
+        if ( this.teamMask ) {
+            mapFragments.push( [
                 `
                 float maskValue = texture2D( teamMask, vUv ).r;
                 diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * vTeamColor, maskValue), diffuseColor.a);
                 `,
-                `uniform sampler2D teamMask;`,
-            ]);
+                "uniform sampler2D teamMask;",
+            ] );
         }
 
-        if (this.modifier === drawFunctions.rleShadow) {
-            mapFragments.push([
+        if ( this.modifier === drawFunctions.rleShadow ) {
+            mapFragments.push( [
                 "\ndiffuseColor = vec4((vec3(diffuseColor.a)) * 0.5, diffuseColor.a);\n",
-            ]);
+            ] );
         }
 
         //todo DEFINE PROTOSS_BUILDING
-        mapFragments.push([
+        mapFragments.push( [
             `
         // // warp1
         // vec2 warpUv = vUv * 0.2 + vec2(0.2 * mod(modifierData1, 5.), 0.2 * floor(modifierData1 / 5.));
@@ -191,17 +190,19 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
             varying vec3 vModifierData;
             varying vec3 vModifierType;
         `,
-        ]);
+        ] );
 
-        extend("fragmentShader", "#include <map_fragment>", mapFragments);
+        extend( "fragmentShader", "#include <map_fragment>", mapFragments );
 
-        flatProjection(shader,
+        flatProjection(
+            shader,
             `
             vTeamColor = aTeamColor;
             vModifierData = aModifierData;
             vModifierType = aModifierType;
             vUvPos = aUvPos;
-        `);
+        `
+        );
         shader.vertexShader = `
             attribute vec3 aTeamColor;
             attribute vec3 aModifierData;
@@ -214,14 +215,14 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
             varying vec3 vModifierType;
 
             ${shader.vertexShader}
-        `
+        `;
 
-        Object.assign(shader.uniforms, this.#dynamicUniforms);
+        Object.assign( shader.uniforms, this.#dynamicUniforms );
     }
 
     #generateProgramCacheKey() {
-        const newKey = `${Boolean(this.teamMask)}${this.modifier}`;
-        if (this.#customCacheKey !== newKey) {
+        const newKey = `${Boolean( this.teamMask )}${this.modifier}`;
+        if ( this.#customCacheKey !== newKey ) {
             this.needsUpdate = true;
             this.#customCacheKey = newKey;
         }

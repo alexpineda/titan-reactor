@@ -76,6 +76,9 @@ module.exports = {
 
         "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-floating-promises": "off",
+
+        "@typescript-eslint/prefer-optional-chain": "off",
+        "@typescript-eslint/restrict-template-expressions" : ["error", {"allowNumber": true, "allowBoolean": true}],
     },
     globals: {
         __static: true,

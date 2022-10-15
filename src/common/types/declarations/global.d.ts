@@ -22,16 +22,3 @@ declare module "*.png" {
     const contents: string;
     export = contents;
 }
-
-interface NodeModule {
-    hot?: {
-        accept: (
-            dependencies?: string | string[],
-            callback?: () => void,
-            errorHandler?: (
-                error: Error,
-                info: { moduleId: string; dependencyId: string }
-            ) => void
-        ) => void;
-    };
-}

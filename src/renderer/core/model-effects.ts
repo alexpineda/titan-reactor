@@ -1,7 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-condition */
 import { ImageBufferView } from "@buffer-view/images-buffer-view";
 import gameStore from "@stores/game-store";
 import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
-import { imageHasDirectionalFrames, imageIsFlipped, imageIsHidden } from "@utils/image-utils";
+import {
+    imageHasDirectionalFrames,
+    imageIsFlipped,
+    imageIsHidden,
+} from "@utils/image-utils";
 import { getAngle } from "@utils/unit-utils";
 import { SpriteType } from "common/types";
 import { Image3D } from "./image-3d";
@@ -10,24 +15,21 @@ import { ImageHDInstanced } from "./image-hd-instanced";
 import { spriteModelEffects as modelSetModifiers } from "./model-effects-configuration";
 import { Unit } from "./unit";
 
-if (module.hot) {
-    module.hot.accept(
-        "./model-effects-configuration",
-    )
-}
+// if ( module.hot ) {
+//     module.hot.accept( "./model-effects-configuration" );
+// }
 
 export const overlayEffectsMainImage: { image: Image3D | null } = { image: null };
 
 /**
- * 
+ *
  * 3D models require additional contextual information to render and cooperate with overlays properly
-*
-*/
-export const applyRenderModeToSprite = (spriteTypeId: number, sprite: SpriteType) => {
-
-    if (modelSetModifiers.sprites[spriteTypeId]) {
-        for (const effect of modelSetModifiers.sprites[spriteTypeId]) {
-            switch (effect.type) {
+ *
+ */
+export const applyRenderModeToSprite = ( spriteTypeId: number, sprite: SpriteType ) => {
+    if ( modelSetModifiers.sprites[spriteTypeId] ) {
+        for ( const effect of modelSetModifiers.sprites[spriteTypeId] ) {
+            switch ( effect.type ) {
                 // set emissive on main image if I'm visible
                 case "flat-on-ground":
                     sprite.rotation.x = -Math.PI / 2;
@@ -35,26 +37,29 @@ export const applyRenderModeToSprite = (spriteTypeId: number, sprite: SpriteType
             }
         }
     }
-
-}
+};
 
 /**
- * 
+ *
  * 3D models require additional contextual information to render and cooperate with overlays properly
-*
-*/
+ *
+ */
 let imageTypeId: number;
-export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image: ImageHD | ImageHDInstanced) => {
+export const applyOverlayEffectsToImageHD = (
+    imageBuffer: ImageBufferView,
+    image: ImageHD | ImageHDInstanced
+) => {
+    imageTypeId = gameStore().assets!.refId( imageBuffer.typeId );
 
-    imageTypeId = gameStore().assets!.refId(imageBuffer.typeId);
-
-    if (modelSetModifiers.images[imageTypeId]) {
-        for (const effect of modelSetModifiers.images[imageTypeId]) {
-            switch (effect.type) {
+    if ( modelSetModifiers.images[imageTypeId] ) {
+        for ( const effect of modelSetModifiers.images[imageTypeId] ) {
+            switch ( effect.type ) {
                 // set emissive on main image if I'm visible
                 case "emissive:overlay-visible":
-                    if (overlayEffectsMainImage.image) {
-                        overlayEffectsMainImage.image.setEmissive(imageIsHidden(imageBuffer) ? 0 : 1);
+                    if ( overlayEffectsMainImage.image ) {
+                        overlayEffectsMainImage.image.setEmissive(
+                            imageIsHidden( imageBuffer ) ? 0 : 1
+                        );
                     }
                     break;
                 case "flat-on-ground":
@@ -64,35 +69,33 @@ export const applyOverlayEffectsToImageHD = (imageBuffer: ImageBufferView, image
             }
         }
     }
+};
 
-}
-
-let _frameInfo: { frame: number, flipped: boolean } = { frame: 0, flipped: false };
+let _frameInfo: { frame: number; flipped: boolean } = { frame: 0, flipped: false };
 let _needsUpdateFrame = false;
 
 //TODO: figure out which are sprite level rather than image level (eg remnants)
-export const applyRenderModeToImageHD = (imageBuffer: ImageBufferView, image: ImageHD, renderMode3D: boolean, direction: number) => {
-
-    imageTypeId = gameStore().assets!.refId(imageBuffer.typeId);
+export const applyRenderModeToImageHD = (
+    imageBuffer: ImageBufferView,
+    image: ImageHD,
+    renderMode3D: boolean,
+    direction: number
+) => {
+    imageTypeId = gameStore().assets!.refId( imageBuffer.typeId );
 
     image.material.depthTest = renderMode3D;
     image.material.depthWrite = false;
 
-    if (imageHasDirectionalFrames(imageBuffer)) {
-
-        _frameInfo = applyCameraDirectionToImageFrame(direction, imageBuffer);
-
+    if ( imageHasDirectionalFrames( imageBuffer ) ) {
+        _frameInfo = applyCameraDirectionToImageFrame( direction, imageBuffer );
     } else {
-
         _frameInfo.frame = imageBuffer.frameIndex;
-        _frameInfo.flipped = imageIsFlipped(imageBuffer);
-
+        _frameInfo.flipped = imageIsFlipped( imageBuffer );
     }
 
-    if (renderMode3D && modelSetModifiers.images[imageTypeId]) {
-
-        for (const effect of modelSetModifiers.images[imageTypeId]) {
-            switch (effect.type) {
+    if ( renderMode3D && modelSetModifiers.images[imageTypeId] ) {
+        for ( const effect of modelSetModifiers.images[imageTypeId] ) {
+            switch ( effect.type ) {
                 case "fixed-frame":
                     _frameInfo.frame = effect.frame;
                     _frameInfo.flipped = false;
@@ -100,39 +103,35 @@ export const applyRenderModeToImageHD = (imageBuffer: ImageBufferView, image: Im
                 case "hide-sprite":
                     image.visible = false;
                     break;
-
             }
         }
-
     }
 
-    image.setFrame(_frameInfo.frame, _frameInfo.flipped);
+    image.setFrame( _frameInfo.frame, _frameInfo.flipped );
 
-    if (renderMode3D) {
-
-        applyOverlayEffectsToImageHD(imageBuffer, image);
-
+    if ( renderMode3D ) {
+        applyOverlayEffectsToImageHD( imageBuffer, image );
     }
+};
 
-}
-
-export const applyModelEffectsToImage3d = (imageBufferView: ImageBufferView, image: Image3D, unit: Unit | undefined) => {
-
-    imageTypeId = gameStore().assets!.refId(imageBufferView.typeId);
+export const applyModelEffectsToImage3d = (
+    imageBufferView: ImageBufferView,
+    image: Image3D,
+    unit: Unit | undefined
+) => {
+    imageTypeId = gameStore().assets!.refId( imageBufferView.typeId );
     _needsUpdateFrame = true;
 
-    if (unit && image === overlayEffectsMainImage.image) {
-        image.rotation.y = !image.isLooseFrame ? getAngle(unit.direction) : 0;
+    if ( unit && image === overlayEffectsMainImage.image ) {
+        image.rotation.y = !image.isLooseFrame ? getAngle( unit.direction ) : 0;
     }
 
-    if (modelSetModifiers.images[imageTypeId]) {
-
-        for (const effect of modelSetModifiers.images[imageTypeId]) {
-
-            switch (effect.type) {
+    if ( modelSetModifiers.images[imageTypeId] ) {
+        for ( const effect of modelSetModifiers.images[imageTypeId] ) {
+            switch ( effect.type ) {
                 // set emissive to myself if I'm on the right animation frame
                 case "remap-frames":
-                    image.setFrame(effect.remap(imageBufferView.frameIndex));
+                    image.setFrame( effect.remap( imageBufferView.frameIndex ) );
                     _needsUpdateFrame = false;
                     break;
 
@@ -141,23 +140,20 @@ export const applyModelEffectsToImage3d = (imageBufferView: ImageBufferView, ima
                     break;
 
                 case "emissive:frames":
-                    if (image.setEmissive) {
-                        image.setEmissive(effect.frames.includes(image.frameSet) ? 1 : 0);
+                    if ( image.setEmissive ) {
+                        image.setEmissive(
+                            effect.frames.includes( image.frameSet ) ? 1 : 0
+                        );
                     }
                     break;
                 case "scale":
-                    image.scale.setScalar(effect.scale);
+                    image.scale.setScalar( effect.scale );
                     break;
-
             }
         }
-
     }
 
-    if (_needsUpdateFrame) {
-
-        image.setFrame(imageBufferView.frameIndex);
-
+    if ( _needsUpdateFrame ) {
+        image.setFrame( imageBufferView.frameIndex );
     }
-
-}
+};

@@ -2,20 +2,23 @@ import { AnimAtlas, UnitTileScale, ImageDAT } from "common/types";
 import type { Color, Object3D } from "three";
 
 export interface ImageBase extends Object3D {
-  atlas: AnimAtlas;
-  isImage3d: boolean;
-  isInstanced?: boolean;
-  dat: ImageDAT;
-  _zOff: number;
-  frame: number;
+    atlas?: AnimAtlas;
+    isImage3d: boolean;
+    isInstanced?: boolean;
+    dat: ImageDAT;
+    _zOff: number;
+    frame: number;
 
-  setModifiers: (modifier: number, modifierData1: number, modifierData2: number) => void;
-  setTeamColor: (color: Color | undefined) => void;
-  setEmissive?(val: number): void;
-  updateImageType(atlas: AnimAtlas, force?: boolean): ImageBase;
-  setFrame: (frame: number, flip: boolean) => void;
+    setModifiers: (
+        modifier: number,
+        modifierData1: number,
+        modifierData2: number
+    ) => void;
+    setTeamColor: ( color: Color | undefined ) => void;
+    setEmissive?( val: number ): void;
+    updateImageType( atlas: AnimAtlas, force?: boolean ): ImageBase;
+    setFrame: ( frame: number, flip: boolean ) => void;
 
-  // for iscript sprite
-  readonly unitTileScale: UnitTileScale;
-
+    // for iscript sprite
+    readonly unitTileScale: UnitTileScale;
 }
