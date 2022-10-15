@@ -1,38 +1,41 @@
-import { rmSync } from "fs"
-import { defineConfig } from "vite"
-import electron, { onstart } from "vite-plugin-electron"
-import esmodule from "vite-plugin-esmodule"
-import react from "@vitejs/plugin-react"
-import pkg from "./package.json"
+import { rmSync } from "fs";
+import { defineConfig } from "vite";
+import electron, { onstart } from "vite-plugin-electron";
+import esmodule from "vite-plugin-esmodule";
+import react from "@vitejs/plugin-react";
+import pkg from "./package.json";
 import aliases from "./build/aliases";
-import path from "path"
+import path from "path";
 
-rmSync("dist", { recursive: true, force: true }) // v14.14.0
+rmSync("dist", { recursive: true, force: true }); // v14.14.0
 
-const alias = Object.entries(aliases).reduce((acc, [key, aliasPath]) => {
-    acc[key] = path.resolve(aliasPath);
-    return acc
-}, {
-    "common": path.resolve("./src/common"),
-})
+const alias = Object.entries(aliases).reduce(
+    (acc, [key, aliasPath]) => {
+        acc[key] = path.resolve(aliasPath);
+        return acc;
+    },
+    {
+        common: path.resolve("./src/common"),
+    }
+);
 
 const sharedViteConfig = ({ command }) => ({
     define: {
-        "__static": JSON.stringify(command === "build" ? "./resources/bundled" : "./bundled")
+        __static: JSON.stringify(
+            command === "build" ? "./resources/bundled" : "./bundled"
+        ),
     },
     resolve: {
-        alias
+        alias,
     },
     optimizeDeps: {
-        exclude: ["bw-casclib"]
+        exclude: ["bw-casclib"],
     },
 });
 
 // https://vitejs.dev/config/
 export default defineConfig((env) => {
-
     return {
-
         ...sharedViteConfig(env),
         publicDir: "bundled",
         build: {
@@ -47,13 +50,12 @@ export default defineConfig((env) => {
         },
 
         worker: {
-            format: "es"
+            format: "es",
         },
         plugins: [
             react(),
             esmodule(["minipass-fetch", "make-fetch-happen", "libnpmsearch"]),
             electron({
-
                 main: {
                     entry: "./src/main/index.ts",
                     vite: {
@@ -62,7 +64,6 @@ export default defineConfig((env) => {
                             sourcemap: true,
                             outDir: "dist/electron/main",
                             minify: false,
-
                         },
                         // Will start Electron via VSCode Debug
                         plugins: [process.env.VSCODE_DEBUG ? onstart() : null],
@@ -88,16 +89,26 @@ export default defineConfig((env) => {
                 renderer: {
                     resolve() {
                         return [
-                            "bw-casclib", "events", "util", "fs/promises", "stream", "buffer", "string_decoder", "url", "zlib", "os"
-                        ]
+                            "bw-casclib",
+                            "events",
+                            "util",
+                            "fs/promises",
+                            "stream",
+                            "buffer",
+                            "string_decoder",
+                            "url",
+                            "zlib",
+                            "os",
+                        ];
                     },
-
                 },
             }),
         ],
-        server: process.env.VSCODE_DEBUG ? {
-            host: pkg.debug.env.VITE_DEV_SERVER_HOSTNAME,
-            port: pkg.debug.env.VITE_DEV_SERVER_PORT,
-        } : undefined,
-    }
+        server: process.env.VSCODE_DEBUG
+            ? {
+                  host: pkg.debug.env.VITE_DEV_SERVER_HOSTNAME,
+                  port: pkg.debug.env.VITE_DEV_SERVER_PORT,
+              }
+            : undefined,
+    };
 });

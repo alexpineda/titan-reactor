@@ -3,75 +3,81 @@ import { withErrorMessage } from "common/utils/with-error-message";
 import create from "zustand";
 import { SceneState } from "../scenes/scene";
 
-export type SceneLoader = (prevData?: any) => Promise<SceneState> | SceneState;
+export type SceneLoader = ( prevData?: any ) => Promise<SceneState> | SceneState;
 
-export type SceneStore = {
+export interface SceneStore {
     state: SceneState | null;
-    execSceneLoader: (loader: SceneLoader, errorHandler?: SceneLoader, dontClearError?: boolean) => Promise<void>;
+    execSceneLoader: (
+        loader: SceneLoader,
+        errorHandler?: SceneLoader,
+        dontClearError?: boolean
+    ) => Promise<void>;
     error: Error | null;
-    setError: (error: Error) => void;
+    setError: ( error: Error ) => void;
     clearError: () => void;
     reset(): void;
-};
+}
 
 let _loading = false;
 
-export const useSceneStore = create<SceneStore>((set, get) => ({
+export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
     state: null,
     error: null,
-    execSceneLoader: async (loader: SceneLoader, errorHandler?: SceneLoader, clearError = true) => {
-        if (_loading) {
-            log.warn("Scene is already loading");
+    execSceneLoader: async (
+        loader: SceneLoader,
+        errorHandler?: SceneLoader,
+        clearError = true
+    ) => {
+        if ( _loading ) {
+            log.warn( "Scene is already loading" );
         }
         _loading = true;
 
-        if (clearError) {
+        if ( clearError ) {
             get().clearError();
         }
 
         const oldState = get().state;
         let prevData: any = undefined;
-        if (oldState) {
+        if ( oldState ) {
             try {
                 prevData = oldState.dispose();
-            } catch (e) {
-                log.error(withErrorMessage(e, "Error disposing old scene"));
+            } catch ( e ) {
+                log.error( withErrorMessage( e, "Error disposing old scene" ) );
             }
         }
 
         try {
-            const state = await loader(prevData);
-            oldState && oldState.beforeNext && oldState.beforeNext();
-            await state.start(oldState?.id);
-            set({
-                state
-            });
-        } catch (err: any) {
-            if (err instanceof Error) {
-                log.error(err.stack);
+            const state = await loader( prevData );
+            oldState?.beforeNext && oldState.beforeNext();
+            state.start( oldState?.id );
+            set( { state } );
+        } catch ( err: any ) {
+            if ( err instanceof Error ) {
+                log.error( err.stack );
+                get().setError( err );
             } else {
-                log.error(err);
+                log.error( err );
             }
-            get().setError(err);
-            if (errorHandler) {
+            if ( errorHandler ) {
                 get().reset();
-                setTimeout(() => get().execSceneLoader(errorHandler, undefined, false), 0);
+                setTimeout( () => {
+                    void get().execSceneLoader( errorHandler, undefined, false );
+                }, 0 );
             }
         }
         _loading = false;
     },
     reset() {
-        set({
-            state: null,
-        })
+        set( { state: null } );
     },
-    setError: (error: Error) => {
-        log.error(error.message);
-        set({ error });
+    setError: ( error: Error ) => {
+        log.error( error.message );
+        set( { error } );
     },
     clearError: () => {
-        set({ error: null });
+        set( { error: null } );
     },
-}));
+} ) );
 
-export default () => useSceneStore.getState()
+export default () => useSceneStore.getState();

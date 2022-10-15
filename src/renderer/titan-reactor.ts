@@ -17,68 +17,69 @@ import { log, logBoth, logClient } from "@ipc/log";
 import { waitForTruthy } from "@utils/wait-for";
 import { useGameStore } from "./stores";
 
-performance.mark("start");
+performance.mark( "start" );
 
-globalEvents.on("command-center-save-settings", payload => {
-
-  mixer.setVolumes(payload.data.audio);
-  useSettingsStore.setState(payload);
-
-});
+globalEvents.on( "command-center-save-settings", ( payload ) => {
+    mixer.setVolumes( payload.data.audio );
+    useSettingsStore.setState( payload );
+} );
 
 // deprecate?
-globalEvents.on("unsafe-open-url", payload => {
+globalEvents.on( "unsafe-open-url", ( payload ) => {
+    void openUrl( payload );
+} );
 
-  openUrl(payload);
+globalEvents.on(
+    "load-home-scene",
+    () => void sceneStore().execSceneLoader( homeSceneLoader )
+);
 
-});
+globalEvents.on( "log-message", ( { message, level, server } ) =>
+    server ? logBoth( message, level ) : logClient( message, level )
+);
 
-globalEvents.on("load-home-scene", () => sceneStore().execSceneLoader(homeSceneLoader));
+globalEvents.on( "load-map-file", async ( map ) => {
+    await sceneStore().execSceneLoader( interstitialSceneLoader );
 
-globalEvents.on("log-message", ({ message, level, server }) => server ? logBoth(message, level) : logClient(message, level));
+    void sceneStore().execSceneLoader(
+        () => mapSceneLoader( map ),
+        interstitialSceneLoader
+    );
+} );
 
-globalEvents.on("load-map-file", async (map) => {
+globalEvents.on( "load-replay-file", async ( replay: string ) => {
+    await sceneStore().execSceneLoader( interstitialSceneLoader );
 
-  await sceneStore().execSceneLoader(interstitialSceneLoader);
-  sceneStore().execSceneLoader(() => mapSceneLoader(map), interstitialSceneLoader);
-
-});
-
-globalEvents.on("load-replay-file", async (replay: string) => {
-
-  await sceneStore().execSceneLoader(interstitialSceneLoader);
-  sceneStore().execSceneLoader(() => replaySceneLoader(replay), interstitialSceneLoader);
-
-});
+    void sceneStore().execSceneLoader(
+        () => replaySceneLoader( replay ),
+        interstitialSceneLoader
+    );
+} );
 
 logCapabilities();
 lockdown_();
 
-(async function bootup() {
+( async function bootup() {
+    await sceneStore().execSceneLoader( preHomeSceneLoader );
 
-  await sceneStore().execSceneLoader(preHomeSceneLoader);
+    await sceneStore().execSceneLoader( homeSceneLoader );
 
-  await sceneStore().execSceneLoader(homeSceneLoader);
+    await waitForTruthy( () => useGameStore.getState().assets?.remaining === 0 );
 
-  waitForTruthy(() => useGameStore.getState().assets?.remaining === 0);
+    log.debug( `startup in ${performance.measure( "start" ).duration}ms` );
+} )();
 
-  log.debug(`startup in ${performance.measure("start").duration}ms`);
-})()
+if ( process.env.NODE_ENV === "development" ) {
+    //@ts-expect-error
+    void import( "spectorjs" ).then( ( module: { Spector: Spector } ) => {
+        const spector = new module.Spector();
+        spector.displayUI();
+        spector.spyCanvases();
+    } );
 
-if (process.env.NODE_ENV === "development") {
+    //@ts-expect-error
+    void import( "./utils/ShaderKit.min" );
 
-  //@ts-ignore
-  import("spectorjs").then(module => {
-
-    const spector = new module.Spector();
-    spector.displayUI();
-    spector.spyCanvases();
-
-  })
-
-  //@ts-ignore
-  import("./utils/ShaderKit.min");
-
-  //@ts-ignore
-  import("./utils/webgl-lint");
+    //@ts-expect-error
+    void import( "./utils/webgl-lint" );
 }

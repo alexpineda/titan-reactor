@@ -1,6 +1,12 @@
-export type SceneStateID = "@home" | "@loading" | "@replay" | "@map" | "@iscriptah" | "@interstitial";
+export type SceneStateID =
+    | "@home"
+    | "@loading"
+    | "@replay"
+    | "@map"
+    | "@iscriptah"
+    | "@interstitial";
 
-export type SceneState = {
+export interface SceneState {
     id: SceneStateID;
     dispose: () => void;
     start: (prevId?: SceneStateID) => void;

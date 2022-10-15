@@ -1,10 +1,9 @@
 declare const __static: string;
 
 declare module "*?worker" {
-
     class Worker {
-        postMessage(message: object, transferList?: unknown[]): void;
-        onmessage?: (message: { data: unknown; }) => void;
+        postMessage( message: object, transferList?: unknown[] ): void;
+        onmessage?: ( message: { data: unknown } ) => void;
         terminate(): void;
     }
     export default Worker;
@@ -12,21 +11,27 @@ declare module "*?worker" {
 
 declare module "*?raw" {
     const contents: string;
-    export = contents
+    export = contents;
 }
 declare module "*.svg" {
     const contents: string;
-    export = contents
+    export = contents;
 }
 
 declare module "*.png" {
     const contents: string;
-    export = contents
+    export = contents;
 }
-
 
 interface NodeModule {
     hot?: {
-        accept: (dependencies?: string | string[], callback?: () => void, errorHandler?: (error: Error, info: { moduleId: string, dependencyId: string }) => void) => void;
+        accept: (
+            dependencies?: string | string[],
+            callback?: () => void,
+            errorHandler?: (
+                error: Error,
+                info: { moduleId: string; dependencyId: string }
+            ) => void
+        ) => void;
     };
 }
