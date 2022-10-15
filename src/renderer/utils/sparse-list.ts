@@ -1,19 +1,18 @@
-
 let _indexOf: number;
 
 export class SparseList<T> {
-    #list: (T | null)[] = [];
+    #list: ( T | null )[] = [];
     #emptyIndices: number[] = [];
 
-    add(item: T) {
+    add( item: T ) {
         this.#list[this.#emptyIndices.pop() ?? this.#list.length] = item;
     }
 
-    delete(item: T) {
-        _indexOf = this.#list.indexOf(item);
-        if (_indexOf !== -1) {
+    delete( item: T ) {
+        _indexOf = this.#list.indexOf( item );
+        if ( _indexOf !== -1 ) {
             this.#list[_indexOf] = null;
-            this.#emptyIndices.push(_indexOf);
+            this.#emptyIndices.push( _indexOf );
         }
     }
 
@@ -23,8 +22,8 @@ export class SparseList<T> {
     }
 
     *[Symbol.iterator]() {
-        for (const item of this.#list) {
-            if (item !== null) {
+        for ( const item of this.#list ) {
+            if ( item !== null ) {
                 yield item;
             }
         }

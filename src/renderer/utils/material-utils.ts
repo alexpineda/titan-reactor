@@ -1,10 +1,10 @@
 import { Image3DMaterial } from "@core/image-3d-material";
 import { MeshPhysicalMaterial, MeshStandardMaterial } from "three";
 
-export const upgradeStandardMaterial = (source: MeshStandardMaterial) => {
-    const dest = new MeshPhysicalMaterial;
+export const upgradeStandardMaterial = ( source: MeshStandardMaterial ) => {
+    const dest = new MeshPhysicalMaterial();
 
-    dest.color.copy(source.color);
+    dest.color.copy( source.color );
     dest.roughness = source.roughness;
     dest.metalness = source.metalness;
 
@@ -16,7 +16,7 @@ export const upgradeStandardMaterial = (source: MeshStandardMaterial) => {
     dest.aoMap = source.aoMap;
     dest.aoMapIntensity = source.aoMapIntensity;
 
-    dest.emissive.copy(source.emissive);
+    dest.emissive.copy( source.emissive );
     dest.emissiveMap = source.emissiveMap;
     dest.emissiveIntensity = source.emissiveIntensity;
 
@@ -25,7 +25,7 @@ export const upgradeStandardMaterial = (source: MeshStandardMaterial) => {
 
     dest.normalMap = source.normalMap;
     dest.normalMapType = source.normalMapType;
-    dest.normalScale.copy(source.normalScale);
+    dest.normalScale.copy( source.normalScale );
 
     dest.displacementMap = source.displacementMap;
     dest.displacementScale = source.displacementScale;
@@ -50,12 +50,12 @@ export const upgradeStandardMaterial = (source: MeshStandardMaterial) => {
     dest.fog = source.fog;
 
     return dest;
-}
+};
 
-export const standardMaterialToImage3DMaterial = (source: MeshStandardMaterial) => {
-    const dest = new Image3DMaterial;
+export const standardMaterialToImage3DMaterial = ( source: MeshStandardMaterial ) => {
+    const dest = new Image3DMaterial();
 
-    dest.color.copy(source.color);
+    dest.color.copy( source.color );
     dest.map = source.map;
 
     dest.lightMap = source.lightMap;
@@ -64,7 +64,7 @@ export const standardMaterialToImage3DMaterial = (source: MeshStandardMaterial) 
     dest.aoMap = source.aoMap;
     dest.aoMapIntensity = source.aoMapIntensity;
 
-    dest.emissive.copy(source.emissive);
+    dest.emissive.copy( source.emissive );
     dest.emissiveMap = source.emissiveMap;
     dest.emissiveIntensity = source.emissiveIntensity;
 
@@ -73,7 +73,7 @@ export const standardMaterialToImage3DMaterial = (source: MeshStandardMaterial) 
 
     dest.normalMap = source.normalMap;
     dest.normalMapType = source.normalMapType;
-    dest.normalScale.copy(source.normalScale);
+    dest.normalScale.copy( source.normalScale );
 
     dest.displacementMap = source.displacementMap;
     dest.displacementScale = source.displacementScale;
@@ -98,4 +98,4 @@ export const standardMaterialToImage3DMaterial = (source: MeshStandardMaterial) 
     dest.fog = source.fog;
 
     return dest;
-}
+};

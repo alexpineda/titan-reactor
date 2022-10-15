@@ -1,18 +1,18 @@
 export class IndexedObjectPool<T> {
-    #items: Map<number, T[]> = new Map();
+    #items = new Map<number, T[]>();
 
-    add(id: number, item: T) {
-        const existing = this.#items.get(id);
-        if (existing) {
-            existing.push(item);
+    add( id: number, item: T ) {
+        const existing = this.#items.get( id );
+        if ( existing ) {
+            existing.push( item );
         } else {
-            this.#items.set(id, [item]);
+            this.#items.set( id, [item] );
         }
     }
 
-    get(id: number) {
-        const existing = this.#items.get(id);
-        if (existing) {
+    get( id: number ) {
+        const existing = this.#items.get( id );
+        if ( existing ) {
             return existing.pop();
         }
         return undefined;

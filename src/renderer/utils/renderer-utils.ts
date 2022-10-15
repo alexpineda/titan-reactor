@@ -3,27 +3,25 @@ import { renderComposer } from "@render/render-composer";
 import { log } from "@ipc/log";
 
 export const logCapabilities = () => {
-    log.info(`@init: titan-reactor ${version}`);
-    log.info(`@init: chrome ${process.versions.chrome}`);
-    log.info(`@init: electron ${process.versions.electron}`);
-    log.info(`@init: resolution ${window.innerWidth}x${window.innerHeight}`);
+    log.info( `@init: titan-reactor ${version}` );
+    log.info( `@init: chrome ${process.versions.chrome}` );
+    log.info( `@init: electron ${process.versions.electron}` );
+    log.info( `@init: resolution ${window.innerWidth}x${window.innerHeight}` );
 
     const r = renderComposer.getWebGLRenderer();
-    log.debug(`@init: webgl capabilities`);
-    for (const prop of Object.getOwnPropertyNames(r.capabilities)) {
+    log.debug( "@init: webgl capabilities" );
+    for ( const prop of Object.getOwnPropertyNames( r.capabilities ) ) {
         const value = r.capabilities[prop as keyof typeof r.capabilities];
-        if (typeof value === "function") continue;
-        log.debug(`- ${prop}: ${value}`);
+        if ( typeof value === "function" ) continue;
+        log.debug( `- ${prop}: ${value}` );
     }
 
-    log.debug(`- anisotropy: ${r.capabilities.getMaxAnisotropy()}`);
-    log.debug(`- max precision: ${r.capabilities.getMaxPrecision("highp")}`);
-    log.debug("webgl extensions");
+    log.debug( `- anisotropy: ${r.capabilities.getMaxAnisotropy()}` );
+    log.debug( `- max precision: ${r.capabilities.getMaxPrecision( "highp" )}` );
+    log.debug( "webgl extensions" );
+    log.debug( `- EXT_color_buffer_float ${r.extensions.has( "EXT_color_buffer_float" )}` );
     log.debug(
-        `- EXT_color_buffer_float ${r.extensions.has("EXT_color_buffer_float")}`
-    );
-    log.debug(
-        `- OES_texture_float_linear ${r.extensions.has("OES_texture_float_linear")}`
+        `- OES_texture_float_linear ${r.extensions.has( "OES_texture_float_linear" )}`
     );
     log.debug(
         `- EXT_color_buffer_half_float ${r.extensions.has(
@@ -36,7 +34,7 @@ export const logCapabilities = () => {
         )}`
     );
 
-    r.extensions.init(r.capabilities);
+    r.extensions.init( r.capabilities );
 
-    log.debug(`@init: device pixel ratio: ${window.devicePixelRatio}`);
-}
+    log.debug( `@init: device pixel ratio: ${window.devicePixelRatio}` );
+};

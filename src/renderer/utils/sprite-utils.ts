@@ -1,7 +1,7 @@
 import { SpriteFlags } from "common/enums";
 import { SpriteStruct } from "common/types";
 
-export const spriteSortOrder = (sprite: SpriteStruct) => {
+export const spriteSortOrder = ( sprite: SpriteStruct ) => {
     let score = 0;
     score |= sprite.elevation;
     score <<= 13;
@@ -9,8 +9,8 @@ export const spriteSortOrder = (sprite: SpriteStruct) => {
     score <<= 1;
     score |= sprite.flags & SpriteFlags.Turret ? 1 : 0;
     return score;
-}
+};
 
-export const spriteIsHidden = (sprite: SpriteStruct) => {
-    return (sprite.flags & SpriteFlags.Hidden) !== 0;
-}
+export const spriteIsHidden = ( sprite: SpriteStruct ) => {
+    return ( sprite.flags & SpriteFlags.Hidden ) !== 0;
+};

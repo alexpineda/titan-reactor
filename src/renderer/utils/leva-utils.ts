@@ -1,14 +1,15 @@
 import groupBy from "lodash.groupby";
 import keyboardShortcut from "../command-center/leva-plugins/keyboard-shortcut";
 import directory from "../command-center/leva-plugins/directory";
+import { FieldDefinition } from "common/types";
 
 export const mapSingleConfigToLeva = (
-    fieldConfig: any,
-    onChange: ( value: any, key?: string ) => void,
+    fieldConfig: FieldDefinition,
+    onChange: ( value: unknown, key?: string ) => void,
     key?: string,
     overwriteOnChange = true
 ) => {
-    let wrapper = ( input: any ) => input;
+    let wrapper = ( input: unknown ) => input;
     if ( fieldConfig.type === "keyboard-shortcut" ) {
         wrapper = keyboardShortcut;
     } else if ( fieldConfig.type === "directory" ) {
@@ -20,7 +21,7 @@ export const mapSingleConfigToLeva = (
         onChange:
             !overwriteOnChange && fieldConfig.onChange
                 ? fieldConfig.onChange
-                : ( value: any, _: any, input: { initial: boolean } ) => {
+                : ( value: unknown, _: any, input: { initial: boolean } ) => {
                       if ( fieldConfig.value !== value && !input.initial ) {
                           fieldConfig.value = value;
                           onChange( value, key );

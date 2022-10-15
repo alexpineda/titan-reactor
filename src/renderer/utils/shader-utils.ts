@@ -1,9 +1,11 @@
 import { Shader, ShaderChunk } from "three";
 
-export const flatProjection = (shader: Shader, additionalInsert = "") => {
-  shader.vertexShader = shader.vertexShader.replace("#include <project_vertex>", ShaderChunk.project_vertex.replace(
-    "gl_Position = projectionMatrix * mvPosition;",
-    `
+export const flatProjection = ( shader: Shader, additionalInsert = "" ) => {
+    shader.vertexShader = shader.vertexShader.replace(
+        "#include <project_vertex>",
+        ShaderChunk.project_vertex.replace(
+            "gl_Position = projectionMatrix * mvPosition;",
+            `
     
           vec4 pos = vec4( transformed, 1.0 );
           mat4 mm = modelMatrix;
@@ -31,13 +33,16 @@ export const flatProjection = (shader: Shader, additionalInsert = "") => {
           ${additionalInsert}
     
         `
-  ));
-}
+        )
+    );
+};
 
-export const flatProjectionGroup = (shader: Shader, additionalInsert = "") => {
-  shader.vertexShader = shader.vertexShader.replace("#include <project_vertex>", ShaderChunk.project_vertex.replace(
-    "gl_Position = projectionMatrix * mvPosition;",
-    `
+export const flatProjectionGroup = ( shader: Shader, additionalInsert = "" ) => {
+    shader.vertexShader = shader.vertexShader.replace(
+        "#include <project_vertex>",
+        ShaderChunk.project_vertex.replace(
+            "gl_Position = projectionMatrix * mvPosition;",
+            `
     
           vec4 pos = vec4( transformed, 1.0 );
           mat4 mv = viewMatrix * uParentMatrix;
@@ -57,14 +62,15 @@ export const flatProjectionGroup = (shader: Shader, additionalInsert = "") => {
           ${additionalInsert}
     
         `
-  ));
+        )
+    );
 
-  shader.vertexShader = `
+    shader.vertexShader = `
   
     uniform mat4 uParentMatrix;
     uniform mat4 uLocalMatrix;
 
     ${shader.vertexShader}
 
-  `
-}
+  `;
+};
