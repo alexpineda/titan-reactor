@@ -56,14 +56,24 @@
             "@macros/*": ["renderer/macros/*"],
             "@macros": ["renderer/macros/index.ts"]
         },
-        "typeRoots": [
-            "./src/common/types/declarations",
-            "./node_modules/@types",
-        ],
+        "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
         "outDir": "generated",
         "resolveJsonModule": true,
-        "types": ["vite/client", "node", "jest", "offscreencanvas"]
+        "types": [
+            "vite/client",
+            "node",
+            "jest",
+            "offscreencanvas",
+            "npmcli__package-json"
+        ]
     },
     "include": ["src/**/*"],
-    "exclude": ["./node_modules/**/*", "generated", "dist", "release"]
+    "exclude": [
+        "./node_modules/**/*",
+        "./generated/**/*",
+        "./dist/**/*",
+        "./release/**/*",
+        "./bundled/**/*",
+        "./build/**/*"
+    ]
 }

@@ -1573,6 +1573,11 @@
     "@types/npmlog" "*"
     "@types/ssri" "*"
 
+"@types/npmcli__package-json@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@types/npmcli__package-json/-/npmcli__package-json-2.0.0.tgz#f276639ed184c2505207c1df5f209cb99f4b92a3"
+  integrity sha512-8/+/ZIuh9aZjW8QIrnpRwUqUoEXCQePzH03WRZSx+3RtBZhQI4ytVRVsfhMjYtxZpJiepXLW27WKPfDl2o/i8Q==
+
 "@types/npmlog@*":
   version "4.1.4"
   resolved "https://registry.yarnpkg.com/@types/npmlog/-/npmlog-4.1.4.tgz#30eb872153c7ead3e8688c476054ddca004115f6"

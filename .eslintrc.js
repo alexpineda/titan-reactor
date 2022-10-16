@@ -5,6 +5,7 @@ const aliasList = Object.entries(aliases).reduce(
 );
 
 module.exports = {
+    ignorePatterns: ["**/*.js"],
     env: {
         "browser": true,
         "es2021": true,
@@ -41,6 +42,7 @@ module.exports = {
         "no-empty": ["error", { allowEmptyCatch: true }],
         "no-unused-vars": "off",
         "no-empty-function": "off",
+        "no-prototype-builtins": "off",
         "object-curly-spacing": ["error", "always"],
         "space-in-parens": ["error", "always", { exceptions: ["empty"] }],
         "computed-property-spacing": ["error", "never"],
@@ -73,6 +75,7 @@ module.exports = {
 
         "@typescript-eslint/no-misused-promises": "off",
         "@typescript-eslint/no-floating-promises": "off",
+        "@typescript-eslint/prefer-reduce-type-parameter": "off",
 
         "@typescript-eslint/prefer-optional-chain": "off",
         "@typescript-eslint/restrict-template-expressions": [
@@ -85,6 +88,7 @@ module.exports = {
         // revisit these
         "@typescript-eslint/no-unsafe-call": "off",
         "@typescript-eslint/no-unsafe-member-access": "off",
+        "t@typescript-eslint/consistent-type-definitions": "off",
     },
     globals: {
         __static: true,
