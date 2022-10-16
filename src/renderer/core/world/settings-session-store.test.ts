@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { describe, it, jest } from "@jest/globals";
 import { TypeEmitter } from "@utils/type-emitter";
 import { createSettingsSessionStore } from "./settings-session-store";

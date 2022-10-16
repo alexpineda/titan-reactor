@@ -1,13 +1,12 @@
 import {
     PluginMetaData,
-    NativePlugin,
-    SceneInputHandler,
     FieldDefinition,
     PluginPackage,
+    PluginConfig,
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
-import { PERMISSION_REPLAY_COMMANDS, VALID_PERMISSIONS } from "./permissions";
+import { PERMISSION_REPLAY_COMMANDS } from "./permissions";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
 import { mix } from "@utils/object-utils";
@@ -24,7 +23,7 @@ type PluginsConfigSnapshot = Record<
 export class PluginSystemNative {
     #plugins: PluginBase[] = [];
     #janitor = new Janitor( "PluginSystemNative" );
-    #sceneController?: SceneInputHandler;
+    #sceneController?: SceneController;
 
     #permissions = new Map<string, Record<string, boolean>>();
     #sendCustomUIMessage: ( pluginId: string, message: any ) => void;
@@ -79,20 +78,21 @@ export class PluginSystemNative {
 
             plugin.isSceneController = pluginPackage.isSceneController;
 
-            const permissions = (
-                pluginPackage.config?.system?.permissions ?? []
-            ).reduce( ( acc: Record<string, boolean>, permission: string ) => {
-                if ( VALID_PERMISSIONS.includes( permission ) ) {
-                    acc[permission] = true;
-                } else {
-                    log.warn(
-                        `Invalid permission ${permission} for plugin ${pluginPackage.name}`
-                    );
-                }
-                return acc;
-            }, {} );
+            // const permissions = ( pluginPackage.config?.system.permissions ?? [] ).reduce(
+            //     ( acc: Record<string, boolean>, permission: string ) => {
+            //         if ( VALID_PERMISSIONS.includes( permission ) ) {
+            //             acc[permission] = true;
+            //         } else {
+            //             log.warn(
+            //                 `Invalid permission ${permission} for plugin ${pluginPackage.name}`
+            //             );
+            //         }
+            //         return acc;
+            //     },
+            //     {}
+            // );
 
-            this.#permissions.set( pluginPackage.id, permissions );
+            this.#permissions.set( pluginPackage.id, {} );
 
             plugin.sendUIMessage = throttle(
                 ( message: any ) => {
@@ -204,17 +204,17 @@ export class PluginSystemNative {
         }
     }
 
-    isRegularPluginOrActiveSceneController( plugin: NativePlugin ) {
+    isRegularPluginOrActiveSceneController( plugin: PluginBase ) {
         return !plugin.isSceneController || this.#sceneController === plugin;
     }
 
-    hook_onConfigChanged( pluginId: string, config: any ) {
+    hook_onConfigChanged( pluginId: string, config: PluginConfig ) {
         const plugin = this.#plugins.find( ( p ) => p.id === pluginId );
 
         if ( plugin ) {
             try {
                 const oldConfig = { ...plugin.config };
-                plugin.config = config;
+                plugin.rawConfig = config;
                 plugin.onConfigChanged &&
                     this.isRegularPluginOrActiveSceneController( plugin ) &&
                     plugin.onConfigChanged( oldConfig );
@@ -269,7 +269,7 @@ export class PluginSystemNative {
     /**
      * Temporarily inject an api into all active plugins.
      */
-    injectApi( object: Record<string, unknown> ) {
+    injectApi( object: object ) {
         mix( PluginBase.prototype, object );
         const keys = Object.keys( object );
 

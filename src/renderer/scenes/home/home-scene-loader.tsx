@@ -9,35 +9,32 @@ import { root } from "@render/root";
 import { log } from "@ipc/log";
 
 export async function homeSceneLoader(): Promise<SceneState> {
-  const janitor = new Janitor("home-scene-loader");
-  log.debug("Loading home scene");
-  janitor.mop(await createWraithScene());
+    const janitor = new Janitor( "home-scene-loader" );
+    log.debug( "Loading home scene" );
+    janitor.mop( await createWraithScene() );
 
-  await waitForSeconds(1);
-  root.render(<Home surface={getSurface().canvas} />);
+    await waitForSeconds( 1 );
+    root.render( <Home surface={getSurface().canvas} /> );
 
-  const swoosh = mixer!.context.createBufferSource();
-  swoosh.buffer = await mixer!.loadAudioBuffer(
-    "casc:Interstitials\\sounds\\scHD_Interstitials_Terran_TR3010.wav"
-  );
-  janitor.mop(
-    mixer.connect(swoosh, mixer.createGain(0.1), mixer.intro),
-    "swoosh"
-  );
+    const swoosh = mixer.context.createBufferSource();
+    swoosh.buffer = await mixer.loadAudioBuffer(
+        "casc:Interstitials\\sounds\\scHD_Interstitials_Terran_TR3010.wav"
+    );
+    janitor.mop( mixer.connect( swoosh, mixer.createGain( 0.1 ), mixer.intro ), "swoosh" );
 
-  return {
-    id: "@home",
-    beforeNext() {
-      renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
-    },
-    start: (prevID?: SceneStateID) => {
-      renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
-      if (prevID !== "@loading") {
-        swoosh.start();
-      }
-    },
-    dispose: () => {
-      janitor.dispose();
-    },
-  };
+    return {
+        id: "@home",
+        beforeNext() {
+            renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
+        },
+        start: ( prevID?: SceneStateID ) => {
+            renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
+            if ( prevID !== "@loading" ) {
+                swoosh.start();
+            }
+        },
+        dispose: () => {
+            janitor.dispose();
+        },
+    };
 }

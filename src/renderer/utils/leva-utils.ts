@@ -1,37 +1,55 @@
 import groupBy from "lodash.groupby";
 import keyboardShortcut from "../command-center/leva-plugins/keyboard-shortcut";
 import directory from "../command-center/leva-plugins/directory";
-import { FieldDefinition } from "common/types";
+import { AppConfiguration, FieldDefinition } from "common/types";
+import { CustomInput, OnChangeHandler } from "leva/plugin";
+import { capitalizeFirstLetters } from "./string-utils";
 
-export const wrapFieldConfigWithChangeListener = (
+type LevaPluginWrapper =
+    | ( ( input: ControllableDefinition ) => CustomInput<ControllableDefinition> )
+    | ( ( input: ControllableDefinition ) => ControllableDefinition );
+
+export interface ControllableDefinition extends FieldDefinition {
+    onChange: OnChangeHandler;
+    folder: string;
+}
+
+type KeyedControllableDefinition = ReturnType<LevaPluginWrapper> & {
+    _key: string;
+    _originalKey: string;
+};
+
+export function wrapFieldConfigWithChangeListener(
     fieldConfig: FieldDefinition,
     onChange: ( value: unknown, key?: string ) => void,
     key?: string,
     overwriteOnChange = true
-) => {
-    let wrapper = ( input: unknown ) => input;
+) {
+    let wrapper: LevaPluginWrapper = ( input: ControllableDefinition ) => input;
+
     if ( fieldConfig.type === "keyboard-shortcut" ) {
-        wrapper = keyboardShortcut;
+        wrapper = keyboardShortcut as unknown as LevaPluginWrapper;
     } else if ( fieldConfig.type === "directory" ) {
-        wrapper = directory;
+        wrapper = directory as unknown as LevaPluginWrapper;
     }
 
     return wrapper( {
         ...fieldConfig,
+        folder: fieldConfig.folder ?? "Configuration",
         onChange:
             !overwriteOnChange && fieldConfig.onChange
                 ? fieldConfig.onChange
-                : ( value: unknown, _: any, input: { initial: boolean } ) => {
+                : ( value: unknown, _: unknown, input: { initial: boolean } ) => {
                       if ( fieldConfig.value !== value && !input.initial ) {
                           fieldConfig.value = value;
                           onChange( value, key );
                       }
                   },
     } );
-};
+}
 
 interface AttachParams {
-    config: unknown;
+    config?: Record<string, FieldDefinition | AppConfiguration>;
     onChange: ( value: any, key?: string ) => void;
     overwriteOnChange?: boolean;
     groupByFolder?: boolean;
@@ -43,46 +61,57 @@ const defaultOptions: Partial<AttachParams> = {
     includeHidden: false,
 };
 
+const isAppConfiguration = ( config: any ): config is AppConfiguration =>
+    typeof config === "object" && "hidden" in config;
+
 export const attachOnChangeAndGroupByFolder = ( userOptions: AttachParams ) => {
-    const { config, onChange, overwriteOnChange, groupByFolder, includeHidden } = {
+    const { config, onChange, overwriteOnChange, includeHidden } = {
         ...defaultOptions,
         ...userOptions,
     };
+    if ( config === undefined ) {
+        return [];
+    }
     const values = [];
-    for ( const k in config || {} ) {
-        if ( k !== "system" && typeof config[k] === "object" && "value" in config[k] ) {
-            if ( config[k].hidden && !includeHidden ) {
+    for ( const k in config ) {
+        const field = config[k];
+        if ( k !== "system" && typeof field === "object" && "value" in field ) {
+            if ( isAppConfiguration( field ) && field.hidden && !includeHidden ) {
                 continue;
             }
             const obj = wrapFieldConfigWithChangeListener(
-                config[k],
+                field,
                 onChange,
                 k,
                 overwriteOnChange
-            );
+            ) as KeyedControllableDefinition;
 
-            obj.folder = config[k].folder || "Configuration";
-            obj._key = k;
+            obj._originalKey = k;
+            obj._key = capitalizeFirstLetters( k );
+
             values.push( obj );
         }
     }
-    if ( groupByFolder ) {
-        const grouped = groupBy( values, "folder" );
-        return Object.keys( grouped ).map( ( folder ) => [
-            folder,
-            grouped[folder].reduce( ( acc, v ) => ( { ...acc, [v._key]: v } ), {} ),
-        ] );
-    } else {
-        return values.reduce( ( acc, v ) => ( { ...acc, [v._key]: v } ), {} );
-    }
+
+    return values;
 };
 
-export const simplifyLevaConfig = ( config: Record<string, any> ) => {
-    const values: Record<string, any> = {};
-    for ( const k in config ) {
-        if ( k !== "system" && typeof config[k] === "object" && "value" in config[k] ) {
-            values[k] = config[k].value;
-        }
-    }
-    return values;
+export const groupConfigByFolder = (
+    values: ReturnType<typeof attachOnChangeAndGroupByFolder>
+) => {
+    const grouped = groupBy( values, "folder" );
+    return Object.keys( grouped ).map( ( folder ) => [
+        folder,
+        grouped[folder].reduce( ( acc, v ) => ( { ...acc, [v._key]: v } ), {} ),
+    ] ) as [string, Record<string, KeyedControllableDefinition>][];
+};
+
+export const groupConfigByKey = (
+    values: ReturnType<typeof attachOnChangeAndGroupByFolder>
+) => {
+    const reduced = values.reduce<Record<string, KeyedControllableDefinition>>(
+        ( acc, v ) => ( { ...acc, [v._key]: v } ),
+        {}
+    );
+    return reduced;
 };

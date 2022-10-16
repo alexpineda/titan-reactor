@@ -13,6 +13,6 @@ export class TargetComposer {
 }
 
 export interface TargetHandler {
-    action( action: MacroAction, context?: any ): void;
-    getValue( path: string[], value?: any, context?: any ): any;
+    action( action: MacroAction, context?: object ): void;
+    getValue( path: string[], value?: unknown, context?: object ): unknown;
 }

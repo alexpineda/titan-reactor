@@ -9,9 +9,9 @@ import {
 } from "common/types";
 import { Macro } from "./macro";
 import { ManualTrigger } from "./manual-trigger";
-import { HotkeyTrigger } from "./hotkey-trigger";
+import { HotkeyTrigger, HotkeyTriggerDTO } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
-import { WorldEventTrigger } from "@macros/world-event-trigger";
+import { WorldEventTrigger, WorldEventTriggerDTO } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
 import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
 import { TargetComposer } from "@core/world/target-composer";
@@ -70,7 +70,7 @@ export class Macros {
                         { value: action.value },
                         action.value,
                         this.#macroDefaultEnabled.get( macro )
-                    );
+                    ) as boolean;
                     return;
                 } else if ( action.path[2] === "program" ) {
                     if ( action.operator === Operator.Execute ) {
@@ -183,7 +183,7 @@ export class Macros {
         return false;
     }
 
-    #testMacroConditions( macro: Macro, context?: any ) {
+    #testMacroConditions( macro: Macro, context?: object ) {
         for ( const condition of macro.conditions ) {
             const value = this.targets
                 .getHandler( condition.path[0] )!
@@ -268,12 +268,19 @@ export class Macros {
         this.revision = macrosDTO.revision;
         this.macros = macrosDTO.macros.map( ( macro ) => {
             let trigger: MacroTrigger = new ManualTrigger();
+            // TODO: add box validations here
             if ( macro.trigger.type === TriggerType.Hotkey ) {
-                trigger = HotkeyTrigger.deserialize( macro.trigger.value );
+                trigger = HotkeyTrigger.deserialize(
+                    macro.trigger.value as HotkeyTriggerDTO
+                );
             } else if ( macro.trigger.type === TriggerType.WorldEvent ) {
-                trigger = WorldEventTrigger.deserialize( macro.trigger.value );
+                trigger = WorldEventTrigger.deserialize(
+                    macro.trigger.value as WorldEventTriggerDTO
+                );
             } else if ( macro.trigger.type === TriggerType.Mouse ) {
-                trigger = MouseTrigger.deserialize( macro.trigger.value );
+                trigger = MouseTrigger.deserialize(
+                    macro.trigger.value as MouseTriggerDTO
+                );
             }
             const newMacro = new Macro(
                 macro.id,

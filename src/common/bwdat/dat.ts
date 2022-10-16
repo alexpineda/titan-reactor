@@ -6,11 +6,11 @@ export interface FormatType {
     size: number;
     names?: string[];
     name?: string;
-    get?: ( i: number ) => any;
+    get?: ( i: number ) => unknown;
     range?: () => number[];
 }
 
-export class DAT<Type> {
+export class DAT<Type extends object> {
     private readonly readFile: ReadFile;
     private initialized?: Promise<string[]>;
     stats: string[] = [];
@@ -118,10 +118,10 @@ export class DAT<Type> {
 
             return values.reduce<Type>( ( memo: Type, { name, value } ) => {
                 return { ...memo, [name as keyof Type]: value } as Type;
-            }, {} );
+            }, {} as unknown as Type );
         } );
 
-        return ( this.entries = await this.post( entries ) );
+        return ( this.entries = this.post( entries ) );
     }
 
     protected post( entries: Type[] ) {

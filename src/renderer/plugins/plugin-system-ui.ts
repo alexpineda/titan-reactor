@@ -288,7 +288,7 @@ export class PluginSystemUI {
         } );
     }
 
-    sendMessage( message: any, transfer?: Transferable[] ) {
+    sendMessage( message: object, transfer?: Transferable[] ) {
         this.#iframe.contentWindow?.postMessage( message, "*", transfer );
     }
 

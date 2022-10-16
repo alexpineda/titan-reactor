@@ -5,11 +5,11 @@ import { createRoot } from "react-dom/client";
 import "./style.css";
 import { savePluginsConfig } from "@ipc/plugins";
 import { useSettingsStore, settingsStore } from "@stores/settings-store";
-import { PluginMetaData } from "common/types";
-import DetailSheet from "./detail-sheet";
+import { PluginConfig, PluginMetaData } from "common/types";
+import { DetailSheet } from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
-import { attachOnChangeAndGroupByFolder } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "@utils/leva-utils";
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
@@ -26,7 +26,7 @@ s.rel = "stylesheet";
 s.href = "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap";
 document.head.appendChild( s );
 
-const onChange = debounce( ( pluginId: string, config: unknown ) => {
+const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
     savePluginsConfig( pluginId, config );
     sendWindow( InvokeBrowserTarget.Game, {
         type: SendWindowActionType.PluginConfigChanged,
@@ -122,13 +122,9 @@ const CommandCenter = () => {
         )
         .filter( ( p ) => !( p.keywords ?? [] ).includes( "deprecated" ) );
 
-    const Icon = ( { icon }: { icon: string } ) => (
-        <i className="material-icons">{icon}</i>
-    );
-
     const localPluginButton = ( local: PluginMetaData, isDisabled: boolean ) => (
         <PluginButton
-            icon={local.config?.icon ? <Icon icon={local.config.icon} /> : null}
+            icon={null}
             key={local.id}
             description={local.description}
             isDisabled={isDisabled}
@@ -263,16 +259,12 @@ const CommandCenter = () => {
                                     display: "flex",
                                     flexDirection: "column",
                                 }}>
-                                {plugin && (
-                                    <h2>
-                                        {plugin.local?.description ??
-                                            plugin.local?.name ??
-                                            plugin.remote?.name}{" "}
-                                        -{" "}
-                                        {plugin.local?.version ??
-                                            plugin.remote?.version}
-                                    </h2>
-                                )}
+                                <h2>
+                                    {plugin.local?.description ??
+                                        plugin.local?.name ??
+                                        plugin.remote?.name}{" "}
+                                    - {plugin.local?.version ?? plugin.remote?.version}
+                                </h2>
 
                                 {plugin.remote && (
                                     <>
@@ -295,16 +287,16 @@ const CommandCenter = () => {
                                             <DetailSheet
                                                 key={plugin.local.id}
                                                 pluginPackage={plugin.local}
-                                                controls={attachOnChangeAndGroupByFolder(
-                                                    {
+                                                controls={groupConfigByFolder(
+                                                    attachOnChangeAndGroupByFolder( {
                                                         config: plugin.local.config,
                                                         onChange: () => {
                                                             onChange(
                                                                 plugin.local!.id,
-                                                                plugin.local!.config
+                                                                plugin.local!.config!
                                                             );
                                                         },
-                                                    }
+                                                    } )
                                                 )}
                                                 updateAvailable={!!updateVersion}
                                             />
@@ -362,16 +354,17 @@ const CommandCenter = () => {
                                                 <DetailSheet
                                                     key={plugin.local.id}
                                                     pluginPackage={plugin.local}
-                                                    controls={attachOnChangeAndGroupByFolder(
-                                                        {
+                                                    controls={groupConfigByFolder(
+                                                        attachOnChangeAndGroupByFolder( {
                                                             config: plugin.local.config,
                                                             onChange: () => {
                                                                 onChange(
                                                                     plugin.local!.id,
-                                                                    plugin.local!.config
+                                                                    plugin.local!
+                                                                        .config!
                                                                 );
                                                             },
-                                                        }
+                                                        } )
                                                     )}
                                                 />
                                             )}

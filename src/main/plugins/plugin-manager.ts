@@ -7,7 +7,7 @@ import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge";
 
-import { PluginMetaData, PluginPackage } from "common/types";
+import { PluginConfig, PluginMetaData, PluginPackage } from "common/types";
 
 import readFolder from "../starcraft/get-files";
 import { withErrorMessage } from "common/utils/with-error-message";
@@ -17,14 +17,15 @@ import { transpile } from "../transpile";
 import { DEFAULT_PLUGIN_PACKAGES } from "common/default-settings";
 import packagejson from "../../../package.json";
 import semver from "semver";
+import { arrayOverwriteMerge } from "@utils/object-utils";
 
 const loadUtf8 = async (
     filepath: string,
     format: "json" | "text" | "xml" = "text"
-): Promise<object | string> => {
+): Promise<unknown> => {
     const content = await fsPromises.readFile( filepath, { encoding: "utf8" } );
     if ( format === "json" ) {
-        return JSON.parse( content );
+        return JSON.parse( content ) as unknown;
     }
     return content;
 };
@@ -32,11 +33,11 @@ const loadUtf8 = async (
 const tryLoadUtf8 = async (
     filepath: string,
     format: "json" | "text" | "xml" = "text"
-): Promise<any | null> => {
+): Promise<unknown> => {
     try {
         const content = await fsPromises.readFile( filepath, { encoding: "utf8" } );
         if ( format === "json" ) {
-            return JSON.parse( content );
+            return JSON.parse( content ) as unknown;
         }
         return content;
     } catch ( _ ) {
@@ -75,7 +76,22 @@ export class PluginManager {
         const packageJSON = ( await loadUtf8(
             path.join( folderPath, "package.json" ),
             "json"
-        ) ) as PluginPackage;
+        ) ) as Partial<PluginPackage>;
+
+        if ( packageJSON.name === undefined ) {
+            log.error(
+                `@load-plugins/load-configs: Undefined plugin name - ${folderName}`
+            );
+            return null;
+        }
+
+        if ( packageJSON.version === undefined ) {
+            log.error(
+                `@load-plugins/load-configs: Undefined plugin version - ${folderName}`
+            );
+            return null;
+        }
+
         let pluginNative = null;
         if ( await fileExists( path.join( folderPath, "plugin.ts" ) ) ) {
             const tsSource = ( await tryLoadUtf8( path.join( folderPath, "plugin.ts" ) ) ) as
@@ -128,20 +144,6 @@ export class PluginManager {
             indexFile = "index.tsx";
         }
 
-        if ( packageJSON.name === undefined ) {
-            log.error(
-                `@load-plugins/load-configs: Undefined plugin name - ${folderName}`
-            );
-            return null;
-        }
-
-        if ( packageJSON.version === undefined ) {
-            log.error(
-                `@load-plugins/load-configs: Undefined plugin version - ${folderName}`
-            );
-            return null;
-        }
-
         const config = packageJSON.config ?? {};
         if ( typeof config._visible !== "object" ) {
             if ( indexFile ) {
@@ -169,7 +171,7 @@ export class PluginManager {
             indexFile,
             externMethods: getExternMethods( pluginNative ?? "" ),
             isSceneController: ( pluginNative ?? "" ).includes( "onEnterScene" ),
-            hooks: packageJSON.config?.system?.customHooks ?? [],
+            hooks: [],
         };
     }
 
@@ -250,7 +252,9 @@ export class PluginManager {
                             1,
                             loadedPackage
                         );
-                        await this.savePluginConfig( loadedPackage.id, oldConfig );
+                        if ( oldConfig ) {
+                            await this.savePluginConfig( loadedPackage.id, oldConfig );
+                        }
                         onUpdated && onUpdated();
                     }
                     // otherwise this is a fresh install in which plugins get placed in the disabled plugins list
@@ -279,7 +283,7 @@ export class PluginManager {
         return null;
     }
 
-    async uninstallPlugin( pluginId: string ) {
+    uninstallPlugin( pluginId: string ) {
         const plugin = this.#pluginPackages.find( ( p ) => p.id === pluginId );
         if ( !plugin ) {
             log.error( `@load-plugins/uninstall: Plugin ${pluginId} not found` );
@@ -303,7 +307,7 @@ export class PluginManager {
         return true;
     }
 
-    async savePluginConfig( pluginId: string, config: any ) {
+    async savePluginConfig( pluginId: string, config: PluginConfig ) {
         const pluginConfig = this.#pluginPackages.find( ( p ) => p.id === pluginId );
         if ( !pluginConfig ) {
             log.error(
@@ -315,12 +319,12 @@ export class PluginManager {
         const existingConfigPath = path.join( this.#pluginDirectory, pluginConfig.path );
 
         try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             const pkgJson = await PackageJson.load( existingConfigPath );
-            const overwriteMerge = ( _: any, sourceArray: any ) => sourceArray;
 
             if ( pluginConfig.config ) {
                 pluginConfig.config = deepMerge( pluginConfig.config, config, {
-                    arrayMerge: overwriteMerge,
+                    arrayMerge: arrayOverwriteMerge,
                 } );
             } else {
                 pluginConfig.config = config;

@@ -6,7 +6,7 @@ import settings from "../settings/singleton";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
 import { openCascStorage, readCascFile } from "common/casclib";
 
-ipcMain.handle( OPEN_FILE, async ( _, filepath = "" ) => {
+ipcMain.handle( OPEN_FILE, async ( _, filepath: string = "" ) => {
     try {
         return await fsPromises.readFile( filepath );
     } catch ( e ) {

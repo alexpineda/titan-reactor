@@ -1,8 +1,19 @@
 import { ReadFile } from "common/types";
 import type OpenBWFileList from "../../renderer/openbw/openbw-filelist";
+import { EmscriptenPreamble } from "./emscripten";
 import { SoundStruct } from "./structs";
 
-export interface OpenBWWasm {
+type Callbacks = {
+    js_fatal_error?: ( ptr: number ) => string;
+    js_pre_main_loop?: () => void;
+    js_post_main_loop?: () => void;
+    js_file_size?: ( index: number ) => number;
+    js_read_data?: ( index: number, dst: number, offset: number, size: number ) => void;
+    js_load_done?: () => void;
+    js_file_index?: ( ptr: number ) => number;
+};
+
+export interface OpenBWWasm extends EmscriptenPreamble {
     _reset: () => void;
     _load_replay: ( buffer: number, length: number ) => void;
     _load_map: ( buffer: number, length: number ) => void;
@@ -65,26 +76,14 @@ export interface OpenBWWasm {
         ) => boolean;
     };
     callMain: () => void;
-    HEAP8: Int8Array;
-    HEAPU8: Uint8Array;
-    HEAP16: Int16Array;
-    HEAPU16: Uint16Array;
-    HEAP32: Int32Array;
-    HEAPU32: Uint32Array;
     getExceptionMessage: ( e: unknown ) => string;
-    allocate: ( buffer: ArrayBuffer, flags: number ) => number;
-    _free: ( buffer: number ) => void;
-    ALLOC_NORMAL: number;
+
+    setupCallbacks: ( callbacks: Callbacks ) => void;
 }
 
 export interface OpenBW extends OpenBWWasm {
     running: boolean;
     files: OpenBWFileList;
-
-    callbacks: {
-        beforeFrame: () => void;
-        afterFrame: () => void;
-    };
 
     unitGenerationSize: number;
 

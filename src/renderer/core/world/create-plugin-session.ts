@@ -28,7 +28,7 @@ export const createPluginSession = async ( openBW: OpenBW ) => {
     const nativePlugins = janitor.mop(
         new PluginSystemNative(
             pluginPackages,
-            ( pluginId: string, message: any ) =>
+            ( pluginId: string, message: unknown ) =>
                 uiPlugins.sendMessage( {
                     type: UI_SYSTEM_CUSTOM_MESSAGE,
                     payload: {

@@ -1,7 +1,9 @@
 import { SessionVariables } from "@core/world/settings-session-store";
 import { WorldEvents } from "@core/world/world-events";
 import { TypeEmitterProxy } from "@utils/type-emitter";
-import type { Vector2, Vector3 } from "three";
+import { FieldDefinition } from "./fields";
+
+export type PluginConfig = Record<string, FieldDefinition>;
 
 export interface PluginPackage {
     name: string;
@@ -18,13 +20,7 @@ export interface PluginPackage {
     description?: string;
     repository?: string | { type?: string; url?: string };
     peerDependencies?: Record<string, string>;
-    config?: {
-        system?: {
-            permissions?: string[];
-            customHooks?: string[];
-        };
-        [key: string]: any;
-    };
+    config?: PluginConfig;
 }
 
 export interface PluginMetaData extends PluginPackage {
@@ -37,6 +33,18 @@ export interface PluginMetaData extends PluginPackage {
     hooks: string[];
     isSceneController: boolean;
     apiVersion: string;
+}
+
+export interface Injectables {
+    /**
+     * Reactive setting values that apply to the active session only.
+     */
+    settings: SessionVariables;
+
+    /**
+     * World events that can be listened to and emitted.
+     */
+    events: TypeEmitterProxy<WorldEvents>;
 }
 
 export interface NativePlugin {
@@ -54,30 +62,20 @@ export interface NativePlugin {
      */
     isSceneController: boolean;
 
-    config: Record<string, any> | undefined;
+    config: object | undefined;
 
     init?: () => void;
-
-    /**
-     * Reactive setting values that apply to the active session only.
-     */
-    settings: SessionVariables;
-
-    /**
-     * World events that can be listened to and emitted.
-     */
-    events: TypeEmitterProxy<WorldEvents>;
 
     /**
      * Unprocessed configuration data from the package.json.
      * @internal
      */
-    getFieldDefinition( key: string ): any;
+    getFieldDefinition( key: string ): FieldDefinition | undefined;
 
     /**
      * Allows a plugin to update it's own config key/value store
      */
-    setConfig( key: string, value: any, persist?: boolean ): void;
+    saveConfigProperty( key: string, value: unknown, persist?: boolean ): void;
 
     /**
      * Send a message to your plugin UI.
@@ -129,78 +127,14 @@ export interface NativePlugin {
      * When the scene objects have been reset due to replay forwarding or rewinding.
      */
     onFrameReset?(): void;
-}
-
-export interface UserInputCallbacks {
-    /**
-     * Updates every frame with the current mouse data.
-     *
-     * @param delta - Time in milliseconds since last frame
-     * @param elapsed - Time in milliseconds since the game started
-     * @param scrollY - Mouse wheel scroll delta
-     * @param screenDrag - Screen scroll delta
-     * @param lookAt - pointerLock delta
-     * @param mouse - x,y mouse position in NDC + z = button state
-     * @param clientX mouse clientX value
-     * @param clientY mouse clientY value
-     * @param clicked - x,y mouse position in NDC + z = button state
-     */
-    onCameraMouseUpdate(
-        delta: number,
-        elapsed: number,
-        scrollY: number,
-        screenDrag: Vector2,
-        lookAt: Vector2,
-        mouse: Vector3,
-        clientX: number,
-        clientY: number,
-        clicked: Vector3 | undefined,
-        modifiers: Vector3
-    ): void;
-
-    /**
-     * Updates every frame with the current keyboard data.
-     *
-     * @param delta - Time in milliseconds since last frame
-     * @param elapsed - Time in milliseconds since the game started
-     * @param truck - x,y movement deltas
-     */
-    onCameraKeyboardUpdate( delta: number, elapsed: number, truck: Vector2 ): void;
-
-    /**
-     * An optional override for the position of the audio listener.
-     *
-     * @param target - Vector3 of the current camera target
-     * @param position - Vector 3 of the current camera position
-     */
-    onUpdateAudioMixerLocation( target: Vector3, position: Vector3 ): Vector3;
-
-    /**
-     * Updates when the minimap is clicked and dragged.
-     *
-     * @param pos - Vector3 of the map coordinates.
-     * @param isDragStart - Did the user just start dragging
-     * @param mouseButton - The button the user is using.
-     */
-    onMinimapDragUpdate( pos: Vector2, isDragStart: boolean, mouseButton?: number ): void;
-}
-
-export interface SceneInputHandler extends NativePlugin, Partial<UserInputCallbacks> {
-    //TODO MOve this to hidden settings
-    gameOptions: {
-        /**
-         * Audio mode in stereo is classic bw style, 3d is spatial.
-         */
-        audio: "stereo" | "3d";
-    };
 
     /**
      * When a scene is entered and nearly initialized.
      */
-    onEnterScene: ( prevData: any ) => Promise<unknown>;
+    onEnterScene?( prevData: any ): Promise<unknown>;
 
     /**
      * When a scene has exited. Dispose resources here.
      */
-    onExitScene?: ( currentData: any ) => any;
+    onExitScene?( currentData: any ): any;
 }

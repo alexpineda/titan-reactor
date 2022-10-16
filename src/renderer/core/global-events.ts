@@ -1,12 +1,12 @@
 import { TypeEmitter } from "@utils/type-emitter";
 import { LogLevel } from "common/logging";
-import { MacroAction, PluginMetaData, SettingsMeta } from "common/types";
+import { MacroAction, PluginConfig, PluginMetaData, SettingsMeta } from "common/types";
 
 export interface GlobalEvents {
     "webglcontextlost": undefined;
     "webglcontextrestored": undefined;
     "command-center-save-settings": SettingsMeta;
-    "command-center-plugin-config-changed": { pluginId: string; config: any };
+    "command-center-plugin-config-changed": { pluginId: string; config: PluginConfig };
     "command-center-plugins-enabled": PluginMetaData[];
     "command-center-plugin-disabled": string;
     "unsafe-open-url": string;

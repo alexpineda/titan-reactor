@@ -10,7 +10,7 @@ export enum PlayerController {
     Closed = 8,
     UnusedObserver = 9,
     UserLeft = 10,
-    ComputerDefeated = 11
+    ComputerDefeated = 11,
 }
 
 import { Race } from "common/enums";
@@ -20,7 +20,6 @@ import { OpenBW } from "common/types";
  * Maps to openbw player_t
  */
 export class PlayerBufferView {
-
     protected _address = 0;
     protected _bw: OpenBW;
 
@@ -28,12 +27,12 @@ export class PlayerBufferView {
         return this._address;
     }
 
-    get(address: number) {
+    get( address: number ) {
         this._address = address;
         return this;
     }
 
-    constructor(bw: OpenBW) {
+    constructor( bw: OpenBW ) {
         this._bw = bw;
     }
 
@@ -42,7 +41,7 @@ export class PlayerBufferView {
     }
 
     protected get _addr32() {
-        return (this._address >> 2); //skip link base
+        return this._address >> 2; //skip link base
     }
 
     get controller(): PlayerController {
@@ -65,28 +64,24 @@ export class PlayerBufferView {
         return !!this._bw.HEAPU32[this._addr32 + 4];
     }
 
-
     get victoryState() {
         return this._bw.HEAPU32[this._addr32 + 5];
     }
-
 }
-
 
 export class PlayerBufferViewIterator {
     #openBW: OpenBW;
     #player: PlayerBufferView;
-    constructor(openBW: OpenBW) {
+    constructor( openBW: OpenBW ) {
         this.#openBW = openBW;
-        this.#player = new PlayerBufferView(openBW);
+        this.#player = new PlayerBufferView( openBW );
     }
 
     *[Symbol.iterator]() {
         let addr = this.#openBW.getPlayersAddress();
-        for (let l = 0; l < 8; l++) {
-            addr = addr + (5 << 2);
-            yield this.#player.get(addr);
+        for ( let l = 0; l < 8; l++ ) {
+            addr = addr + ( 5 << 2 );
+            yield this.#player.get( addr );
         }
     }
-
 }

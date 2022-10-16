@@ -55,7 +55,7 @@ export const writeCommands = ( replay: Replay, ignoreList: number[] = [] ) => {
             frameBuf = new BufferList();
         }
 
-        frameBuf.append( uint8( command.player! ) );
+        frameBuf.append( uint8( command.player ) );
         frameBuf.append( uint8( id ) );
         frameBuf.append( data );
     }

@@ -31,8 +31,8 @@ export default createPlugin( {
 
         return (
             <>
+                <Label>{label}</Label>
                 <Row input>
-                    <Label>{label}</Label>
                     <String
                         displayValue={displayValue}
                         onUpdate={onUpdate}

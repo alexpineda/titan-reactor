@@ -1,7 +1,8 @@
-export const inverse =
-    ( fn: ( ...args: unknown[] ) => any ) =>
-    ( ...args: unknown[] ) =>
-        !fn( ...args );
+import { PluginConfig } from "common/types";
+
+export function inverse<T extends ( ...args: any[] ) => any>( fn: T ) {
+    return ( ...args: Parameters<T> ) => !fn( ...args );
+}
 
 export const throttleFn = ( interval: number ) => {
     let lastElapsed = 0;
@@ -14,24 +15,15 @@ export const throttleFn = ( interval: number ) => {
     };
 };
 
-export const normalizePluginConfiguration = ( config: Record<string, any> ) => {
+export const normalizePluginConfiguration = ( config: PluginConfig ) => {
     const configCopy: Record<string, any> = {};
     Object.keys( config ).forEach( ( key ) => {
-        if ( config[key]?.value !== undefined ) {
-            if ( config[key]?.factor !== undefined ) {
-                configCopy[key] = config[key].value * config[key].factor;
-            } else {
-                configCopy[key] = config[key].value;
-            }
+        if ( config[key].value !== undefined ) {
+            configCopy[key] = config[key].value;
         }
     } );
     return configCopy;
 };
-
-export function last<T extends any[]>( array: T ) {
-    const length = array == null ? 0 : array.length;
-    return length ? array[length - 1] : undefined;
-}
 
 export function easeInCubic( x: number ): number {
     return x * x * x;

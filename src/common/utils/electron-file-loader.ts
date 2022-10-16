@@ -15,6 +15,7 @@ export default (
     openFile: ( file: string, path: string ) => Promise<ArrayBuffer | string>
 ) => {
     FileLoader.prototype.load = function ( url, onLoad, onProgress, onError ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if ( loading[url] !== undefined ) {
             loading[url]!.push( {
                 onLoad: onLoad,

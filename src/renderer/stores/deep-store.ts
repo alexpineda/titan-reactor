@@ -4,15 +4,20 @@ import { DeepPartial } from "common/types";
 import deepMerge from "deepmerge";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 
-interface Args<T extends Record<string, any>> {
+interface Args<T extends object> {
     initialState: T;
     validateMerge?: (
         newStore: T,
         rhs: DeepPartial<T>,
         path?: string[],
-        value?: any
+        value?: unknown
     ) => boolean;
-    onUpdate?: ( newStore: T, rhs: DeepPartial<T>, path?: string[], value?: any ) => void;
+    onUpdate?: (
+        newStore: T,
+        rhs: DeepPartial<T>,
+        path?: string[],
+        value?: unknown
+    ) => void;
 }
 
 /**
@@ -57,7 +62,7 @@ export function createDeepStore<T extends Record<string, any>>( {
 
 export interface DeepStore<T extends object> {
     getState: () => T;
-    setValue: ( path: string[], value: any ) => void;
-    getValue: ( path: string[] ) => any;
+    setValue: ( path: string[], value: unknown ) => void;
+    getValue: ( path: string[] ) => unknown;
     merge: ( rhs: DeepPartial<T> ) => void;
 }

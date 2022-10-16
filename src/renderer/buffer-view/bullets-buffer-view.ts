@@ -1,17 +1,10 @@
-import { OpenBW, BulletStruct } from "common/types";
+import { BulletStruct } from "common/types";
 import { FlingyBufferView } from "./flingy-buffer-view";
 
 /**
  * Maps to openbw bullet_t
  */
-export class BulletsBufferView extends FlingyBufferView
-    implements BulletStruct {
-
-    constructor(bw: OpenBW) {
-        super(bw);
-
-    }
-
+export class BulletsBufferView extends FlingyBufferView implements BulletStruct {
     override get index() {
         return this._bw.HEAP32[this._addr32 + 28];
     }
@@ -22,7 +15,7 @@ export class BulletsBufferView extends FlingyBufferView
 
     get targetUnit() {
         const addr = this._bw.HEAPU32[this._addr32 + 30];
-        if (addr === 0) return undefined;
+        if ( addr === 0 ) return undefined;
         return addr;
     }
 
@@ -45,13 +38,13 @@ export class BulletsBufferView extends FlingyBufferView
 
     get ownerUnit() {
         const addr = this._bw.HEAPU32[this._addr32 + 38];
-        if (addr === 0) return undefined;
+        if ( addr === 0 ) return undefined;
         return addr;
     }
 
     get prevBounceUnit() {
         const addr = this._bw.HEAPU32[this._addr32 + 39];
-        if (addr === 0) return undefined;
+        if ( addr === 0 ) return undefined;
         return addr;
     }
 
@@ -65,5 +58,4 @@ export class BulletsBufferView extends FlingyBufferView
     get extDstHOffset() {
         return this._bw.HEAPU32[this._addr32 + 42];
     }
-
 }

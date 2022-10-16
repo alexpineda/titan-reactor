@@ -42,11 +42,11 @@ export class IScriptState {
         };
     } = {};
 
-    constructor(iscript: IScriptProgram, imageDesc: ImageDAT) {
+    constructor( iscript: IScriptProgram, imageDesc: ImageDAT ) {
         this.iscript = iscript;
         this.imageDesc = imageDesc;
 
-        if (this.imageDesc.gfxTurns) {
+        if ( this.imageDesc.gfxTurns ) {
             this.frameset = 0;
         }
     }

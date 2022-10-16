@@ -8,63 +8,63 @@ import { ActionableOpsSelector } from "./actionable-ops-selector";
 import { ActionableEditValue } from "./actionable-edit-value";
 import { ActionablePanelProps } from "./actionable-pane-props";
 
-export const ActionableTargetApp = (props: ActionablePanelProps) => {
-  const settings = settingsStore();
-  const { action, macro } = props;
-  const { updateActionable } = useMacroStore();
+export const ActionableTargetApp = ( props: ActionablePanelProps ) => {
+    const settings = settingsStore();
+    const { action, macro } = props;
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    const { updateActionable } = useMacroStore();
 
-  const levaConfig = getAppFieldDefinition(
-    settings,
-    action.path as TargetedPath<":app">
-  );
+    const levaConfig = getAppFieldDefinition(
+        settings,
+        action.path as TargetedPath<":app">
+    );
 
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "auto auto auto auto",
-        gridGap: "var(--size-3)",
-        alignItems: "center",
-        justifyContent: "start",
-      }}
-    >
-      <SessionSettingsDropDown
-        onChange={(evt) => {
-          if (action.type === "action") {
-            updateActionable(macro, {
-              ...action,
-              path: [":app", ...evt.target.value.split(".")],
-              operator: Operator.SetToDefault,
-              value: undefined,
-            });
-          } else {
-            updateActionable(macro, {
-              ...action,
-              path: [":app", ...evt.target.value.split(".")],
-              comparator: ConditionComparator.Equals,
-              value: undefined,
-            });
-          }
-        }}
-        value={action.path.slice(1).join(".")}
-        onlyConditional={action.type === "condition"}
-      />
-      <ErrorBoundary message="Error with effects">
-        <ActionableOpsSelector {...props} />
-      </ErrorBoundary>
-
-      {levaConfig !== null &&
-        action.value !== undefined &&
-        ((action.type === "action" && action.operator === Operator.Set) ||
-          action.type === "condition") && (
-          <ErrorBoundary message="Error with modifier">
-            <ActionableEditValue
-              {...props}
-              config={{ ...levaConfig, value: action.value }}
-              key={action.path.join(".")}
+    return (
+        <div
+            style={{
+                display: "grid",
+                gridTemplateColumns: "auto auto auto auto",
+                gridGap: "var(--size-3)",
+                alignItems: "center",
+                justifyContent: "start",
+            }}>
+            <SessionSettingsDropDown
+                onChange={( evt ) => {
+                    if ( action.type === "action" ) {
+                        updateActionable( macro, {
+                            ...action,
+                            path: [":app", ...evt.target.value.split( "." )],
+                            operator: Operator.SetToDefault,
+                            value: undefined,
+                        } );
+                    } else {
+                        updateActionable( macro, {
+                            ...action,
+                            path: [":app", ...evt.target.value.split( "." )],
+                            comparator: ConditionComparator.Equals,
+                            value: undefined,
+                        } );
+                    }
+                }}
+                value={action.path.slice( 1 ).join( "." )}
+                onlyConditional={action.type === "condition"}
             />
-          </ErrorBoundary>
-        )}
-    </div>
-  );
+            <ErrorBoundary message="Error with effects">
+                <ActionableOpsSelector {...props} />
+            </ErrorBoundary>
+
+            {levaConfig !== null &&
+                action.value !== undefined &&
+                ( ( action.type === "action" && action.operator === Operator.Set ) ||
+                    action.type === "condition" ) && (
+                    <ErrorBoundary message="Error with modifier">
+                        <ActionableEditValue
+                            {...props}
+                            config={{ ...levaConfig, value: action.value }}
+                            key={action.path.join( "." )}
+                        />
+                    </ErrorBoundary>
+                )}
+        </div>
+    );
 };

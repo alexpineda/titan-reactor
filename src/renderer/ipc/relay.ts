@@ -7,18 +7,18 @@ import {
     INVOKE_BROWSER_WINDOW_RESPONSE,
     SEND_BROWSER_WINDOW,
 } from "common/ipc-handle-names";
-import { MacroAction, SettingsMeta } from "common/types";
+import { MacroAction, PluginConfig, SettingsMeta } from "common/types";
 
 export const invokeWindow = async (
     target: InvokeBrowserTarget,
     message: { type: string; payload?: any }
 ) => {
     const messageId = Math.random().toString();
-    return await ipcRenderer.invoke(
+    return ( await ipcRenderer.invoke(
         INVOKE_BROWSER_WINDOW,
         { target, messageId },
         message
-    );
+    ) ) as unknown;
 };
 
 export enum SendWindowActionType {
@@ -43,7 +43,7 @@ export type SendWindowActionPayload<T> =
         : T extends SendWindowActionType.CommitSettings
         ? SettingsMeta
         : T extends SendWindowActionType.PluginConfigChanged
-        ? { pluginId: string; config: object }
+        ? { pluginId: string; config: PluginConfig }
         : T extends SendWindowActionType.ConsoleLog
         ? { message: string; level: "info" | "warning" | "error" | "debug" }
         : T extends SendWindowActionType.LoadReplay

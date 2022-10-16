@@ -51,10 +51,13 @@ export const getImageLoOffset = (
         frameInfo.frame = frameInfo.frame % 17;
     }
     const dat = gameStore().assets!.bwDat.images[image.typeId];
-    out.copy(
+    out.set(
         gameStore().assets!.bwDat.los[dat.specialOverlay - 1][frameInfo.frame][
             offsetIndex
-        ]
+        ][0],
+        gameStore().assets!.bwDat.los[dat.specialOverlay - 1][frameInfo.frame][
+            offsetIndex
+        ][1]
     );
     out.x = frameInfo.flipped ? -out.x : out.x;
     out.y = -out.y;

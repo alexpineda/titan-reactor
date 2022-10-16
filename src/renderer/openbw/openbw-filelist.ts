@@ -6,11 +6,7 @@ import { settingsStore } from "@stores/settings-store";
 
 import filepaths from "./extra/filepaths";
 import filelist from "./extra/search-list";
-interface Callbacks {
-    beforeFrame: () => void;
-    afterFrame: () => void;
-}
-
+import { OpenBWWasm } from "common/types";
 // A wrapper around file buffers that openbw wasm needs
 export default class OpenBWFileList {
     private buffers: Int8Array[] = [];
@@ -22,13 +18,13 @@ export default class OpenBWFileList {
         return path.toLowerCase().replace( /\//g, "\\" );
     }
 
-    constructor( openBw: any, callbacks: Callbacks ) {
+    constructor( openBw: OpenBWWasm ) {
         openBw.setupCallbacks( {
-            js_fatal_error: ( ptr: any ) => {
+            js_fatal_error: ( ptr ) => {
                 throw new Error( openBw.UTF8ToString( ptr ) );
             },
-            js_pre_main_loop: callbacks.beforeFrame, // pre-mainloop
-            js_post_main_loop: callbacks.afterFrame, // post-mainloop,
+            js_pre_main_loop: () => {},
+            js_post_main_loop: () => {},
             js_file_size: ( index: number ) => {
                 return this.buffers[index].byteLength; // get file size: ;
             },
@@ -49,7 +45,7 @@ export default class OpenBWFileList {
                 log.debug( "@openbw-filelist: complete" );
                 log.debug( `@openbw-filelist: ${this.unused.length} unused assets` );
             },
-            js_file_index: ( ptr: any ) => {
+            js_file_index: ( ptr: number ) => {
                 const filepath = openBw.UTF8ToString( ptr );
                 if ( filepath === undefined ) {
                     throw new Error( "Filename is undefined" );

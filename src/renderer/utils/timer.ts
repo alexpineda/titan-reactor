@@ -10,27 +10,21 @@ export class Timer {
     #useFixedDelta = false;
     #fixedDelta = 16.67; // ms, corresponds to approx. 60 FPS
 
-    #usePageVisibilityAPI = false;
     #pageVisibilityHandler?: () => void;
 
     constructor() {
         // use Page Visibility API to avoid large time delta values
 
-        this.#usePageVisibilityAPI =
-            typeof document !== "undefined" && document.hidden !== undefined;
+        this.#pageVisibilityHandler = () => {
+            if ( !document.hidden ) this.reset();
+        };
 
-        if ( this.#usePageVisibilityAPI ) {
-            document.addEventListener(
-                "visibilitychange",
-                //TODO add janitor since this leaks
-                () => this.#handleVisibilityChange(),
-                false
-            );
-        }
-    }
-
-    #handleVisibilityChange() {
-        if ( !document.hidden ) this.reset();
+        document.addEventListener(
+            "visibilitychange",
+            //TODO add janitor since this leaks
+            this.#pageVisibilityHandler,
+            false
+        );
     }
 
     disableFixedDelta() {
@@ -40,12 +34,7 @@ export class Timer {
     }
 
     dispose() {
-        if ( this.#usePageVisibilityAPI ) {
-            document.removeEventListener(
-                "visibilitychange",
-                this.#pageVisibilityHandler!
-            );
-        }
+        document.removeEventListener( "visibilitychange", this.#pageVisibilityHandler! );
 
         return this;
     }

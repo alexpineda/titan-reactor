@@ -5,33 +5,33 @@ import { ScriptInline } from "../../script-inline";
 import debounce from "lodash.debounce";
 
 const debouncedUpdateActionable = debounce(
-  useMacroStore.getState().updateActionable,
-  500
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    useMacroStore.getState().updateActionable,
+    500
 );
 
-export const ActionableTargetFunction = ({
-  macro,
-  action,
+export const ActionableTargetFunction = ( {
+    macro,
+    action,
 }: {
-  macro: MacroDTO;
-  action: Actionable;
-}) => {
-  const [value, setValue] = useState(action.value);
+    macro: MacroDTO;
+    action: Actionable;
+} ) => {
+    const [value, setValue] = useState( action.value );
 
-  return (
-    <p
-      style={{
-        display: "grid",
-        gridGap: "var(--size-1)",
-      }}
-    >
-      <ScriptInline
-        content={value}
-        onChange={(content) => {
-          setValue(content);
-          debouncedUpdateActionable(macro, { ...action, value: content });
-        }}
-      />
-    </p>
-  );
+    return (
+        <p
+            style={{
+                display: "grid",
+                gridGap: "var(--size-1)",
+            }}>
+            <ScriptInline
+                content={value as string}
+                onChange={( content ) => {
+                    setValue( content );
+                    debouncedUpdateActionable( macro, { ...action, value: content } );
+                }}
+            />
+        </p>
+    );
 };

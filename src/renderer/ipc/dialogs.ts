@@ -8,8 +8,8 @@ import {
     SHOW_FOLDER_DIALOG,
 } from "common/ipc-handle-names";
 
-export const showFolderDialog = async () => {
-    return await ipcRenderer.invoke( SHOW_FOLDER_DIALOG );
+export const showFolderDialog = async (): Promise<undefined | string[]> => {
+    return ( await ipcRenderer.invoke( SHOW_FOLDER_DIALOG ) ) as undefined | string[];
 };
 
 export const openReplayDialog = async ( multiSelect = false ) => {

@@ -15,6 +15,7 @@ export const createCompletedUpgradesHelper = (
     let productionData: StdVector<Int32Array>;
 
     const updateCompletedUpgrades = ( currentBwFrame: number ) => {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if ( !productionData ) {
             productionData = new StdVector( openBW.HEAP32, openBW._get_buffer( 9 ) );
         }

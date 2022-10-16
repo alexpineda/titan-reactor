@@ -1,3 +1,5 @@
+import { OnChangeHandler } from "leva/plugin";
+
 export enum Operator {
     SetToDefault = "SetToDefault",
     Set = "Set",
@@ -16,6 +18,9 @@ export interface FieldDefinition<T = unknown> {
      * The type is usually inferred except for the case of Leva Plugins.
      */
     type?: string;
+
+    onChange?: OnChangeHandler;
+    folder?: string;
     label?: string;
     value: T; //number | string | boolean | number[];
     step?: number;
@@ -24,6 +29,10 @@ export interface FieldDefinition<T = unknown> {
     options?: string[] | Record<string, string>;
 }
 
+export interface AppConfiguration<T = unknown> extends FieldDefinition<T> {
+    hidden?: boolean;
+    conditionOnly?: boolean;
+}
 export interface Operation {
     operator: Operator;
     path: string[];

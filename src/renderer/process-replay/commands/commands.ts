@@ -121,6 +121,7 @@ for ( const key of Object.keys( CMDS ) ) {
 
 export function commandLength( id: number, data: Buffer | BufferList ): number | null {
     const cmd = ( CMDS as NumberIndexCommands )[id];
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if ( cmd === undefined ) {
         return null;
     }

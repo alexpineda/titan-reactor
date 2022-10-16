@@ -37,8 +37,10 @@ export const lockdown_ = () => {
             const globalThis: Record<string, any> = {};
             globalThis.Function = ( code: string ) => {
                 const vars = `const {${Object.keys( env ).join( "," )}} = arguments[0];\n`;
+                // eslint-disable-next-line @typescript-eslint/no-implied-eval
                 const fn = Function( vars + code );
 
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 return fn.bind( globalThis, env );
             };
             return {

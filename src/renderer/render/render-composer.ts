@@ -9,22 +9,22 @@ import {
     VSMShadowMap,
     WebGLRenderer,
 } from "three";
-import {
-    EffectComposer, Pass
-} from "postprocessing";
+import { EffectComposer, Pass } from "postprocessing";
 import Surface from "../image/canvas/surface";
 import { ColorManagement } from "three/src/math/ColorManagement";
 import { globalEvents } from "../core/global-events";
 
-
-//@ts-ignore
+//@ts-expect-error
 ColorManagement.legacyMode = false;
 
 // modify global shadow intensity
-ShaderChunk.shadowmap_pars_fragment = ShaderChunk.shadowmap_pars_fragment.replace("return shadow;", "return max( 0.5, shadow );");
+ShaderChunk.shadowmap_pars_fragment = ShaderChunk.shadowmap_pars_fragment.replace(
+    "return shadow;",
+    "return max( 0.5, shadow );"
+);
 
 const createWebGLRenderer = () => {
-    const renderer = new WebGLRenderer({
+    const renderer = new WebGLRenderer( {
         powerPreference: "high-performance",
         preserveDrawingBuffer: false,
         antialias: false,
@@ -32,7 +32,7 @@ const createWebGLRenderer = () => {
         depth: false,
         alpha: false,
         precision: "highp",
-    });
+    } );
     renderer.outputEncoding = sRGBEncoding;
     renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
 
@@ -46,18 +46,18 @@ const createWebGLRenderer = () => {
 
 export class TitanRenderComposer {
     #renderer?: WebGLRenderer;
-    #surfaceRef = new WeakRef(new Surface());
+    #surfaceRef = new WeakRef( new Surface() );
     // small optimization
     #prevBundle: any = null;
 
     onRestoreContext?: () => void;
-    composer = new EffectComposer(undefined, {
+    composer = new EffectComposer( undefined, {
         frameBufferType: HalfFloatType,
         multisampling: 0,
         stencilBuffer: false,
         alpha: true,
         depthBuffer: true,
-    });
+    } );
 
     constructor() {
         this.getWebGLRenderer();
@@ -65,80 +65,74 @@ export class TitanRenderComposer {
 
     // TODO don't get another renderer if context is lost
     getWebGLRenderer() {
-        if (this.#renderer) {
+        if ( this.#renderer ) {
             return this.#renderer;
         }
-        const renderer = this.#renderer = createWebGLRenderer();
+        const renderer = ( this.#renderer = createWebGLRenderer() );
 
-        this.composer.setRenderer(renderer);
+        this.composer.setRenderer( renderer );
         this.composer.autoRenderToScreen = false;
 
-        renderer.domElement.addEventListener(
-            "webglcontextlost",
-            (evt) => {
-                evt.preventDefault();
-                globalEvents.emit("webglcontextlost");
-                this.#renderer = undefined;
-            }
-        );
+        renderer.domElement.addEventListener( "webglcontextlost", ( evt ) => {
+            evt.preventDefault();
+            globalEvents.emit( "webglcontextlost" );
+            this.#renderer = undefined;
+        } );
 
-        renderer.domElement.addEventListener(
-            "webglcontextrestored",
-            () => {
-                globalEvents.emit("webglcontextrestored");
-            });
+        renderer.domElement.addEventListener( "webglcontextrestored", () => {
+            globalEvents.emit( "webglcontextrestored" );
+        } );
 
         return renderer;
     }
 
-    setBundlePasses(bundle: { passes: Pass[] }) {
-        if (bundle === this.#prevBundle) {
+    setBundlePasses( bundle: { passes: Pass[] } ) {
+        if ( bundle === this.#prevBundle ) {
             return;
         }
         this.#prevBundle = bundle;
 
         this.composer.removeAllPasses();
         let lastPass: any = null;
-        for (const pass of bundle.passes) {
+        for ( const pass of bundle.passes ) {
             pass.renderToScreen = false;
-            if (pass.enabled) {
+            if ( pass.enabled ) {
                 lastPass = pass;
-                this.composer.addPass(pass);
+                this.composer.addPass( pass );
             }
         }
         lastPass.renderToScreen = true;
     }
 
-    set targetSurface(surface: Surface) {
-        this.#surfaceRef = new WeakRef(surface);
+    set targetSurface( surface: Surface ) {
+        this.#surfaceRef = new WeakRef( surface );
         this.#renderer?.setViewport(
-            new Vector4(0, 0, surface.bufferWidth, surface.bufferHeight)
+            new Vector4( 0, 0, surface.bufferWidth, surface.bufferHeight )
         );
-        this.setSize(surface.bufferWidth, surface.bufferHeight);
+        this.setSize( surface.bufferWidth, surface.bufferHeight );
     }
 
-    render(delta: number, viewport?: Vector4) {
+    render( delta: number, viewport?: Vector4 ) {
         const renderer = this.getWebGLRenderer();
 
-        if (viewport) {
-            renderer.setScissorTest(true);
-            renderer.setViewport(viewport);
-            renderer.setScissor(viewport);
+        if ( viewport ) {
+            renderer.setScissorTest( true );
+            renderer.setViewport( viewport );
+            renderer.setScissor( viewport );
         }
 
-        this.composer.render(delta);
+        this.composer.render( delta );
 
-        if (viewport) {
-            renderer.setScissorTest(false);
+        if ( viewport ) {
+            renderer.setScissorTest( false );
         }
-
     }
 
     renderBuffer() {
         const renderer = this.getWebGLRenderer();
         const surface = this.#surfaceRef.deref();
 
-        if (surface?.canvas === renderer.domElement) {
+        if ( surface?.canvas === renderer.domElement ) {
             return;
         }
 
@@ -155,16 +149,13 @@ export class TitanRenderComposer {
         );
     }
 
-    setSize(bufferWidth: number, bufferHeight: number) {
-
-        this.composer.setSize(bufferWidth, bufferHeight, false);
-
+    setSize( bufferWidth: number, bufferHeight: number ) {
+        this.composer.setSize( bufferWidth, bufferHeight, false );
     }
 
     dispose() {
-
-        if (this.#renderer) {
-            this.#renderer.setAnimationLoop(null);
+        if ( this.#renderer ) {
+            this.#renderer.setAnimationLoop( null );
             this.#renderer.dispose();
             this.#renderer = undefined;
         }
@@ -172,12 +163,17 @@ export class TitanRenderComposer {
         this.composer.dispose();
     }
 
-    compileScene(scene: Scene) {
-        const precompileCamera = new PerspectiveCamera(15, window.innerWidth / window.innerHeight, 0, 10000);
+    compileScene( scene: Scene ) {
+        const precompileCamera = new PerspectiveCamera(
+            15,
+            window.innerWidth / window.innerHeight,
+            0,
+            10000
+        );
         precompileCamera.updateProjectionMatrix();
-        precompileCamera.position.setY(1000)
-        precompileCamera.lookAt(0, 0, 0);
-        this.getWebGLRenderer().render(scene, precompileCamera);
+        precompileCamera.position.setY( 1000 );
+        precompileCamera.lookAt( 0, 0, 0 );
+        this.getWebGLRenderer().render( scene, precompileCamera );
     }
 
     // for rendering atlases ahead of time like terrain textures, icons, etc.

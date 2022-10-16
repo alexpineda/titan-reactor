@@ -7,29 +7,32 @@ export const createWraithNoise = () => {
     const { source: highNoise, gain: highGain } = mixer.noise();
     const { source: noise, gain } = mixer.noise();
 
-    const lopassFilter = new Filter(mixer, "lowpass", 10);
+    const lopassFilter = new Filter( mixer, "lowpass", 10 );
     noise.detune.value = -800;
     gain.gain.value = 0.5;
 
     highNoise.detune.value = -400;
     highGain.gain.value = 0;
 
-    const highpassFilter = new Filter(mixer, "highpass", 10);
-    highpassFilter.changeDetune(8000);
+    const highpassFilter = new Filter( mixer, "highpass", 10 );
+    highpassFilter.changeDetune( 8000 );
 
-    const janitor = new Janitor("wraith-noise");
-    janitor.mop(mixer.connect(
-        highGain,
-        gain,
-        lopassFilter.node,
-        highpassFilter.node,
-        mixer.createDistortion(50),
-        mixer.createGain(0.5),
-        mixer.intro
-    ), "connect");
+    const janitor = new Janitor( "wraith-noise" );
+    janitor.mop(
+        mixer.connect(
+            highGain,
+            gain,
+            lopassFilter.node,
+            highpassFilter.node,
+            mixer.createDistortion( 50 ),
+            mixer.createGain( 0.5 ),
+            mixer.intro
+        ),
+        "connect"
+    );
 
-    gain.connect(highGain.gain);
-    janitor.mop(() => gain.disconnect(highGain.gain), "highGain");
+    gain.connect( highGain.gain );
+    janitor.mop( () => gain.disconnect( highGain.gain ), "highGain" );
 
     let _isPlaying = false;
     return {
@@ -41,19 +44,19 @@ export const createWraithNoise = () => {
             noise.start();
             highNoise.start();
         },
-        set value(val: number) {
-            const h = MathUtils.lerp(0.75, 1, val);
+        set value( val: number ) {
+            const h = MathUtils.lerp( 0.75, 1, val );
 
             gain.gain.value = 0.5 * h;
-            lopassFilter.changeFrequency(h * 60 + 10);
+            lopassFilter.changeFrequency( h * 60 + 10 );
 
-            const r = 1 - Math.pow(val, 4);
-            const t = 1 - Math.pow(val, 8);
-            highpassFilter.changeFrequency(r * 10);
-            highpassFilter.changeDetune(MathUtils.lerp(-4000, 8000, t));
+            const r = 1 - Math.pow( val, 4 );
+            const t = 1 - Math.pow( val, 8 );
+            highpassFilter.changeFrequency( r * 10 );
+            highpassFilter.changeDetune( MathUtils.lerp( -4000, 8000, t ) );
         },
         dispose() {
-            if (_isPlaying) {
+            if ( _isPlaying ) {
                 noise.stop();
                 highNoise.stop();
             }
@@ -63,8 +66,6 @@ export const createWraithNoise = () => {
     };
 };
 export type WraithNoise = ReturnType<typeof createWraithNoise>;
-
-
 
 const _wraithSounds = [
     "tphrdy00.wav",
@@ -82,52 +83,61 @@ const _wraithSounds = [
     "tphpss03.wav",
     "tphpss05.wav",
     "tphpss06.wav",
-].map((s) => `casc:sound\\terran\\phoenix\\${s}`);
+].map( ( s ) => `casc:sound\\terran\\phoenix\\${s}` );
 
-export const playWraithComms = async (rear: number) => {
+export const playWraithComms = async ( rear: number ) => {
     const sound = mixer.context.createBufferSource();
     sound.buffer = await mixer.loadAudioBuffer(
-        _wraithSounds[MathUtils.randInt(0, _wraithSounds.length - 1)]
+        _wraithSounds[MathUtils.randInt( 0, _wraithSounds.length - 1 )]
     );
     sound.detune.value = -200 * rear;
 
-    const filter = new Filter(mixer, "bandpass", 40);
-    filter.changeQ(3);
-    filter.changeGain(2);
+    const filter = new Filter( mixer, "bandpass", 40 );
+    filter.changeQ( 3 );
+    filter.changeGain( 2 );
 
-    const disconnect = mixer.connect(sound, filter.node, mixer.createGain(2), mixer.intro);
+    const disconnect = mixer.connect(
+        sound,
+        filter.node,
+        mixer.createGain( 2 ),
+        mixer.intro
+    );
     sound.start();
     sound.onended = () => disconnect();
-}
+};
 
 export const playRemix = async () => {
     const sound = mixer.context.createBufferSource();
-    sound.buffer = await mixer.loadAudioBuffer(
-        `${__static}/remix.ogg`
-    );
+    sound.buffer = await mixer.loadAudioBuffer( `${__static}/remix.ogg` );
 
-    sound.detune.setValueAtTime(-200, mixer.context.currentTime + 0.01);
-    sound.detune.setValueAtTime(0, mixer.context.currentTime + 1);
-    sound.detune.setTargetAtTime(-200, mixer.context.currentTime + 12, 0.01);
+    sound.detune.setValueAtTime( -200, mixer.context.currentTime + 0.01 );
+    sound.detune.setValueAtTime( 0, mixer.context.currentTime + 1 );
+    sound.detune.setTargetAtTime( -200, mixer.context.currentTime + 12, 0.01 );
 
+    const lopass = new Filter( mixer, "highpass", 60 );
 
-    const lopass = new Filter(mixer, "highpass", 60);
-
-    const filter = new Filter(mixer, "bandpass", 40);
-    filter.changeQ(4);
-    filter.changeGain(4);
+    const filter = new Filter( mixer, "bandpass", 40 );
+    filter.changeQ( 4 );
+    filter.changeGain( 4 );
 
     const lfo = mixer.context.createOscillator();
     lfo.type = "sine";
     lfo.frequency.value = 440;
-    lfo.connect(filter.node.frequency);
+    lfo.connect( filter.node.frequency );
 
-    const gain = mixer.createGain(4)
+    const gain = mixer.createGain( 4 );
     gain.gain.value = 0;
-    gain.gain.setTargetAtTime(4, mixer.context.currentTime, 1);
-    gain.gain.setTargetAtTime(0, mixer.context.currentTime + 13, 0.5);
+    gain.gain.setTargetAtTime( 4, mixer.context.currentTime, 1 );
+    gain.gain.setTargetAtTime( 0, mixer.context.currentTime + 13, 0.5 );
 
-    const _disconnect = mixer.connect(sound, lopass.node, filter.node, mixer.createDistortion(2), gain, mixer.intro);
+    const _disconnect = mixer.connect(
+        sound,
+        lopass.node,
+        filter.node,
+        mixer.createDistortion( 2 ),
+        gain,
+        mixer.intro
+    );
     sound.start();
     sound.onended = () => _disconnect();
-}
+};

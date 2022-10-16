@@ -8,10 +8,12 @@ import { useContext } from "react";
 import { PreviewContext } from "../PreviewContext";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import { Schema } from "leva/plugin";
 
 export const ActionableEditValue = (
     props: ActionablePanelProps & { config: FieldDefinition }
 ) => {
+    // eslint-disable-next-line @typescript-eslint/unbound-method
     const { updateActionable } = useMacroStore();
     const activePreview = useContext( PreviewContext );
     const { action, config, macro } = props;
@@ -39,7 +41,7 @@ export const ActionableEditValue = (
 
     const store = useCreateStore();
 
-    useControls( controls, { store }, [action] );
+    useControls( controls as Schema, { store }, [action] );
 
     return createLevaPanel( store );
 };

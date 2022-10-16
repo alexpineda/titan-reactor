@@ -7,7 +7,7 @@ import set from "lodash.set";
 import get from "lodash.get";
 
 // https://zellwk.com/blog/copy-properties-of-one-object-to-another-object/
-export function mix( dest: any, ...sources: any[] ) {
+export function mix( dest: object, ...sources: object[] ) {
     for ( const source of sources ) {
         const props = Object.keys( source );
         for ( const prop of props ) {
@@ -22,10 +22,13 @@ export function mix( dest: any, ...sources: any[] ) {
     return dest;
 }
 
-export type Borrowed<
-    T extends Record<any, object>,
-    TKeepRefs extends boolean = false
-> = { [key in keyof T]: TKeepRefs extends true ? WeakRef<T[key]> : T[key] | undefined };
+export type Borrowed<T extends object, TKeepRefs extends boolean = false> = {
+    [key in keyof T]: TKeepRefs extends true
+        ? T[key] extends object
+            ? WeakRef<T[key]>
+            : never
+        : T[key] | undefined;
+};
 
 function borrowProperty<T extends boolean>(
     descriptor: PropertyDescriptor,
@@ -40,7 +43,7 @@ function borrowProperty<T extends boolean>(
                 Object.defineProperty( opts.target, key, {
                     enumerable: true,
                     configurable: false,
-                    get: () => descriptor.get!(),
+                    get: () => descriptor.get!() as unknown,
                 } );
 
                 log.warn( `borrowing getter ${key}` );
@@ -58,7 +61,7 @@ function borrowProperty<T extends boolean>(
     } else if ( descriptor.value !== undefined ) {
         try {
             const ref = weak( source[key] );
-            const get = opts.retainRefs ? () => ref : () => ref.deref();
+            const get = opts.retainRefs ? () => ref : () => ref.deref() as unknown;
 
             Object.defineProperty( opts.target, key, {
                 enumerable: true,
@@ -227,6 +230,7 @@ export function intersection<T extends object>( prevObject: T, newObject: T ) {
     const result: DeepPartial<T> = {};
 
     for ( const d of diffs ) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if ( d.kind === "E" && d.path && d.rhs !== undefined ) {
             const parentProp = get( newObject, d.path.slice( 0, d.path.length - 1 ) );
             // don't diff down to array elements, just the entire array is fine!

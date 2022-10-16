@@ -2,80 +2,92 @@ import { ImageDAT, UnitDAT, Block } from "common/types";
 import create from "zustand";
 
 //a user settings store which persists to disk
-export type IscriptStore = {
-  unit: UnitDAT | null;
+export interface IscriptStore {
+    unit: UnitDAT | null;
 
-  image: ImageDAT | null;
-  sprite: any;
+    image: ImageDAT | null;
+    sprite: any;
 
-  block: Block | null;
+    block: Block | null;
 
-  baseFrame: number | null;
-  frame: number | null;
-  flipFrame: boolean;
-  blockFrameCount: number;
+    baseFrame: number | null;
+    frame: number | null;
+    flipFrame: boolean;
+    blockFrameCount: number;
+}
+
+export const useIscriptStore = create<IscriptStore>( () => ( {
+    baseFrame: null,
+    flipFrame: false,
+    blockFrameCount: 0,
+
+    unit: null,
+    image: null,
+
+    sprite: null,
+
+    block: null,
+    frame: null,
+} ) );
+
+const resetFrame = () => useIscriptStore.setState( { frame: null, baseFrame: null } );
+const disableAll = () =>
+    useIscriptStore.setState( { unit: null, image: null, sprite: null } );
+
+export const setBaseFrame = (
+    inFrame: number | null,
+    inFlipFrame: boolean | null = null
+) => {
+    const frame =
+        inFrame === null
+            ? null
+            : Math.max(
+                  0,
+                  Math.min( useIscriptStore.getState().blockFrameCount, inFrame )
+              );
+
+    const flipFrame =
+        typeof inFlipFrame !== "boolean"
+            ? useIscriptStore.getState().flipFrame
+            : inFlipFrame;
+
+    useIscriptStore.setState( {
+        frame,
+        baseFrame: frame,
+        flipFrame,
+    } );
 };
 
-export const useIscriptStore = create<IscriptStore>(() => ({
-  baseFrame: null,
-  flipFrame: false,
-  blockFrameCount: 0,
+export const setFlipFrame = ( flipFrame: boolean ) =>
+    useIscriptStore.setState( { flipFrame } );
 
-  unit: null,
-  image: null,
+export const setBlockFrameCount = ( blockFrameCount: number ) =>
+    useIscriptStore.setState( { blockFrameCount } );
 
-  sprite: null,
-
-  block: null,
-  frame: null
-}));
-
-
-const resetFrame = () => useIscriptStore.setState({ frame: null, baseFrame: null });
-const disableAll = () => useIscriptStore.setState({ unit: null, image: null, sprite: null });
-
-export const setBaseFrame = (inFrame: number | null, inFlipFrame: boolean | null = null) => {
-  const frame =
-    inFrame === null
-      ? null
-      : Math.max(0, Math.min(useIscriptStore.getState().blockFrameCount, inFrame));
-
-  const flipFrame =
-    typeof inFlipFrame !== "boolean" ? useIscriptStore.getState().flipFrame : inFlipFrame;
-
-  useIscriptStore.setState({
-    frame,
-    baseFrame: frame,
-    flipFrame,
-  });
-}
-
-export const setFlipFrame = (flipFrame: boolean) => useIscriptStore.setState({ flipFrame });
-
-export const setBlockFrameCount = (blockFrameCount: number) => useIscriptStore.setState({ blockFrameCount });
-
-export const setFrame = (inFrame: number | null) => {
-  const frame =
-    inFrame === null ? null : Math.min(useIscriptStore.getState().blockFrameCount, inFrame);
-  useIscriptStore.setState({ frame });
+export const setFrame = ( inFrame: number | null ) => {
+    const frame =
+        inFrame === null
+            ? null
+            : Math.min( useIscriptStore.getState().blockFrameCount, inFrame );
+    useIscriptStore.setState( { frame } );
 };
 
-export const setBlock = (image: ImageDAT, offset: number, header: number) => {
-  resetFrame();
-  useIscriptStore.setState({ block: { image, offset, header } });
+export const setBlock = ( image: ImageDAT, offset: number, header: number ) => {
+    resetFrame();
+    useIscriptStore.setState( { block: { image, offset, header } } );
 };
 
-export const setSprite = (sprite: any) => {
-  disableAll();
-  useIscriptStore.setState({ sprite });
-}
+export const setSprite = ( sprite: any ) => {
+    disableAll();
+    useIscriptStore.setState( { sprite } );
+};
 
-export const setImage = (image: ImageDAT) => {
-  disableAll();
-  useIscriptStore.setState({ image });
-}
+export const setImage = ( image: ImageDAT ) => {
+    disableAll();
+    useIscriptStore.setState( { image } );
+};
 
-export const setUnit = (unit: UnitDAT) => {
-  disableAll();
-  useIscriptStore.setState({ unit });
-}
+export const setUnit = ( unit: UnitDAT ) => {
+    disableAll();
+    useIscriptStore.setState( { unit } );
+};

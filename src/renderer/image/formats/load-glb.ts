@@ -9,7 +9,7 @@ import {
     Texture,
 } from "three";
 
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { MeshoptDecoder } from "./mesh-opt-decoder";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 import { renderComposer } from "@render/render-composer";
@@ -30,13 +30,12 @@ export interface GlbResponse {
 export function loadGlb(
     file: string,
     envMap: Texture | null,
-    name = "",
-    meshCb: ( mesh: Mesh ) => void = () => {}
+    name = ""
 ): Promise<GlbResponse> {
     return new Promise( ( resolve, reject ) => {
         loader.load(
             file,
-            ( glb: any ) => {
+            ( glb: GLTF ) => {
                 const { scene: model, animations } = glb;
                 model.traverse( ( o: Object3D ) => {
                     if ( o instanceof Mesh ) {
@@ -54,9 +53,6 @@ export function loadGlb(
                         );
                         ( o.material as MeshStandardMaterial ).emissiveIntensity = 0;
                         model.userData.mesh = o;
-                        if ( meshCb ) {
-                            meshCb( o );
-                        }
                     }
                 } );
 

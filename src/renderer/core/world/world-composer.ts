@@ -29,16 +29,21 @@ import processStore from "@stores/process-store";
 import { WorldEvents } from "./world-events";
 // import { useSettingsStore } from "@stores/settings-store";
 
-export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: Chk, players: BasePlayer[], commands: CommandsStream) => {
-
+export const createWorldComposer = async (
+    openBW: OpenBW,
+    assets: Assets,
+    map: Chk,
+    players: BasePlayer[],
+    commands: CommandsStream
+) => {
     processStore().clearAll();
 
-    const janitor = new Janitor("WorldComposer");
-    const events = janitor.mop(new TypeEmitter<WorldEvents>(), "events");
-    const settings = janitor.mop(createSettingsSessionStore(events));
-    const plugins = await createPluginsAndMacroSession(events, settings, openBW);
-    const fogOfWarEffect = janitor.mop(new FogOfWarEffect(), "FogOfWarEffect");
-    const fogOfWar = new FogOfWar(map.size[0], map.size[1], openBW, fogOfWarEffect);
+    const janitor = new Janitor( "WorldComposer" );
+    const events = janitor.mop( new TypeEmitter<WorldEvents>(), "events" );
+    const settings = janitor.mop( createSettingsSessionStore( events ) );
+    const plugins = await createPluginsAndMacroSession( events, settings, openBW );
+    const fogOfWarEffect = janitor.mop( new FogOfWarEffect(), "FogOfWarEffect" );
+    const fogOfWar = new FogOfWar( map.size[0], map.size[1], openBW, fogOfWarEffect );
 
     const world: World = {
         openBW,
@@ -53,208 +58,227 @@ export const createWorldComposer = async (openBW: OpenBW, assets: Assets, map: C
         events,
         reset: () => {
             frameResetRequested = true;
-        }
-    }
+        },
+    };
     let frameResetRequested = false;
 
-    const gameLoopComposer = createGameLoopComposer(world);
-    const surfaceComposer = createSurfaceComposer(world);
-    const sceneComposer = await createSceneComposer(world, assets);
-    const commandsComposer = createCommandsComposer(world, commands);
-    const viewInputComposer = createViewInputComposer(world, surfaceComposer);
-    const sandboxApi = createSandboxApi(world, sceneComposer.pxToWorldInverse);
-    const openBwComposer = createOpenBWComposer(world, sceneComposer, viewInputComposer);
+    const gameLoopComposer = createGameLoopComposer( world );
+    const surfaceComposer = createSurfaceComposer( world );
+    const sceneComposer = await createSceneComposer( world, assets );
+    const commandsComposer = createCommandsComposer( world, commands );
+    const viewInputComposer = createViewInputComposer( world, surfaceComposer );
+    const sandboxApi = createSandboxApi( world, sceneComposer.pxToWorldInverse );
+    const openBwComposer = createOpenBWComposer(
+        world,
+        sceneComposer,
+        viewInputComposer
+    );
 
-    const postProcessingComposer = createPostProcessingComposer(world, sceneComposer, viewInputComposer, assets);
-    const overlayComposer = createOverlayComposer(world, sceneComposer, borrow(surfaceComposer), viewInputComposer, postProcessingComposer, assets);
+    const postProcessingComposer = createPostProcessingComposer(
+        world,
+        sceneComposer,
+        viewInputComposer,
+        assets
+    );
+    const overlayComposer = createOverlayComposer(
+        world,
+        sceneComposer,
+        borrow( surfaceComposer ),
+        viewInputComposer,
+        postProcessingComposer,
+        assets
+    );
 
-    events.on("settings-changed", ({ settings }) => mixer.setVolumes(settings.audio));
+    events.on( "settings-changed", ( { settings } ) => mixer.setVolumes( settings.audio ) );
 
-    const setSceneController = async (controllername: string, defaultData?: any) => {
+    const setSceneController = async ( controllername: string, defaultData?: any ) => {
+        const sceneController = plugins.native
+            .getSceneInputHandlers()
+            .find( ( handler ) => handler.name === controllername );
 
-        const sceneController = plugins.native.getSceneInputHandlers().find((handler) => handler.name === controllername)
-
-        if (sceneController) {
-
-            plugins.native.activateSceneController(sceneController);
-            await viewInputComposer.activate(sceneController, defaultData);
+        if ( sceneController ) {
+            plugins.native.activateSceneController( sceneController );
+            await viewInputComposer.activate( sceneController, defaultData );
             overlayComposer.unitSelectionBox.camera = viewInputComposer.primaryCamera!;
-
         } else {
-
-            throw new Error(`Scene controller ${controllername} not found`);
-
+            throw new Error( `Scene controller ${controllername} not found` );
         }
-
-    }
+    };
 
     const unsetSceneController = () => {
-
-        plugins.native.activateSceneController(undefined);
+        plugins.native.activateSceneController( undefined );
         viewInputComposer.deactivate();
+    };
 
-    }
+    janitor.on(
+        ipcRenderer,
+        CLEAR_ASSET_CACHE,
+        () => {
+            assets.resetAssetCache();
+            sceneComposer.resetImageCache();
+            frameResetRequested = true;
+        },
+        "clear-asset-cache"
+    );
 
-    janitor.on(ipcRenderer, CLEAR_ASSET_CACHE, () => {
-
-        assets.resetAssetCache();
-        sceneComposer.resetImageCache();
-        frameResetRequested = true;
-
-    }, "clear-asset-cache");
-
-    events.on("settings-changed", ({ settings, rhs }) => {
-
-
-        if (rhs.input?.sceneController && rhs.input.sceneController !== viewInputComposer.getSceneController?.name) {
-
-            setTimeout(() => setSceneController(settings.input.sceneController), 0);
-
+    events.on( "settings-changed", ( { settings, rhs } ) => {
+        if (
+            rhs.input?.sceneController &&
+            rhs.input.sceneController !== viewInputComposer.getSceneController?.name
+        ) {
+            setTimeout( () => setSceneController( settings.input.sceneController ), 0 );
         }
 
-        if (viewInputComposer.primaryRenderMode3D && rhs.postprocessing3d) {
-
-            postProcessingComposer.updatePostProcessingOptions(settings.postprocessing3d);
-
-        } else if (viewInputComposer.primaryRenderMode3D === false && rhs.postprocessing) {
-
-            postProcessingComposer.updatePostProcessingOptions(settings.postprocessing);
-
+        if ( viewInputComposer.primaryRenderMode3D && rhs.postprocessing3d ) {
+            postProcessingComposer.updatePostProcessingOptions(
+                settings.postprocessing3d
+            );
+        } else if ( !viewInputComposer.primaryRenderMode3D && rhs.postprocessing ) {
+            postProcessingComposer.updatePostProcessingOptions( settings.postprocessing );
         }
+    } );
 
-    });
+    const simpleText = janitor.mop( new SimpleText(), "simple-text" );
 
-    const simpleText = janitor.mop(new SimpleText(), "simple-text");
+    const gameTimeApi: GameTimeApi = mix(
+        {
+            map,
+            assets,
+            exitScene() {
+                setTimeout( () => {
+                    settings.vars.input.sceneController.reset();
+                }, 0 );
+            },
+            sandboxApi,
 
-    const gameTimeApi: GameTimeApi = mix({
-
-        map,
-        assets,
-        exitScene() {
-            setTimeout(() => {
-                settings.vars.input.sceneController.reset();
-            }, 0)
+            refreshScene: () => ( frameResetRequested = true ),
+            simpleMessage( val: string ) {
+                simpleText.set( val );
+            },
         },
-        sandboxApi,
-
-        refreshScene: () => frameResetRequested = true,
-        simpleMessage(val: string) {
-            simpleText.set(val);
-        },
-
-    },
         surfaceComposer.api,
         sceneComposer.api,
         openBwComposer.api,
-        viewInputComposer.api) as GameTimeApi;
+        viewInputComposer.api
+    ) as GameTimeApi;
 
     return {
-
         world,
 
         // binding stuff we can' t do before hand
         init() {
-
             window.gc!();
 
-            surfaceComposer.resize(true);
+            surfaceComposer.resize( true );
 
-            gameLoopComposer.onUpdate(this.update.bind(this));
+            gameLoopComposer.onUpdate( this.update.bind( this ) );
 
-            janitor.on(ipcRenderer, RELOAD_PLUGINS, async () => {
-
-                await this.activate(true, settings.getState().input.sceneController);
-
-            }, "reload-plugins");
-
+            janitor.on(
+                ipcRenderer,
+                RELOAD_PLUGINS,
+                async () => {
+                    await this.activate(
+                        true,
+                        settings.getState().input.sceneController
+                    );
+                },
+                "reload-plugins"
+            );
         },
 
-        async activate(reloadPlugins: boolean, sceneController: string, targetData?: any) {
-
-            openBW.setGameSpeed(1);
-            openBW.setPaused(false);
+        async activate(
+            reloadPlugins: boolean,
+            sceneController: string,
+            targetData?: any
+        ) {
+            openBW.setGameSpeed( 1 );
+            openBW.setPaused( false );
             gameLoopComposer.stop();
 
-            if (reloadPlugins) {
-
-                events.emit("world-end");
+            if ( reloadPlugins ) {
+                events.emit( "world-end" );
                 unsetSceneController();
-
             }
 
-            await plugins.activate(gameTimeApi, settings, reloadPlugins);
+            await plugins.activate( gameTimeApi, settings, reloadPlugins );
 
-            await setSceneController(sceneController, targetData);
+            await setSceneController( sceneController, targetData );
 
-            this.onRender(0, 0);
+            this.onRender( 0, 0 );
 
-            renderComposer.getWebGLRenderer().compile(sceneComposer.scene, viewInputComposer.primaryCamera!);
+            renderComposer
+                .getWebGLRenderer()
+                .compile( sceneComposer.scene, viewInputComposer.primaryCamera! );
 
-            events.emit("resize", surfaceComposer.gameSurface);
-            events.emit("settings-changed", { settings: settings.getState(), rhs: settings.getState() });
-            events.emit("world-start");
+            events.emit( "resize", surfaceComposer.gameSurface );
+            events.emit( "settings-changed", {
+                settings: settings.getState(),
+                rhs: settings.getState(),
+            } );
+            events.emit( "world-start" );
 
             gameLoopComposer.start();
 
             surfaceComposer.gameSurface.show();
-
         },
 
         sceneComposer,
 
         dispose: () => {
-            events.emit("world-end");
-            events.emit("dispose");
+            events.emit( "world-end" );
+            events.emit( "dispose" );
             janitor.dispose();
             surfaceComposer.gameSurface.hide();
         },
 
-        update(
-            delta: number,
-            elapsed: number
-        ) {
+        update( delta: number, elapsed: number ) {
+            if ( !viewInputComposer.primaryViewport ) return;
 
-            if (!viewInputComposer.primaryViewport) return;
-
-            if (frameResetRequested) {
-                events.emit("frame-reset");
+            if ( frameResetRequested ) {
+                events.emit( "frame-reset" );
                 frameResetRequested = false;
             }
 
-            viewInputComposer.update(delta, elapsed);
+            viewInputComposer.update( delta, elapsed );
 
-            overlayComposer.update(delta);
+            overlayComposer.update( delta );
 
-            if (openBwComposer.update(elapsed)) {
+            if ( openBwComposer.update( elapsed ) ) {
+                sceneComposer.onFrame(
+                    delta,
+                    viewInputComposer.primaryViewport.renderMode3D,
+                    viewInputComposer.primaryViewport.camera.userData.direction
+                );
 
-                sceneComposer.onFrame(delta, viewInputComposer.primaryViewport!.renderMode3D, viewInputComposer.primaryViewport!.camera.userData.direction);
+                overlayComposer.onFrame( openBwComposer.completedUpgrades );
 
-                overlayComposer.onFrame(openBwComposer.completedUpgrades);
+                plugins.ui.onFrame(
+                    openBW,
+                    openBwComposer.currentFrame,
+                    openBW._get_buffer( 8 ),
+                    openBW._get_buffer( 9 ),
+                    sceneComposer.selectedUnits.toArray()
+                );
 
-                plugins.ui.onFrame(openBW, openBwComposer.currentFrame, openBW._get_buffer(8), openBW._get_buffer(9), sceneComposer.selectedUnits.toArray());
-
-                commandsComposer.onFrame(openBwComposer.currentFrame);
+                commandsComposer.onFrame( openBwComposer.currentFrame );
 
                 plugins.native.hook_onFrame(
                     openBwComposer.currentFrame,
                     commandsComposer.commandsThisFrame
                 );
-
             }
 
-            this.onRender(delta, elapsed);
+            this.onRender( delta, elapsed );
 
             viewInputComposer.onAfterUpdate();
         },
 
-        onRender: (delta: number, elapsed: number) => {
+        onRender: ( delta: number, elapsed: number ) => {
+            plugins.native.hook_onBeforeRender( delta, elapsed );
 
-            plugins.native.hook_onBeforeRender(delta, elapsed);
+            postProcessingComposer.render( delta, elapsed );
 
-            postProcessingComposer.render(delta, elapsed);
-
-            plugins.native.hook_onRender(delta, elapsed);
-
-        }
+            plugins.native.hook_onRender( delta, elapsed );
+        },
     };
 };

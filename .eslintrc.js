@@ -88,7 +88,10 @@ module.exports = {
         // revisit these
         "@typescript-eslint/no-unsafe-call": "off",
         "@typescript-eslint/no-unsafe-member-access": "off",
-        "t@typescript-eslint/consistent-type-definitions": "off",
+        "@typescript-eslint/consistent-type-definitions": "off",
+
+        // until it stops fighting with itself
+        "@typescript-eslint/no-inferrable-types": "off",
     },
     globals: {
         __static: true,

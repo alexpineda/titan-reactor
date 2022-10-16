@@ -1,41 +1,41 @@
 import { gameSpeeds } from "common/utils/conversions";
 import create from "zustand";
 
-export type IScriptahStore = {
+export interface IScriptahStore {
+    error: any;
 
-  error: any;
+    gameTick: number;
 
-  gameTick: number;
+    unitImageTab: string;
 
-  unitImageTab: string;
+    autoUpdate: boolean;
 
-  autoUpdate: boolean;
+    gamespeed: number;
+}
 
-  gamespeed: number;
+export const useIScriptahStore = create<IScriptahStore>( () => ( {
+    error: null,
+    gameTick: 0,
+    unitImageTab: "units",
+    autoUpdate: true,
+    gamespeed: gameSpeeds.fastest,
+} ) );
 
-};
+export const setAutoupdate = ( autoUpdate: boolean ) =>
+    useIScriptahStore.setState( { autoUpdate } );
 
-export const useIScriptahStore = create<IScriptahStore>(() => ({
+export const setGamespeed = ( gamespeed: number ) =>
+    useIScriptahStore.setState( { gamespeed } );
 
-  error: null,
-  gameTick: 0,
-  unitImageTab: "units",
-  autoUpdate: true,
-  gamespeed: gameSpeeds.fastest,
+export const setError = ( error: Error ) => useIScriptahStore.setState( { error } );
 
-}));
+export const setUnitImageTab = ( unitImageTab: string ) =>
+    useIScriptahStore.setState( { unitImageTab } );
 
-export const setAutoupdate = (autoUpdate: boolean) => useIScriptahStore.setState({ autoUpdate });
-
-export const setGamespeed = (gamespeed: number) => useIScriptahStore.setState({ gamespeed });
-
-export const setError = (error: Error) => useIScriptahStore.setState({ error });
-
-export const setUnitImageTab = (unitImageTab: string) => useIScriptahStore.setState({ unitImageTab });
-
-export const setGameTick = (gameTick: number) => useIScriptahStore.setState({ gameTick });
+export const setGameTick = ( gameTick: number ) =>
+    useIScriptahStore.setState( { gameTick } );
 
 export const incGameTick = () =>
-  useIScriptahStore.setState((state) => ({
-    gameTick: state.gameTick + 1
-  }))
+    useIScriptahStore.setState( ( state ) => ( {
+        gameTick: state.gameTick + 1,
+    } ) );

@@ -3,7 +3,6 @@ import { SurfaceComposer } from "@core/world/surface-composer";
 import { log } from "@ipc/log";
 import { Janitor } from "three-janitor";
 import { DamageType, Explosion } from "common/enums";
-import { SceneInputHandler, UserInputCallbacks } from "common/types";
 import { Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
 import { createInputComposer } from "./input-composer";
@@ -160,12 +159,12 @@ export const createViewInputComposer = (
             return count;
         },
 
-        get audio(): SceneInputHandler["gameOptions"]["audio"] | null {
+        get audio(): Required<SceneController>["gameOptions"]["audio"] | null {
             return sceneController?.gameOptions.audio ?? null;
         },
 
         onMinimapDragUpdate(
-            ...args: Parameters<UserInputCallbacks["onMinimapDragUpdate"]>
+            ...args: Parameters<Required<SceneController>["onMinimapDragUpdate"]>
         ) {
             sceneController?.onMinimapDragUpdate &&
                 sceneController.onMinimapDragUpdate( ...args );
@@ -269,8 +268,10 @@ export const createViewInputComposer = (
                 bulletStrength[damageType as keyof typeof bulletStrength];
 
             if (
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 _bulletStrength &&
                 !(
+                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                     exp === undefined ||
                     damageType === DamageType.IgnoreArmor ||
                     damageType === DamageType.Independent

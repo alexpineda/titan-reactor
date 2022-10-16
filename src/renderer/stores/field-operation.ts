@@ -76,7 +76,13 @@ const applyOperatorToBoolean = (
         return !field.value;
     }
 
-    return applyOperatorToAny( instruction, field, newValue, defaultValue, "boolean" );
+    return applyOperatorToAny(
+        instruction,
+        field as FieldDefinition,
+        newValue,
+        defaultValue,
+        "boolean"
+    );
 };
 
 const applyOperatorToNumber = (

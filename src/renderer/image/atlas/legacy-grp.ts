@@ -11,11 +11,11 @@ type Palettes = Uint8Array[] & { dark?: Buffer; light?: Buffer };
 export class LegacyGRP {
     width = 0;
     height = 0;
-    grpWidth? = 0;
-    grpHeight? = 0;
+    grpWidth = 0;
+    grpHeight = 0;
     texture: DataTexture;
     teamcolor?: DataTexture;
-    frames?: {
+    frames: {
         x: number;
         y: number;
         grpX: number;

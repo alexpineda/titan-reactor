@@ -8,7 +8,7 @@ import {
     TargetedPath,
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
-import { FieldDefinition, Operator } from "../types/mutations";
+import { FieldDefinition, Operator } from "../types/fields";
 import {
     getAppFieldDefinition,
     SettingsAndPluginsMeta,
@@ -94,7 +94,7 @@ const optionExists = ( options: Required<FieldDefinition>["options"], value: str
 const patchValue = ( action: MacroAction | MacroCondition, field: FieldDefinition ) => {
     if (
         action.value === undefined ||
-        ( field.options && !optionExists( field.options, action.value ) )
+        ( field.options && !optionExists( field.options, action.value as string ) )
     ) {
         action.value = field.value;
     }

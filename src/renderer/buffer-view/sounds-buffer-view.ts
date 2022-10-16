@@ -1,21 +1,20 @@
 import { OpenBW } from "common/types";
 
 export class SoundsBufferView {
-
     #address = 0;
     #bw: OpenBW;
 
-    get(address: number) {
+    get( address: number ) {
         this.#address = address;
         return this;
     }
 
-    constructor(bw: OpenBW) {
+    constructor( bw: OpenBW ) {
         this.#bw = bw;
     }
 
     private get _index32() {
-        return (this.#address >> 2) + 2; //skip link base
+        return ( this.#address >> 2 ) + 2; //skip link base
     }
 
     get typeId() {
@@ -33,17 +32,16 @@ export class SoundsBufferView {
     get unitTypeId() {
         return this.#bw.HEAPU32[this._index32 + 3];
     }
-
 }
 
-export const createSoundBufferIterator = (openBW: OpenBW) => {
-    const _soundBufferView = new SoundsBufferView(openBW);
-    const soundsAddr = openBW.getSoundsAddress!();
+export const createSoundBufferIterator = ( openBW: OpenBW ) => {
+    const _soundBufferView = new SoundsBufferView( openBW );
+    const soundsAddr = openBW.getSoundsAddress();
 
     return function* soundsBufferViewIterator() {
-        for (let i = 0; i < openBW.getSoundsCount!(); i++) {
-            const addr = soundsAddr + (i << 4);
-            yield _soundBufferView.get(addr);
+        for ( let i = 0; i < openBW.getSoundsCount(); i++ ) {
+            const addr = soundsAddr + ( i << 4 );
+            yield _soundBufferView.get( addr );
         }
-    }
-}
+    };
+};

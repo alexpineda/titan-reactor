@@ -1,7 +1,7 @@
 import { MacroTrigger, TriggerType } from "common/types";
 import { KeyCombo, KeyComboDTO } from "./key-combo";
 
-interface HotkeyTriggerDTO extends KeyComboDTO {
+export interface HotkeyTriggerDTO extends KeyComboDTO {
     onKeyUp: boolean;
 }
 

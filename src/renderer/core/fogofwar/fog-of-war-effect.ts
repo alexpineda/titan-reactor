@@ -3,6 +3,7 @@ import {
     Matrix4,
     OrthographicCamera,
     PerspectiveCamera,
+    Texture,
     Uniform,
     Vector2,
     Vector4,
@@ -32,7 +33,7 @@ export class FogOfWarEffect extends Effect {
     }
 
     get opacity() {
-        return this.blendMode.opacity.value;
+        return this.blendMode.opacity.value as number;
     }
 
     set camera( camera: PerspectiveCamera | OrthographicCamera ) {
@@ -41,50 +42,50 @@ export class FogOfWarEffect extends Effect {
     }
 
     get fog() {
-        return this.uniforms.get( "fog" )!.value;
+        return this.uniforms.get( "fog" )!.value as Texture;
     }
 
-    set fog( value ) {
+    set fog( value: Texture ) {
         this.uniforms.get( "fog" )!.value = value;
     }
 
     get fogResolution() {
-        return this.uniforms.get( "fogResolution" )!.value;
+        return this.uniforms.get( "fogResolution" )!.value as Vector2;
     }
 
-    set fogResolution( value ) {
+    set fogResolution( value: Vector2 ) {
         this.uniforms.get( "fogResolution" )!.value = value;
     }
 
     get viewInverse() {
-        return this.uniforms.get( "viewInverse" )!.value;
+        return this.uniforms.get( "viewInverse" )!.value as Matrix4;
     }
 
-    set viewInverse( value ) {
+    set viewInverse( value: Matrix4 ) {
         this.uniforms.get( "viewInverse" )!.value = value;
     }
 
     get projectionInverse() {
-        return this.uniforms.get( "projectionInverse" )!.value;
+        return this.uniforms.get( "projectionInverse" )!.value as Matrix4;
     }
 
-    set projectionInverse( value ) {
+    set projectionInverse( value: Matrix4 ) {
         this.uniforms.get( "projectionInverse" )!.value = value;
     }
 
     get color() {
-        return this.uniforms.get( "color" )!.value;
+        return this.uniforms.get( "color" )!.value as Color;
     }
 
-    set color( value ) {
+    set color( value: Color ) {
         this.uniforms.get( "color" )!.value = value;
     }
 
     get fogUvTransform() {
-        return this.uniforms.get( "fogUvTransform" )!.value;
+        return this.uniforms.get( "fogUvTransform" )!.value as Vector4;
     }
 
-    set fogUvTransform( value ) {
+    set fogUvTransform( value: Vector4 ) {
         this.uniforms.get( "fogUvTransform" )!.value = value;
     }
 }

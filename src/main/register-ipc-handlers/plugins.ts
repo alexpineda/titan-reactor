@@ -10,10 +10,14 @@ import {
 } from "common/ipc-handle-names";
 import settings from "../settings/singleton";
 import browserWindows from "../windows";
+import { PluginConfig } from "common/types";
 
-ipcMain.handle( UPDATE_PLUGIN_CONFIG, async ( _, pluginId: string, config: any ) => {
-    return await settings.plugins.savePluginConfig( pluginId, config );
-} );
+ipcMain.handle(
+    UPDATE_PLUGIN_CONFIG,
+    async ( _, pluginId: string, config: PluginConfig ) => {
+        return await settings.plugins.savePluginConfig( pluginId, config );
+    }
+);
 
 ipcMain.handle( DISABLE_PLUGIN, async ( _, pluginId: string ) => {
     const pluginNames = await settings.disablePlugins( [pluginId] );
@@ -25,8 +29,8 @@ ipcMain.handle( DISABLE_PLUGIN, async ( _, pluginId: string ) => {
     return false;
 } );
 
-ipcMain.handle( DELETE_PLUGIN, async ( _, pluginId: string ) => {
-    return await settings.plugins.uninstallPlugin( pluginId );
+ipcMain.handle( DELETE_PLUGIN, ( _, pluginId: string ) => {
+    return settings.plugins.uninstallPlugin( pluginId );
 } );
 
 ipcMain.handle( ENABLE_PLUGINS, async ( _, pluginIds: string[] ) => {

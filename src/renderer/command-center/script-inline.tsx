@@ -22,6 +22,7 @@ export const ScriptInline = ( {
                 dispatch: function ( transaction ) {
                     codeMirror.current!.update( [transaction] );
                     if ( transaction.docChanged ) {
+                        // eslint-disable-next-line @typescript-eslint/no-base-to-string
                         onChange( codeMirror.current!.state.doc.toString() );
                     }
                 },

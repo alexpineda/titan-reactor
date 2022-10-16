@@ -88,7 +88,7 @@ export async function terrainComposer(
     renderComposer.preprocessEnd();
     genProcess.increment();
 
-    const terrain = await createTerrainGeometryFromQuartiles(
+    const terrain = createTerrainGeometryFromQuartiles(
         mapWidth,
         mapHeight,
         creepTexture,

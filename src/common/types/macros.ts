@@ -1,4 +1,4 @@
-import { Operator } from "./mutations";
+import { Operator } from "./fields";
 
 export enum MacroActionSequence {
     AllSync = "AllSync",
@@ -16,11 +16,10 @@ export enum ConditionComparator {
     Execute = "Execute",
 }
 
-
-export type MacroActionConfigurationError = {
+export interface MacroActionConfigurationError {
     critical?: boolean;
-    type: MacroActionConfigurationErrorType,
-    message: string,
+    type: MacroActionConfigurationErrorType;
+    message: string;
 }
 
 export enum MacroActionConfigurationErrorType {
@@ -38,32 +37,34 @@ export enum MacroActionConfigurationErrorType {
 export type TargetType = ":app" | ":plugin" | ":function" | ":macro";
 export type TargetedPath<T extends TargetType = TargetType> = [T, ...string[]];
 
-export type MacroAction<T extends TargetType = TargetType> = {
+export interface MacroAction<T extends TargetType = TargetType> {
     type: "action";
     id: string;
     error?: MacroActionConfigurationError;
     path: TargetedPath<T>;
-    value?: any;
+    value?: unknown;
     operator: Operator;
 }
 
-export type MacroCondition<T extends TargetType = TargetType> = {
+export interface MacroCondition<T extends TargetType = TargetType> {
     type: "condition";
     id: string;
     error?: MacroActionConfigurationError;
     path: TargetedPath<T>;
-    value?: any;
+    value?: unknown;
     comparator: ConditionComparator;
 }
 
-export type Actionable<T extends TargetType = TargetType> = MacroAction<T> | MacroCondition<T>;
+export type Actionable<T extends TargetType = TargetType> =
+    | MacroAction<T>
+    | MacroCondition<T>;
 
-export type MacroTriggerDTO = {
+export interface MacroTriggerDTO {
     type: TriggerType;
-    value?: any;
+    value?: unknown;
 }
 
-export type MacroDTO = {
+export interface MacroDTO {
     id: string;
     name: string;
     enabled: boolean;
@@ -72,13 +73,12 @@ export type MacroDTO = {
     actionSequence: MacroActionSequence;
     conditions: MacroCondition[];
     error?: string;
-};
+}
 
-export type MacrosDTO = {
+export interface MacrosDTO {
     revision: number;
     macros: MacroDTO[];
-};
-
+}
 
 export enum TriggerType {
     None = "None",
@@ -88,6 +88,6 @@ export enum TriggerType {
 }
 export interface MacroTrigger {
     type: TriggerType;
-    serialize: () => any;
+    serialize: () => unknown;
     weight: number;
 }

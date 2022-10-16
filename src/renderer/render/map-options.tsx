@@ -1,17 +1,19 @@
+/* eslint-disable */
+// @ts-ignore
 import { defaultGeometryOptions } from "@image/generate-map/default-geometry-options";
-import { attachOnChangeAndGroupByFolder } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "@utils/leva-utils";
 import { GeometryOptions } from "common/types";
 import { LevaPanel, useControls, useCreateStore } from "leva";
 import { useState } from "react";
 import { Vector3 } from "three";
 
-const toSimple = ( obj: Record<string, { value: unknown }> ) => {
+const toSimple = (obj: Record<string, { value: unknown }>) => {
     const result: GeometryOptions = defaultGeometryOptions;
-    for ( const key in obj ) {
-        if ( obj.hasOwnProperty( key ) ) {
+    for (const key in obj) {
+        if (obj.hasOwnProperty(key)) {
             // @ts-expect-error
-            if ( Array.isArray( result[key] ) ) {
-                const k = key.split( "_" );
+            if (Array.isArray(result[key])) {
+                const k = key.split("_");
                 // @ts-expect-error
                 result[k[1]][k[0]] = obj[key].value;
             } else {
@@ -31,27 +33,27 @@ export interface MapDisplayOptions {
     sunIntensity: number;
 }
 
-export const MapViewer = ( {
+export const MapViewer = ({
     onChange,
     onDisplayOptionsChange,
     displayOptions,
 }: {
-    onChange: ( options: GeometryOptions ) => void;
-    onDisplayOptionsChange: ( options: MapDisplayOptions ) => void;
+    onChange: (options: GeometryOptions) => void;
+    onDisplayOptionsChange: (options: MapDisplayOptions) => void;
     displayOptions: MapDisplayOptions;
-} ) => {
+}) => {
     const store = useCreateStore();
     // const [displayOptions, setDisplayOptions] = useState<MapDisplayOptions>(
     //   defaultDisplayOptions
     // );
 
-    const updateDisplayOptions = ( newOptions: Partial<MapDisplayOptions> ) => {
-        Object.assign( displayOptions, newOptions );
+    const updateDisplayOptions = (newOptions: Partial<MapDisplayOptions>) => {
+        Object.assign(displayOptions, newOptions);
         // setDisplayOptions(n);
-        onDisplayOptionsChange( displayOptions );
+        onDisplayOptionsChange(displayOptions);
     };
 
-    const [state, setState] = useState( {
+    const [state, setState] = useState({
         "0_elevationLevels": {
             folder: "Elevation Levels",
             value: defaultGeometryOptions.elevationLevels[0],
@@ -165,52 +167,54 @@ export const MapViewer = ( {
         "wireframe": {
             folder: "Display",
             value: displayOptions.wireframe,
-            onChange: ( value: boolean ) => {
-                updateDisplayOptions( { wireframe: value } );
+            onChange: (value: boolean) => {
+                updateDisplayOptions({ wireframe: value });
             },
         },
         "skybox": {
             folder: "Display",
             value: displayOptions.skybox,
-            onChange: ( value: boolean ) => {
-                updateDisplayOptions( { skybox: value } );
+            onChange: (value: boolean) => {
+                updateDisplayOptions({ skybox: value });
             },
         },
         "sunPosition": {
             folder: "Lighting",
             value: displayOptions.sunPosition,
             step: 1,
-            onChange: ( value: Vector3 ) => {
-                updateDisplayOptions( { sunPosition: value } );
+            onChange: (value: Vector3) => {
+                updateDisplayOptions({ sunPosition: value });
             },
         },
         "sunColor": {
             folder: "Lighting",
             value: displayOptions.sunColor,
-            onChange: ( value: string ) => {
-                updateDisplayOptions( { sunColor: value } );
+            onChange: (value: string) => {
+                updateDisplayOptions({ sunColor: value });
             },
         },
         "sunIntensity": {
             folder: "Lighting",
             value: displayOptions.sunIntensity,
             step: 0.5,
-            onChange: ( value: number ) => {
-                updateDisplayOptions( { sunIntensity: value } );
+            onChange: (value: number) => {
+                updateDisplayOptions({ sunIntensity: value });
             },
         },
-    } );
-    const controls = attachOnChangeAndGroupByFolder( {
-        config: state,
-        onChange: ( value: any, key?: string ) => {
-            //@ts-expect-error
-            setState( ( state ) => ( { ...state, [key!]: { ...state[key!], value } } ) );
-            onChange( toSimple( state ) );
-        },
-        overwriteOnChange: false,
-    } );
-    for ( const [folder, config] of controls ) {
-        useControls( folder, config, { store, collapsed: true } );
+    });
+    const controls = groupConfigByFolder(
+        attachOnChangeAndGroupByFolder({
+            config: state,
+            onChange: (value: any, key?: string) => {
+                //@ts-expect-error
+                setState((state) => ({ ...state, [key!]: { ...state[key!], value } }));
+                onChange(toSimple(state));
+            },
+            overwriteOnChange: false,
+        })
+    );
+    for (const [folder, config] of controls) {
+        useControls(folder, config, { store, collapsed: true });
     }
 
     // if (high && walkable && mid) {

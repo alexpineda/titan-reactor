@@ -82,7 +82,7 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
     log.debug( "@load-assets/selection-circles" );
     const selectionCircles: AnimAtlas[] = [];
     for ( let i = 561; i < 571; i++ ) {
-        const selCircleGRP = await loadAnimAtlas(
+        const selCircleGRP = loadAnimAtlas(
             await readCascFile( `anim/main_${i}.anim` ),
             i,
             UnitTileScale.HD
@@ -170,11 +170,7 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
             glbExists.set( refImageId, await fileExists( glbFileName( glbRefImageId ) ) );
         }
 
-        const anim = await loadAnimAtlas(
-            await loadAnimBuffer( refImageId, res ),
-            imageId,
-            res
-        );
+        const anim = loadAnimAtlas( await loadAnimBuffer( refImageId, res ), imageId, res );
 
         renderComposer.getWebGLRenderer().initTexture( anim.diffuse );
 
@@ -245,7 +241,7 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
             loadImageAtlas( imageId, bwDat );
             return this.getImageAtlas( imageId );
         },
-        getImageAtlas( imageId: number ) {
+        getImageAtlas( imageId: number ): AnimAtlas | undefined {
             return atlases[refId( imageId )];
         },
         loadImageAtlasAsync( imageId: number, bwDat: BwDAT ) {
@@ -283,7 +279,7 @@ export const loadImageAtlasDirect = async ( imageId: number, image3d: boolean ) 
     if ( glbFileExists ) {
         log.debug( `loading glb  ${glbFileName}` );
 
-        const anim = await loadAnimAtlas(
+        const anim = loadAnimAtlas(
             await loadAnimBuffer( refImageId, UnitTileScale.HD ),
             imageId,
             UnitTileScale.HD
@@ -294,7 +290,7 @@ export const loadImageAtlasDirect = async ( imageId: number, image3d: boolean ) 
             ...( await loadGlbAtlas( glbFileName, anim.frames, imageDat, assets.envMap! ) ),
         };
     } else {
-        return await loadAnimAtlas(
+        return loadAnimAtlas(
             await loadAnimBuffer( refImageId, UnitTileScale.HD ),
             imageId,
             UnitTileScale.HD

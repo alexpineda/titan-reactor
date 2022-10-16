@@ -24,9 +24,10 @@ export const loadAnimSdAtlas = async ( {
         sprite.buf.slice( map.ddsOffset + offset, map.ddsOffset + map.size );
 
     const ddsBuf = getBuf( sprite.maps.diffuse );
-    const diffuse = await createDDSTexture( parseDDS( ddsBuf ) );
+    const diffuse = createDDSTexture( parseDDS( ddsBuf ) );
 
     let teammask;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if ( sprite.maps.teamcolor ) {
         const ddsBuf = getBuf( sprite.maps.teamcolor, 4 );
 

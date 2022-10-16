@@ -14,9 +14,6 @@ export const generateCenteredCursorsDataURI = async (
         palettes: [palette],
     } );
 
-    if ( !grpSD.texture || !grpSD.frames || !grpSD.grpHeight || !grpSD.grpWidth ) {
-        throw new Error( "Could not load grp" );
-    }
     const canvas = rgbToCanvas(
         {
             data: grpSD.texture.image.data,

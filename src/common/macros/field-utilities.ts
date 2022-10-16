@@ -94,7 +94,7 @@ export const isValidTypeOfField = ( type: string ): type is TypeOfField => {
 
 export type TypeOfField = "boolean" | "number" | "string" | "vector";
 
-export const getTypeOfField = ( field?: FieldDefinition ): TypeOfField | null => {
+export const getTypeOfField = ( field?: FieldDefinition | null ): TypeOfField | null => {
     if ( !field ) {
         return null;
     }

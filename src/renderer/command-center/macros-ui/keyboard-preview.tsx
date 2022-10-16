@@ -8,8 +8,9 @@ interface KeyboardPreviewProps {
 const defaultViewBox = "0 0 1315.5 379.65";
 const zoomOut = 120;
 
-const createViewBoxFromKey = (key: string | undefined) => {
-  if (key === undefined || keyMap[key as keyof typeof keyMap] === undefined) {
+const createViewBoxFromKey = ( key: string | undefined ) => {
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  if ( key === undefined || keyMap[key as keyof typeof keyMap] === undefined ) {
     return defaultViewBox;
   }
   const keyData = keyMap[key as keyof typeof keyMap];
@@ -18,12 +19,12 @@ const createViewBoxFromKey = (key: string | undefined) => {
 
   return `${x} ${y} ${zoomOut} ${zoomOut}`;
 };
-export const KeyboardPreview = ({
+export const KeyboardPreview = ( {
   svgProps,
   previewKey,
-}: KeyboardPreviewProps) => (
+}: KeyboardPreviewProps ) => (
   <svg
-    viewBox={createViewBoxFromKey(previewKey)}
+    viewBox={createViewBoxFromKey( previewKey )}
     xmlns="http://www.w3.org/2000/svg"
     {...svgProps}
   >

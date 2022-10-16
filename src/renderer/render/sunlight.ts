@@ -1,8 +1,8 @@
 import { DirectionalLight, Object3D, Color, Vector3 } from "three";
 
-const createDirectional = (mapWidth: number, mapHeight: number) => {
-    const light = new DirectionalLight(0xffffff, 2.5);
-    light.position.set(-32, 13, -26);
+const createDirectional = ( mapWidth: number, mapHeight: number ) => {
+    const light = new DirectionalLight( 0xffffff, 2.5 );
+    light.position.set( -32, 13, -26 );
     light.target = new Object3D();
     light.castShadow = true;
     light.shadow.camera.near = 1;
@@ -24,25 +24,25 @@ const createDirectional = (mapWidth: number, mapHeight: number) => {
     light.layers.enableAll();
 
     return light;
-}
+};
 export class Sunlight {
     #light: DirectionalLight;
     shadowIntensity = 1;
     #quality = 1;
 
-    constructor(mapWidth: number, mapHeight: number) {
-        this.#light = createDirectional(mapWidth, mapHeight);
+    constructor( mapWidth: number, mapHeight: number ) {
+        this.#light = createDirectional( mapWidth, mapHeight );
     }
 
     get children() {
         return [this.#light, this.target];
     }
 
-    set enabled(val: boolean) {
+    set enabled( val: boolean ) {
         this.#light.visible = val;
     }
 
-    set intensity(value: number) {
+    set intensity( value: number ) {
         this.#light.intensity = value * this.shadowIntensity;
     }
 
@@ -50,16 +50,16 @@ export class Sunlight {
         return this.#light.target;
     }
 
-    setPosition(...args: Parameters<Vector3["set"]>) {
-        this.#light.position.set(...args);
+    setPosition( ...args: Parameters<Vector3["set"]> ) {
+        this.#light.position.set( ...args );
     }
 
     getPosition() {
         return this.#light.position.clone();
     }
 
-    setColor(...args: Parameters<Color["set"]>) {
-        this.#light.color.set(...args);
+    setColor( ...args: Parameters<Color["set"]> ) {
+        this.#light.color.set( ...args );
     }
 
     needsUpdate() {
@@ -68,9 +68,9 @@ export class Sunlight {
         this.#light.updateMatrixWorld();
     }
 
-    set shadowQuality(quality: number) {
+    set shadowQuality( quality: number ) {
         this.#light.castShadow = quality > 0;
-        if (this.#light.castShadow === false) {
+        if ( !this.#light.castShadow ) {
             return;
         }
         this.#quality = quality;

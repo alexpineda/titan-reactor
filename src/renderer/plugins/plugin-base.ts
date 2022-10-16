@@ -2,30 +2,37 @@ import { GameTimeApi } from "@core/world/game-time-api";
 import { log } from "@ipc/log";
 import { savePluginsConfig } from "@ipc/plugins";
 import { normalizePluginConfiguration } from "@utils/function-utils";
-import { NativePlugin, PluginPackage } from "common/types";
-
-export interface PluginBase extends NativePlugin, GameTimeApi {}
+import {
+    FieldDefinition,
+    Injectables,
+    NativePlugin,
+    PluginConfig,
+    PluginPackage,
+} from "common/types";
 
 const structuredClone =
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     globalThis.structuredClone ??
     ( ( x: any ) => JSON.parse( JSON.stringify( x ) ) as unknown );
-export class PluginBase implements NativePlugin {
+
+export interface PluginBase extends NativePlugin, GameTimeApi, Injectables {}
+
+export class PluginBase {
     readonly id: string;
     readonly name: string;
     isSceneController = false;
-    #config: Record<string, any> | undefined = {};
+    #config: PluginConfig | undefined = {};
 
     /**
      * @internal
-     * Same as config but simplified to [key] = value | [key] = value * factor
+     * Same as config but simplified to [key] = value
      */
-    #normalizedConfig: Record<string, any> | undefined;
+    #normalizedConfig: Record<string, unknown> | undefined;
 
     constructor( pluginPackage: PluginPackage ) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
-        this.config = structuredClone( pluginPackage.config );
+        this.rawConfig = structuredClone( pluginPackage.config );
     }
 
     callCustomHook: ( hook: string, ...args: any[] ) => any = () => {};
@@ -33,11 +40,13 @@ export class PluginBase implements NativePlugin {
 
     /**
      *
+     * Useful for plugins that want to update their own config.
+     *
      * @param key The configuration key.
      * @param value  The configuration value.
      * @returns
      */
-    setConfig( key: string, value: unknown, persist = true ): void {
+    saveConfigProperty( key: string, value: unknown, persist = true ): void {
         if ( !this.#config ) {
             return;
         }
@@ -57,7 +66,7 @@ export class PluginBase implements NativePlugin {
 
     /*
      * Generates the normalized config object.
-     * Same as config but simplified to [key] = value | [key] = value * factor
+     * Same as config but simplified to [key] = value
      */
     refreshConfig() {
         this.#normalizedConfig = this.#config
@@ -72,16 +81,20 @@ export class PluginBase implements NativePlugin {
     /**
      * Read from the normalized configuration.
      */
-    get config(): Record<string, any> | undefined {
+    get config(): object | undefined {
         return this.#normalizedConfig;
     }
 
     /**
      * Set the config from unnormalized data (ie leva config schema).
      */
-    set config( value: unknown ) {
+    set rawConfig( value: PluginConfig | undefined ) {
         this.#config = value;
         this.refreshConfig();
+    }
+
+    get rawConfig() {
+        return this.#config;
     }
 
     /**
@@ -92,10 +105,6 @@ export class PluginBase implements NativePlugin {
         if ( !this.#config ) {
             return undefined;
         }
-        return this.#config[key] as unknown;
-    }
-
-    get rawConfig() {
-        return this.#config;
+        return this.#config[key] as FieldDefinition;
     }
 }

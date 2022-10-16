@@ -8,11 +8,11 @@ import { parseDDS } from "@image/formats/parse-dds";
 const getBufDds = ( buf: Buffer, { ddsOffset, size }: AnimDds ) =>
     buf.slice( ddsOffset, ddsOffset + size );
 
-export const loadAnimAtlas = async (
+export const loadAnimAtlas = (
     buf: Buffer,
     imageIndex: number,
     scale: Exclude<UnitTileScale, "SD">
-): Promise<AnimAtlas> => {
+): AnimAtlas => {
     const janitor = new Janitor( "loadAnimAtlas" );
 
     const [sprite] = parseAnim( buf );
@@ -24,15 +24,15 @@ export const loadAnimAtlas = async (
     const ddsBuf = getBufDds( buf, sprite.maps.diffuse );
     const diffuse = janitor.mop( createDDSTexture( parseDDS( ddsBuf ) ), "diffuse" );
 
-    const optionalLoad = async ( layer: AnimDds, encoding?: TextureEncoding ) => {
+    const optionalLoad = ( layer: AnimDds | undefined, encoding?: TextureEncoding ) => {
         if ( layer === undefined ) {
             return undefined;
         }
         const ddsBuf = getBufDds( buf, layer );
-        return janitor.mop( await createDDSTexture( parseDDS( ddsBuf ), encoding ), "layer" );
+        return janitor.mop( createDDSTexture( parseDDS( ddsBuf ), encoding ), "layer" );
     };
 
-    const teammask = await optionalLoad( sprite.maps.teamcolor );
+    const teammask = optionalLoad( sprite.maps.teamcolor );
 
     // FIXME: handle SD properly
     const uvScale = UnitTileScale.HD / scale;
@@ -43,7 +43,7 @@ export const loadAnimAtlas = async (
     // const aoDepth = await optionalLoad(sprite.maps.ao_depth);
     const emissive =
         scale === UnitTileScale.HD
-            ? await optionalLoad( sprite.maps.emissive, LinearEncoding )
+            ? optionalLoad( sprite.maps.emissive, LinearEncoding )
             : undefined;
 
     return {

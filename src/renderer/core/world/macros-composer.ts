@@ -10,84 +10,103 @@ import { TargetComposer } from "./target-composer";
 import { log } from "@ipc/log";
 import debounce from "lodash.debounce";
 import { MacroAction, Operator } from "common/types";
+import { withErrorMessage } from "common/utils/with-error-message";
 
 export type MacrosComposer = ReturnType<typeof createMacrosComposer>;
 
-export const createMacrosComposer = (events: TypeEmitter<WorldEvents>, settings: SettingsSessionStore) => {
-
-    const janitor = new Janitor("MacrosComposer");
+export const createMacrosComposer = (
+    events: TypeEmitter<WorldEvents>,
+    settings: SettingsSessionStore
+) => {
+    const janitor = new Janitor( "MacrosComposer" );
 
     const targets = new TargetComposer();
 
-    targets.setHandler(":app", {
-        action: (path) => settings.operate(path, path => path.slice(1)),
-        getValue: (path) => settings.getValue(path.slice(1)),
-    });
+    targets.setHandler( ":app", {
+        action: ( path ) => settings.operate( path, ( path ) => path.slice( 1 ) ),
+        getValue: ( path ) => settings.getValue( path.slice( 1 ) ),
+    } );
 
-    const macros = new Macros(targets, settingsStore().data.macros);
+    const macros = new Macros( targets, settingsStore().data.macros );
 
-    janitor.mop(macros.listenForKeyCombos(), "listenForKeyCombos");
+    janitor.mop( macros.listenForKeyCombos(), "listenForKeyCombos" );
 
-    janitor.mop(globalEvents.on("exec-macro", (macroId) => {
-        macros.execMacroById(macroId);
-    }), "exec-macro");
+    janitor.mop(
+        globalEvents.on( "exec-macro", ( macroId ) => {
+            macros.execMacroById( macroId );
+        } ),
+        "exec-macro"
+    );
 
-    janitor.mop(globalEvents.on("reset-macro-actions", (macroId) => {
-        macros.resetAllActions(macroId);
-    }), "exec-macro");
+    janitor.mop(
+        globalEvents.on( "reset-macro-actions", ( macroId ) => {
+            macros.resetAllActions( macroId );
+        } ),
+        "exec-macro"
+    );
 
-    const debouncedExec = debounce((action: MacroAction) => macros.execAction(action), 1000);
+    const debouncedExec = debounce(
+        ( action: MacroAction ) => macros.execAction( action ),
+        1000
+    );
 
-    janitor.mop(globalEvents.on("exec-macro-action", ({ action, withReset }) => {
-        macros.execAction(action);
-        if (withReset) {
-            debouncedExec({ ...action, operator: Operator.SetToDefault });
-        }
-    }), "exec-macro");
+    janitor.mop(
+        globalEvents.on( "exec-macro-action", ( { action, withReset } ) => {
+            macros.execAction( action );
+            if ( withReset ) {
+                debouncedExec( { ...action, operator: Operator.SetToDefault } );
+            }
+        } ),
+        "exec-macro"
+    );
 
-    janitor.mop(events.on("mouse-click", (button) => {
-        macros.mouseTrigger(button);
-    }), "mouse-click");
+    janitor.mop(
+        events.on( "mouse-click", ( button ) => {
+            macros.mouseTrigger( button );
+        } ),
+        "mouse-click"
+    );
 
     return {
         macros,
-        setContainer(api: any) {
-
-            const container = createCompartment(api);
+        setContainer( api: object ) {
+            const container = createCompartment( api );
 
             const actions = new WeakMap<MacroAction, () => void>();
 
-            targets.setHandler(":function", {
-                action: (action, context) => {
+            targets.setHandler( ":function", {
+                action: ( action, context ) => {
                     container.globalThis.context = context;
 
                     try {
-                        if (actions.has(action)) {
-                            actions.get(action)!();
+                        if ( actions.has( action ) ) {
+                            actions.get( action )!();
                         } else {
-                            const fn = container.globalThis.Function(action.value);
-                            actions.set(action, fn);
+                            const fn = container.globalThis.Function(
+                                action.value as object
+                            ) as () => void;
+                            actions.set( action, fn );
                             fn();
                         }
-                    } catch (e) {
-                        log.error(`Error executing macro action: ${e}`);
+                    } catch ( e ) {
+                        log.error( withErrorMessage( e, "Error executing macro action" ) );
                     }
                 },
-                getValue: (_, value, context) => {
+                getValue: ( _, value, context ) => {
                     container.globalThis.context = context;
                     try {
-                        return container.globalThis.Function(value)();
-                    } catch (e) {
-                        log.error(`Error executing macro condition: ${e}`);
+                        return container.globalThis.Function( value )() as unknown;
+                    } catch ( e ) {
+                        log.error(
+                            withErrorMessage( e, "Error executing macro condition" )
+                        );
                         return;
                     }
-                }
-            });
-
-
+                },
+            } );
         },
         dispose() {
             janitor.dispose();
-        }
-    }
-}
+        },
+    };
+};

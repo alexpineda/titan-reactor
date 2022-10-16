@@ -86,6 +86,7 @@ export const createUnitSelectionBox = (
                         )}${Math.floor( ( intersection.z / scene.mapHeight ) * 4 )}`
                     ];
 
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 if ( images && images.length ) {
                     const unit = getUnitFromMouseIntersect(
                         _mouseV.set( mouse.move.x, mouse.move.y ),
@@ -158,8 +159,8 @@ export const createUnitSelectionBox = (
 
             const allSelected = selectionBox.select();
 
-            for ( let i = 0; i < allSelected.length; i++ ) {
-                _unit = onGetUnit( allSelected[i] );
+            for ( const obj of allSelected ) {
+                _unit = onGetUnit( obj );
 
                 if ( _unit && !draft.includes( _unit ) ) {
                     draft.push( _unit );

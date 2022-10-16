@@ -1,6 +1,6 @@
 import { log } from "@ipc/log";
 import { withErrorMessage } from "common/utils/with-error-message";
-import React from "react";
+import React, { ErrorInfo } from "react";
 
 class ErrorBoundary extends React.Component {
     override state: { error: Error | undefined } = { error: undefined };
@@ -11,12 +11,12 @@ class ErrorBoundary extends React.Component {
         this.props = props;
     }
 
-    static getDerivedStateFromError( error: any ) {
+    static getDerivedStateFromError( error: Error ) {
         return { error };
     }
 
-    override componentDidCatch( error: any, errorInfo: any ) {
-        log.error( withErrorMessage( error, errorInfo ) );
+    override componentDidCatch( error: Error, errorInfo: ErrorInfo ) {
+        log.error( withErrorMessage( error, errorInfo.componentStack ) );
     }
 
     override render() {

@@ -2,7 +2,7 @@ import { LogLevel } from "common/logging";
 import { MacrosDTO } from "common/types";
 import type { PluginMetaData } from "./plugin";
 
-export type SettingsV5 = {
+export interface SettingsV5 {
     version: 5;
     language: string;
     directories: {
@@ -11,69 +11,68 @@ export type SettingsV5 = {
         replays: string;
         assets: string;
         plugins: string;
-    },
+    };
     assets: {
         images: "sd" | "hd";
         terrain: "sd" | "hd";
         preload: boolean;
         enable3dAssets: boolean;
-    },
+    };
     audio: {
         global: number;
         music: number;
         sound: number;
-        playIntroSounds: boolean,
-    },
+        playIntroSounds: boolean;
+    };
     graphics: {
         antialias: boolean;
         pixelRatio: "high" | "med" | "low";
         anisotropy: "high" | "med" | "low";
         terrainShadows: boolean;
-    },
+    };
     game: {
         sceneController: string;
         minimapSize: number;
-    },
+    };
     util: {
-        sanityCheckReplayCommands: boolean,
-        debugMode: boolean
-    },
+        sanityCheckReplayCommands: boolean;
+        debugMode: boolean;
+    };
     plugins: {
         serverPort: number;
         developmentDirectory?: string;
-        enabled: string[],
-    },
-    macros: MacrosDTO
-};
+        enabled: string[];
+    };
+    macros: MacrosDTO;
+}
 
-
-export type SettingsV6 = {
+export interface SettingsV6 {
     version: 6;
     language: string;
     session: {
         type: "replay" | "live" | "map";
         sandbox: boolean;
         audioListenerDistance: number;
-    },
+    };
     directories: {
         starcraft: string;
         maps: string;
         replays: string;
         assets: string;
         plugins: string;
-    },
+    };
     audio: {
         global: number;
         music: number;
         sound: number;
-        playIntroSounds: boolean,
-    },
+        playIntroSounds: boolean;
+    };
     graphics: {
         pixelRatio: number;
         useHD2: "auto" | "ignore" | "force";
         preload: boolean;
         cursorSize: number;
-    },
+    };
     minimap: {
         mode: "2d" | "3d";
         position: [number, number];
@@ -84,7 +83,7 @@ export type SettingsV6 = {
         softEdges: boolean;
         interactive: boolean;
         drawCamera: boolean;
-    },
+    };
     input: {
         sceneController: string;
         dampingFactor: number;
@@ -93,21 +92,21 @@ export type SettingsV6 = {
         cameraShakeStrength: number;
         zoomLevels: [number, number, number];
         unitSelection: boolean;
-    },
+    };
     utilities: {
-        sanityCheckReplayCommands: boolean,
-        debugMode: boolean,
-        detectMeleeObservers: boolean,
-        detectMeleeObserversThreshold: number,
-        alertDesynced: boolean,
-        alertDesyncedThreshold: number,
-        logLevel: LogLevel
-    },
+        sanityCheckReplayCommands: boolean;
+        debugMode: boolean;
+        detectMeleeObservers: boolean;
+        detectMeleeObserversThreshold: number;
+        alertDesynced: boolean;
+        alertDesyncedThreshold: number;
+        logLevel: LogLevel;
+    };
     plugins: {
         serverPort: number;
         developmentDirectory?: string;
-        enabled: string[],
-    },
+        enabled: string[];
+    };
     postprocessing: {
         anisotropy: number;
         antialias: number;
@@ -116,7 +115,7 @@ export type SettingsV6 = {
         brightness: number;
         contrast: number;
         fogOfWar: number;
-    },
+    };
     postprocessing3d: {
         anisotropy: number;
         antialias: number;
@@ -134,13 +133,13 @@ export type SettingsV6 = {
         sunlightColor: string;
         sunlightIntensity: number;
         shadowQuality: number;
-    },
-    macros: MacrosDTO
-};
+    };
+    macros: MacrosDTO;
+}
 
 export type Settings = SettingsV6;
 
-export type SettingsMeta = {
+export interface SettingsMeta {
     data: Settings;
     errors: string[];
     phrases: Record<string, string>;
@@ -151,6 +150,9 @@ export type SettingsMeta = {
      * Whether the starcraft directory is a CASC storage or direct filesystem
      */
     isCascStorage: boolean;
-};
+}
 
-export type SessionSettingsData = Pick<Settings, "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d" | "session">;
+export type SessionSettingsData = Pick<
+    Settings,
+    "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d" | "session"
+>;

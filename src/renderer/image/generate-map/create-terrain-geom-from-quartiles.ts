@@ -22,7 +22,7 @@ import gameStore from "@stores/game-store";
 import { getTerrainY } from "./get-terrain-y";
 import processStore from "@stores/process-store";
 
-export const createTerrainGeometryFromQuartiles = async (
+export const createTerrainGeometryFromQuartiles = (
     mapWidth: number,
     mapHeight: number,
     creepTexture: CreepTexture,

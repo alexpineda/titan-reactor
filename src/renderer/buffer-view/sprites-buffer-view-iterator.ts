@@ -10,37 +10,36 @@ export class SpritesBufferViewIterator {
         return this.#openBWRef.deref();
     }
 
-    constructor(openBW: OpenBW) {
-        this.#openBWRef = new WeakRef(openBW);
-        this.#sprites = new SpritesBufferView(openBW);
+    constructor( openBW: OpenBW ) {
+        this.#openBWRef = new WeakRef( openBW );
+        this.#sprites = new SpritesBufferView( openBW );
     }
 
     *[Symbol.iterator]() {
-        const spriteList = new IntrusiveList(this.#openBW!.HEAPU32);
+        const spriteList = new IntrusiveList( this.#openBW!.HEAPU32 );
         const spriteTileLineSize = this.#openBW!.getSpritesOnTileLineSize();
         const spritetileAddr = this.#openBW!.getSpritesOnTileLineAddress();
-        for (let l = 0; l < spriteTileLineSize; l++) {
-            spriteList.addr = spritetileAddr + (l << 3)
-            for (const spriteAddr of spriteList) {
-                if (spriteAddr === 0) {
+        for ( let l = 0; l < spriteTileLineSize; l++ ) {
+            spriteList.addr = spritetileAddr + ( l << 3 );
+            for ( const spriteAddr of spriteList ) {
+                if ( spriteAddr === 0 ) {
                     continue;
                 }
-                yield this.#sprites.get(spriteAddr);
+                yield this.#sprites.get( spriteAddr );
             }
         }
     }
 
-    getSprite(addr: number) {
-        return this.#sprites.get(addr);
+    getSprite( addr: number ) {
+        return this.#sprites.get( addr );
     }
 }
 
-export function* deletedSpritesIterator(openBW: OpenBW) {
-    const deletedSpriteCount = openBW._counts(16);
-    const deletedSpriteAddr = openBW._get_buffer(4);
+export function* deletedSpritesIterator( openBW: OpenBW ) {
+    const deletedSpriteCount = openBW._counts( 16 );
+    const deletedSpriteAddr = openBW._get_buffer( 4 );
 
-
-    for (let i = 0; i < deletedSpriteCount; i++) {
-        yield openBW.HEAP32[(deletedSpriteAddr >> 2) + i];
+    for ( let i = 0; i < deletedSpriteCount; i++ ) {
+        yield openBW.HEAP32[( deletedSpriteAddr >> 2 ) + i];
     }
 }

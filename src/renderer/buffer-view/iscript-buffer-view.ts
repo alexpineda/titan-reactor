@@ -1,29 +1,27 @@
 import { OpenBW } from "common/types";
 import { IScriptStateStruct } from "common/types/structs/iscript-struct";
 
-export class IScriptBufferView
-    implements IScriptStateStruct {
-
+export class IScriptBufferView implements IScriptStateStruct {
     #address = 0;
     _bw: OpenBW;
     _debug = 0;
 
-    get(address: number) {
+    get( address: number ) {
         this.#address = address;
         return this;
     }
 
-    constructor(bw: OpenBW) {
+    constructor( bw: OpenBW ) {
         this._bw = bw;
     }
 
     private get _index32() {
-        return (this.#address >> 2);
+        return this.#address >> 2;
     }
 
     get programAddress() {
         const addr = this._bw.HEAPU32[this._index32];
-        if (addr === 0) {
+        if ( addr === 0 ) {
             return null;
         }
         return addr >> 2;
@@ -31,7 +29,7 @@ export class IScriptBufferView
 
     get typeId() {
         // iscript program address
-        if (this.programAddress === null) {
+        if ( this.programAddress === null ) {
             return null;
         }
         return this._bw.HEAPU32[this.programAddress];
@@ -43,7 +41,10 @@ export class IScriptBufferView
 
     //FIXME: this is completely wrong and not working
     get opCounter() {
-        const p = this._bw.HEAPU32[(this._bw.getIScriptProgramDataAddress() + this.programCounter) >> 2];
+        const p =
+            this._bw.HEAPU32[
+                ( this._bw.getIScriptProgramDataAddress() + this.programCounter ) >> 2
+            ];
         const opc = p - 0x808091;
         return opc;
     }
@@ -59,5 +60,4 @@ export class IScriptBufferView
     get wait() {
         return this._bw.HEAP32[this._index32 + 4];
     }
-
 }

@@ -41,7 +41,7 @@ export const logBoth = ( message: string, level: LogLevel = "info" ) => {
     logServer( message, level );
 };
 
-export const logServer = async ( message: string, level: LogLevel = "info" ) => {
+export const logServer = ( message: string, level: LogLevel = "info" ) => {
     if ( !isActiveLevel( level ) ) {
         return;
     }
@@ -57,10 +57,13 @@ export const logClient = ( message: string, level: LogLevel = "info" ) => {
     if ( level === "error" ) {
         console.error( message );
     } else if ( level === "warn" ) {
+        // eslint-disable-next-line no-console
         console.warn( message );
     } else if ( level === "info" ) {
+        // eslint-disable-next-line no-console
         console.log( message );
-    } else if ( level === "debug" ) {
+    } else {
+        // eslint-disable-next-line no-console
         console.debug( message );
     }
 };
