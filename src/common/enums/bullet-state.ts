@@ -5,5 +5,5 @@ export enum BulletState {
     Bounce,
     DamageOverTime,
     Dying,
-    HitNearTarget
+    HitNearTarget,
 }

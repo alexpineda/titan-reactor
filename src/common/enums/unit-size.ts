@@ -1,6 +1,6 @@
 export enum unitSize {
-  Independent,
-  small,
-  medium,
-  large,
+    Independent,
+    small,
+    medium,
+    large,
 }

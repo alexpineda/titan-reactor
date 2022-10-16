@@ -3,7 +3,7 @@ import keyboardShortcut from "../command-center/leva-plugins/keyboard-shortcut";
 import directory from "../command-center/leva-plugins/directory";
 import { FieldDefinition } from "common/types";
 
-export const mapSingleConfigToLeva = (
+export const wrapFieldConfigWithChangeListener = (
     fieldConfig: FieldDefinition,
     onChange: ( value: unknown, key?: string ) => void,
     key?: string,
@@ -31,7 +31,7 @@ export const mapSingleConfigToLeva = (
 };
 
 interface AttachParams {
-    config: any;
+    config: unknown;
     onChange: ( value: any, key?: string ) => void;
     overwriteOnChange?: boolean;
     groupByFolder?: boolean;
@@ -54,7 +54,7 @@ export const attachOnChangeAndGroupByFolder = ( userOptions: AttachParams ) => {
             if ( config[k].hidden && !includeHidden ) {
                 continue;
             }
-            const obj = mapSingleConfigToLeva(
+            const obj = wrapFieldConfigWithChangeListener(
                 config[k],
                 onChange,
                 k,

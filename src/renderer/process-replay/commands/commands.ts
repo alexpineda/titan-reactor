@@ -1,6 +1,6 @@
 // @ts-nocheck
 
-import BufferList from "bl/BufferList";
+import BufferList from "bl";
 
 //lifted straight from jssuh
 export const CMDS = ( () => {

@@ -30,6 +30,5 @@ export enum UnitTypeFlags {
     fullAutoAttack,
     invincible,
     isMechanical,
-    producesUnits
+    producesUnits,
 }
-

@@ -11,23 +11,21 @@ import range from "common/utils/range";
 //     } tileMasks[1]; // [count]
 //   } tmsk_file;
 
-export const parseTMSK = (buffer: Buffer) => {
-    const count = buffer.readUInt16LE(6);
+export const parseTMSK = ( buffer: Buffer ) => {
+    const count = buffer.readUInt16LE( 6 );
 
     const map = new Map<number, number>();
 
     let pos = 8;
 
-    range(0, count).forEach(_ => {
-
-        const vr4id = buffer.readUInt16LE(pos);
-        const maskid = buffer.readUInt16LE(pos + 2);
+    range( 0, count ).forEach( ( _ ) => {
+        const vr4id = buffer.readUInt16LE( pos );
+        const maskid = buffer.readUInt16LE( pos + 2 );
 
         pos = pos + 4;
 
-        map.set(vr4id, maskid);
-
-    })
+        map.set( vr4id, maskid );
+    } );
 
     return map;
 };

@@ -8,30 +8,27 @@ export class WorldEventTrigger implements MacroTrigger {
     type = TriggerType.WorldEvent;
     eventName: string;
 
-    constructor(dto: WorldEventTriggerDTO = { eventName: "" }) {
+    constructor( dto: WorldEventTriggerDTO = { eventName: "" } ) {
         this.eventName = dto.eventName;
     }
 
     serialize(): WorldEventTriggerDTO {
         return {
             eventName: this.eventName,
-        }
+        };
     }
 
-    test(eventName: string) {
+    test( eventName: string ) {
         return eventName === this.eventName;
     }
 
-    static deserialize(dto: WorldEventTriggerDTO) {
-        return new WorldEventTrigger(dto);
+    static deserialize( dto: WorldEventTriggerDTO ) {
+        return new WorldEventTrigger( dto );
     }
 
     toString() {
         return this.eventName;
     }
 
-    get weight() {
-        return 0;
-    }
-
+    readonly weight = 0;
 }

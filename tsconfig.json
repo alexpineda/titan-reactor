@@ -19,7 +19,7 @@
         "forceConsistentCasingInFileNames": true,
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "noErrorTruncation": true,
-        "noUncheckedIndexedAccess": true,
+        "noUncheckedIndexedAccess": false,
 
         "noUnusedLocals": true,
         "noUnusedParameters": true,
@@ -56,10 +56,13 @@
             "@macros/*": ["renderer/macros/*"],
             "@macros": ["renderer/macros/index.ts"]
         },
-        "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
+        "typeRoots": [
+            "./src/common/types/declarations",
+            "./node_modules/@types",
+        ],
         "outDir": "generated",
         "resolveJsonModule": true,
-        "types": ["vite/client"]
+        "types": ["vite/client", "node", "jest", "offscreencanvas"]
     },
     "include": ["src/**/*"],
     "exclude": ["./node_modules/**/*", "generated", "dist", "release"]

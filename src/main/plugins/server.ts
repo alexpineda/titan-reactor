@@ -32,9 +32,9 @@ app.get( "*", async function ( req, res ) {
                 const icon = Number( req.query.iconPNG );
 
                 if ( _handle === null ) {
-                    _handle = await casclib.openStorage(
+                    _handle = ( await casclib.openStorage(
                         settings.get().directories.starcraft
-                    );
+                    ) ) as unknown;
                 }
                 const data = await casclib.readFile(
                     _handle,
@@ -57,7 +57,7 @@ app.get( "*", async function ( req, res ) {
             try {
                 req.headers;
                 const lastRevision = req.headers["X-LastRevision"];
-                if ( lastRevision === "" + settings.get().macros.revision ) {
+                if ( lastRevision === `${settings.get().macros.revision}` ) {
                     res.status( 304 ).send();
                     return;
                 }
@@ -148,7 +148,7 @@ app.get( "*", async function ( req, res ) {
             return res.sendStatus( 404 );
         }
 
-        if ( plugin && content ) {
+        if ( content ) {
             content = `
             import { _rc } from "titan-reactor/runtime";
             const registerComponent = (...args) => _rc("${plugin.id}", ...args);

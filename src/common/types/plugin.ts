@@ -58,8 +58,14 @@ export interface NativePlugin {
 
     init?: () => void;
 
-    /** injected values */
+    /**
+     * Reactive setting values that apply to the active session only.
+     */
     settings: SessionVariables;
+
+    /**
+     * World events that can be listened to and emitted.
+     */
     events: TypeEmitterProxy<WorldEvents>;
 
     /**

@@ -4,7 +4,7 @@ export class ManualTrigger implements MacroTrigger {
     type = TriggerType.None;
     readonly weight = 0;
 
-    async test() {
+    test() {
         return false;
     }
 
@@ -15,5 +15,4 @@ export class ManualTrigger implements MacroTrigger {
     static deserialize() {
         return new ManualTrigger();
     }
-
 }

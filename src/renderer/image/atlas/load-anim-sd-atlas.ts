@@ -1,17 +1,13 @@
-import {
-    DataTexture,
-    LuminanceFormat,
-    UnsignedByteType,
-} from "three";
+import { DataTexture, LuminanceFormat, UnsignedByteType } from "three";
 
 import { AnimDds, AnimFrame, ImageDAT, UnitTileScale } from "common/types";
 import { createDDSTexture, Grp } from "../formats";
 import { parseDDS } from "@image/formats/parse-dds";
 
-export const loadAnimSdAtlas = async ({
+export const loadAnimSdAtlas = async ( {
     readGrp,
     sdAnim: sprite,
-    imageDef
+    imageDef,
 }: {
     readGrp: () => Promise<Buffer>;
     sdAnim: {
@@ -20,22 +16,22 @@ export const loadAnimSdAtlas = async ({
         frames: AnimFrame[];
     };
     imageDef: ImageDAT;
-}) => {
-    const grp = new Grp(await readGrp());
+} ) => {
+    const grp = new Grp( await readGrp() );
     const { w, h } = grp.maxDimensions();
 
-    const getBuf = (map: AnimDds, offset = 0) =>
-        sprite.buf.slice(map.ddsOffset + offset, map.ddsOffset + map.size);
+    const getBuf = ( map: AnimDds, offset = 0 ) =>
+        sprite.buf.slice( map.ddsOffset + offset, map.ddsOffset + map.size );
 
-    const ddsBuf = getBuf(sprite.maps.diffuse);
-    const diffuse = await createDDSTexture(parseDDS(ddsBuf));
+    const ddsBuf = getBuf( sprite.maps.diffuse );
+    const diffuse = await createDDSTexture( parseDDS( ddsBuf ) );
 
     let teammask;
-    if (sprite.maps.teamcolor) {
-        const ddsBuf = getBuf(sprite.maps.teamcolor, 4);
+    if ( sprite.maps.teamcolor ) {
+        const ddsBuf = getBuf( sprite.maps.teamcolor, 4 );
 
         teammask = new DataTexture(
-            new Uint8Array(ddsBuf),
+            new Uint8Array( ddsBuf ),
             sprite.maps.teamcolor.width,
             sprite.maps.teamcolor.height,
             LuminanceFormat,
@@ -54,6 +50,6 @@ export const loadAnimSdAtlas = async ({
         spriteWidth: w,
         spriteHeight: h,
         unitTileScale: UnitTileScale.SD,
-        teammask
+        teammask,
     };
-}
+};

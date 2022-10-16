@@ -4,21 +4,25 @@ import { writeBlock } from "./blocks";
 import { uint32 } from "./util/alloc";
 import { LMTS, writeLMTS } from "./parse-scr-section";
 
-const writeReplay = async (rawHeader: Buffer, rawCmds: Buffer, chk: Buffer, limits: LMTS) => {
-  const bl = new BufferList();
+export const writeReplay = (
+    rawHeader: Buffer,
+    rawCmds: Buffer,
+    chk: Buffer,
+    limits: LMTS
+) => {
+    const bl = new BufferList();
 
-  await writeBlock(bl, uint32(HeaderMagicTitanReactor), false);
+    writeBlock( bl, uint32( HeaderMagicTitanReactor ), false );
 
-  await writeBlock(bl, writeLMTS(limits).slice(0), false);
+    writeBlock( bl, writeLMTS( limits ).slice( 0 ), false );
 
-  await writeBlock(bl, rawHeader, true);
+    writeBlock( bl, rawHeader, true );
 
-  await writeBlock(bl, uint32(rawCmds.length), false);
-  await writeBlock(bl, rawCmds, true);
+    writeBlock( bl, uint32( rawCmds.length ), false );
+    writeBlock( bl, rawCmds, true );
 
-  await writeBlock(bl, uint32(chk.byteLength), false);
-  await writeBlock(bl, chk, true);
+    writeBlock( bl, uint32( chk.byteLength ), false );
+    writeBlock( bl, chk, true );
 
-  return bl.slice(0);
+    return bl.slice( 0 );
 };
-export default writeReplay;

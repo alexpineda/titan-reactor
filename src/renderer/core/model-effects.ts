@@ -12,14 +12,12 @@ import { SpriteType } from "common/types";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
 import { ImageHDInstanced } from "./image-hd-instanced";
-import { spriteModelEffects as modelSetModifiers } from "./model-effects-configuration";
+import { modelSetModifiers } from "./model-effects-configuration";
 import { Unit } from "./unit";
 
-// @ts-expect-error
-if ( import.meta.hot ) {
-    // @ts-expect-error
-    import.meta.hot.accept( "./model-effects-configuration" );
-}
+// if ( import.meta.hot ) {
+//     import.meta.hot.accept( "./model-effects-configuration" );
+// }
 
 export const overlayEffectsMainImage: { image: Image3D | null } = { image: null };
 

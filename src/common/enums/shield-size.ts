@@ -1,6 +1,6 @@
 export enum shieldSize {
-  none,
-  small,
-  medium,
-  large,
+    none,
+    small,
+    medium,
+    large,
 }

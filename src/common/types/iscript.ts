@@ -1,12 +1,11 @@
-
 import { ImageDAT } from "./bwdat";
 
-export type IScriptProgram = {
-  id: number;
-  type: number;
-  offset: number;
-  offsets: number[];
-};
+export interface IScriptProgram {
+    id: number;
+    type: number;
+    offset: number;
+    offsets: number[];
+}
 
 export type opArgNone = [];
 export type opArgOne = [number];
@@ -87,82 +86,86 @@ type opGrdSprol = ["grdsprol", [number, number, number]];
 type opDoGrdDamage = ["dogrddamage", opArgNone];
 
 export type IScriptOperations =
-  | opGoto
-  | opPlayFrame
-  | opPlayframtile
-  | opSetHorPos
-  | opSetVertPos
-  | opSetPos
-  | opWait
-  | opWaitRand
-  | opSwitchUlt
-  | opSetFlSpeed
-  | opMove
-  | opPowerupCondJmp
-  | opSigOrder
-  | opOrderDone
-  | opSetSpawnFrame
-  | opUflUnstable
-  | op__0c
-  | op__2d
-  | op__3e
-  | op__43
-  | opImgol
-  | opImgul
-  | opImgolUselo
-  | opImgulUselo
-  | opSprol
-  | opHighSprol
-  | opLowSprul
-  | opSprulUselo
-  | opSprul
-  | opSprolUselo
-  | opImgOlOrig
-  | opSwitchUl
-  | opEnd
-  | opSetFlipState
-  | opPlaySnd
-  | opPlaySndRand
-  | opPlaySndBtwn
-  | opDoMissileDmg
-  | opAttackMelee
-  | opFollowMainGraphic
-  | opRandCondJmp
-  | opTurnCCWise
-  | opTurnCWise
-  | opTurn1CWise
-  | opTurnRand
-  | opAttackWith
-  | opAttack
-  | opCastSpell
-  | opUseWeapon
-  | opGotoRepeatAttk
-  | opEngFrame
-  | opEngSet
-  | opNoBrkCodeStart
-  | opNoBrkCodeEnd
-  | opIgnoreRest
-  | opTmprmGraphicStart
-  | opTmprmGraphicEnd
-  | opReturn
-  | opAttkShiftProj
-  | opSetFlDirect
-  | opCall
-  | opCreateGasOverlays
-  | opTargetRangeCondJmp
-  | opTargetArcCondJmp
-  | opCurDirectCondJump
-  | opImgulNextId
-  | opLiftOffCondJmp
-  | opWarpOverlay
-  | opGrdSprol
-  | opDoGrdDamage;
+    | opGoto
+    | opPlayFrame
+    | opPlayframtile
+    | opSetHorPos
+    | opSetVertPos
+    | opSetPos
+    | opWait
+    | opWaitRand
+    | opSwitchUlt
+    | opSetFlSpeed
+    | opMove
+    | opPowerupCondJmp
+    | opSigOrder
+    | opOrderDone
+    | opSetSpawnFrame
+    | opUflUnstable
+    | op__0c
+    | op__2d
+    | op__3e
+    | op__43
+    | opImgol
+    | opImgul
+    | opImgolUselo
+    | opImgulUselo
+    | opSprol
+    | opHighSprol
+    | opLowSprul
+    | opSprulUselo
+    | opSprul
+    | opSprolUselo
+    | opImgOlOrig
+    | opSwitchUl
+    | opEnd
+    | opSetFlipState
+    | opPlaySnd
+    | opPlaySndRand
+    | opPlaySndBtwn
+    | opDoMissileDmg
+    | opAttackMelee
+    | opFollowMainGraphic
+    | opRandCondJmp
+    | opTurnCCWise
+    | opTurnCWise
+    | opTurn1CWise
+    | opTurnRand
+    | opAttackWith
+    | opAttack
+    | opCastSpell
+    | opUseWeapon
+    | opGotoRepeatAttk
+    | opEngFrame
+    | opEngSet
+    | opNoBrkCodeStart
+    | opNoBrkCodeEnd
+    | opIgnoreRest
+    | opTmprmGraphicStart
+    | opTmprmGraphicEnd
+    | opReturn
+    | opAttkShiftProj
+    | opSetFlDirect
+    | opCall
+    | opCreateGasOverlays
+    | opTargetRangeCondJmp
+    | opTargetArcCondJmp
+    | opCurDirectCondJump
+    | opImgulNextId
+    | opLiftOffCondJmp
+    | opWarpOverlay
+    | opGrdSprol
+    | opDoGrdDamage;
 
 export type IScriptAnimation = IScriptOperations[];
 
-export type IScriptDATType = {
-  iscripts: Record<number, IScriptProgram>;
-  animations: Record<number, IScriptAnimation>;
-};
+export interface IScriptDATType {
+    iscripts: Record<number, IScriptProgram>;
+    animations: Record<number, IScriptAnimation>;
+}
 
-export type Block = { image: ImageDAT; offset: number; header: number };
+export interface Block {
+    image: ImageDAT;
+    offset: number;
+    header: number;
+}

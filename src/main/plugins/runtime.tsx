@@ -636,7 +636,7 @@ const PluginComponent = ( {
 };
 
 const orderSort = ( a: Component, b: Component ) => {
-    return a.order - b.order;
+    return a.order! - b.order!;
 };
 
 const App = ( { components }: { components: Component[] } ) => {

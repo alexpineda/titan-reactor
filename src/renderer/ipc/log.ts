@@ -7,64 +7,60 @@ type ErrorOrUnknown = Error | unknown;
 
 const logLevels = ["info", "warn", "error", "debug"];
 
-const isActiveLevel = (level: LogLevel): boolean => {
-
-  return logLevels.indexOf(level) <= logLevels.indexOf(settingsStore().data.utilities.logLevel);
-
-}
-
-export const log = {
-  error(msg: string | ErrorOrUnknown) {
-    if (typeof msg === "string") {
-      logBoth(msg, "error");
-    } else {
-      logBoth((msg as Error)?.message, "error");
-    }
-  },
-
-  warn(msg: string) {
-    logBoth(msg, "warn");
-  },
-
-  info(msg: string) {
-    logBoth(msg, "info");
-  },
-
-  debug(msg: string) {
-    logBoth(msg, "debug");
-  }
-
+const isActiveLevel = ( level: LogLevel ): boolean => {
+    return (
+        logLevels.indexOf( level ) <=
+        logLevels.indexOf( settingsStore().data.utilities.logLevel )
+    );
 };
 
-export const logBoth = (message: string, level: LogLevel = "info") => {
-  logClient(message, level);
-  logServer(message, level);
-}
+export const log = {
+    error( msg: string | ErrorOrUnknown ) {
+        if ( typeof msg === "string" ) {
+            logBoth( msg, "error" );
+        } else {
+            logBoth( ( msg as Error ).message, "error" );
+        }
+    },
 
-export const logServer = async (message: string, level: LogLevel = "info") => {
+    warn( msg: string ) {
+        logBoth( msg, "warn" );
+    },
 
-  if (isActiveLevel(level) === false) {
-    return;
-  }
+    info( msg: string ) {
+        logBoth( msg, "info" );
+    },
 
-  ipcRenderer.send(LOG_MESSAGE, { level, message });
+    debug( msg: string ) {
+        logBoth( msg, "debug" );
+    },
+};
 
-}
+export const logBoth = ( message: string, level: LogLevel = "info" ) => {
+    logClient( message, level );
+    logServer( message, level );
+};
 
-export const logClient = (message: string, level: LogLevel = "info") => {
+export const logServer = async ( message: string, level: LogLevel = "info" ) => {
+    if ( !isActiveLevel( level ) ) {
+        return;
+    }
 
-  if (isActiveLevel(level) === false) {
-    return;
-  }
+    ipcRenderer.send( LOG_MESSAGE, { level, message } );
+};
 
-  if (level === "error") {
-    console.error(message);
-  } else if (level === "warn") {
-    console.warn(message);
-  } else if (level === "info") {
-    console.log(message);
-  } else if (level === "debug") {
-    console.debug(message);
-  }
+export const logClient = ( message: string, level: LogLevel = "info" ) => {
+    if ( !isActiveLevel( level ) ) {
+        return;
+    }
 
-}
+    if ( level === "error" ) {
+        console.error( message );
+    } else if ( level === "warn" ) {
+        console.warn( message );
+    } else if ( level === "info" ) {
+        console.log( message );
+    } else if ( level === "debug" ) {
+        console.debug( message );
+    }
+};

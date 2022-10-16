@@ -12,46 +12,44 @@ export class ArrowKeyInput {
     #vector = new Vector2();
     #janitor: Janitor;
 
-    constructor(el: HTMLElement) {
+    constructor( el: HTMLElement ) {
         this.#el = el;
-        this.#janitor = new Janitor("ArrowKeyInput");
+        this.#janitor = new Janitor( "ArrowKeyInput" );
 
-        const keyDown = (e: KeyboardEvent) => {
-            if (this.#vector.y == 0) {
-                if (testKeys(e, keyForward)) {
+        const keyDown = ( e: KeyboardEvent ) => {
+            if ( this.#vector.y == 0 ) {
+                if ( testKeys( e, keyForward ) ) {
                     this.#vector.y = 1;
-                } else if (testKeys(e, keyBackward)) {
+                } else if ( testKeys( e, keyBackward ) ) {
                     this.#vector.y = -1;
                 }
             }
 
-            if (this.#vector.x == 0) {
-                if (testKeys(e, keyLeft)) {
+            if ( this.#vector.x == 0 ) {
+                if ( testKeys( e, keyLeft ) ) {
                     this.#vector.x = -1;
-                } else if (testKeys(e, keyRight)) {
+                } else if ( testKeys( e, keyRight ) ) {
                     this.#vector.x = 1;
                 }
             }
+        };
 
-        }
-
-        const keyUp = (e: KeyboardEvent) => {
-            if (testKeys(e, keyForward) || testKeys(e, keyBackward)) {
+        const keyUp = ( e: KeyboardEvent ) => {
+            if ( testKeys( e, keyForward ) || testKeys( e, keyBackward ) ) {
                 this.#vector.y = 0;
             }
 
-            if (testKeys(e, keyLeft) || testKeys(e, keyRight)) {
+            if ( testKeys( e, keyLeft ) || testKeys( e, keyRight ) ) {
                 this.#vector.x = 0;
             }
 
-            if (testKeys(e, keyLeft) || testKeys(e, keyRight)) {
+            if ( testKeys( e, keyLeft ) || testKeys( e, keyRight ) ) {
                 this.#vector.x = 0;
             }
+        };
 
-        }
-
-        this.#janitor.addEventListener(this.#el, "keydown", "keydown", keyDown);
-        this.#janitor.addEventListener(this.#el, "keyup", "keyup", keyUp);
+        this.#janitor.addEventListener( this.#el, "keydown", "keydown", keyDown );
+        this.#janitor.addEventListener( this.#el, "keyup", "keyup", keyUp );
     }
 
     get vector() {

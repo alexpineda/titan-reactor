@@ -3,10 +3,11 @@ import {
     NativePlugin,
     SceneInputHandler,
     FieldDefinition,
+    PluginPackage,
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
-import { PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE } from "./permissions";
+import { PERMISSION_REPLAY_COMMANDS, VALID_PERMISSIONS } from "./permissions";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
 import { mix } from "@utils/object-utils";
@@ -14,8 +15,6 @@ import { log } from "@ipc/log";
 import { PluginBase } from "./plugin-base";
 import { SceneController } from "./scene-controller";
 import lSet from "lodash.set";
-
-const VALID_PERMISSIONS = [PERMISSION_REPLAY_COMMANDS, PERMISSION_REPLAY_FILE];
 
 type PluginsConfigSnapshot = Record<
     string,
@@ -64,10 +63,9 @@ export class PluginSystemNative {
                         typeof Constructor === "function" &&
                         Constructor.prototype instanceof PluginBase
                     ) {
-                        /*
-                        eslint-disable-next-line  @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment 
-                        */
-                        plugin = new Constructor( pluginPackage );
+                        plugin = new ( Constructor as new (
+                            p: PluginPackage
+                        ) => PluginBase )( pluginPackage );
                     } else {
                         throw new Error( "Plugin constructor must extend PluginBase" );
                     }

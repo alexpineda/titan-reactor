@@ -129,5 +129,5 @@ export enum WeaponType {
     Unknown127,
     Unknown128,
     Unknown129,
-    None
+    None,
 }

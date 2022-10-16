@@ -1,5 +1,13 @@
-import { Vector2, MeshStandardMaterial, Mesh, ShaderChunk, MeshBasicMaterial, Shader, Vector4, Vector3 } from "three";
-
+import {
+    Vector2,
+    MeshStandardMaterial,
+    Mesh,
+    ShaderChunk,
+    MeshBasicMaterial,
+    Shader,
+    Vector4,
+    Vector3,
+} from "three";
 
 import { CreepTexture, WrappedQuartileTextures, GeometryOptions } from "common/types";
 
@@ -14,58 +22,71 @@ import gameStore from "@stores/game-store";
 import { getTerrainY } from "./get-terrain-y";
 import processStore from "@stores/process-store";
 
-if (module.hot) {
-    module.hot.accept();
-}
-
 export const createTerrainGeometryFromQuartiles = async (
     mapWidth: number,
     mapHeight: number,
     creepTexture: CreepTexture,
     creepEdgesTexture: CreepTexture,
     geomOptions: GeometryOptions,
-    { creepEdgesTexUniform, creepTexUniform /*, occlussionRoughnessMetallicMap*/, effectsTextures }: LookupTextures,
+    {
+        creepEdgesTexUniform,
+        creepTexUniform /*, occlussionRoughnessMetallicMap*/,
+        effectsTextures,
+    }: LookupTextures,
     { singleChannel, texture, displaceCanvas }: HeightMaps,
     mapTextures: WrappedQuartileTextures
 ) => {
-    const terrain = new Terrain(geomOptions, getTerrainY({
-        data: singleChannel, width: texture.image.width, height: texture.image.height
-    }, geomOptions.maxTerrainHeight, mapWidth, mapHeight), (anisotropy: number) => {
-        creepTexture.texture.anisotropy = anisotropy;
-        creepEdgesTexture.texture.anisotropy = anisotropy;
-    });
+    const terrain = new Terrain(
+        geomOptions,
+        getTerrainY(
+            {
+                data: singleChannel,
+                width: ( texture.image as ImageData ).width,
+                height: ( texture.image as ImageData ).height,
+            },
+            geomOptions.maxTerrainHeight,
+            mapWidth,
+            mapHeight
+        ),
+        ( anisotropy: number ) => {
+            creepTexture.texture.anisotropy = anisotropy;
+            creepEdgesTexture.texture.anisotropy = anisotropy;
+        }
+    );
 
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;
 
-    const genProcess = processStore().create("generate-geometry", qw * qh);
+    const genProcess = processStore().create( "generate-geometry", qw * qh );
 
     const tilesX = mapWidth / qw;
     const tilesY = mapHeight / qh;
 
-    let _uNormal1 = 0, _uNormal2 = 0, _uTick = 0;
+    let _uNormal1 = 0,
+        _uNormal2 = 0,
+        _uTick = 0;
 
     const waterNormal1 = {
-        value: effectsTextures.waterNormal1.slice(0, 2)
+        value: effectsTextures.waterNormal1.slice( 0, 2 ),
     };
 
     const waterNormal2 = {
-        value: effectsTextures.waterNormal2.slice(0, 2)
+        value: effectsTextures.waterNormal2.slice( 0, 2 ),
     };
 
     const uTime = {
-        value: 0
-    }
+        value: 0,
+    };
 
     const uResolution = {
-        value: new Vector2(window.innerWidth, window.innerHeight)
-    }
+        value: new Vector2( window.innerWidth, window.innerHeight ),
+    };
 
     // const displacementMap = new DataTexture(out, texture.image.width, texture.image.height, RedFormat);
     // displacementMap.needsUpdate = true;
 
-    for (let qy = 0; qy < tilesY; qy++) {
-        for (let qx = 0; qx < tilesX; qx++) {
+    for ( let qy = 0; qy < tilesY; qy++ ) {
+        for ( let qx = 0; qx < tilesX; qx++ ) {
             // const g =
             //     new PlaneBufferGeometry(qw,
             //         qh,
@@ -82,11 +103,11 @@ export const createTerrainGeometryFromQuartiles = async (
                 qw / mapWidth,
                 qh / mapHeight,
                 qx * qw * geomOptions.texPxPerTile,
-                qy * qh * geomOptions.texPxPerTile,
+                qy * qh * geomOptions.texPxPerTile
             );
             g.computeVertexNormals();
 
-            const standardMaterial = new MeshStandardMaterial({
+            const standardMaterial = new MeshStandardMaterial( {
                 map: mapTextures.mapQuartiles[qx][qy],
                 roughness: 1,
                 bumpMap: mapTextures.mapQuartiles[qx][qy],
@@ -95,26 +116,30 @@ export const createTerrainGeometryFromQuartiles = async (
                 // displacementMap: displacementMap,
                 // displacementScale: geomOptions.maxTerrainHeight,
                 // roughnessMap: occlussionRoughnessMetallicMap,
-                fog: false
+                fog: false,
+            } );
 
-            });
-
-            if (mapTextures.waterMaskQuartiles.length > 0) {
-                Object.assign(standardMaterial.defines, {
+            if ( mapTextures.waterMaskQuartiles.length > 0 ) {
+                Object.assign( standardMaterial.defines, {
                     USE_WATER_MASK: 1,
-                });
+                } );
             }
 
-            const basicMaterial = new MeshBasicMaterial({
+            const basicMaterial = new MeshBasicMaterial( {
                 map: mapTextures.mapQuartiles[qx][qy],
-            })
+            } );
 
-            const materialOnBeforeCompile = function (shader: Shader) {
+            const materialOnBeforeCompile = function ( shader: Shader ) {
                 let fs = shader.fragmentShader;
 
-                fs = fs.replace("#include <map_fragment>", hdMapFrag);
-                fs = fs.replace("#include <roughnessmap_fragment>", ShaderChunk.roughnessmap_fragment.replace("vUv", "qUv"));
-                fs = fs.replace("#include <normal_fragment_begin>", `
+                fs = fs.replace( "#include <map_fragment>", hdMapFrag );
+                fs = fs.replace(
+                    "#include <roughnessmap_fragment>",
+                    ShaderChunk.roughnessmap_fragment.replace( "vUv", "qUv" )
+                );
+                fs = fs.replace(
+                    "#include <normal_fragment_begin>",
+                    `
 
                     #include <normal_fragment_begin>
 
@@ -124,31 +149,42 @@ export const createTerrainGeometryFromQuartiles = async (
 
                     #endif
                 
-                `);
+                `
+                );
 
-                shader.fragmentShader = [hdHeaderFrag, fs].join("\n");
+                shader.fragmentShader = [hdHeaderFrag, fs].join( "\n" );
 
                 let vs = shader.vertexShader;
 
-                vs = vs.replace("#include <uv_vertex>", `
+                vs = vs.replace(
+                    "#include <uv_vertex>",
+                    `
 
                     ${ShaderChunk.uv_vertex}
 
                     qUv = vUv * quartileSize.xy + vec2(quartileSize.z, (1. - quartileSize.y) - quartileSize.w);`
-
                 );
 
-                vs = vs.replace("#include <displacementmap_vertex>", ShaderChunk.displacementmap_vertex.replace("vUv", "qUv"));
+                vs = vs.replace(
+                    "#include <displacementmap_vertex>",
+                    ShaderChunk.displacementmap_vertex.replace( "vUv", "qUv" )
+                );
 
-                vs = vs.replace("varying vec3 vViewPosition;", `
+                vs = vs.replace(
+                    "varying vec3 vViewPosition;",
+                    `
                     varying vec3 vViewPosition;
                     varying vec3 v_Position;
-                `);
+                `
+                );
 
-                vs = vs.replace("gl_Position = projectionMatrix * mvPosition;", `
+                vs = vs.replace(
+                    "gl_Position = projectionMatrix * mvPosition;",
+                    `
                     gl_Position = projectionMatrix * mvPosition;
                     v_Position = projectionMatrix * mvPosition;
-                `);
+                `
+                );
 
                 shader.vertexShader = `
 
@@ -160,27 +196,27 @@ export const createTerrainGeometryFromQuartiles = async (
                 shader.uniforms.quartileSize = {
                     value: new Vector4(
                         // normalized quartile size
-                        qw / mapWidth, qh / mapHeight,
+                        qw / mapWidth,
+                        qh / mapHeight,
                         // offsets
-                        (qw * qx) / mapWidth, (qh * qy) / mapHeight),
+                        ( qw * qx ) / mapWidth,
+                        ( qh * qy ) / mapHeight
+                    ),
                 };
 
                 shader.uniforms.tileUnit = {
-                    value: new Vector4(1 / qw, 1 / qh, mapWidth, mapHeight),
+                    value: new Vector4( 1 / qw, 1 / qh, mapWidth, mapHeight ),
                 };
 
                 shader.uniforms.mapToCreepResolution = {
                     value: new Vector3(
-                        qw / (creepTexture.count),
+                        qw / creepTexture.count,
                         qh / 1,
-                        qw / (creepEdgesTexture.count)
+                        qw / creepEdgesTexture.count
                     ),
                 };
                 shader.uniforms.creepResolution = {
-                    value: new Vector2(
-                        creepTexture.count,
-                        creepEdgesTexture.count
-                    )
+                    value: new Vector2( creepTexture.count, creepEdgesTexture.count ),
                 };
 
                 shader.uniforms.creepEdges = creepEdgesTexUniform;
@@ -193,19 +229,20 @@ export const createTerrainGeometryFromQuartiles = async (
                 };
 
                 shader.uniforms.waterMask = {
-                    value: mapTextures.waterMaskQuartiles.length ? mapTextures.waterMaskQuartiles[qx][qy] : null
+                    value: mapTextures.waterMaskQuartiles.length
+                        ? mapTextures.waterMaskQuartiles[qx][qy]
+                        : null,
                 };
 
                 shader.uniforms.waterNormal1 = waterNormal1;
                 shader.uniforms.waterNormal2 = waterNormal2;
                 shader.uniforms.uTime = uTime;
                 shader.uniforms.uResolution = uResolution;
-
             };
             standardMaterial.onBeforeCompile = materialOnBeforeCompile;
             basicMaterial.onBeforeCompile = materialOnBeforeCompile;
 
-            const terrainQuartile = new Mesh(g, standardMaterial);
+            const terrainQuartile = new Mesh( g, standardMaterial );
             terrainQuartile.castShadow = true;
             terrainQuartile.receiveShadow = true;
             terrainQuartile.userData = {
@@ -217,11 +254,11 @@ export const createTerrainGeometryFromQuartiles = async (
 
             terrainQuartile.position.set(
                 qx * qw + qw / 2 - mapWidth / 2,
-                -(qy * qh + qh / 2) + mapHeight / 2,
+                -( qy * qh + qh / 2 ) + mapHeight / 2,
                 0
             );
             terrainQuartile.name = `terrain-${qx}-${qy}`;
-            terrain.add(terrainQuartile);
+            terrain.add( terrainQuartile );
             genProcess.increment();
         }
     }
@@ -236,36 +273,43 @@ export const createTerrainGeometryFromQuartiles = async (
     terrain.visible = true;
     terrain.name = "TerrainHD";
     terrain.userData = {
-        quartileWidth: qw, quartileHeight: qh, tilesX, tilesY, update(delta: number) {
+        quartileWidth: qw,
+        quartileHeight: qh,
+        tilesX,
+        tilesY,
+        update( delta: number ) {
             _uTick += delta;
 
-            if (_uTick >= WATER_SPEED) {
-
+            if ( _uTick >= WATER_SPEED ) {
                 _uTick = _uTick - WATER_SPEED;
 
                 _uNormal1++;
 
-                if (_uNormal1 >= effectsTextures.waterNormal1.length) _uNormal1 = 0;
+                if ( _uNormal1 >= effectsTextures.waterNormal1.length ) _uNormal1 = 0;
 
                 _uNormal2++;
 
-                if (_uNormal2 >= effectsTextures.waterNormal2.length) _uNormal2 = 0;
-
+                if ( _uNormal2 >= effectsTextures.waterNormal2.length ) _uNormal2 = 0;
 
                 waterNormal1.value[0] = effectsTextures.waterNormal1[_uNormal1];
-                waterNormal1.value[1] = effectsTextures.waterNormal1[(_uNormal1 + 1) % effectsTextures.waterNormal1.length];
+                waterNormal1.value[1] =
+                    effectsTextures.waterNormal1[
+                        ( _uNormal1 + 1 ) % effectsTextures.waterNormal1.length
+                    ];
 
                 waterNormal2.value[0] = effectsTextures.waterNormal2[_uNormal2];
-                waterNormal2.value[1] = effectsTextures.waterNormal2[(_uNormal2 + 1) % effectsTextures.waterNormal2.length];
-
+                waterNormal2.value[1] =
+                    effectsTextures.waterNormal2[
+                        ( _uNormal2 + 1 ) % effectsTextures.waterNormal2.length
+                    ];
             }
 
             uTime.value += delta / WATER_SPEED;
 
             uResolution.value.x = window.innerWidth;
             uResolution.value.y = window.innerHeight;
-        }
-    }
+        },
+    };
 
     return terrain;
 };

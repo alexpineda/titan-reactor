@@ -13,57 +13,57 @@ import { mixer } from "@core/global";
 
 let _lastErrorMessage = "";
 
-const makeErrorScene = (errors: string[]) => {
-  if (errors.length) {
-    const message = errors.join(", ");
-    if (message !== _lastErrorMessage) {
-      log.error(message);
-      sceneStore().setError(new Error(message));
-      _lastErrorMessage = message;
+const makeErrorScene = ( errors: string[] ) => {
+    if ( errors.length ) {
+        const message = errors.join( ", " );
+        if ( message !== _lastErrorMessage ) {
+            log.error( message );
+            sceneStore().setError( new Error( message ) );
+            _lastErrorMessage = message;
+        }
+    } else {
+        sceneStore().clearError();
     }
-  } else {
-    sceneStore().clearError();
-  }
 };
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
-  root.render(<PreHomeScene />);
+    root.render( <PreHomeScene /> );
 
-  log.debug("Loading settings");
-  const settings = await settingsStore().load();
+    log.debug( "Loading settings" );
+    const settings = await settingsStore().load();
 
-  await waitForTruthy(() => {
-    makeErrorScene(settingsStore().errors);
-    return settingsStore().errors.length === 0;
-  });
+    await waitForTruthy( () => {
+        makeErrorScene( settingsStore().errors );
+        return settingsStore().errors.length === 0;
+    } );
 
-  await initializeAssets(settings.data.directories);
+    await initializeAssets( settings.data.directories );
 
-  log.debug("Loading intro");
-  await preloadIntro();
+    log.debug( "Loading intro" );
+    await preloadIntro();
 
-  mixer.setVolumes(settings.data.audio);
+    mixer.setVolumes( settings.data.audio );
 
-  const dropYourSocks = mixer.context.createBufferSource();
-  dropYourSocks.buffer = await mixer.loadAudioBuffer(
-    path.join(__static, "drop-your-socks.mp3")
-  );
+    const dropYourSocks = mixer.context.createBufferSource();
+    dropYourSocks.buffer = await mixer.loadAudioBuffer(
+        path.join( __static, "drop-your-socks.mp3" )
+    );
 
-  const _disconnect = mixer.connect(
-    dropYourSocks,
-    new Filter(mixer, "bandpass", 50).node,
-    mixer.intro
-  );
+    const _disconnect = mixer.connect(
+        dropYourSocks,
+        new Filter( mixer, "bandpass", 50 ).node,
+        mixer.intro
+    );
 
-  dropYourSocks.onended = () => _disconnect();
+    dropYourSocks.onended = () => _disconnect();
 
-  return {
-    id: "@loading",
-    start: async () => {
-      dropYourSocks.detune.setValueAtTime(-200, mixer.context.currentTime + 5);
-      dropYourSocks.start();
-      await waitForSeconds(1);
-    },
-    dispose: () => {},
-  };
+    return {
+        id: "@loading",
+        start: async () => {
+            dropYourSocks.detune.setValueAtTime( -200, mixer.context.currentTime + 5 );
+            dropYourSocks.start();
+            await waitForSeconds( 1 );
+        },
+        dispose: () => {},
+    };
 }

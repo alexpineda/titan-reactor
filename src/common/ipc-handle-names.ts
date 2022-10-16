@@ -24,7 +24,7 @@ export const SEND_BROWSER_WINDOW = "SEND_BROWSER_WINDOW";
 export const enum InvokeBrowserTarget {
     Game = "game",
     CommandCenter = "command-center",
-};
+}
 
 export const enum BrowserTargetPayloadType {
     PluginMacroMethodCatalog = "pluginMacroMethodCatalog",

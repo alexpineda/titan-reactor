@@ -6,8 +6,7 @@ import { LegacyGRP } from "..";
 export class CursorMaterial extends ShaderMaterial {
     #assets: Assets;
 
-    constructor(assets: Assets) {
-
+    constructor( assets: Assets ) {
         super();
 
         this.#assets = assets;
@@ -41,7 +40,6 @@ export class CursorMaterial extends ShaderMaterial {
             }
         `;
 
-
         this.fragmentShader = ` 
             uniform sampler2D uArrowTex;
             uniform vec2 uFrame;
@@ -53,20 +51,23 @@ export class CursorMaterial extends ShaderMaterial {
                 gl_FragColor = texture2D(uArrowTex, vUv / uFrame + vFrame);
             
             }
-        `
+        `;
 
         this.transparent = true;
-
     }
 
-    update(delta: number, mousePosition: { x: number, y: number }, selectionStatus: UnitSelectionStatus) {
+    update(
+        delta: number,
+        mousePosition: { x: number; y: number },
+        selectionStatus: UnitSelectionStatus
+    ) {
         this.uniforms.uTime.value += delta / 2;
 
-        this.uniforms.uCursorPosition.value.set(mousePosition.x, mousePosition.y);
+        this.uniforms.uCursorPosition.value.set( mousePosition.x, mousePosition.y );
 
-        if (selectionStatus === UnitSelectionStatus.Dragging) {
+        if ( selectionStatus === UnitSelectionStatus.Dragging ) {
             this.drag();
-        } else if (selectionStatus === UnitSelectionStatus.Hovering) {
+        } else if ( selectionStatus === UnitSelectionStatus.Hovering ) {
             this.hover();
         } else {
             this.pointer();
@@ -82,26 +83,28 @@ export class CursorMaterial extends ShaderMaterial {
         uGraphicOffset: { value: new Vector2() },
         uTime: { value: 0 },
         uCursorSize: { value: 1 },
-    }
+    };
 
-    #setCursor(cursor: LegacyGRP) {
-        if (cursor.texture !== this.uniforms.uArrowTex.value) {
+    #setCursor( cursor: LegacyGRP ) {
+        if ( cursor.texture !== this.uniforms.uArrowTex.value ) {
             this.uniforms.uArrowTex.value = cursor.texture;
-            this.uniforms.uArrowSize.value.set(cursor.texture.image.width, cursor.texture.image.height);
-            this.uniforms.uFrame.value.set(cursor.frames!.length!, 1);
+            this.uniforms.uArrowSize.value.set(
+                cursor.texture.image.width,
+                cursor.texture.image.height
+            );
+            this.uniforms.uFrame.value.set( cursor.frames!.length, 1 );
         }
     }
 
     pointer() {
-        this.#setCursor(this.#assets.arrowIconsGPU);
+        this.#setCursor( this.#assets.arrowIconsGPU );
     }
 
     hover() {
-        this.#setCursor(this.#assets.hoverIconsGPU);
+        this.#setCursor( this.#assets.hoverIconsGPU );
     }
 
     drag() {
-        this.#setCursor(this.#assets.dragIconsGPU);
+        this.#setCursor( this.#assets.dragIconsGPU );
     }
-
 }

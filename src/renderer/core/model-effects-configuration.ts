@@ -73,7 +73,7 @@ const spritesFlat = spriteRemnants
     ModelSetModifierFlatOnGround[]
 >;
 
-export const spriteModelEffects: ModelSetModifiers = {
+export const modelSetModifiers: ModelSetModifiers = {
     sprites: {
         ...spritesFlat,
     },

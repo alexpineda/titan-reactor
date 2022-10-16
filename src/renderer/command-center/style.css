@@ -3,7 +3,7 @@
 @import "https://unpkg.com/open-props/normalize.min.css";
 @import "https://unpkg.com/open-props/buttons.min.css";
 
-@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
 
 * {
     font-family: Roboto, sans-serif;

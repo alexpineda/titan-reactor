@@ -21,11 +21,9 @@ import { loadDatFilesRemote } from "@ipc/files";
 import { parseDDS } from "./formats/parse-dds";
 import { b2ba } from "@utils/bin-utils";
 
-//@ts-expect-error
-if ( import.meta.hot ) {
-    //@ts-expect-error
-    import.meta.hot.accept( "@core/model-effects-configuration" );
-}
+// if ( import.meta.hot ) {
+//     import.meta.hot.accept( "@core/model-effects-configuration" );
+// }
 
 const genFileName = ( i: number, prefix = "" ) =>
     `${prefix}anim/main_${`00${i}`.slice( -3 )}.anim`;
@@ -248,7 +246,7 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
             return this.getImageAtlas( imageId );
         },
         getImageAtlas( imageId: number ) {
-            return atlases[refId( imageId )] ;
+            return atlases[refId( imageId )];
         },
         loadImageAtlasAsync( imageId: number, bwDat: BwDAT ) {
             return loadImageAtlas( imageId, bwDat );

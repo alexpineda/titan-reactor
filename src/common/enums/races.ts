@@ -1,6 +1,6 @@
 export enum Race {
-  Zerg,
-  Terran,
-  Protoss,
-  None,
+    Zerg,
+    Terran,
+    Protoss,
+    None,
 }

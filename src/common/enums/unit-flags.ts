@@ -1,4 +1,3 @@
-
 // status_flag_completed = 1,
 // 		status_flag_grounded_building = 2,
 // 		status_flag_flying = 4,
@@ -34,15 +33,15 @@
 // 		status_flag_lifetime_expired = 0x80000000,
 
 export enum UnitFlags {
-  Completed = 1,
-  GroundedBuilding = 2,
-  Flying = 4,
-  Burrowed = 0x10,
-  InBunker = 0x20,
-  Loaded = 0x40,
-  Cloaked = 0x200,
-  PassivelyCloaked = 0x800,
-  CanTurn = 0x10000,
-  CanMove = 0x20000,
-  Gathering = 0x800000,
-};
+    Completed = 1,
+    GroundedBuilding = 2,
+    Flying = 4,
+    Burrowed = 0x10,
+    InBunker = 0x20,
+    Loaded = 0x40,
+    Cloaked = 0x200,
+    PassivelyCloaked = 0x800,
+    CanTurn = 0x10000,
+    CanMove = 0x20000,
+    Gathering = 0x800000,
+}

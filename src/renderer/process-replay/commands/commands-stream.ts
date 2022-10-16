@@ -1,4 +1,4 @@
-import BufferList from "bl/BufferList";
+import BufferList from "bl";
 import { commandLength } from "./commands";
 import bufToCommand from "./buf-to-cmd";
 import { bufToSCRCommand } from "./buf-to-cmd-scr";

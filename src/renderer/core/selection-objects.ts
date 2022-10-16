@@ -25,9 +25,7 @@ export class SelectionObject extends Group {
 
         this.add( this.#group2d, this.#circle3d );
 
-        //@ts-expect-error
         if ( import.meta.hot ) {
-            //@ts-expect-error
             import.meta.hot.accept( "./selection-circle-3d", ( module ) => {
                 if ( module && module.SelectionCircle3D ) {
                     this.remove( this.#circle3d );

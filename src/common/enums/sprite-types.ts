@@ -1022,5 +1022,5 @@ export const spriteTypes = {
     "corrosiveAcidHit": 513,
     "maelstromHit": 514,
     "uraj": 515,
-    "khalis": 516
-}
+    "khalis": 516,
+};

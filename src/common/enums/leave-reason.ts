@@ -4,5 +4,5 @@ export enum leaveReasons {
     victory,
     finished,
     draw,
-    dropped
+    dropped,
 }

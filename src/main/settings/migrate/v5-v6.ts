@@ -2,8 +2,8 @@ import { defaultSettingsV6 } from "common/default-settings";
 import { Settings } from "common/types";
 import { PreviousSettings } from ".";
 
-export const v5tov6 = (oldSettings: PreviousSettings): PreviousSettings => {
-    if (oldSettings.version != 5) {
+export const v5tov6 = ( oldSettings: PreviousSettings ): PreviousSettings => {
+    if ( oldSettings.version != 5 ) {
         return oldSettings;
     }
     const settings: Settings = {
@@ -19,4 +19,4 @@ export const v5tov6 = (oldSettings: PreviousSettings): PreviousSettings => {
     };
 
     return settings;
-}
+};

@@ -19,10 +19,6 @@ import { PluginButton } from "./plugin-button";
 import { ReplayQueue } from "./replay-queue";
 import semver from "semver";
 
-if ( module.hot ) {
-    module.hot.accept();
-}
-
 document.title = "Command Center";
 
 const s = document.createElement( "link" );
@@ -30,7 +26,7 @@ s.rel = "stylesheet";
 s.href = "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap";
 document.head.appendChild( s );
 
-const onChange = debounce( async ( pluginId: string, config: any ) => {
+const onChange = debounce( ( pluginId: string, config: unknown ) => {
     savePluginsConfig( pluginId, config );
     sendWindow( InvokeBrowserTarget.Game, {
         type: SendWindowActionType.PluginConfigChanged,

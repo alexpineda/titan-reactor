@@ -1,7 +1,7 @@
 export enum DamageType {
-  Independent,
-  Explosive,
-  Concussive,
-  Normal,
-  IgnoreArmor,
+    Independent,
+    Explosive,
+    Concussive,
+    Normal,
+    IgnoreArmor,
 }

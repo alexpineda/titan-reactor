@@ -50,6 +50,9 @@ export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
         try {
             const state = await loader( prevData );
             oldState?.beforeNext && oldState.beforeNext();
+            if ( window.gc ) {
+                window.gc();
+            }
             state.start( oldState?.id );
             set( { state } );
         } catch ( err: any ) {

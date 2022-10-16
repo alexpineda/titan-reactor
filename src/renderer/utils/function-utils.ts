@@ -1,6 +1,6 @@
 export const inverse =
-    ( fn: ( ...args: any[] ) => any ) =>
-    ( ...args: any[] ) =>
+    ( fn: ( ...args: unknown[] ) => any ) =>
+    ( ...args: unknown[] ) =>
         !fn( ...args );
 
 export const throttleFn = ( interval: number ) => {

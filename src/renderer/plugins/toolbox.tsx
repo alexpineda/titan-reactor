@@ -1,29 +1,29 @@
 import create from "zustand";
 
-export type ToolboxState = {
-  activeTool: string;
-  tools: string[];
-};
+export interface ToolboxState {
+    activeTool: string;
+    tools: string[];
+}
 
-export const useToolboxStore = create<ToolboxState>(() => ({
-  activeTool: "select",
-  tools: [],
-}));
+export const useToolboxStore = create<ToolboxState>( () => ( {
+    activeTool: "select",
+    tools: [],
+} ) );
 
-const Tool = ({ toolId, active }: { toolId: string; active: boolean }) => {
-  return <div style={{ color: active ? "red" : "black" }}>{toolId}</div>;
+const Tool = ( { toolId, active }: { toolId: string; active: boolean } ) => {
+    return <div style={{ color: active ? "red" : "black" }}>{toolId}</div>;
 };
 
 // default controls = scene controller, select units
 
 export const Toolbox = () => {
-  const { activeTool, tools } = useToolboxStore();
-  return (
-    <div>
-      <h1>Toolbox</h1>
-      {tools.map((tool) => (
-        <Tool active={activeTool === tool} toolId={tool} />
-      ))}
-    </div>
-  );
+    const { activeTool, tools } = useToolboxStore();
+    return (
+        <div>
+            <h1>Toolbox</h1>
+            {tools.map( ( tool ) => (
+                <Tool key={tool} active={activeTool === tool} toolId={tool} />
+            ) )}
+        </div>
+    );
 };

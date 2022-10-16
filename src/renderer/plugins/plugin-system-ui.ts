@@ -1,18 +1,33 @@
 import { Janitor } from "three-janitor";
 import { PluginMetaData, OpenBW } from "common/types";
 import { settingsStore } from "@stores/settings-store";
-import { useGameStore, useSceneStore, useReplayAndMapStore, SceneStore, ReplayAndMapStore } from "@stores";
+import {
+    useGameStore,
+    useSceneStore,
+    useReplayAndMapStore,
+    SceneStore,
+    ReplayAndMapStore,
+} from "@stores";
 
-import { UI_STATE_EVENT_DIMENSIONS_CHANGED, UI_SYSTEM_READY, UI_STATE_EVENT_ON_FRAME, UI_STATE_EVENT_SCREEN_CHANGED, UI_STATE_EVENT_WORLD_CHANGED, UI_STATE_EVENT_UNITS_SELECTED, UI_SYSTEM_RUNTIME_READY, UI_SYSTEM_PLUGIN_DISABLED, UI_SYSTEM_PLUGINS_ENABLED } from "./events";
+import {
+    UI_STATE_EVENT_DIMENSIONS_CHANGED,
+    UI_SYSTEM_READY,
+    UI_STATE_EVENT_ON_FRAME,
+    UI_STATE_EVENT_SCREEN_CHANGED,
+    UI_STATE_EVENT_WORLD_CHANGED,
+    UI_STATE_EVENT_UNITS_SELECTED,
+    UI_SYSTEM_RUNTIME_READY,
+    UI_SYSTEM_PLUGIN_DISABLED,
+    UI_SYSTEM_PLUGINS_ENABLED,
+} from "./events";
 import { waitForTruthy } from "@utils/wait-for";
 import { DumpedUnit, Unit } from "@core/unit";
 import { StdVector } from "../buffer-view/std-vector";
 import * as enums from "common/enums";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
-import { Assets } from "@image/assets";
 import { MinimapDimensions } from "@render/minimap-dimensions";
-import { normalizePluginConfiguration } from "@utils/function-utils"
+import { normalizePluginConfiguration } from "@utils/function-utils";
 
 // const createMeta = (id: string, url: string) => {
 //     const meta = document.createElement("meta");
@@ -28,97 +43,125 @@ import { normalizePluginConfiguration } from "@utils/function-utils"
 //     document.head.appendChild(meta);
 // }
 
-const screenChanged = (screen: SceneStore) => {
+const screenChanged = ( screen: SceneStore ) => {
     return {
         type: UI_STATE_EVENT_SCREEN_CHANGED,
         payload: {
             screen: screen.state?.id,
-            error: screen.error?.message
-        }
-    }
-}
+            error: screen.error?.message,
+        },
+    };
+};
 
-let _lastSend: { [key: string]: any } = {};
-const _makeReplayPosition = () => ({
+let _lastSend: Record<string, any> = {};
+const _makeReplayPosition = () => ( {
     frame: 0,
     playerData: new Int32Array(),
-    unitProduction: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
-    research: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
-    upgrades: [new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array, new Int32Array],
-})
+    unitProduction: [
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+    ],
+    research: [
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+    ],
+    upgrades: [
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+        new Int32Array(),
+    ],
+} );
 
 const _replayPosition = {
     type: UI_STATE_EVENT_ON_FRAME,
-    payload: _makeReplayPosition()
-}
+    payload: _makeReplayPosition(),
+};
 
-const worldPartial = (world: ReplayAndMapStore) => {
+const worldPartial = ( world: ReplayAndMapStore ) => {
     return {
-        map: world.map ? {
-            title: world.map.title,
-            description: world.map.description,
-            width: world.map.size[0],
-            height: world.map.size[1],
-            tileset: world.map.tileset,
-            tilesetName: world.map.tilesetName,
-        } : undefined,
-        replay: world.replay?.header
-    }
-}
+        map: world.map
+            ? {
+                  title: world.map.title,
+                  description: world.map.description,
+                  width: world.map.size[0],
+                  height: world.map.size[1],
+                  tileset: world.map.tileset,
+                  tilesetName: world.map.tilesetName,
+              }
+            : undefined,
+        replay: world.replay?.header,
+    };
+};
 const _selectedUnitMessage: {
     type: string;
-    payload: DumpedUnit[]
+    payload: DumpedUnit[];
 } = {
     type: UI_STATE_EVENT_UNITS_SELECTED,
-    payload: []
-}
+    payload: [],
+};
 
 const _productionTransferables: ArrayBufferLike[] = [];
 
-export type PluginStateMessage = {
-    language: string,
-    [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions,
-    [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>["payload"],
-    [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>,
-    [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeReplayPosition>,
-    [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage["payload"],
+export interface PluginStateMessage {
+    language: string;
+    [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions;
+    [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>["payload"];
+    [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>;
+    [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeReplayPosition>;
+    [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage["payload"];
 }
 
 //TODO: use external hooks for access to state changes
 export class PluginSystemUI {
-    #iframe: HTMLIFrameElement = document.createElement("iframe");
-    #janitor = new Janitor("PluginSystemUI");
+    #iframe: HTMLIFrameElement = document.createElement( "iframe" );
+    #janitor = new Janitor( "PluginSystemUI" );
     #isRunning = false;
-    #dumpUnit: (unit: Unit) => DumpedUnit;
+    #dumpUnit: ( unit: Unit ) => DumpedUnit;
 
     refresh: () => void;
 
     isRunning() {
-        if (this.#isRunning) {
-            return Promise.resolve(true);
+        if ( this.#isRunning ) {
+            return Promise.resolve( true );
         }
 
-        return new Promise(resolve => {
-            const _listener = (evt: MessageEvent) => {
-                if (evt.data?.type === UI_SYSTEM_RUNTIME_READY) {
+        return new Promise( ( resolve ) => {
+            const _listener = ( evt: MessageEvent ) => {
+                if ( evt.data?.type === UI_SYSTEM_RUNTIME_READY ) {
                     this.#isRunning = true;
-                    window.removeEventListener("message", _listener);
-                    resolve(true);
+                    window.removeEventListener( "message", _listener );
+                    resolve( true );
                 }
             };
 
-            window.addEventListener("message", _listener)
-        });
+            window.addEventListener( "message", _listener );
+        } );
     }
 
-    constructor(pluginPackages: PluginMetaData[], dumpUnitCall: (id: number) => any) {
-
-        this.#dumpUnit = (unit: Unit) => {
+    constructor( pluginPackages: PluginMetaData[], dumpUnitCall: ( id: number ) => any ) {
+        this.#dumpUnit = ( unit: Unit ) => {
             return {
                 ...unit,
-                ...dumpUnitCall(unit.id)
-            } as DumpedUnit
-        }
+                ...dumpUnitCall( unit.id ),
+            } as DumpedUnit;
+        };
 
         this.#iframe.style.backgroundColor = "transparent";
         this.#iframe.style.border = "none";
@@ -129,38 +172,44 @@ export class PluginSystemUI {
         this.#iframe.style.position = "absolute";
         this.#iframe.style.zIndex = "10";
         this.#iframe.style.userSelect = "none";
-        this.#iframe.sandbox.add("allow-scripts");
-        this.#iframe.sandbox.add("allow-downloads");
+        this.#iframe.sandbox.add( "allow-scripts" );
+        this.#iframe.sandbox.add( "allow-downloads" );
 
-        const initialStore = (): PluginStateMessage => ({
+        const initialStore = (): PluginStateMessage => ( {
             language: settingsStore().data.language,
             [UI_STATE_EVENT_DIMENSIONS_CHANGED]: useGameStore.getState().dimensions,
-            [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged(useSceneStore.getState()).payload,
-            [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(useReplayAndMapStore.getState()),
+            [UI_STATE_EVENT_SCREEN_CHANGED]: screenChanged( useSceneStore.getState() )
+                .payload,
+            [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(
+                useReplayAndMapStore.getState()
+            ),
             [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
             [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage.payload,
-        })
+        } );
 
-        const setInteractivity = (interactive: boolean) => {
+        const setInteractivity = ( interactive: boolean ) => {
             this.#iframe.style.pointerEvents = interactive ? "auto" : "none";
-        }
+        };
 
         let iframeLoaded = false;
         this.#iframe.onload = async () => {
-            if (iframeLoaded) {
+            if ( iframeLoaded ) {
                 iframeLoaded = false;
                 this.refresh();
                 return;
             }
             iframeLoaded = true;
 
-            setInteractivity(false)
+            setInteractivity( false );
 
-            await waitForTruthy<Assets>(() => gameStore().assets?.remaining === 0);
+            await waitForTruthy( () => gameStore().assets?.remaining === 0 );
             const assets = gameStore().assets!;
 
             const payload = {
-                plugins: pluginPackages.map(plugin => ({ ...plugin, config: normalizePluginConfiguration(plugin.config ?? {}) })),
+                plugins: pluginPackages.map( ( plugin ) => ( {
+                    ...plugin,
+                    config: normalizePluginConfiguration( plugin.config ?? {} ),
+                } ) ),
                 initialStore: initialStore(),
                 assets: {
                     bwDat: assets.bwDat,
@@ -168,84 +217,93 @@ export class PluginSystemUI {
                     cmdIcons: assets.cmdIcons,
                     raceInsetIcons: assets.raceInsetIcons,
                     workerIcons: assets.workerIcons,
-                    wireframeIcons: assets.wireframeIcons
+                    wireframeIcons: assets.wireframeIcons,
                 },
                 enums: { ...enums },
-            }
+            };
 
-            this.#iframe.contentWindow?.postMessage({
-                type: UI_SYSTEM_READY,
-                payload
-            }, "*");
-
+            this.#iframe.contentWindow?.postMessage(
+                {
+                    type: UI_SYSTEM_READY,
+                    payload,
+                },
+                "*"
+            );
         };
-
 
         this.refresh = () => {
             const settings = settingsStore().data;
 
             // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
-        }
+        };
 
-        this.#janitor.mop(useGameStore.subscribe((game, prev) => {
-            if (game.dimensions !== prev.dimensions) {
-                this.sendMessage({
-                    type: UI_STATE_EVENT_DIMENSIONS_CHANGED,
-                    payload: game.dimensions
-                });
-            }
-        }), "dimensions");
+        this.#janitor.mop(
+            useGameStore.subscribe( ( game, prev ) => {
+                if ( game.dimensions !== prev.dimensions ) {
+                    this.sendMessage( {
+                        type: UI_STATE_EVENT_DIMENSIONS_CHANGED,
+                        payload: game.dimensions,
+                    } );
+                }
+            } ),
+            "dimensions"
+        );
 
-        this.#janitor.mop(useSceneStore.subscribe((screen) => {
-            this.sendMessage(screenChanged(screen));
-        }), "screen");
+        this.#janitor.mop(
+            useSceneStore.subscribe( ( screen ) => {
+                this.sendMessage( screenChanged( screen ) );
+            } ),
+            "screen"
+        );
 
-        this.#janitor.mop(useReplayAndMapStore.subscribe((world) => {
-            this.sendMessage({
-                type: UI_STATE_EVENT_WORLD_CHANGED,
-                payload: worldPartial(world)
-            });
-        }), "world");
+        this.#janitor.mop(
+            useReplayAndMapStore.subscribe( ( world ) => {
+                this.sendMessage( {
+                    type: UI_STATE_EVENT_WORLD_CHANGED,
+                    payload: worldPartial( world ),
+                } );
+            } ),
+            "world"
+        );
 
         this.refresh();
 
-        document.body.appendChild(this.#iframe);
-        this.#janitor.mop(() => document.body.removeChild(this.#iframe), "iframe");
-
+        document.body.appendChild( this.#iframe );
+        this.#janitor.mop( () => document.body.removeChild( this.#iframe ), "iframe" );
     }
 
-    #unitsToUnitsPayload = (units: Unit[]): Unit[] | DumpedUnit[] => {
-        if (units.length === 1) {
-            return units.map(this.#dumpUnit);
+    #unitsToUnitsPayload = ( units: Unit[] ): Unit[] | DumpedUnit[] => {
+        if ( units.length === 1 ) {
+            return units.map( this.#dumpUnit );
         } else {
             return units;
         }
-    }
+    };
 
-    onUnitsSelected(units: Unit[]) {
-        this.sendMessage({
+    onUnitsSelected( units: Unit[] ) {
+        this.sendMessage( {
             type: UI_STATE_EVENT_UNITS_SELECTED,
-            payload: this.#unitsToUnitsPayload(units)
-        });
+            payload: this.#unitsToUnitsPayload( units ),
+        } );
     }
 
-    sendMessage(message: any, transfer?: Transferable[]) {
-        this.#iframe.contentWindow?.postMessage(message, "*", transfer);
+    sendMessage( message: any, transfer?: Transferable[] ) {
+        this.#iframe.contentWindow?.postMessage( message, "*", transfer );
     }
 
-    disablePlugin(id: string) {
-        this.sendMessage({
+    disablePlugin( id: string ) {
+        this.sendMessage( {
             type: UI_SYSTEM_PLUGIN_DISABLED,
-            payload: id
-        });
+            payload: id,
+        } );
     }
 
-    enablePlugins(plugins: PluginMetaData[]) {
-        this.sendMessage({
+    enablePlugins( plugins: PluginMetaData[] ) {
+        this.sendMessage( {
             type: UI_SYSTEM_PLUGINS_ENABLED,
-            payload: plugins
-        });
+            payload: plugins,
+        } );
     }
 
     dispose() {
@@ -254,60 +312,77 @@ export class PluginSystemUI {
     }
 
     reset() {
-        _lastSend = {}
+        _lastSend = {};
         _replayPosition.payload = _makeReplayPosition();
         _selectedUnitMessage.payload = [];
     }
 
-    onFrame(openBW: OpenBW, currentFrame: number, playerDataAddr: number, productionDataAddr: number, selectedUnits: Unit[]) {
-
-        const time = getSecond(currentFrame);
+    onFrame(
+        openBW: OpenBW,
+        currentFrame: number,
+        playerDataAddr: number,
+        productionDataAddr: number,
+        selectedUnits: Unit[]
+    ) {
+        const time = getSecond( currentFrame );
 
         // update the ui every game second
-        if (_lastSend[UI_STATE_EVENT_ON_FRAME] !== time) {
+        if ( _lastSend[UI_STATE_EVENT_ON_FRAME] !== time ) {
             _lastSend[UI_STATE_EVENT_ON_FRAME] = time;
 
             // minerals, gas, supply, supply_max, worker_supply, army_supply, apm
-            const playerData = openBW.HEAP32.slice((playerDataAddr >> 2), (playerDataAddr >> 2) + (7 * 8));
+            const playerData = openBW.HEAP32.slice(
+                playerDataAddr >> 2,
+                ( playerDataAddr >> 2 ) + 7 * 8
+            );
 
-            // production data is 8 arrays (players) of 3 vectors (unit, upgrades, research), 
+            // production data is 8 arrays (players) of 3 vectors (unit, upgrades, research),
             // each vector is first stored as 3 ints (addresses)
             // so we first read units via copyData(), then increment to the next vector, and then read the upgrades via copyData() and so on.
             // unit = id, count, progress
             // upgrades = id, level, progress
             // research = id, progress
 
-            const productionData = new StdVector(openBW.HEAP32, productionDataAddr);
+            const productionData = new StdVector( openBW.HEAP32, productionDataAddr );
 
             _productionTransferables.length = 0;
-            _productionTransferables.push(playerData.buffer);
+            _productionTransferables.push( playerData.buffer );
 
             //TODO: perhaps a more readable abstraction would benefit here
-            for (let player = 0; player < 8; player++) {
-                _replayPosition.payload.unitProduction[player] = productionData.copyData();
-                _productionTransferables.push(_replayPosition.payload.unitProduction[player].buffer);
+            for ( let player = 0; player < 8; player++ ) {
+                _replayPosition.payload.unitProduction[player] =
+                    productionData.copyData();
+                _productionTransferables.push(
+                    _replayPosition.payload.unitProduction[player]!.buffer
+                );
                 productionData.address += 3;
                 _replayPosition.payload.upgrades[player] = productionData.copyData();
-                _productionTransferables.push(_replayPosition.payload.upgrades[player].buffer);
+                _productionTransferables.push(
+                    _replayPosition.payload.upgrades[player]!.buffer
+                );
                 productionData.address += 3;
                 _replayPosition.payload.research[player] = productionData.copyData();
-                _productionTransferables.push(_replayPosition.payload.research[player].buffer);
+                _productionTransferables.push(
+                    _replayPosition.payload.research[player]!.buffer
+                );
                 productionData.address += 3;
             }
 
             _replayPosition.payload.frame = currentFrame;
             _replayPosition.payload.playerData = playerData;
 
-            this.sendMessage(_replayPosition, _productionTransferables);
+            this.sendMessage( _replayPosition, _productionTransferables );
 
             // in this case only change if the empty state has changed
-            if (_lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 || selectedUnits.length > 0) {
+            if (
+                _lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 ||
+                selectedUnits.length > 0
+            ) {
                 //TODO move this out to supply to native as well
-                _selectedUnitMessage.payload = this.#unitsToUnitsPayload(selectedUnits);
-                this.sendMessage(_selectedUnitMessage);
+                _selectedUnitMessage.payload = this.#unitsToUnitsPayload( selectedUnits );
+                this.sendMessage( _selectedUnitMessage );
                 _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = selectedUnits.length;
             }
-
         }
     }
 }

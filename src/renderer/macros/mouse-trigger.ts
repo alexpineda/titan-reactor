@@ -6,7 +6,7 @@ export class MouseTriggerValue {
     shiftKey = false;
     button = 0;
 
-    test(e: MouseTriggerDTO) {
+    test( e: MouseTriggerDTO ) {
         return (
             this.ctrlKey === e.ctrlKey &&
             this.altKey === e.altKey &&
@@ -15,7 +15,7 @@ export class MouseTriggerValue {
         );
     }
 
-    copy(dto: MouseTriggerDTO) {
+    copy( dto: MouseTriggerDTO ) {
         this.ctrlKey = dto.ctrlKey;
         this.altKey = dto.altKey;
         this.shiftKey = dto.shiftKey;
@@ -42,9 +42,7 @@ export class MouseTrigger implements MacroTrigger {
             button: 0,
         }
     ) {
-        if (dto) {
-            this.copy(dto);
-        }
+        this.copy( dto );
     }
 
     serialize(): MouseTriggerDTO {
@@ -56,8 +54,8 @@ export class MouseTrigger implements MacroTrigger {
         };
     }
 
-    static deserialize(dto: MouseTriggerDTO) {
-        return new MouseTrigger().copy(dto);
+    static deserialize( dto: MouseTriggerDTO ) {
+        return new MouseTrigger().copy( dto );
     }
 
     stringify() {
@@ -69,16 +67,14 @@ export class MouseTrigger implements MacroTrigger {
             ...ctrlKey,
             ...altKey,
             `Button${this.value.button}`,
-        ].join("+");
+        ].join( "+" );
         return v;
     }
 
-    copy(dto: MouseTriggerDTO) {
-        this.value.copy(dto);
+    copy( dto: MouseTriggerDTO ) {
+        this.value.copy( dto );
         return this;
     }
 
-    get weight() {
-        return 0;
-    }
+    readonly weight = 0;
 }

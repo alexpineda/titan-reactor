@@ -10,15 +10,15 @@ import { UpgradeDAT } from "./upgrades-dat";
 import { WeaponDAT } from "./weapons-dat";
 
 export interface BwDAT {
-  iscript: IScriptDATType;
-  sounds: SoundDAT[];
-  tech: TechDataDAT[];
-  upgrades: UpgradeDAT[];
-  orders: OrderDAT[];
-  units: UnitDAT[];
-  images: ImageDAT[];
-  los: LoDAT[];
-  sprites: SpriteDAT[];
-  weapons: WeaponDAT[];
-  grps: GrpSprite[];
+    iscript: IScriptDATType;
+    sounds: SoundDAT[];
+    tech: TechDataDAT[];
+    upgrades: UpgradeDAT[];
+    orders: OrderDAT[];
+    units: UnitDAT[];
+    images: ImageDAT[];
+    los: LoDAT[];
+    sprites: SpriteDAT[];
+    weapons: WeaponDAT[];
+    grps: GrpSprite[];
 }

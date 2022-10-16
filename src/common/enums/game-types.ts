@@ -12,5 +12,5 @@ export enum GameTypes {
     TeamMelee,
     TeamCTF,
     TVB = 15,
-    IronManLadder
+    IronManLadder,
 }

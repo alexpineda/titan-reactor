@@ -1,74 +1,95 @@
-import { FieldDefinition, PluginMetaData, SessionSettingsData, SettingsMeta } from "common/types";
+import {
+    FieldDefinition,
+    PluginMetaData,
+    SessionSettingsData,
+    SettingsMeta,
+} from "common/types";
 import lSet from "lodash.set";
 
 export const generateAppSettingsFromLevaFormat = (
     settings: Record<string, { value: any }>
 ) => {
-
-    return Object.entries(settings).reduce((memo, [key, item]) => {
-        lSet(memo, key.split("."), item.value);
+    return Object.entries( settings ).reduce<Record<string, any>>( ( memo, [key, item] ) => {
+        lSet( memo, key.split( "." ), item.value );
         return memo;
-    }, {} as Record<string, any>);
-
+    }, {} );
 };
 
 export const getAppSettingsPropertyInLevaFormat = (
-    settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], fields: string[]
+    settings: SettingsMeta["data"],
+    plugins: SettingsMeta["enabledPlugins"],
+    fields: string[]
 ): FieldDefinition | undefined => {
-
-    if ([":app", ":plugin", ":function", ":macro"].includes(fields[0])) {
-        console.error("YOU ARE USING ROOT KEYS", fields);
+    if ( [":app", ":plugin", ":function", ":macro"].includes( fields[0] ) ) {
+        console.error( "YOU ARE USING ROOT KEYS", fields );
         return undefined;
     }
-    const config = getAppSettingsInLevaFormat(settings, plugins);
-    return config[fields.join(".") as keyof typeof config];
-
+    const config = getAppSettingsInLevaFormat( settings, plugins );
+    return config[fields.join( "." ) as keyof typeof config];
 };
 
-export const getAppSettingsInLevaFormat = (settings: SettingsMeta["data"], plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxPixelRatio = 1, maxAntiAlias = 1) => ({
-
-    ...getDirectoryConfig(settings.directories),
-    ...getGraphicsConfig(settings.graphics, maxPixelRatio),
-    ...getUtilConfig(settings.utilities),
-    ...getSessionSettingsInLevaFormat(settings, plugins, maxAnisotropy, maxAntiAlias)
-
-});
+export const getAppSettingsInLevaFormat = (
+    settings: SettingsMeta["data"],
+    plugins: SettingsMeta["enabledPlugins"],
+    maxAnisotropy = 2,
+    maxPixelRatio = 1,
+    maxAntiAlias = 1
+) => ( {
+    ...getDirectoryConfig( settings.directories ),
+    ...getGraphicsConfig( settings.graphics, maxPixelRatio ),
+    ...getUtilConfig( settings.utilities ),
+    ...getSessionSettingsInLevaFormat( settings, plugins, maxAnisotropy, maxAntiAlias ),
+} );
 
 export const getSessionSettingsPropertyInLevaFormat = (
-    settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], fields: string[]
+    settings: SessionSettingsData,
+    plugins: SettingsMeta["enabledPlugins"],
+    fields: string[]
 ): FieldDefinition | undefined => {
-    if ([":app", ":plugin", ":function", ":macro"].includes(fields[0])) {
-        console.error("YOU ARE USING ROOT KEYS", fields);
+    if ( [":app", ":plugin", ":function", ":macro"].includes( fields[0] ) ) {
+        console.error( "YOU ARE USING ROOT KEYS", fields );
         return undefined;
     }
-    const config = getSessionSettingsInLevaFormat(settings, plugins);
-    return config[fields.join(".") as keyof typeof config];
+    const config = getSessionSettingsInLevaFormat( settings, plugins );
+    return config[fields.join( "." ) as keyof typeof config];
 };
 
-export const getSessionSettingsInLevaFormat = (settings: SessionSettingsData, plugins: SettingsMeta["enabledPlugins"], maxAnisotropy = 2, maxAntiAlias = 1) => ({
-    ...getGlobalConfig(settings.session),
-    ...getAudioConfig(settings.audio),
-    ...getMinimapConfig(settings.minimap),
-    ...getInputConfig(settings.input, plugins.filter((p) => p.isSceneController)),
-    ...getPostProcessingConfig(settings.postprocessing, maxAnisotropy, maxAntiAlias),
-    ...getPostProcessing3DConfig(settings.postprocessing3d, maxAnisotropy, maxAntiAlias),
-});
+export const getSessionSettingsInLevaFormat = (
+    settings: SessionSettingsData,
+    plugins: SettingsMeta["enabledPlugins"],
+    maxAnisotropy = 2,
+    maxAntiAlias = 1
+) => ( {
+    ...getGlobalConfig( settings.session ),
+    ...getAudioConfig( settings.audio ),
+    ...getMinimapConfig( settings.minimap ),
+    ...getInputConfig(
+        settings.input,
+        plugins.filter( ( p ) => p.isSceneController )
+    ),
+    ...getPostProcessingConfig( settings.postprocessing, maxAnisotropy, maxAntiAlias ),
+    ...getPostProcessing3DConfig(
+        settings.postprocessing3d,
+        maxAnisotropy,
+        maxAntiAlias
+    ),
+} );
 
 type GlobalConfig = {
     [key in `session.${string}`]: any;
-}
+};
 
-const getGlobalConfig = (config: SettingsMeta["data"]["session"]): GlobalConfig => ({
+const getGlobalConfig = ( config: SettingsMeta["data"]["session"] ): GlobalConfig => ( {
     "session.type": {
         label: "SessionType",
         value: config.type,
         options: {
-            "Replay": "replay",
-            "Map": "map",
-            "Live": "live",
+            Replay: "replay",
+            Map: "map",
+            Live: "live",
         },
         hidden: true,
-        conditionOnly: true
+        conditionOnly: true,
     },
     "session.sandbox": {
         label: "Sandbox Game Mode",
@@ -81,16 +102,18 @@ const getGlobalConfig = (config: SettingsMeta["data"]["session"]): GlobalConfig 
         min: 0,
         max: 1,
         step: 0.01,
-        hidden: true
-    }
-});
+        hidden: true,
+    },
+} );
 
 type GraphicsConfig = {
     [key in `graphics.${string}`]: any;
-}
+};
 
-const getGraphicsConfig = (graphics: SettingsMeta["data"]["graphics"], maxPixelRatio = 1): GraphicsConfig => ({
-
+const getGraphicsConfig = (
+    graphics: SettingsMeta["data"]["graphics"],
+    maxPixelRatio = 1
+): GraphicsConfig => ( {
     "graphics.pixelRatio": {
         label: "Pixel Ratio",
         value: graphics.pixelRatio,
@@ -105,7 +128,7 @@ const getGraphicsConfig = (graphics: SettingsMeta["data"]["graphics"], maxPixelR
             "As Mipmap (Highest Quality)": "auto",
             "Never. Only HD.": "ignore",
             "Exclusively (Lower Memory)": "force",
-        }
+        },
     },
     "graphics.preload": {
         label: "Preload Assets",
@@ -116,15 +139,15 @@ const getGraphicsConfig = (graphics: SettingsMeta["data"]["graphics"], maxPixelR
         value: graphics.cursorSize,
         min: 0.5,
         max: 4,
-        step: 0.5
-    }
-});
+        step: 0.5,
+    },
+} );
 
 type UtilConfig = {
     [key in `utilities.${keyof SettingsMeta["data"]["utilities"]}`]?: any;
-}
+};
 
-const getUtilConfig = (util: SettingsMeta["data"]["utilities"]): UtilConfig => ({
+const getUtilConfig = ( util: SettingsMeta["data"]["utilities"] ): UtilConfig => ( {
     "utilities.sanityCheckReplayCommands": {
         label: "Sanity Check Replay Commands (and rewrite command buffer overflows)",
         value: util.sanityCheckReplayCommands,
@@ -138,7 +161,7 @@ const getUtilConfig = (util: SettingsMeta["data"]["utilities"]): UtilConfig => (
         value: util.detectMeleeObserversThreshold,
         min: 1000,
         max: 50000,
-        step: 1000
+        step: 1000,
     },
     "utilities.alertDesynced": {
         label: "Detect Desynced Replay Before Start",
@@ -149,14 +172,16 @@ const getUtilConfig = (util: SettingsMeta["data"]["utilities"]): UtilConfig => (
         value: util.alertDesyncedThreshold,
         min: 10,
         max: 100,
-    }
-});
+    },
+} );
 
 type DirectoryConfig = {
     [key in `directories.${keyof SettingsMeta["data"]["directories"]}`]?: any;
-}
+};
 
-const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]): DirectoryConfig => ({
+const getDirectoryConfig = (
+    directories: SettingsMeta["data"]["directories"]
+): DirectoryConfig => ( {
     "directories.starcraft": {
         label: "Starcraft",
         value: directories.starcraft,
@@ -177,13 +202,13 @@ const getDirectoryConfig = (directories: SettingsMeta["data"]["directories"]): D
         value: directories.assets,
         type: "directory",
     },
-});
+} );
 
 type MinimapConfig = {
     [key in `minimap.${keyof SettingsMeta["data"]["minimap"]}`]?: any;
-}
+};
 
-const getMinimapConfig = (minimap: SettingsMeta["data"]["minimap"]): MinimapConfig => ({
+const getMinimapConfig = ( minimap: SettingsMeta["data"]["minimap"] ): MinimapConfig => ( {
     "minimap.enabled": {
         label: "Minimap Visible",
         value: minimap.enabled,
@@ -202,7 +227,7 @@ const getMinimapConfig = (minimap: SettingsMeta["data"]["minimap"]): MinimapConf
         options: {
             "2D (Ortho)": "2d",
             "3D": "3d",
-        }
+        },
     },
     "minimap.scale": {
         label: "Minimap Size % Height",
@@ -226,21 +251,25 @@ const getMinimapConfig = (minimap: SettingsMeta["data"]["minimap"]): MinimapConf
         value: minimap.opacity,
         min: 0,
         max: 1,
-        step: 0.1
+        step: 0.1,
     },
-
-});
+} );
 
 type InputConfig = {
     [key in `input.${keyof SettingsMeta["data"]["input"]}`]?: any;
-}
+};
 
-const getInputConfig = (input: SettingsMeta["data"]["input"], sceneControllers: PluginMetaData[]): InputConfig => ({
+const getInputConfig = (
+    input: SettingsMeta["data"]["input"],
+    sceneControllers: PluginMetaData[]
+): InputConfig => ( {
     "input.sceneController": {
         label: "Scene Controller (Default)",
         value: input.sceneController,
-        options: sceneControllers
-            .reduce((m, p) => ({ ...m, [p.description ?? p.name]: p.name }), {}),
+        options: sceneControllers.reduce(
+            ( m, p ) => ( { ...m, [p.description ?? p.name]: p.name } ),
+            {}
+        ),
     },
     "input.dampingFactor": {
         label: "Camera Movement Damping",
@@ -267,13 +296,13 @@ const getInputConfig = (input: SettingsMeta["data"]["input"], sceneControllers: 
         min: 0,
         max: 1,
     },
-});
+} );
 
 type AudioConfig = {
     [key in `audio.${keyof SettingsMeta["data"]["audio"]}`]?: any;
-}
+};
 
-const getAudioConfig = (audio: SettingsMeta["data"]["audio"]): AudioConfig => ({
+const getAudioConfig = ( audio: SettingsMeta["data"]["audio"] ): AudioConfig => ( {
     "audio.global": {
         label: "Global Volume",
         value: audio.global,
@@ -298,15 +327,18 @@ const getAudioConfig = (audio: SettingsMeta["data"]["audio"]): AudioConfig => ({
     "audio.playIntroSounds": {
         label: "Play App Intro Sounds",
         value: audio.playIntroSounds,
-    }
-});
+    },
+} );
 
 type PostProcessingConfig = {
     [key in `postprocessing.${keyof SettingsMeta["data"]["postprocessing"]}`]?: any;
-}
+};
 
-export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["postprocessing"], maxAnisotropy: number, maxAntiAlias: number): PostProcessingConfig => ({
-
+export const getPostProcessingConfig = (
+    postprocessing: SettingsMeta["data"]["postprocessing"],
+    maxAnisotropy: number,
+    maxAntiAlias: number
+): PostProcessingConfig => ( {
     "postprocessing.anisotropy": {
         label: "Anisotropy",
         value: postprocessing.anisotropy,
@@ -354,15 +386,19 @@ export const getPostProcessingConfig = (postprocessing: SettingsMeta["data"]["po
         value: postprocessing.fogOfWar,
         min: 0,
         max: 1,
-        step: 0.1
+        step: 0.1,
     },
-});
+} );
 
 type PostProcessingConfig3D = {
     [key in `postprocessing3d.${keyof SettingsMeta["data"]["postprocessing3d"]}`]?: any;
-}
+};
 
-const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postprocessing3d"], maxAnisotropy: number, maxAntiAlias: number): PostProcessingConfig3D => ({
+const getPostProcessing3DConfig = (
+    postprocessing3d: SettingsMeta["data"]["postprocessing3d"],
+    maxAnisotropy: number,
+    maxAntiAlias: number
+): PostProcessingConfig3D => ( {
     "postprocessing3d.anisotropy": {
         label: "Anisotropy",
         value: postprocessing3d.anisotropy,
@@ -406,72 +442,71 @@ const getPostProcessing3DConfig = (postprocessing3d: SettingsMeta["data"]["postp
         step: 0.01,
     },
     "postprocessing3d.depthFocalLength": {
-        "label": "Depth Focal Length",
-        "value": postprocessing3d.depthFocalLength,
-        "min": 1,
-        "max": 20,
-        "step": 1
+        label: "Depth Focal Length",
+        value: postprocessing3d.depthFocalLength,
+        min: 1,
+        max: 20,
+        step: 1,
     },
     "postprocessing3d.depthFocalRange": {
-        "label": "Depth Focal Range",
-        "value": postprocessing3d.depthFocalRange,
-        "min": 1,
-        "max": 20,
-        "step": 1
+        label: "Depth Focal Range",
+        value: postprocessing3d.depthFocalRange,
+        min: 1,
+        max: 20,
+        step: 1,
     },
     "postprocessing3d.depthBokehScale": {
-        "label": "Depth Bokeh Scale",
-        "value": postprocessing3d.depthBokehScale,
-        "min": 1,
-        "max": 5,
-        "step": 0.1
+        label: "Depth Bokeh Scale",
+        value: postprocessing3d.depthBokehScale,
+        min: 1,
+        max: 5,
+        step: 0.1,
     },
     "postprocessing3d.depthBlurQuality": {
-        "label": "Depth Blur Quality",
-        "value": postprocessing3d.depthBlurQuality,
-        "options": {
-
-            "Off": 0,
-            "Low": 120,
-            "Medium": 240,
-            "High": 480
-        }
+        label: "Depth Blur Quality",
+        value: postprocessing3d.depthBlurQuality,
+        options: {
+            Off: 0,
+            Low: 120,
+            Medium: 240,
+            High: 480,
+        },
     },
     "postprocessing3d.fogOfWar": {
-        "label": "Fog Of War Opacity",
-        "value": postprocessing3d.fogOfWar,
+        label: "Fog Of War Opacity",
+        value: postprocessing3d.fogOfWar,
         min: 0,
         max: 1,
-        step: 0.1
+        step: 0.1,
     },
     "postprocessing3d.envMap": {
-        "label": "Environment Map",
-        "value": postprocessing3d.envMap,
+        label: "Environment Map",
+        value: postprocessing3d.envMap,
         min: 0,
         max: 2,
-        step: 0.05
+        step: 0.05,
     },
     "postprocessing3d.sunlightDirection": {
-        "label": "Sunlight Position",
-        "value": postprocessing3d.sunlightDirection,
-        step: 1
+        label: "Sunlight Position",
+        value: postprocessing3d.sunlightDirection,
+        step: 1,
     },
     "postprocessing3d.sunlightIntensity": {
-        "label": "Sunlight Intensity",
-        "value": postprocessing3d.sunlightIntensity,
+        label: "Sunlight Intensity",
+        value: postprocessing3d.sunlightIntensity,
         step: 0.25,
         min: 0,
-        max: 20
+        max: 20,
     },
     "postprocessing3d.sunlightColor": {
-        "label": "Sunlight Color",
-        "value": postprocessing3d.sunlightColor,
+        label: "Sunlight Color",
+        value: postprocessing3d.sunlightColor,
     },
     "postprocessing3d.shadowQuality": {
-        "label": "Shadow Quality",
-        "value": postprocessing3d.shadowQuality,
+        label: "Shadow Quality",
+        value: postprocessing3d.shadowQuality,
         min: 0,
         max: 8,
-        step: 1
+        step: 1,
     },
-});
+} );

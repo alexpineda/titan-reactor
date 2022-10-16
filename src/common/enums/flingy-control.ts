@@ -1,5 +1,5 @@
 export enum flingyControl {
-  flingy,
-  partiallyMobile,
-  iscript,
+    flingy,
+    partiallyMobile,
+    iscript,
 }

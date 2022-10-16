@@ -6,12 +6,12 @@ import range from "common/utils/range";
 
 export const MAX_CHUNK_SIZE = 0x2000;
 
-export const inflate = async ( buf: Buffer ) => {
+export const inflate = ( buf: Buffer ) => {
     if ( buf.readUInt8( 0 ) !== 0x78 ) {
         return pkware.explode( buf );
     }
 
-    return new Promise( ( res ) => {
+    return new Promise<Buffer>( ( res ) => {
         new Readable( {
             read: function () {
                 this.push( buf );
@@ -21,7 +21,7 @@ export const inflate = async ( buf: Buffer ) => {
             .pipe( zlib.createInflate() )
             .pipe(
                 new Writable( {
-                    write( inf: any, _: any, done: any ) {
+                    write( inf: Buffer, _: any, done ) {
                         res( inf );
                         done();
                     },
@@ -30,7 +30,7 @@ export const inflate = async ( buf: Buffer ) => {
     } );
 };
 
-export const deflate = async ( buf: Buffer ) => {
+export const deflate = ( buf: Buffer ) => {
     return pkware.implode( buf, pkware.ImplodeDictSize1 );
 };
 
@@ -67,10 +67,10 @@ export const readBlock = async ( buf: BufferList, blockSize: number ) => {
         chunks.map( ( chunk ) => ( isDeflated ? inflate( chunk.buf ) : chunk.buf ) )
     );
 
-    const result: BufferList = deflated.reduce(
-        ( buf, chunk ) => buf.append( chunk ),
-        new BufferList()
-    );
+    const result = deflated.reduce( ( buf, chunk ) => {
+        buf.append( chunk );
+        return buf;
+    }, new BufferList() );
 
     if ( result.length != blockSize )
         throw new Error( `read bytes, expected:${blockSize} got:${result.length}` );
@@ -83,23 +83,7 @@ export const readBlock = async ( buf: BufferList, blockSize: number ) => {
     return result.slice( 0 );
 };
 
-export const getBlockSize = async ( data: Buffer ) => {
-    const numChunks = Math.ceil( data.length / MAX_CHUNK_SIZE );
-    let outBlockSize = 0;
-
-    for ( let i = 0; i < numChunks; i++ ) {
-        const chunk = data.slice(
-            i * MAX_CHUNK_SIZE,
-            i * MAX_CHUNK_SIZE + Math.min( MAX_CHUNK_SIZE, data.length )
-        );
-        const chunkOut = await deflate( chunk );
-        outBlockSize = outBlockSize + chunkOut.byteLength;
-    }
-
-    return outBlockSize;
-};
-
-export const writeBlock = async ( out: BufferList, data: Buffer, compress: boolean ) => {
+export const writeBlock = ( out: BufferList, data: Buffer, compress: boolean ) => {
     const numChunks = Math.ceil( data.length / MAX_CHUNK_SIZE );
     const checksum = pkware.crc32( data.slice( 0 ) );
     let outBlockSize = 0;
@@ -114,7 +98,7 @@ export const writeBlock = async ( out: BufferList, data: Buffer, compress: boole
             i * MAX_CHUNK_SIZE,
             i * MAX_CHUNK_SIZE + Math.min( MAX_CHUNK_SIZE, data.length )
         );
-        const chunkOut = compress ? await deflate( chunk ) : chunk;
+        const chunkOut = compress ? deflate( chunk ) : chunk;
         //@ts-expect-error
         out.append( new Uint32Array( [chunkOut.byteLength] ) );
         out.append( chunkOut );
