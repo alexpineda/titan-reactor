@@ -29,7 +29,7 @@ export async function terrainComposer(
     geomOptions: GeometryOptions = defaultGeometryOptions
 ) {
     const janitor = new Janitor( "chkToTerrainMesh" );
-    const genProcess = processStore().create( "generate-textures", 4 );
+    const genProcess = processStore().create( "chkToTerrainMesh", 4 );
 
     const td = await loadAllTilesetData( tileset );
 

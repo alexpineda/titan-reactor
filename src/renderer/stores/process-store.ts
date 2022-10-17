@@ -26,7 +26,7 @@ export interface ProcessStore {
     getTotalProgress: () => number;
     clearCompleted: () => void;
     clearAll: () => void;
-    addOrCreate: ( label: string, max: number ) => ProcessWrapper;
+    addOrCreate: ( max: number ) => ProcessWrapper;
     _createProcessWrapper: ( id: string, process: IncrementalProcess ) => ProcessWrapper;
 }
 
@@ -62,15 +62,14 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
 
         return get()._createProcessWrapper( id, process );
     },
-    addOrCreate: ( label: string, max: number ) => {
-        const existing = get().processes[0];
-        if ( existing ) {
-            _mostRecent = existing.id;
-            performance.mark( `process-${existing.id}` );
-            existing.max += max;
-            return get()._createProcessWrapper( existing.id, existing );
+    addOrCreate: ( max: number ) => {
+        const process = get().processes.find( ( p ) => p.id === _mostRecent );
+        if ( process ) {
+            performance.mark( `process-${process.id}` );
+            process.max += max;
+            return get()._createProcessWrapper( process.id, process );
         } else {
-            return get().create( label, max );
+            return get().create( _mostRecent, max );
         }
     },
 

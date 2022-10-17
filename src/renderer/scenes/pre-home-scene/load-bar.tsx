@@ -15,10 +15,18 @@ export const LoadBar = ( { color, thickness, style }: LoadBarProps ) => {
         if ( divRef.current ) {
             divRef.current.style.transform = "scaleX(0)";
         }
+        let _updating = false;
 
         return useProcessStore.subscribe( ( store ) => {
-            if ( !divRef.current ) return;
-            divRef.current.style.transform = `scaleX(${store.getTotalProgress()})`;
+            if ( _updating ) {
+                return;
+            }
+            _updating = true;
+            requestAnimationFrame( () => {
+                _updating = false;
+                if ( !divRef.current ) return;
+                divRef.current.style.transform = `scaleX(${store.getTotalProgress()})`;
+            } );
         } );
     }, [] );
 

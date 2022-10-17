@@ -9,6 +9,7 @@ import { settingsStore } from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createWorldComposer } from "@core/world/world-composer";
 import readCascFile from "common/casclib";
+import processStore from "@stores/process-store";
 
 export async function makeGameScene(
     map: Chk,
@@ -40,6 +41,8 @@ export async function makeGameScene(
             worldComposer.sceneComposer.playerStartLocations[0] ??
             worldComposer.sceneComposer.startLocations[0],
     } );
+
+    processStore().clearAll();
 
     return () => {
         janitor.dispose();

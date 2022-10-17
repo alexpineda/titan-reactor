@@ -108,7 +108,7 @@ describe( "ProcessStore", () => {
 
     it( "should add to an open processwhen asked", () => {
         const wrapper = processStore().create( "test", 1 );
-        const other = processStore().addOrCreate( "test2", 1 );
+        const other = processStore().addOrCreate( 1 );
 
         expect( wrapper.id ).toBe( other.id );
 

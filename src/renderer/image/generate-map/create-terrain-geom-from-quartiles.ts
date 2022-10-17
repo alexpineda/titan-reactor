@@ -59,7 +59,7 @@ export const createTerrainGeometryFromQuartiles = (
     const qw = mapTextures.quartileWidth;
     const qh = mapTextures.quartileHeight;
 
-    const genProcess = processStore().create( "generate-geometry", qw * qh );
+    const genProcess = processStore().addOrCreate( qw * qh );
 
     const tilesX = mapWidth / qw;
     const tilesY = mapHeight / qh;
