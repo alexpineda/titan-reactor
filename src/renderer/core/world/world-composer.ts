@@ -155,7 +155,8 @@ export const createWorldComposer = async (
         surfaceComposer.api,
         sceneComposer.api,
         openBwComposer.api,
-        viewInputComposer.api
+        viewInputComposer.api,
+        postProcessingComposer.api
     ) as GameTimeApi;
 
     return {
@@ -205,6 +206,14 @@ export const createWorldComposer = async (
                 viewInputComposer.primaryViewport!.renderMode3D,
                 viewInputComposer.primaryViewport!.camera.userData.direction
             );
+
+            postProcessingComposer.changeRenderModeImmediate( true );
+
+            renderComposer
+                .getWebGLRenderer()
+                .render( sceneComposer.scene, viewInputComposer.primaryCamera! );
+
+            postProcessingComposer.changeRenderModeImmediate( false );
 
             renderComposer
                 .getWebGLRenderer()

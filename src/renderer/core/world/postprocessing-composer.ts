@@ -10,22 +10,22 @@ import { Janitor } from "three-janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";
-import { Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
+import { MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
 import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
 
 //tank base, minerals
-const ignoreRecieveShadow = [250, 253, 347, 349, 351];
-const ignoreCastShadow = [347, 349, 351];
+const ignoreRecieveShadow = [ 250, 253, 347, 349, 351 ];
+const ignoreCastShadow = [ 347, 349, 351 ];
 
 export type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
 
 export const createPostProcessingComposer = (
     world: World,
     { scene, images, sprites, terrain }: SceneComposer,
-    viewportsComposer: ViewInputComposer,
+    viewports: ViewInputComposer,
     assets: Assets
 ) => {
     const janitor = new Janitor( "PostProcessingComposer" );
@@ -43,14 +43,14 @@ export const createPostProcessingComposer = (
     const updatePostProcessingOptions = (
         options: Settings["postprocessing"] | Settings["postprocessing3d"]
     ) => {
-        postProcessingBundle.camera = viewportsComposer.primaryCamera!;
+        postProcessingBundle.camera = viewports.primaryCamera!;
         postProcessingBundle.scene = scene;
         postProcessingBundle.options = options;
         postProcessingBundle.needsUpdate = true;
 
         // do this after changing render mode as Extended differs
         postProcessingBundle.effectivePasses =
-            viewportsComposer.numActiveViewports > 1
+            viewports.numActiveViewports > 1
                 ? EffectivePasses.Standard
                 : EffectivePasses.Extended;
 
@@ -114,7 +114,39 @@ export const createPostProcessingComposer = (
         }
     } );
 
-    const changeRenderMode = ( renderMode3D: boolean ) => {
+    const _transition = {
+        enabled: false,
+        progress: 0,
+        value: false,
+    };
+
+    const _startTransitionRenderMode = ( renderMode3D: boolean ) => {
+        _transition.progress = 0;
+        _transition.value = renderMode3D;
+        _transition.enabled = true;
+
+        postProcessingBundle.enablePixelation( true );
+        postProcessingBundle.setPixelation( 0 );
+    };
+
+    const _transitionRenderMode = ( delta: number ) => {
+        if ( !_transition.enabled ) {
+            return;
+        }
+        _transition.progress += 0.005 * Math.min( delta, 16 );
+        postProcessingBundle.setPixelation(
+            MathUtils.pingpong( _transition.progress ) * 8
+        );
+
+        if ( _transition.progress > 2 ) {
+            _transition.enabled = false;
+            postProcessingBundle.enablePixelation( false );
+        } else if ( _transition.progress > 1 ) {
+            viewports.changeRenderMode( _transition.value );
+        }
+    };
+
+    const _changeRenderMode = ( renderMode3D: boolean ) => {
         const postprocessing = renderMode3D
             ? world.settings.getState().postprocessing3d
             : world.settings.getState().postprocessing;
@@ -132,8 +164,17 @@ export const createPostProcessingComposer = (
 
     world.events.on( "dispose", () => janitor.dispose() );
 
-    return Object.freeze( {
-        changeRenderMode,
+    return {
+        changeRenderModeImmediate: ( renderMode3D: boolean ) => {
+            _changeRenderMode( renderMode3D );
+        },
+        api: {
+            changeRenderMode( renderMode3D?: boolean ) {
+                _startTransitionRenderMode(
+                    renderMode3D ?? !viewports.primaryRenderMode3D
+                );
+            },
+        },
         get overlayScene() {
             return postProcessingBundle.overlayScene;
         },
@@ -151,10 +192,11 @@ export const createPostProcessingComposer = (
         },
 
         render( delta: number, elapsed: number ) {
-            for ( const v of viewportsComposer.activeViewports() ) {
-                if ( v === viewportsComposer.primaryViewport ) {
+            _transitionRenderMode( delta );
+            for ( const v of viewports.activeViewports() ) {
+                if ( v === viewports.primaryViewport ) {
                     if ( v.needsUpdate ) {
-                        changeRenderMode( v.renderMode3D );
+                        _changeRenderMode( v.renderMode3D );
                         // world.reset!();
                         v.needsUpdate = false;
                     }
@@ -204,5 +246,5 @@ export const createPostProcessingComposer = (
 
             renderComposer.renderBuffer();
         },
-    } );
+    };
 };

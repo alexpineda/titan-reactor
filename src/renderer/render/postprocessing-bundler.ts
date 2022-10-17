@@ -9,9 +9,12 @@ import {
     DepthOfFieldEffect,
     Effect,
     EffectPass,
+    KawaseBlurPass,
+    KernelSize,
     OutlineEffect,
     OverrideMaterialManager,
     Pass,
+    PixelationEffect,
     RenderPass,
     SelectiveBloomEffect,
     ToneMappingEffect,
@@ -82,6 +85,8 @@ export class PostProcessingBundler {
     #depthOfFieldEffect?: DepthOfFieldEffect;
     #fogOfWarEffect: FogOfWarEffect;
 
+    renderModeTransitionPass: KawaseBlurPass;
+
     debug = false;
     get debugSelection() {
         return this.#outlineEffect?.selection;
@@ -113,7 +118,20 @@ export class PostProcessingBundler {
         this.#overlayPass.skipShadowMapUpdate = true;
         this.#overlayPass.ignoreBackground = true;
 
+        this.renderModeTransitionPass = new KawaseBlurPass( {
+            kernelSize: KernelSize.LARGE,
+        } );
+        this.renderModeTransitionPass.enabled = false;
+
         this.#fogOfWarEffect = fogOfWar;
+    }
+
+    enablePixelation( enabled: boolean ) {
+        this.renderModeTransitionPass.enabled = enabled;
+    }
+
+    setPixelation( size: number ) {
+        this.renderModeTransitionPass.blurMaterial.scale = size;
     }
 
     get options3d() {
@@ -229,9 +247,9 @@ export class PostProcessingBundler {
                 blur: false,
                 xRay: true,
             } );
-            return [[this.#outlineEffect]];
+            return [ [ this.#outlineEffect ] ];
         }
-        return [pass1, pass2];
+        return [ pass1, pass2 ];
     }
 
     get passes(): Pass[] {
@@ -249,6 +267,7 @@ export class PostProcessingBundler {
                     this.#passes.push( pass );
                 }
             }
+            this.#passes.push( this.renderModeTransitionPass );
             this.#passes.push( this.#overlayPass );
             this.#passes.push( new CopyPass() );
         }
@@ -278,6 +297,8 @@ export class PostProcessingBundler {
     updateCamera( camera: PerspectiveCamera | OrthographicCamera ) {
         //@ts-expect-error
         this.#renderPass.camera = camera;
+        //@ts-expect-error
+        this.renderModeTransitionPass.camera = camera;
         this.#fogOfWarEffect.camera = camera;
     }
 

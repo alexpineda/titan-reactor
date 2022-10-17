@@ -12,19 +12,19 @@ import { easeInCubic } from "@utils/function-utils";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {
-    [Explosion.Splash_Radial]: [6, 1.25, 1],
-    [Explosion.Splash_Enemy]: [8, 1.25, 1],
-    [Explosion.SplashAir]: [10, 1, 1],
-    [Explosion.CorrosiveAcid]: [20, 0.75, 1],
-    [Explosion.Normal]: [15, 0.75, 1],
-    [Explosion.NuclearMissile]: [2, 3, 2],
-    [Explosion.YamatoGun]: [4, 2, 1],
+    [Explosion.Splash_Radial]: [ 6, 1.25, 1 ],
+    [Explosion.Splash_Enemy]: [ 8, 1.25, 1 ],
+    [Explosion.SplashAir]: [ 10, 1, 1 ],
+    [Explosion.CorrosiveAcid]: [ 20, 0.75, 1 ],
+    [Explosion.Normal]: [ 15, 0.75, 1 ],
+    [Explosion.NuclearMissile]: [ 2, 3, 2 ],
+    [Explosion.YamatoGun]: [ 4, 2, 1 ],
 };
 // strength, xyz index
 const bulletStrength = {
-    [DamageType.Explosive]: [1, 0],
-    [DamageType.Concussive]: [0.5, 1],
-    [DamageType.Normal]: [0.25, 2],
+    [DamageType.Explosive]: [ 1, 0 ],
+    [DamageType.Concussive]: [ 0.5, 1 ],
+    [DamageType.Normal]: [ 0.25, 2 ],
 };
 
 const empty: GameViewPort[] = [];
@@ -67,10 +67,6 @@ export const createViewInputComposer = (
             },
             get secondViewport() {
                 return getViewports()[1];
-            },
-            changeRenderMode( renderMode3D?: boolean ) {
-                getViewports()[0]!.renderMode3D =
-                    renderMode3D ?? !getViewports()[0]!.renderMode3D;
             },
             ...inputs.api,
         },
@@ -268,10 +264,8 @@ export const createViewInputComposer = (
                 bulletStrength[damageType as keyof typeof bulletStrength];
 
             if (
-                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 _bulletStrength &&
                 !(
-                    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                     exp === undefined ||
                     damageType === DamageType.IgnoreArmor ||
                     damageType === DamageType.Independent

@@ -96,9 +96,9 @@ export class TitanRenderComposer {
         let lastPass: any = null;
         for ( const pass of bundle.passes ) {
             pass.renderToScreen = false;
+            this.composer.addPass( pass );
             if ( pass.enabled ) {
                 lastPass = pass;
-                this.composer.addPass( pass );
             }
         }
         lastPass.renderToScreen = true;
