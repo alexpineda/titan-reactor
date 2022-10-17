@@ -66,7 +66,7 @@ export enum unitTypes {
     supplyDepot = 0x6d,
     refinery = 0x6e,
     barracks = 0x6f,
-    acadamy = 0x70,
+    academy = 0x70,
     factory = 0x71,
     starport = 0x72,
     controlTower = 0x73,

@@ -30,7 +30,7 @@ export enum techTypes {
     darkArchonMeld,
     feedback,
     opticalFlare,
-    maelstorm,
+    maelstrom,
     lurkerAspect,
     unk33,
     healing,

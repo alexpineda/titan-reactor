@@ -22,13 +22,19 @@ export const techTree: TechTree = {
     [unitTypes.refinery]: {},
     [unitTypes.commandCenter]: {
         units: {
-            builds: [ unitTypes.scv, unitTypes.comsatStation ],
+            builds: [ unitTypes.scv, unitTypes.comsatStation, unitTypes.nuclearSilo ],
+            unlocks: [ unitTypes.barracks, unitTypes.engineeringBay ],
         },
     },
     [unitTypes.comsatStation]: {
         tech: {
-            unlocks: [ techTypes.scannerSweep ],
+            builds: [ techTypes.scannerSweep ],
         },
+    },
+    [unitTypes.nuclearSilo] : {
+        units: {
+            builds: [ unitTypes.nuclearMissile ],
+        }
     },
     [unitTypes.barracks]: {
         units: {
@@ -39,14 +45,14 @@ export const techTree: TechTree = {
                 unitTypes.ghost,
             ],
             unlocks: [
-                unitTypes.marine,
-                unitTypes.acadamy,
+                unitTypes.academy,
                 unitTypes.engineeringBay,
                 unitTypes.factory,
+                unitTypes.bunker,
             ],
         },
     },
-    [unitTypes.acadamy]: {
+    [unitTypes.academy]: {
         units: {
             unlocks: [ unitTypes.firebat, unitTypes.medic ],
         },
@@ -58,12 +64,18 @@ export const techTree: TechTree = {
                 techTypes.restoration,
             ],
         },
+        upgrades: {
+            unlocks: [ upgrades.u238Shells ],
+        },
     },
 
     [unitTypes.engineeringBay]: {
         upgrades: {
             builds: [ upgrades.terranInfantryArmor, upgrades.terranInfantryWeapons ],
         },
+        units: {
+            unlocks: [ unitTypes.missileTurret ],
+        }
     },
     [unitTypes.factory]: {
         units: {
@@ -73,15 +85,18 @@ export const techTree: TechTree = {
                 unitTypes.goliath,
                 unitTypes.machineShop,
             ],
-            unlocks: [ -1, unitTypes.armory ],
+            unlocks: [ unitTypes.armory, unitTypes.starport ],
         },
     },
     [unitTypes.machineShop]: {
         tech: {
             builds: [ techTypes.tankSiegeMode, techTypes.spiderMines ],
         },
+        upgrades: {
+            builds: [ upgrades.ionThrusters, upgrades.charonBooster ]
+        },
         units: {
-            unlocks: [ -1, unitTypes.goliath ],
+            unlocks: [ unitTypes.goliath ],
         },
     },
     [unitTypes.armory]: {
@@ -92,7 +107,6 @@ export const techTree: TechTree = {
                 upgrades.terranShipPlating,
                 upgrades.terranShipWeapons,
             ],
-            unlocks: [ upgrades.terranVehiclePlating, upgrades.terranVehicleWeapons ],
         },
     },
     [unitTypes.starport]: {
@@ -105,13 +119,16 @@ export const techTree: TechTree = {
                 unitTypes.controlTower,
                 unitTypes.battleCruiser,
             ],
-            unlocks: [ -1, unitTypes.scienceFacility ],
+            unlocks: [ unitTypes.scienceFacility ],
         },
     },
     [unitTypes.controlTower]: {
         tech: {
-            builds: [ techTypes.yamatoGun, techTypes.cloakingField ],
+            builds: [ techTypes.cloakingField ],
         },
+        upgrades: {
+            builds: [ upgrades.apolloReactor ],
+        }
     },
     [unitTypes.scienceFacility]: {
         units: {
@@ -119,9 +136,14 @@ export const techTree: TechTree = {
                 unitTypes.scienceVessel,
                 unitTypes.physicsLab,
                 unitTypes.covertOps,
-                techTypes.defensiveMatrix,
             ],
         },
+        tech: {
+            builds: [ techTypes.irradiate, techTypes.empShockwave ],
+        },
+        upgrades: {
+            builds: [ upgrades.titanReactor ]
+        }
     },
     [unitTypes.physicsLab]: {
         units: {
@@ -130,6 +152,9 @@ export const techTree: TechTree = {
         tech: {
             builds: [ techTypes.yamatoGun ],
         },
+        upgrades: {
+            builds: [ upgrades.colossusReactor ]
+        }
     },
     [unitTypes.covertOps]: {
         tech: {
@@ -139,29 +164,94 @@ export const techTree: TechTree = {
             unlocks: [ unitTypes.ghost, unitTypes.nuclearSilo ],
         },
         upgrades: {
-            unlocks: [ upgrades.u238Shells, upgrades.ocularImplants ],
+            unlocks: [ upgrades.ocularImplants, upgrades.moebiusReactor ],
         },
     },
     // ZERG ----------------------------------------------
+    [unitTypes.creepColony]: {
+        units: {
+            builds: [ unitTypes.sunkenColony, unitTypes.sporeColony ],
+        },
+    },
     [unitTypes.hatchery]: {
         units: {
-            builds: [ unitTypes.drone, unitTypes.overlord, unitTypes.zergling ],
-            unlocks: [ unitTypes.drone, unitTypes.lair, unitTypes.hydraliskDen ],
+            builds: [ unitTypes.drone, unitTypes.overlord, unitTypes.zergling , unitTypes.lair ],
+            unlocks: [  unitTypes.spawningPool , unitTypes.evolutionChamber ],
         },
         tech: {
-            unlocks: [ techTypes.burrowing ],
+            builds: [ techTypes.burrowing ],
         },
+    },
+    [unitTypes.evolutionChamber] : {
+        units: {
+            unlocks: [ unitTypes.sporeColony ]
+        },
+        upgrades: {
+            builds: [ upgrades.zergMeleeAttacks, upgrades.zergMissileAttacks, upgrades.zergCarapace ],
+        }
+    },
+    [unitTypes.spawningPool]: {
+        units: {
+            unlocks: [ unitTypes.zergling , unitTypes.sunkenColony ],
+        },
+        upgrades: {
+            builds: [ upgrades.metabolicBoost, upgrades.adrenalGlands ],
+        }
+    },
+    [unitTypes.hydraliskDen]: {
+        units: {
+            unlocks: [ unitTypes.hydralisk ],
+        },
+        upgrades: {
+            builds: [ upgrades.groovedSpines, upgrades.muscularAugments ],
+        },
+        tech: {
+            builds: [ techTypes.lurkerAspect ],
+        }
     },
     [unitTypes.lair]: {
         units: {
             unlocks: [
-                unitTypes.hive,
                 unitTypes.spire,
-                unitTypes.lurker,
                 unitTypes.queensNest,
             ],
             builds: [ unitTypes.hive, unitTypes.mutalisk, unitTypes.queen ],
         },
+        upgrades: {
+            builds: [ upgrades.ventralSacs, upgrades.antennae, upgrades.pneumatizedCarapace ],
+        },
+        tech: {
+            unlocks: [ techTypes.lurkerAspect ],
+        }
+    },
+    [unitTypes.spire]: {
+        units: {
+            unlocks: [ unitTypes.greaterSpire, unitTypes.mutalisk ],
+        },
+        upgrades: {
+            builds: [ upgrades.zergFlyerAttacks, upgrades.zergFlyerCarapace ],
+        }
+    },
+    [unitTypes.queensNest]: {
+        units: {
+            unlocks: [ unitTypes.queen, unitTypes.hive ],
+        },
+        tech: {
+            builds: [ techTypes.ensnare, techTypes.spawnBroodlings ],
+        },
+        upgrades: {
+            builds: [ upgrades.gameteMeiosis ],
+        }
+    },
+    [unitTypes.queen]: {
+        units: {
+            unlocks: [ unitTypes.infestedCommandCenter ],
+        },
+    },
+    [unitTypes.infestedCommandCenter]: {
+        units: {
+            builds: [ unitTypes.infestedTerran ],
+        }
     },
     [unitTypes.hive]: {
         units: {
@@ -169,47 +259,62 @@ export const techTree: TechTree = {
                 unitTypes.greaterSpire,
                 unitTypes.ultraliskCavern,
                 unitTypes.defilerMound,
+                unitTypes.nydusCanal,
             ],
             builds: [ unitTypes.ultralisk, unitTypes.defiler ],
-        },
-    },
-    [unitTypes.hydraliskDen]: {
-        units: {
-            unlocks: [ unitTypes.hydralisk ],
-        },
-    },
-    [unitTypes.spire]: {
-        units: {
-            unlocks: [ unitTypes.greaterSpire, unitTypes.mutalisk ],
-        },
-    },
-    [unitTypes.greaterSpire]: {
-        units: {
-            unlocks: [ unitTypes.guardian ],
         },
     },
     [unitTypes.ultraliskCavern]: {
         units: {
             unlocks: [ unitTypes.ultralisk ],
         },
+        upgrades: {
+            builds: [ upgrades.chitinousPlating , upgrades.anabolicSynthesis ],
+        }
+    },
+    
+    [unitTypes.greaterSpire]: {
+        units: {
+            unlocks: [ unitTypes.guardian, unitTypes.devourer ],
+        },
+    },
+    
+    [unitTypes.mutalisk]: {
+        units: {
+            builds: [ unitTypes.guardian, unitTypes.devourer ],
+        }
     },
     [unitTypes.defilerMound]: {
         units: {
             unlocks: [ unitTypes.defiler ],
         },
-    },
-    [unitTypes.queensNest]: {
-        units: {
-            unlocks: [ unitTypes.queen ],
+        tech: {
+            builds: [ techTypes.plague, techTypes.consume ],
         },
+        upgrades: {
+            builds: [ upgrades.metasynapticNode ],
+        }
     },
+    
     // PROTOSS ----------------------------------------------
     [unitTypes.assimilator]: {},
     [unitTypes.pylon]: {},
     [unitTypes.nexus]: {
         units: {
             builds: [ unitTypes.probe ],
-            unlocks: [ -1, unitTypes.gateway ],
+            unlocks: [ unitTypes.gateway, unitTypes.forge ],
+        },
+    },
+    [unitTypes.forge]: {
+        upgrades: {
+            builds: [
+                upgrades.protossGroundWeapons,
+                upgrades.protossArmor,
+                upgrades.protossPlasmaShields,
+            ],
+        },
+        units: {
+            unlocks: [ unitTypes.photonCannon ],
         },
     },
     [unitTypes.gateway]: {
@@ -220,45 +325,64 @@ export const techTree: TechTree = {
                 unitTypes.highTemplar,
                 unitTypes.darkTemplar,
             ],
-            unlocks: [ -1, unitTypes.cyberneticsCore ],
+            unlocks: [ unitTypes.cyberneticsCore, unitTypes.shieldBattery ],
         },
     },
     [unitTypes.cyberneticsCore]: {
         units: {
             unlocks: [
                 unitTypes.dragoon,
+                unitTypes.citadelOfAdun,
                 unitTypes.roboticsFacility,
                 unitTypes.stargate,
             ],
         },
-    },
-    [unitTypes.citadelOfAdun]: {
-        units: {
-            unlocks: [ unitTypes.templarArchives ],
-        },
-    },
-    [unitTypes.templarArchives]: {
-        units: {
-            unlocks: [ unitTypes.highTemplar, unitTypes.darkTemplar ],
+        tech: {
+            builds: [
+                upgrades.singularityCharge,
+                upgrades.protossAirWeapons,
+                upgrades.protossPlating,
+            ],
         },
     },
     [unitTypes.roboticsFacility]: {
         units: {
+            builds: [ unitTypes.reaver, unitTypes.observer, unitTypes.shuttle ],
             unlocks: [
                 unitTypes.roboticsSupportBay,
+                unitTypes.observatory,
                 unitTypes.shuttle,
-                unitTypes.observer,
             ],
+        },
+    },
+    [unitTypes.observatory]: {
+        units: {
+            unlocks: [ unitTypes.observer ],
+        },
+        upgrades: {
+            builds: [ upgrades.graviticDrive, upgrades.sensorArray ],
         },
     },
     [unitTypes.roboticsSupportBay]: {
         units: {
-            unlocks: [ unitTypes.reaver, unitTypes.scarab ],
+            unlocks: [ unitTypes.reaver ],
+        },
+        upgrades: {
+            builds: [
+                upgrades.reaverCapacity,
+                upgrades.scarabDamage,
+                upgrades.graviticDrive,
+            ],
         },
     },
     [unitTypes.stargate]: {
         units: {
-            builds: [ unitTypes.corsair, unitTypes.arbiter, unitTypes.carrier ],
+            builds: [
+                unitTypes.corsair,
+                unitTypes.arbiter,
+                unitTypes.carrier,
+                unitTypes.scout,
+            ],
             unlocks: [ -1, unitTypes.fleetBeacon ],
         },
     },
@@ -266,13 +390,57 @@ export const techTree: TechTree = {
         units: {
             unlocks: [ unitTypes.carrier ],
         },
-    },
-    [unitTypes.forge]: {
         upgrades: {
-            builds: [ upgrades.protossGroundWeapons, upgrades.protossArmor ],
+            builds: [
+                upgrades.carrierCapacity,
+                upgrades.apialSensors,
+                upgrades.graviticThrusters,
+                upgrades.argusJewel,
+            ],
         },
+        tech: {
+            builds: [ techTypes.disruptionWeb ],
+        },
+    },
+    [unitTypes.arbitalTribunal]: {
         units: {
-            unlocks: [ unitTypes.photonCannon ],
+            unlocks: [ unitTypes.arbiter ],
+        },
+        tech: {
+            builds: [ techTypes.recall, techTypes.stasisField ],
+        },
+        upgrades: {
+            builds: [ upgrades.khaydarinCore ],
+        },
+    },
+    [unitTypes.citadelOfAdun]: {
+        units: {
+            unlocks: [ unitTypes.templarArchives ],
+        },
+        tech: {
+            builds: [ upgrades.legEnhancements ],
+        },
+    },
+    [unitTypes.templarArchives]: {
+        units: {
+            unlocks: [ unitTypes.highTemplar, unitTypes.darkTemplar ],
+        },
+        upgrades: {
+            builds: [ upgrades.khaydarinAmulet, upgrades.argusTalisman ],
+        },
+        tech: {
+            builds: [
+                techTypes.mindControl,
+                techTypes.feedback,
+                techTypes.psionicStorm,
+                techTypes.hallucination,
+                techTypes.maelstrom,
+            ],
+        },
+    },
+    [unitTypes.highTemplar]: {
+        units: {
+            builds: [ unitTypes.archon, unitTypes.darkArchon ],
         },
     },
 };
