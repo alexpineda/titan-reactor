@@ -12,6 +12,10 @@ export const LoadBar = ( { color, thickness, style }: LoadBarProps ) => {
     const divRef = useRef<HTMLDivElement>( null );
 
     useLayoutEffect( () => {
+        if ( divRef.current ) {
+            divRef.current.style.transform = "scaleX(0)";
+        }
+
         return useProcessStore.subscribe( ( store ) => {
             if ( !divRef.current ) return;
             divRef.current.style.transform = `scaleX(${store.getTotalProgress()})`;

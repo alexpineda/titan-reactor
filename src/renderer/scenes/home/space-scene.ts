@@ -31,7 +31,6 @@ import CameraControls from "camera-controls";
 import * as THREE from "three";
 import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
-import processStore from "@stores/process-store";
 import { createBattleLights, distantStars } from "./stars";
 import { createBattleCruiser } from "./battlecruiser";
 import { createAsteroids } from "./asteroids";
@@ -39,6 +38,7 @@ import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
 import path from "path";
+import processStore from "@stores/process-store";
 
 CameraControls.install( { THREE: THREE } );
 
@@ -119,22 +119,22 @@ const _sceneResizeHandler = () => {
 let fireTexture: Texture;
 
 export const preloadIntro = async () => {
-    const { increment } = processStore().addOrCreate( "intro", 4 );
-
     //TODO submit to types
     //@ts-expect-error
     fireTexture = new EXRLoader().load( path.join( __static, "./FireBall03_8x8.exr" ) );
 
-    const envmap = await loadEnvironmentMap( path.join( __static, "./envmap.hdr" ) );
-    increment();
-
-    await battleCruiser.load( envmap, fireTexture );
-    increment();
+    const envmap = loadEnvironmentMap( path.join( __static, "./envmap.hdr" ), () =>
+        processStore().increment()
+    );
 
     await asteroids.load( envmap );
-    increment();
+    processStore().increment();
 
     await wraiths.load( envmap, fireTexture );
+    processStore().increment();
+
+    await battleCruiser.load( envmap, fireTexture );
+    processStore().increment();
 
     battleLights.load( fireTexture );
 };

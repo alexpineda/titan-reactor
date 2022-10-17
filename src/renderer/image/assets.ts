@@ -20,6 +20,7 @@ import { renderComposer } from "@render/render-composer";
 import { loadDatFilesRemote } from "@ipc/files";
 import { parseDDS } from "./formats/parse-dds";
 import { b2ba } from "@utils/bin-utils";
+import processStore from "@stores/process-store";
 
 // if ( import.meta.hot ) {
 //     import.meta.hot.accept( "@core/model-effects-configuration" );
@@ -54,7 +55,7 @@ export type UIStateAssets = Pick<
     | "wireframeIcons"
 >;
 
-const _hardfiles = [".glb", ".hdr", ".png", ".exr", ".js", ".wasm"];
+const _hardfiles = [ ".glb", ".hdr", ".png", ".exr", ".js", ".wasm" ];
 
 export const initializeAssets = async ( directories: Settings["directories"] ) => {
     electronFileLoader( ( file: string, directory?: string ) => {
@@ -78,6 +79,8 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
     log.debug( "@load-assets/images" );
     const sdAnimBuf = await readCascFile( "SD/mainSD.anim" );
     const sdAnim = parseAnim( sdAnimBuf );
+
+    processStore().increment();
 
     log.debug( "@load-assets/selection-circles" );
     const selectionCircles: AnimAtlas[] = [];
@@ -108,10 +111,12 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
         ? envEXRAssetFilename
         : path.join( __static, "./envmap.hdr" );
     log.debug( `@load-assets/envmap: ${envMapFilename}` );
-    loadEnvironmentMap( envMapFilename ).then( ( tex ) => {
+    loadEnvironmentMap( envMapFilename, ( tex ) => {
         setAsset( "envMap", tex );
         renderComposer.getWebGLRenderer().initTexture( tex );
     } );
+
+    processStore().increment();
 
     generateUIIcons( readCascFile ).then( ( icons ) => {
         setAsset( "gameIcons", icons.gameIcons );
@@ -220,10 +225,12 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
 
     const skyBox = await new Promise( ( res: ( t: CubeTexture ) => void ) =>
         loader.load(
-            ["right.png", "left.png", "top.png", "bot.png", "front.png", "back.png"],
+            [ "right.png", "left.png", "top.png", "bot.png", "front.png", "back.png" ],
             res
         )
     );
+
+    processStore().increment();
 
     loadDatFilesRemote().then( ( dat ) => {
         setAsset( "bwDat", dat );

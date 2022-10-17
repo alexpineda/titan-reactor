@@ -10,6 +10,7 @@ import path from "path";
 import { Filter } from "@audio/filter";
 import { SceneState } from "../scene";
 import { mixer } from "@core/global";
+import processStore from "@stores/process-store";
 
 let _lastErrorMessage = "";
 
@@ -27,6 +28,7 @@ const makeErrorScene = ( errors: string[] ) => {
 };
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
+    processStore().create( "pre-home-scene", 7 );
     root.render( <PreHomeScene /> );
 
     log.debug( "Loading settings" );
@@ -39,8 +41,9 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     await initializeAssets( settings.data.directories );
 
-    log.debug( "Loading intro" );
     await preloadIntro();
+
+    log.debug( "Loading intro" );
 
     mixer.setVolumes( settings.data.audio );
 
