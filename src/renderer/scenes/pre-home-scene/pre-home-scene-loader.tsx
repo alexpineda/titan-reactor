@@ -62,10 +62,9 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     return {
         id: "@loading",
-        start: async () => {
+        start: () => {
             dropYourSocks.detune.setValueAtTime( -200, mixer.context.currentTime + 5 );
             dropYourSocks.start();
-            await waitForSeconds( 1 );
         },
         dispose: () => {},
     };

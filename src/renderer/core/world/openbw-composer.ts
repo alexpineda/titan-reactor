@@ -127,22 +127,21 @@ export const createOpenBWComposer = (
         get previousBwFrame() {
             return _previousBwFrame;
         },
-        update( elapsed: number ) {
+        update( elapsed: number, frame: number ) {
             lastElapsed = elapsed;
-            _currentFrame = world.openBW.nextFrame();
             // _currentFrame = world.openBW.tryCatch(world.openBW.nextFrame);
 
-            if ( _currentFrame !== _previousBwFrame ) {
+            if ( frame !== _previousBwFrame ) {
                 world.openBW.generateFrame();
 
-                if ( _currentFrame % 24 === 0 ) {
-                    updateCompletedUpgrades( _currentFrame );
+                if ( frame % 24 === 0 ) {
+                    updateCompletedUpgrades( frame );
                 }
 
                 buildSounds( elapsed );
-                buildCreep( _currentFrame );
+                buildCreep( frame );
 
-                _previousBwFrame = _currentFrame;
+                _previousBwFrame = frame;
 
                 return true;
             } else if ( world.openBW.isPaused() ) {

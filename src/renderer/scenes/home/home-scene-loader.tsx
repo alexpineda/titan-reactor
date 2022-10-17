@@ -2,7 +2,6 @@ import { SceneState, SceneStateID } from "../scene";
 import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
 import { renderComposer } from "@render/render-composer";
-import { waitForSeconds } from "@utils/wait-for";
 import { Janitor } from "three-janitor";
 import { mixer } from "@core/global";
 import { root } from "@render/root";
@@ -13,7 +12,6 @@ export async function homeSceneLoader(): Promise<SceneState> {
     log.debug( "Loading home scene" );
     janitor.mop( createWraithScene() );
 
-    await waitForSeconds( 1 );
     root.render( <Home surface={getSurface().canvas} /> );
 
     const swoosh = mixer.context.createBufferSource();

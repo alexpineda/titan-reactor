@@ -89,7 +89,7 @@ export const createWorldComposer = async (
 
     const setSceneController = async ( controllername: string, defaultData?: any ) => {
         const sceneController = plugins.native
-            .getSceneInputHandlers()
+            .getAllSceneControllers()
             .find( ( handler ) => handler.name === controllername );
 
         if ( sceneController ) {
@@ -163,8 +163,6 @@ export const createWorldComposer = async (
 
         // binding stuff we can' t do before hand
         init() {
-            window.gc!();
-
             surfaceComposer.resize( true );
 
             gameLoopComposer.onUpdate( this.update.bind( this ) );
@@ -200,11 +198,17 @@ export const createWorldComposer = async (
 
             await setSceneController( sceneController, targetData );
 
-            this.onRender( 0, 0 );
+            // build frame to compile materials
+            sceneComposer.onFrame(
+                0,
+                0,
+                viewInputComposer.primaryViewport!.renderMode3D,
+                viewInputComposer.primaryViewport!.camera.userData.direction
+            );
 
             renderComposer
                 .getWebGLRenderer()
-                .compile( sceneComposer.scene, viewInputComposer.primaryCamera! );
+                .render( sceneComposer.scene, viewInputComposer.primaryCamera! );
 
             events.emit( "resize", surfaceComposer.gameSurface );
             events.emit( "settings-changed", {
@@ -239,7 +243,7 @@ export const createWorldComposer = async (
 
             overlayComposer.update( delta );
 
-            if ( openBwComposer.update( elapsed ) ) {
+            if ( openBwComposer.update( elapsed, world.openBW.nextFrame() ) ) {
                 sceneComposer.onFrame(
                     delta,
                     elapsed,

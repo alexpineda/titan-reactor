@@ -57,6 +57,7 @@ export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
             set( { state } );
         } catch ( err: any ) {
             if ( err instanceof Error ) {
+                console.error( err );
                 log.error( err.stack );
                 get().setError( err );
             } else {

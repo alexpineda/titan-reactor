@@ -155,7 +155,7 @@ export class PluginSystemNative {
         );
     }
 
-    getSceneInputHandlers() {
+    getAllSceneControllers() {
         return this.#plugins.filter( ( p ) => p.isSceneController ) as SceneController[];
     }
 
@@ -263,7 +263,7 @@ export class PluginSystemNative {
             .map( ( p ) => this.loadPlugin( p, createCompartment ) )
             .filter( Boolean );
 
-        this.#plugins = [...this.#plugins, ...additionalPlugins] as PluginBase[];
+        this.#plugins = [ ...this.#plugins, ...additionalPlugins ] as PluginBase[];
     }
 
     /**
@@ -283,12 +283,12 @@ export class PluginSystemNative {
 
     getConfigSnapshot() {
         return this.#plugins.reduce( ( acc, plugin ) => {
-            for ( const [key, field] of Object.entries( plugin.rawConfig ?? {} ) ) {
+            for ( const [ key, field ] of Object.entries( plugin.rawConfig ?? {} ) ) {
                 if (
                     key !== "system" &&
                     ( field as FieldDefinition ).value !== undefined
                 ) {
-                    lSet( acc, [plugin.name, key], ( field as FieldDefinition ).value );
+                    lSet( acc, [ plugin.name, key ], ( field as FieldDefinition ).value );
                 }
             }
             return acc;

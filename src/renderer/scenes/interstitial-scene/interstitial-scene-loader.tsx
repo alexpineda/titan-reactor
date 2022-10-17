@@ -11,8 +11,8 @@ export function interstitialSceneLoader(): SceneState {
         start: () => {},
         dispose: () => {},
         beforeNext: () => {
-            getSurface().canvas.classList.remove( "hue" );
             root.render( null );
+            getSurface().canvas.classList.remove( "hue" );
         },
     };
 }
