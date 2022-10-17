@@ -51,8 +51,6 @@ export const preloadMapUnitsAndSpriteFiles = async (
 
     const preload = processStore().create( "preload", allImages.length );
 
-    console.log( "Preloading images", allImages );
-
     await Promise.all(
         allImages.map( ( imageId ) =>
             assets

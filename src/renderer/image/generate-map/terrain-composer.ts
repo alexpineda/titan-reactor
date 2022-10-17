@@ -53,7 +53,7 @@ export async function terrainComposer(
 
     const renderer = renderComposer.getWebGLRenderer();
 
-    const heightMaps = await doHeightMapEffect( {
+    const heightMaps = doHeightMapEffect( {
         palette: td.palette,
         tileset,
         mapWidth,

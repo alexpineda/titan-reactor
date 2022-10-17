@@ -9,6 +9,8 @@ import {
     Vector3,
 } from "three";
 
+import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils";
+
 import { CreepTexture, WrappedQuartileTextures, GeometryOptions } from "common/types";
 
 import { createDisplacementGeometryQuartile } from "./create-displacement-geometry-quartile";
@@ -92,19 +94,22 @@ export const createTerrainGeometryFromQuartiles = (
             //         qh,
             //         qw * geomOptions.meshDetail,
             //         qh * geomOptions.meshDetail);
-            const g = createDisplacementGeometryQuartile(
-                qw,
-                qh,
-                qw * geomOptions.tesselation,
-                qh * geomOptions.tesselation,
-                displaceCanvas,
-                geomOptions.maxTerrainHeight,
-                0,
-                qw / mapWidth,
-                qh / mapHeight,
-                qx * qw * geomOptions.texPxPerTile,
-                qy * qh * geomOptions.texPxPerTile
+            const g = mergeVertices(
+                createDisplacementGeometryQuartile(
+                    qw,
+                    qh,
+                    qw * geomOptions.tesselation,
+                    qh * geomOptions.tesselation,
+                    displaceCanvas,
+                    geomOptions.maxTerrainHeight,
+                    0,
+                    qw / mapWidth,
+                    qh / mapHeight,
+                    qx * qw * geomOptions.texPxPerTile,
+                    qy * qh * geomOptions.texPxPerTile
+                )
             );
+
             g.computeVertexNormals();
 
             const standardMaterial = new MeshStandardMaterial( {
@@ -152,7 +157,7 @@ export const createTerrainGeometryFromQuartiles = (
                 `
                 );
 
-                shader.fragmentShader = [hdHeaderFrag, fs].join( "\n" );
+                shader.fragmentShader = [ hdHeaderFrag, fs ].join( "\n" );
 
                 let vs = shader.vertexShader;
 
