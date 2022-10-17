@@ -27,7 +27,7 @@ export const MacroPanel = ( {
 } ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { updateMacro, createActionable, deleteMacro, macros } = useMacroStore();
-    const [activePreview, setActivePreview] = useState( false );
+    const [ activePreview, setActivePreview ] = useState( false );
 
     const renameMacro = ( name: string | null ) => {
         if ( name !== null && name.trim() !== "" ) {
@@ -60,7 +60,7 @@ export const MacroPanel = ( {
                 payload: macro.id,
             } );
         }
-    }, [activePreview, macros.revision] );
+    }, [ activePreview, macros.revision ] );
 
     return (
         <div
@@ -169,6 +169,16 @@ export const MacroPanel = ( {
                     </button>
 
                     <button
+                        onClick={() => {
+                            sendWindow( InvokeBrowserTarget.Game, {
+                                type: SendWindowActionType.ResetMacroActions,
+                                payload: macro.id,
+                            } );
+                        }}>
+                        Reset Actions (In Game)
+                    </button>
+
+                    <button
                         style={{
                             color: "var(--red-6)",
                             padding: "var(--size-2)",
@@ -201,7 +211,7 @@ export const MacroPanel = ( {
                         createActionable( macro, {
                             type: "condition",
                             id: MathUtils.generateUUID(),
-                            path: [":app"],
+                            path: [ ":app" ],
                             comparator: ConditionComparator.Equals,
                         } );
                     }}
@@ -213,7 +223,7 @@ export const MacroPanel = ( {
                         createActionable( macro, {
                             type: "action",
                             id: MathUtils.generateUUID(),
-                            path: [":app"],
+                            path: [ ":app" ],
                             operator: Operator.Set,
                         } );
                     }}
