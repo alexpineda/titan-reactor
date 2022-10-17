@@ -57,15 +57,9 @@
             "@macros": ["renderer/macros/index.ts"]
         },
         "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
+        
         "outDir": "generated",
-        "resolveJsonModule": true,
-        "types": [
-            "vite/client",
-            "node",
-            "jest",
-            "offscreencanvas",
-            "npmcli__package-json"
-        ]
+        "resolveJsonModule": true
     },
     "include": ["src/**/*"],
     "exclude": [
