@@ -27,6 +27,7 @@ import { borrow, mix } from "@utils/object-utils";
 import { mixer } from "@core/global";
 import processStore from "@stores/process-store";
 import { WorldEvents } from "./world-events";
+import { preloadFromTechTree } from "@utils/preload-map-units-and-sprites";
 // import { useSettingsStore } from "@stores/settings-store";
 
 export const createWorldComposer = async (
@@ -246,6 +247,7 @@ export const createWorldComposer = async (
             if ( openBwComposer.update( elapsed ) ) {
                 sceneComposer.onFrame(
                     delta,
+                    elapsed,
                     viewInputComposer.primaryViewport.renderMode3D,
                     viewInputComposer.primaryViewport.camera.userData.direction
                 );

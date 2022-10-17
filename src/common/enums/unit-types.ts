@@ -83,7 +83,7 @@ export enum unitTypes {
     lair = 0x84,
     hive = 0x85,
     nydusCanal = 0x86,
-    hydraDen = 0x87,
+    hydraliskDen = 0x87,
     defilerMound = 0x88,
     greaterSpire = 0x89,
     queensNest = 0x8a,

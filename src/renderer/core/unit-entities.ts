@@ -1,7 +1,7 @@
 import { UnitsBufferView } from "@buffer-view/units-buffer-view";
 import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
-import { IterableMap } from "@utils/iteratible-map";
+import { IterableMap } from "@utils/data-structures/iteratible-map";
 
 //TODO: Deprecate
 // The primary purpose of this class is to provide a storage for damage effects, and serialization to plugins ui

@@ -2,6 +2,10 @@ export class IterableMap<T, R> {
     #map = new Map<T, R>();
     #copy: R[] = [];
 
+    get _dangerousArray() {
+        return this.#copy;
+    }
+
     get( key: T ): R | undefined {
         return this.#map.get( key );
     }

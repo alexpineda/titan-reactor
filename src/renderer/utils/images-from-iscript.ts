@@ -1,7 +1,7 @@
 import { ImageDAT, BwDAT, opArgOne, UnitDAT } from "../../common/types";
 import uniq from "../../common/utils/uniq";
 
-const calculateImagesFromIScript = (
+export const calculateImagesFromIScript = (
     bwDat: BwDAT,
     image: ImageDAT,
     unit?: UnitDAT | null,
@@ -13,6 +13,28 @@ const calculateImagesFromIScript = (
         if ( !imageDef.iscript ) {
             return;
         }
+        // if ( imageDef.attackOverlay > 0 ) {
+        //     getAllImages( bwDat.images[imageDef.attackOverlay] );
+        // }
+        // if ( imageDef.damageOverlay > 0 ) {
+        //     getAllImages( bwDat.images[imageDef.damageOverlay] );
+        // }
+        // if ( imageDef.landingDustOverlay > 0 ) {
+        //     getAllImages( bwDat.images[imageDef.landingDustOverlay] );
+        // }
+
+        // if ( imageDef.liftOffDustOverlay > 0 ) {
+        //     getAllImages( bwDat.images[imageDef.liftOffDustOverlay] );
+        // }
+
+        // if ( imageDef.shieldOverlay > 0 ) {
+        //     getAllImages( bwDat.images[imageDef.shieldOverlay] );
+        // }
+
+        // if ( imageDef.specialOverlay > 0 ) {
+        //     getAllImages( bwDat.images[imageDef.specialOverlay] );
+        // }
+
         const script = bwDat.iscript.iscripts[imageDef.iscript];
         for ( const offset of script.offsets ) {
             if ( offset === 0 ) continue;
@@ -49,7 +71,7 @@ const calculateImagesFromIScript = (
                         break;
                     case "creategasoverlays":
                         {
-                            [430, 431, 432, 433, 434, 435, 436, 437, 438, 439].forEach(
+                            [ 430, 431, 432, 433, 434, 435, 436, 437, 438, 439 ].forEach(
                                 ( v ) => preload.add( v )
                             );
                         }
@@ -80,7 +102,7 @@ const calculateImagesFromIScript = (
             getAllImages( bwDat.images[unit.constructionImage] );
         }
     }
-    return [...preload].filter( ( v ) => v !== undefined );
+    return [ ...preload ].filter( ( v ) => v !== undefined );
 };
 
 export const calculateImagesFromUnitsIscript = ( bwDat: BwDAT, unitIds: number[] ) => {
@@ -96,7 +118,7 @@ export const calculateImagesFromUnitsIscript = ( bwDat: BwDAT, unitIds: number[]
         );
     } );
 
-    return [...preload].filter( ( v ) => v !== undefined );
+    return [ ...preload ].filter( ( v ) => v !== undefined );
 };
 
 export const calculateImagesFromSpritesIscript = (
@@ -115,7 +137,6 @@ export const calculateImagesFromSpritesIscript = (
         );
     } );
 
-    return [...preload].filter( ( v ) => v !== undefined );
+    return [ ...preload ].filter( ( v ) => v !== undefined );
 };
-
 export default calculateImagesFromIScript;

@@ -25,8 +25,8 @@ const Unit = ( {
     // const subUnit2 = unit.subUnit2 !== 228 ? bwDat.units[unit.subUnit2] : null;
 
     const imagesFromIscript = useCallback( () => {
-        return [...calculateImagesFromIscript( bwDat, unit.flingy.sprite.image, unit )];
-    }, [bwDat, unit] );
+        return [ ...calculateImagesFromIscript( bwDat, unit.flingy.sprite.image, unit ) ];
+    }, [ bwDat, unit ] );
 
     return (
         <div>

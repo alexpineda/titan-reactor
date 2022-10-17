@@ -1,5 +1,5 @@
 import { Unit } from "@core/unit";
-import { IterableMap } from "@utils/iteratible-map";
+import { IterableMap } from "@utils/data-structures/iteratible-map";
 import { SpriteType } from "common/types";
 import { Group } from "three";
 

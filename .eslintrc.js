@@ -44,6 +44,7 @@ module.exports = {
         "no-empty-function": "off",
         "no-prototype-builtins": "off",
         "object-curly-spacing": ["error", "always"],
+        "array-bracket-spacing": ["error", "always"],
         "space-in-parens": ["error", "always", { exceptions: ["empty"] }],
         "computed-property-spacing": ["error", "never"],
         "object-curly-newline": [

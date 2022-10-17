@@ -37,12 +37,14 @@ import { Color, MathUtils, Vector3 } from "three";
 import { createPlayersGameTimeApi } from "./players-api";
 import { World } from "./world";
 import { Unit } from "@core/unit";
-import { IterableSet } from "@utils/iterable-set";
+import { IterableSet } from "@utils/data-structures/iterable-set";
 import { borrow, Borrowed } from "@utils/object-utils";
 import { getJanitorLogLevel } from "@core/global";
 import { getMapTiles } from "@utils/chk-utils";
 import { ImageBase } from "..";
 import { ImageHDMaterial } from "@core/image-hd-material";
+import { calculateImagesFromTechTreeUnits } from "@utils/preload-map-units-and-sprites";
+import { TimeSliceJob } from "@utils/time-slice-job";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color( 0xffffff );
@@ -344,7 +346,24 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         }
         janitor.dispose();
         Janitor.logLevel = getJanitorLogLevel();
+        preloader.dispose();
     } );
+
+    const preloader = new TimeSliceJob(
+        ( imageId, next ) => {
+            if ( assets.hasImageAtlas( imageId ) ) {
+                return false;
+            }
+            requestIdleCallback( () => {
+                assets
+                    .loadImageAtlasAsync( imageId, assets.bwDat )
+                    .then( next )
+                    .catch( next );
+            } );
+        },
+        calculateImagesFromTechTreeUnits( world.map.units.map( ( unit ) => unit.unitId ) ),
+        2000
+    );
 
     return Object.freeze( {
         images,
@@ -362,7 +381,22 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         playerStartLocations,
         players,
         getPlayerColor,
-        onFrame( delta: number, renderMode3D: boolean, direction: number ) {
+        onFrame(
+            delta: number,
+            elapsed: number,
+            renderMode3D: boolean,
+            direction: number
+        ) {
+            preloader.update( elapsed );
+
+            if ( preloader.isComplete() && elapsed - preloader.timeCompleted > 10000 ) {
+                //TODO: don't dump all units, track ones already completed
+                const work = calculateImagesFromTechTreeUnits(
+                    units.units._dangerousArray.map( ( unit ) => unit.typeId )
+                );
+                preloader.addWork( work );
+            }
+
             world.fogOfWar.onFrame( players.getVisionFlag() );
 
             terrain.userData.update( delta );

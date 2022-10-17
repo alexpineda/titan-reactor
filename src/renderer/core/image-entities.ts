@@ -5,8 +5,8 @@ import { ImageHD } from "@core/image-hd";
 import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
 import { isGltfAtlas } from "@utils/image-utils";
-import { IndexedObjectPool } from "@utils/indexed-object-pool";
-import { IterableMap } from "@utils/iteratible-map";
+import { IndexedObjectPool } from "@utils/data-structures/indexed-object-pool";
+import { IterableMap } from "@utils/data-structures/iteratible-map";
 import { Janitor } from "three-janitor";
 import { AnimAtlas } from "common/types";
 
@@ -64,8 +64,8 @@ export class ImageEntities {
 
     getOrCreate( imageIndex: number, imageTypeId: number ) {
         const assets = gameStore().assets!;
+        
         const atlas = assets.loadImageAtlas( imageTypeId, assets.bwDat );
-
         // atlas hasn't loaded yet
         if ( !atlas ) {
             return;

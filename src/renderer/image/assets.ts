@@ -244,6 +244,9 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
         getImageAtlas( imageId: number ): AnimAtlas | undefined {
             return atlases[refId( imageId )];
         },
+        hasImageAtlas( imageId: number ): boolean {
+            return !!this.getImageAtlas( imageId );
+        },
         loadImageAtlasAsync( imageId: number, bwDat: BwDAT ) {
             return loadImageAtlas( imageId, bwDat );
         },
