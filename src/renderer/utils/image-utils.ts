@@ -1,8 +1,12 @@
 import { BwDAT, GltfAtlas, ImageDAT, ImageStruct } from "common/types";
 import { ImageFlags, drawFunctions } from "common/enums";
 import { applyCameraDirectionToImageFrame } from "./camera-utils";
-import { Vector2 } from "three";
+import { Mesh, Object3D, Vector2 } from "three";
 import gameStore from "@stores/game-store";
+import { ImageBase } from "@core/image-base";
+import { ImageHD } from "@core/image-hd";
+import { Image3D } from "@core/image-3d";
+import { ImageHDInstanced } from "@core/image-hd-instanced";
 
 export const imageIsShadow = ( image: ImageStruct, bwDat: BwDAT ) => {
     return bwDat.images[image.typeId].drawFunction === drawFunctions.rleShadow;
@@ -63,3 +67,11 @@ export const getImageLoOffset = (
     out.y = -out.y;
     return out;
 };
+
+export const isInstancedImageHd = ( image: Object3D ): image is ImageHDInstanced =>
+    ( image as ImageHDInstanced ).isImageHd && ( image as ImageHDInstanced ).isInstanced;
+export const isImageHd = ( image: Object3D ): image is ImageHD =>
+    ( image as ImageBase ).isImageHd;
+export const isImage3d = ( image: Object3D ): image is Image3D =>
+    ( image as ImageBase ).isImage3d;
+export const isMesh = ( image: Object3D ): image is Mesh => ( image as Mesh ).isMesh;

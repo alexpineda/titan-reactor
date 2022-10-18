@@ -108,7 +108,11 @@ export const createViewInputComposer = (
                 sceneController.onUpdateAudioMixerLocation( _target, _position )
             );
 
-            mixer.update( _audioPosition.x, _audioPosition.y, _audioPosition.z, delta );
+            mixer.update(
+                _audioPosition,
+                sceneController.onUpdateAudioMixerOrientation(),
+                delta
+            );
 
             for ( const viewport of this.activeViewports() ) {
                 if ( !viewport.freezeCamera ) {

@@ -10,10 +10,8 @@ import {
     UnitsBufferView,
     UnitsBufferViewIterator,
 } from "@buffer-view/units-buffer-view";
-import { Image3D } from "@core/image-3d";
 import { ImageEntities } from "@core/image-entities";
 import { ImageHD } from "@core/image-hd";
-import { ImageHDInstanced } from "@core/image-hd-instanced";
 import {
     applyModelEffectsToImage3d,
     applyRenderModeToImageHD,
@@ -25,7 +23,14 @@ import { SpriteEntities } from "@core/sprite-entities";
 import { UnitEntities } from "@core/unit-entities";
 import { terrainComposer } from "@image/generate-map/terrain-composer";
 import BaseScene from "@render/base-scene";
-import { imageIsDoodad, imageIsFrozen, imageIsHidden } from "@utils/image-utils";
+import {
+    imageIsDoodad,
+    imageIsFrozen,
+    imageIsHidden,
+    isImage3d,
+    isImageHd,
+    isInstancedImageHd,
+} from "@utils/image-utils";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import { unitIsFlying } from "@utils/unit-utils";
@@ -287,7 +292,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
                 sprite.userData.mainImage = image;
 
-                if ( image instanceof Image3D ) {
+                if ( isImage3d( image ) ) {
                     overlayEffectsMainImage.image = image;
                 }
 
@@ -296,11 +301,11 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 }
             }
 
-            if ( image instanceof ImageHD ) {
+            if ( isImageHd( image ) ) {
                 // set frame
                 applyRenderModeToImageHD( imageData, image, renderMode3D, direction );
                 // image.material.flatProjection = false;
-            } else if ( image instanceof Image3D ) {
+            } else if ( isImage3d( image ) ) {
                 applyModelEffectsToImage3d( imageData, image, unit );
             }
 
@@ -318,9 +323,9 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         sprite.matrixWorldNeedsUpdate = false;
 
         for ( const image of _images ) {
-            if ( image instanceof ImageHDInstanced ) {
+            if ( isInstancedImageHd( image ) ) {
                 image.updateInstanceMatrix( sprite.matrixWorld );
-            } else if ( image instanceof ImageHD ) {
+            } else if ( isImageHd( image ) ) {
                 image.position.add( sprite.position );
                 image.updateMatrix();
                 // cheaper than updateMatrixWorld since parents are all identity
@@ -331,7 +336,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                     sprite.matrixWorld
                 );
                 ( image.material as ImageHDMaterial ).localMatrix.copy( image.matrix );
-            } else if ( image instanceof Image3D ) {
+            } else if ( isImage3d( image ) ) {
                 image.updateMatrix();
                 image.updateMatrixWorld();
             }

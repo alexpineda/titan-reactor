@@ -23,8 +23,6 @@ import {
     createUnitSelectionBox,
     UnitSelectionStatus,
 } from "@input/create-unit-selection";
-import { ImageHD } from "@core/image-hd";
-import { Image3D } from "@core/image-3d";
 import { canSelectUnit } from "@utils/unit-utils";
 import { Unit } from "@core/unit";
 import { VisualSelectionBox } from "@input/mouse-selection-box";
@@ -32,6 +30,7 @@ import { Janitor } from "three-janitor";
 import { borrow, Borrowed } from "@utils/object-utils";
 import { SurfaceComposer } from "./surface-composer";
 import { PostProcessingComposer } from "./postprocessing-composer";
+import { isImage3d, isImageHd } from "@utils/image-utils";
 
 export type OverlayComposer = ReturnType<typeof createOverlayComposer>;
 
@@ -40,7 +39,7 @@ const _intersects: Intersection[] = [];
 const _getSelectionUnit =
     ( images: SceneComposer["images"] ) =>
     ( object: Object3D ): Unit | null => {
-        if ( object instanceof ImageHD || object instanceof Image3D ) {
+        if ( isImageHd( object ) || isImage3d( object ) ) {
             return canSelectUnit( images.getUnit( object ) );
         } else if ( object.parent ) {
             return _getSelectionUnit( images )( object.parent );

@@ -3,6 +3,7 @@ import type { Color, Object3D } from "three";
 
 export interface ImageBase extends Object3D {
     atlas?: AnimAtlas;
+    isImageHd: boolean;
     isImage3d: boolean;
     isInstanced?: boolean;
     dat: ImageDAT;

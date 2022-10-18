@@ -12,7 +12,6 @@ import { Settings } from "common/types";
 import { Assets } from "@image/assets";
 import {
     MathUtils,
-    Mesh,
     Object3D,
     OrthographicCamera,
     PerspectiveCamera,
@@ -22,6 +21,7 @@ import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewInputComposer } from "@core/world/view-composer";
 import { World } from "./world";
+import { isMesh } from "@utils/image-utils";
 
 //tank base, minerals
 const ignoreRecieveShadow = [ 250, 253, 347, 349, 351 ];
@@ -98,7 +98,7 @@ export const createPostProcessingComposer = (
     } );
 
     const addToBloom = ( image: Object3D ) => {
-        if ( image instanceof Mesh ) {
+        if ( isMesh( image ) ) {
             postProcessingBundle.addBloomSelection( image );
         }
 

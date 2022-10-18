@@ -32,12 +32,13 @@ export class IterableSet<T> {
     }
 
     delete( value: T ) {
-        const idx = this.#copy.indexOf( value );
-        if ( idx !== -1 ) {
-            this.#copy.splice( idx, 1 );
+        if ( this.#set.has( value ) ) {
+            const idx = this.#copy.indexOf( value );
+            if ( idx !== -1 ) {
+                this.#copy.splice( idx, 1 );
+            }
+            this.#set.delete( value );
         }
-        this.#set.delete( value );
-        this.onChange( this.#copy );
     }
 
     has( key: T ) {

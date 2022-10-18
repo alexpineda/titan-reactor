@@ -3,10 +3,11 @@ import { SelectionBars } from "@core/selection-bars";
 import range from "common/utils/range";
 import { Camera, Group, Vector3 } from "three";
 import { SpriteDAT, SpriteType } from "common/types";
-import { Image3D, ImageHD, Unit } from "@core";
+import { Unit } from "@core";
 import { SpriteEntities } from "@core/sprite-entities";
 import { Assets } from "@image/assets";
 import { SelectionCircle3D } from "./selection-circle-3d";
+import { isImage3d, isImageHd } from "@utils/image-utils";
 const _cameraWorldDirection = new Vector3();
 
 export class SelectionObject extends Group {
@@ -48,12 +49,12 @@ export class SelectionObject extends Group {
 
         this.position.copy( sprite.position );
 
-        if ( sprite.userData.mainImage instanceof ImageHD ) {
+        if ( isImageHd( sprite.userData.mainImage ) ) {
             this.#circle2d.visible = true;
             this.#circle3d.visible = false;
 
             this.#circle2d.update( spriteDat );
-        } else if ( sprite.userData.mainImage instanceof Image3D ) {
+        } else if ( isImage3d( sprite.userData.mainImage ) ) {
             this.#circle2d.visible = false;
             this.#circle3d.visible = true;
 

@@ -107,6 +107,7 @@ export class ImageHD
     extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInstancedMaterial>
     implements ImageBase
 {
+    isImageHd = true;
     isImage3d = false;
     isInstanced = false;
     atlas?: AnimAtlas;
@@ -129,10 +130,10 @@ export class ImageHD
         this.material.transparent = true;
 
         this.geometry = new BufferGeometry();
-        this.geometry.setIndex( [0, 1, 2, 0, 2, 3] );
+        this.geometry.setIndex( [ 0, 1, 2, 0, 2, 3 ] );
 
         const posAttribute = new BufferAttribute(
-            new Float32Array( [-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0] ),
+            new Float32Array( [ -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0 ] ),
             3,
             false
         );
@@ -140,7 +141,7 @@ export class ImageHD
         this.geometry.setAttribute( "position", posAttribute );
 
         const uvAttribute = new BufferAttribute(
-            new Float32Array( [0, 0, 1, 0, 1, 1, 0, 1] ),
+            new Float32Array( [ 0, 0, 1, 0, 1, 1, 0, 1 ] ),
             2,
             false
         );

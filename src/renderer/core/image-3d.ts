@@ -30,6 +30,7 @@ const sourceLookup = new Map<Object3D, Object3D>();
 const cloneLookup = new Map<Object3D, Object3D>();
 
 export class Image3D extends Object3D implements ImageBase {
+    isImageHd = false;
     isImage3d = true;
     isInstanced = false;
 

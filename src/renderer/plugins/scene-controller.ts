@@ -1,7 +1,7 @@
 import { GameTimeApi } from "@core/world/game-time-api";
 import { Injectables, NativePlugin } from "common/types";
 import { GameViewPort } from "renderer/camera/game-viewport";
-import { Vector2, Vector3 } from "three";
+import { Quaternion, Vector2, Vector3 } from "three";
 import { PluginBase } from "./plugin-base";
 
 export interface SceneController
@@ -73,6 +73,9 @@ export interface SceneController
     ): void;
 }
 
+const _va = new Vector3(),
+    _vb = new Vector3(),
+    _qa = new Quaternion();
 export class SceneController extends PluginBase implements SceneController {
     override isSceneController = true;
     viewports: GameViewPort[] = [];
@@ -93,5 +96,10 @@ export class SceneController extends PluginBase implements SceneController {
             target,
             this.settings.session.audioListenerDistance() as number
         );
+    }
+
+    onUpdateAudioMixerOrientation() {
+        this.viewport.camera.matrixWorld.decompose( _va, _qa, _vb );
+        return _qa;
     }
 }

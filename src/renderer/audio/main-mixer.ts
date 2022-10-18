@@ -1,10 +1,11 @@
-import { AudioContext, Vector3 } from "three";
+import { AudioContext, Quaternion, Vector3 } from "three";
 import fs from "fs/promises";
 import { readCascFile } from "common/casclib";
 import gameStore from "@stores/game-store";
 import { Settings } from "common/types";
 const MUSIC_REDUCTION_RATIO = 0.1;
-const _position = new Vector3();
+const _position = new Vector3(),
+    _orientation = new Vector3();
 
 // mixes sound and music volumes
 export class MainMixer {
@@ -78,14 +79,21 @@ export class MainMixer {
         this.intro.gain.value = volumes.playIntroSounds ? 1 : 0;
     }
 
-    update( x: number, y: number, z: number, delta: number ) {
+    update( { x, y, z }: Vector3, orientation: Quaternion, delta: number ) {
         if ( Number.isNaN( x ) || Number.isNaN( y ) || Number.isNaN( z ) ) {
             return;
         }
         const endTime = this.context.currentTime + delta * 0.001;
+
+        _orientation.set( 0, 0, -1 ).applyQuaternion( orientation );
+
         this.context.listener.positionX.linearRampToValueAtTime( x, endTime );
         this.context.listener.positionY.linearRampToValueAtTime( y, endTime );
         this.context.listener.positionZ.linearRampToValueAtTime( z, endTime );
+
+        this.context.listener.forwardX.linearRampToValueAtTime( _orientation.x, endTime );
+        this.context.listener.forwardY.linearRampToValueAtTime( _orientation.y, endTime );
+        this.context.listener.forwardZ.linearRampToValueAtTime( _orientation.z, endTime );
     }
 
     get position() {
