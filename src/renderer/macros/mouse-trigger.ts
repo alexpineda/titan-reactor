@@ -59,9 +59,9 @@ export class MouseTrigger implements MacroTrigger {
     }
 
     stringify() {
-        const shiftKey = this.value.shiftKey ? ["Shift"] : [];
-        const ctrlKey = this.value.ctrlKey ? ["Ctrl"] : [];
-        const altKey = this.value.altKey ? ["Alt"] : [];
+        const shiftKey = this.value.shiftKey ? [ "Shift" ] : [];
+        const ctrlKey = this.value.ctrlKey ? [ "Ctrl" ] : [];
+        const altKey = this.value.altKey ? [ "Alt" ] : [];
         const v = [
             ...shiftKey,
             ...ctrlKey,

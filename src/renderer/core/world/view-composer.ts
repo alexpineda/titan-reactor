@@ -72,13 +72,13 @@ export const createViewInputComposer = (
         },
         update( delta: number, elapsed: number ) {
             if ( !sceneController ) {
-                inputs.mouse.interrupted = true;
+                inputs.mouse.stopPropagation = true;
                 return;
             }
 
             inputs.update();
 
-            if ( !inputs.mouse.interrupted ) {
+            if ( !inputs.mouse.stopPropagation ) {
                 sceneController.onCameraMouseUpdate &&
                     sceneController.onCameraMouseUpdate(
                         delta / 100,
@@ -123,10 +123,6 @@ export const createViewInputComposer = (
                     );
                 }
             }
-        },
-
-        onAfterUpdate() {
-            inputs.resetState();
         },
 
         get viewports() {

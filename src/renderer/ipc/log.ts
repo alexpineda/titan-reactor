@@ -5,7 +5,7 @@ import { settingsStore } from "@stores/settings-store";
 
 type ErrorOrUnknown = Error | unknown;
 
-const logLevels = ["info", "warn", "error", "debug"];
+const logLevels = [ "info", "warn", "error", "debug" ];
 
 const isActiveLevel = ( level: LogLevel ): boolean => {
     return (
@@ -50,7 +50,10 @@ export const logServer = ( message: string, level: LogLevel = "info" ) => {
 };
 
 export const logClient = ( message: string, level: LogLevel = "info" ) => {
-    if ( !isActiveLevel( level ) ) {
+    if (
+        !isActiveLevel( level ) &&
+        !( level === "error" && process.env.NODE_ENV === "development" )
+    ) {
         return;
     }
 

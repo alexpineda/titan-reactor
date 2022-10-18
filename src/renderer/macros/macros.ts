@@ -156,7 +156,10 @@ export class Macros {
         }
 
         for ( const macro of candidates ) {
-            this.#execMacro( macro );
+            // preventDefault
+            if ( this.#execMacro( macro, e ) === false ) {
+                return false;
+            }
         }
     }
 
@@ -183,11 +186,16 @@ export class Macros {
         return false;
     }
 
-    #testMacroConditions( macro: Macro, context?: object ) {
+    #testMacroConditions( macro: Macro, context?: unknown ) {
         for ( const condition of macro.conditions ) {
             const value = this.targets
                 .getHandler( condition.path[0] )!
                 .getValue( condition.path, condition.value, context );
+
+            //TODO: generalize this
+            if ( condition.comparator === ConditionComparator.Execute ) {
+                return value;
+            }
 
             if ( !this.#testCondition( condition.comparator, value, condition.value ) ) {
                 return false;
@@ -202,8 +210,8 @@ export class Macros {
      * @param macro
      * @param context Additional context provided to environment of caller. Usually provided from plugin hook results.
      */
-    #execMacro( macro: Macro, context?: any ) {
-        if ( !this.#testMacroConditions( macro ) ) {
+    #execMacro( macro: Macro, context?: unknown ): boolean | undefined {
+        if ( !this.#testMacroConditions( macro, context ) ) {
             return false;
         }
 
@@ -214,7 +222,10 @@ export class Macros {
                 continue;
             }
 
-            this.execAction( action, context );
+            // supports shortcuting (for eg. mouse trigger)
+            if ( this.execAction( action, context ) === false ) {
+                return false;
+            }
         }
 
         return true;
@@ -224,7 +235,7 @@ export class Macros {
      * Executes a macro by Id.
      * @param id
      */
-    execMacroById( id: string, context?: any ) {
+    execMacroById( id: string, context?: unknown ) {
         const macro = this.macros.find( ( m ) => m.id === id );
         if ( macro ) {
             this.#execMacro( macro, context );
@@ -233,8 +244,8 @@ export class Macros {
         }
     }
 
-    execAction( action: MacroAction, context?: any ) {
-        this.targets.getHandler( action.path[0] )!.action( action, context );
+    execAction( action: MacroAction, context?: unknown ): unknown {
+        return this.targets.getHandler( action.path[0] )!.action( action, context );
     }
 
     resetAllActions( macroId: string ) {

@@ -29,7 +29,7 @@ export class MouseInput {
     };
 
     // whether or not to continue processing mouse input
-    interrupted = false;
+    stopPropagation = false;
 
     direction = new Vector3();
 
@@ -175,7 +175,7 @@ export class MouseInput {
         this.#lookAt.y = 0;
         this.#clicked = undefined;
         this.#released = undefined;
-        this.interrupted = false;
+        this.stopPropagation = false;
 
         this.event.altKey = false;
         this.event.ctrlKey = false;

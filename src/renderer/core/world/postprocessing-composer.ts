@@ -212,6 +212,8 @@ export const createPostProcessingComposer = (
             _target.setY( terrain.getTerrainY( _target.x, _target.z ) );
 
             for ( const v of viewports.activeViewports() ) {
+                v.updateCamera( world.settings.getState().input.dampingFactor, delta );
+
                 if ( v === viewports.primaryViewport ) {
                     if ( v.needsUpdate ) {
                         _changeRenderMode( v.renderMode3D );
@@ -248,7 +250,6 @@ export const createPostProcessingComposer = (
                     }
                 }
 
-                v.updateCamera( world.settings.getState().input.dampingFactor, delta );
                 v.shakeStart(
                     elapsed,
                     world.settings.getState().input.cameraShakeStrength

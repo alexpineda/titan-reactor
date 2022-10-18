@@ -9,7 +9,15 @@ export class IterableSet<T> {
         }
     }
 
-    toArray() {
+    copyAsArray() {
+        return this.#copy.slice();
+    }
+
+    get size() {
+        return this.#copy.length;
+    }
+
+    get _dangerousArray() {
         return this.#copy;
     }
 

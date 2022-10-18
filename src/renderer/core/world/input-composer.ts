@@ -24,12 +24,9 @@ export const createInputComposer = ( world: World ) => {
         update() {
             if ( this.mouse.clicked ) {
                 if ( world.events.emit( "mouse-click", this.mouse.event ) === false ) {
-                    this.mouse.interrupted = true;
+                    this.mouse.stopPropagation = true;
                 }
             }
-        },
-        resetState() {
-            mouseInput.reset();
         },
         dispose: () => janitor.dispose(),
         api: {
@@ -47,12 +44,6 @@ export const createInputComposer = ( world: World ) => {
                 ],
                 { asValues: false }
             ),
-            // get followedUnitsPosition() {
-            //   if (!hasFollowedUnits()) {
-            //     return null;
-            //   }
-            //   return calculateFollowedUnitsTarget(pxToWorld);
-            // },
         },
     };
 };

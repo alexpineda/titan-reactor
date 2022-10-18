@@ -62,7 +62,7 @@ export const createMacrosComposer = (
 
     janitor.mop(
         events.on( "mouse-click", ( button ) => {
-            macros.mouseTrigger( button );
+            return macros.mouseTrigger( button );
         } ),
         "mouse-click"
     );

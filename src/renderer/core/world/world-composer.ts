@@ -147,7 +147,8 @@ export const createWorldComposer = async (
         sceneComposer.api,
         openBwComposer.api,
         viewInputComposer.api,
-        postProcessingComposer.api
+        postProcessingComposer.api,
+        overlayComposer.api
     ) as GameTimeApi;
 
     return {
@@ -241,7 +242,7 @@ export const createWorldComposer = async (
                     openBwComposer.currentFrame,
                     openBW._get_buffer( 8 ),
                     openBW._get_buffer( 9 ),
-                    sceneComposer.selectedUnits.toArray()
+                    sceneComposer.selectedUnits._dangerousArray
                 );
 
                 commandsComposer.onFrame( openBwComposer.currentFrame );
@@ -254,7 +255,7 @@ export const createWorldComposer = async (
 
             this.onRender( delta, elapsed );
 
-            viewInputComposer.onAfterUpdate();
+            viewInputComposer.inputs.mouse.reset();
         },
 
         onRender: ( delta: number, elapsed: number ) => {

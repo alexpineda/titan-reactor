@@ -2,6 +2,10 @@ import { BwDAT, UnitDAT, UnitStruct } from "common/types";
 import { UnitFlags, unitTypes, iscriptHeaders, orders, upgrades } from "common/enums";
 import { SpritesBufferView, UnitsBufferView } from "@buffer-view";
 import { Unit } from "@core/unit";
+import debounce from "lodash.debounce";
+import { IterableSet } from "./data-structures/iterable-set";
+import { PxToWorld } from "common/utils/conversions";
+import { Vector3 } from "three";
 
 export const unitIsCompleted = ( unit: UnitStruct ) => {
     return unit.statusFlags & UnitFlags.Completed;
@@ -151,20 +155,30 @@ export class PlayerInfo {
     }
 }
 
-//TODO: re-implement
-// export const calculateFollowedUnitsTarget = debounce((pxToGameUnit: PxToWorld) => {
-//     if (followedUnits.length === 0) {
-//         return;
-//     }
+const _followedUnitsPosition = new Vector3();
 
-//     _followedUnitsPosition.set(pxToGameUnit.x(followedUnits[0].x), 0, pxToGameUnit.y(followedUnits[0].y));
+export const calculateFollowedUnitsTarget = debounce(
+    ( set: IterableSet<Unit>, pxToGameUnit: PxToWorld ) => {
+        const units = set._dangerousArray;
 
-//     for (let i = 1; i < followedUnits.length; i++) {
-//         _followedUnitsPosition.set(
-//             (_followedUnitsPosition.x + pxToGameUnit.x(followedUnits[i].x)) / 2,
-//             0,
-//             (_followedUnitsPosition.z + pxToGameUnit.y(followedUnits[i].y)) / 2
-//         )
-//     }
-//     return _followedUnitsPosition;
-// }, 30);
+        if ( units.length === 0 ) {
+            return;
+        }
+
+        _followedUnitsPosition.set(
+            pxToGameUnit.x( units[0].x ),
+            0,
+            pxToGameUnit.y( units[0].y )
+        );
+
+        for ( let i = 1; i < units.length; i++ ) {
+            _followedUnitsPosition.set(
+                ( _followedUnitsPosition.x + pxToGameUnit.x( units[i].x ) ) / 2,
+                0,
+                ( _followedUnitsPosition.z + pxToGameUnit.y( units[i].y ) ) / 2
+            );
+        }
+        return _followedUnitsPosition;
+    },
+    30
+);

@@ -6,6 +6,7 @@ import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "../../camera/game-viewport";
 import { Color } from "three";
 import { createSandboxApi } from "@openbw/sandbox-api";
+import { Unit } from "@core/unit";
 
 export interface GameTimeApi {
     sandboxApi: ReturnType<typeof createSandboxApi>;
@@ -43,4 +44,7 @@ export interface GameTimeApi {
     togglePointerLock( val: boolean ): void;
     isPointerLockLost(): boolean;
     changeRenderMode( renderMode3D: boolean ): void;
+    getHoveredUnit(): Unit | undefined;
+    followUnits( units: Unit[] ): void;
+    getFollowedUnits(): Unit[];
 }

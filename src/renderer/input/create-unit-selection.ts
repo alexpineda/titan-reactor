@@ -222,5 +222,11 @@ export const createUnitSelectionBox = (
                 _selectMove();
             }
         },
+        getHoveredUnit() {
+            return getUnitFromMouseIntersect(
+                _mouseV.set( mouse.move.x, mouse.move.y ),
+                selectionBox.scene.children
+            );
+        },
     };
 };

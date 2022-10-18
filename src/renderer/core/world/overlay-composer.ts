@@ -233,10 +233,15 @@ export const createOverlayComposer = (
     world.events.on( "dispose", () => janitor.dispose() );
 
     return {
+        api: {
+            getHoveredUnit() {
+                return unitSelectionBox.getHoveredUnit();
+            },
+        },
         unitSelectionBox,
         update( delta: number ) {
             unitSelectionBox.enabled =
-                _intersects.length === 0 && !views.inputs.mouse.interrupted
+                _intersects.length === 0 && !views.inputs.mouse.stopPropagation
                     ? world.settings.getState().input.unitSelection
                     : false;
 
@@ -254,7 +259,7 @@ export const createOverlayComposer = (
                     world.settings.getState().minimap.interactive &&
                     world.settings.getState().minimap.enabled
                 ) ||
-                views.inputs.mouse.interrupted
+                views.inputs.mouse.stopPropagation
             ) {
                 if ( _insideMinimap ) {
                     world.events.emit( "minimap-leave" );
@@ -305,7 +310,7 @@ export const createOverlayComposer = (
                 views.primaryCamera!,
                 sprites,
                 completedUpgrades,
-                selectedUnits.toArray()
+                selectedUnits._dangerousArray
             );
 
             minimapMaterial.update(

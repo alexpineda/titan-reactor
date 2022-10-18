@@ -33,7 +33,7 @@ import {
 } from "@utils/image-utils";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
-import { unitIsFlying } from "@utils/unit-utils";
+import { calculateFollowedUnitsTarget, unitIsFlying } from "@utils/unit-utils";
 import { drawFunctions, unitTypes } from "common/enums";
 import { ImageStruct, UnitTileScale } from "common/types";
 import { Assets } from "@image/assets";
@@ -370,7 +370,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         2000
     );
 
-    return Object.freeze( {
+    return {
         images,
         sprites,
         units,
@@ -451,6 +451,18 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             ...createPlayersGameTimeApi( _players, _world ),
             pxToWorld,
             scene,
+            getFollowedUnitsPosition() {
+                if ( followedUnits.size === 0 ) {
+                    return null;
+                }
+                return calculateFollowedUnitsTarget( followedUnits, pxToWorld );
+            },
+            followUnits( units: Unit[] ) {
+                followedUnits.set( units );
+            },
+            getFollowedUnits() {
+                return followedUnits.copyAsArray();
+            },
         } ) )( new WeakRef( players ), borrow( world ) ),
-    } );
+    };
 };
