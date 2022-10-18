@@ -112,7 +112,7 @@ export const createOverlayComposer = (
     minimap.matrixAutoUpdate = false;
 
     const rayCast = new Raycaster();
-    const [mapWidth, mapHeight] = world.map.size;
+    const [ mapWidth, mapHeight ] = world.map.size;
 
     const minimapConsoleMaterial = new BasicOverlayMaterial(
         assets.minimapConsole.clock
@@ -129,7 +129,7 @@ export const createOverlayComposer = (
 
     post.overlayScene.add( minimap, cursorGraphics );
 
-    const ignoreOnMinimap = [unitTypes.darkSwarm, unitTypes.disruptionWeb];
+    const ignoreOnMinimap = [ unitTypes.darkSwarm, unitTypes.disruptionWeb ];
 
     cursorMaterial.uniforms.uResolution.value.set(
         surfaces.gameSurface!.bufferWidth,

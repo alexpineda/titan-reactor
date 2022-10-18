@@ -18,12 +18,12 @@ export class FogOfWarEffect extends Effect {
             attributes: EffectAttribute.DEPTH,
             blendFunction: BlendFunction.ALPHA,
             uniforms: new Map( [
-                ["fog", new Uniform( null )],
-                ["fogResolution", new Uniform( new Vector2() )],
-                ["viewInverse", new Uniform( new Matrix4() )],
-                ["projectionInverse", new Uniform( new Matrix4() )],
-                ["color", new Uniform( new Color( 0, 0, 0 ) )],
-                ["fogUvTransform", new Uniform( new Vector4() )],
+                [ "fog", new Uniform( null ) ],
+                [ "fogResolution", new Uniform( new Vector2() ) ],
+                [ "viewInverse", new Uniform( new Matrix4() ) ],
+                [ "projectionInverse", new Uniform( new Matrix4() ) ],
+                [ "color", new Uniform( new Color( 0, 0, 0 ) ) ],
+                [ "fogUvTransform", new Uniform( new Vector4() ) ],
             ] ),
         } );
     }
@@ -36,7 +36,7 @@ export class FogOfWarEffect extends Effect {
         return this.blendMode.opacity.value as number;
     }
 
-    set camera( camera: PerspectiveCamera | OrthographicCamera ) {
+    override set mainCamera( camera: PerspectiveCamera | OrthographicCamera ) {
         this.projectionInverse.copy( camera.projectionMatrixInverse );
         this.viewInverse.copy( camera.matrixWorld );
     }

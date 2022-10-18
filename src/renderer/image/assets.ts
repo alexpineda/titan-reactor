@@ -16,7 +16,6 @@ import { imageTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader, Texture } from "three";
 import { settingsStore } from "@stores/settings-store";
 import { modelSetFileRefIds } from "@core/model-effects-configuration";
-import { renderComposer } from "@render/render-composer";
 import { loadDatFilesRemote } from "@ipc/files";
 import { parseDDS } from "./formats/parse-dds";
 import { b2ba } from "@utils/bin-utils";
@@ -92,7 +91,6 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
         );
 
         selectionCircles.push( selCircleGRP );
-        renderComposer.getWebGLRenderer().initTexture( selCircleGRP.diffuse );
     }
 
     const minimapConsole = {
@@ -113,7 +111,6 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
     log.debug( `@load-assets/envmap: ${envMapFilename}` );
     loadEnvironmentMap( envMapFilename, ( tex ) => {
         setAsset( "envMap", tex );
-        renderComposer.getWebGLRenderer().initTexture( tex );
     } );
 
     processStore().increment();
@@ -177,8 +174,6 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
 
         const anim = loadAnimAtlas( await loadAnimBuffer( refImageId, res ), imageId, res );
 
-        renderComposer.getWebGLRenderer().initTexture( anim.diffuse );
-
         if ( atlases[imageId]?.isHD2 && anim.isHD ) {
             setHDMipMaps( anim, atlases[imageId] );
         }
@@ -209,10 +204,6 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
 
             atlases[imageId] = Object.assign( {}, atlases[imageId], glb );
             atlases[refImageId] = Object.assign( {}, atlases[refImageId], glb );
-
-            if ( glb?.mesh?.material.map ) {
-                renderComposer.getWebGLRenderer().initTexture( glb.mesh.material.map );
-            }
         }
     };
 

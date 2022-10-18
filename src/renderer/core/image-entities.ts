@@ -64,7 +64,7 @@ export class ImageEntities {
 
     getOrCreate( imageIndex: number, imageTypeId: number ) {
         const assets = gameStore().assets!;
-        
+
         const atlas = assets.loadImageAtlas( imageTypeId, assets.bwDat );
         // atlas hasn't loaded yet
         if ( !atlas ) {
@@ -81,7 +81,7 @@ export class ImageEntities {
             this.#images.set( imageIndex, image );
             this.#units.delete( image );
 
-            image.updateImageType( atlas, true );
+            image.updateImageType( atlas );
         } else {
             image.updateImageType( atlas );
         }

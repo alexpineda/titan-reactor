@@ -66,6 +66,12 @@ export function isPostProcessing3D( obj: any ): obj is Settings["postprocessing3
     return obj !== undefined && "depthFocalLength" in obj;
 }
 
+class OverlayPass extends RenderPass {
+    override set mainCamera( _: Camera ) {}
+
+    override set mainScene( _: Scene ) {}
+}
+
 export class PostProcessingBundler {
     #prevVersion = 0;
     #version = 0;
@@ -112,7 +118,7 @@ export class PostProcessingBundler {
         this.overlayCamera.position.set( 0, 0, 10 );
         this.overlayCamera.updateProjectionMatrix();
         this.overlayCamera.updateMatrixWorld();
-        this.#overlayPass = new RenderPass( this.overlayScene, this.overlayCamera );
+        this.#overlayPass = new OverlayPass( this.overlayScene, this.overlayCamera );
         this.#overlayPass.clear = false;
         this.#overlayPass.skipShadowMapUpdate = true;
         this.#overlayPass.ignoreBackground = true;
@@ -291,14 +297,6 @@ export class PostProcessingBundler {
                 camera
             );
         }
-    }
-
-    updateCamera( camera: PerspectiveCamera | OrthographicCamera ) {
-        //@ts-expect-error
-        this.#renderPass.camera = camera;
-        //@ts-expect-error
-        this.renderModeTransitionPass.camera = camera;
-        this.#fogOfWarEffect.camera = camera;
     }
 
     addBloomSelection( object: Object3D ) {

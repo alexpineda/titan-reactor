@@ -19,7 +19,6 @@ import { createOverlayComposer } from "./overlay-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createCommandsComposer } from "./commands-composer";
 import { createGameLoopComposer } from "./game-loop-composer";
-import { renderComposer } from "@render/render-composer";
 import { createViewInputComposer } from "./view-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World } from "./world";
