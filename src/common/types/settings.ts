@@ -110,7 +110,6 @@ export interface SettingsV6 {
     postprocessing: {
         anisotropy: number;
         antialias: number;
-        toneMapping: number;
         bloom: number;
         brightness: number;
         contrast: number;

@@ -17,7 +17,7 @@ import { Schema } from "leva/plugin";
 export const GlobalSettings = () => {
     const settings = useSettingsStore();
 
-    const [state, setState] = useState(
+    const [ state, setState ] = useState(
         getAppSettingsInLevaFormat(
             settings.data,
             settings.enabledPlugins,
@@ -56,7 +56,7 @@ export const GlobalSettings = () => {
 
     const store = useCreateStore();
 
-    useControls( controls as Schema, { store  } );
+    useControls( controls as Schema, { store } );
 
     return createLevaPanel( store );
 };

@@ -3,7 +3,7 @@ import { SpritesBufferViewIterator } from "@buffer-view/sprites-buffer-view-iter
 import { Image3D } from "@core/image-3d";
 import { ImageHD } from "@core/image-hd";
 import { applyRenderModeToImageHD } from "@core/model-effects";
-import { EffectivePasses, PostProcessingBundler } from "@render/postprocessing-bundler";
+import { PostProcessingBundler } from "@render/postprocessing-bundler";
 import { renderComposer } from "@render/render-composer";
 import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
@@ -39,8 +39,6 @@ export const createPostProcessingComposer = (
 
     const postProcessingBundle = janitor.mop(
         new PostProcessingBundler(
-            new PerspectiveCamera(),
-            scene,
             settingsStore().data.postprocessing,
             world.fogOfWarEffect
         ),
@@ -50,16 +48,8 @@ export const createPostProcessingComposer = (
     const updatePostProcessingOptions = (
         options: Settings["postprocessing"] | Settings["postprocessing3d"]
     ) => {
-        postProcessingBundle.camera = viewports.primaryCamera!;
-        postProcessingBundle.scene = scene;
         postProcessingBundle.options = options;
-        postProcessingBundle.needsUpdate = true;
-
-        // do this after changing render mode as Extended differs
-        postProcessingBundle.effectivePasses =
-            viewports.numActiveViewports > 1
-                ? EffectivePasses.Standard
-                : EffectivePasses.Extended;
+        postProcessingBundle.update();
 
         if ( postProcessingBundle.options3d ) {
             for ( const image of images ) {
@@ -90,12 +80,6 @@ export const createPostProcessingComposer = (
             terrain.envMapIntensity = postProcessingBundle.options3d.envMap;
         }
     };
-
-    world.events.on( "image-destroyed", ( image ) => {
-        if ( postProcessingBundle.debugSelection ) {
-            postProcessingBundle.debugSelection.delete( image );
-        }
-    } );
 
     const addToBloom = ( image: Object3D ) => {
         if ( isMesh( image ) ) {
@@ -170,6 +154,18 @@ export const createPostProcessingComposer = (
     const spritesIterator = new SpritesBufferViewIterator( world.openBW );
     const imageBufferView = new ImageBufferView( world.openBW );
 
+    world.events.on( "settings-changed", ( { settings, rhs } ) => {
+        if ( viewports.primaryRenderMode3D && rhs.postprocessing3d ) {
+            if ( !shallow( postProcessingBundle.options, settings.postprocessing3d ) ) {
+                updatePostProcessingOptions( settings.postprocessing3d );
+            }
+        } else if ( !viewports.primaryRenderMode3D && rhs.postprocessing ) {
+            if ( !shallow( postProcessingBundle.options, settings.postprocessing ) ) {
+                updatePostProcessingOptions( settings.postprocessing );
+            }
+        }
+    } );
+
     world.events.on( "dispose", () => janitor.dispose() );
 
     return {
@@ -209,16 +205,12 @@ export const createPostProcessingComposer = (
             return postProcessingBundle.overlayCamera;
         },
 
-        updatePostProcessingOptions(
-            options: Settings["postprocessing"] | Settings["postprocessing3d"]
-        ) {
-            if ( !shallow( postProcessingBundle.options, options ) ) {
-                updatePostProcessingOptions( options );
-            }
-        },
-
         render( delta: number, elapsed: number ) {
             _transitionRenderMode( delta );
+
+            viewports.primaryViewport!.orbit.getTarget( _target );
+            _target.setY( terrain.getTerrainY( _target.x, _target.z ) );
+
             for ( const v of viewports.activeViewports() ) {
                 if ( v === viewports.primaryViewport ) {
                     if ( v.needsUpdate ) {
@@ -226,10 +218,7 @@ export const createPostProcessingComposer = (
                         // world.reset!();
                         v.needsUpdate = false;
                     }
-
-                    v.orbit.getTarget( _target );
-                    _target.setY( terrain.getTerrainY( _target.x, _target.z ) );
-                    postProcessingBundle.updateExtended( v.camera, _target );
+                    postProcessingBundle.updateDofTarget( _target );
                 } else {
                     // iterate all images again and update image frames according to different view camera
                     //TODO: iterate over image objects and add image address to get buffer view
@@ -266,6 +255,8 @@ export const createPostProcessingComposer = (
                 );
                 renderComposer.setBundlePasses( postProcessingBundle );
                 renderComposer.composer.setMainCamera( v.camera );
+                renderComposer.composer.setMainScene( scene );
+
                 renderComposer.render( delta, v.viewport );
                 v.shakeEnd();
             }

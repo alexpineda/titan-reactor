@@ -123,14 +123,6 @@ export const createWorldComposer = async (
         ) {
             setTimeout( () => setSceneController( settings.input.sceneController ), 0 );
         }
-
-        if ( viewInputComposer.primaryRenderMode3D && rhs.postprocessing3d ) {
-            postProcessingComposer.updatePostProcessingOptions(
-                settings.postprocessing3d
-            );
-        } else if ( !viewInputComposer.primaryRenderMode3D && rhs.postprocessing ) {
-            postProcessingComposer.updatePostProcessingOptions( settings.postprocessing );
-        }
     } );
 
     const simpleText = janitor.mop( new SimpleText(), "simple-text" );

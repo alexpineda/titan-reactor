@@ -9,7 +9,7 @@ import lSet from "lodash.set";
 export const generateAppSettingsFromLevaFormat = (
     settings: Record<string, { value: any }>
 ) => {
-    return Object.entries( settings ).reduce<Record<string, any>>( ( memo, [key, item] ) => {
+    return Object.entries( settings ).reduce<Record<string, any>>( ( memo, [ key, item ] ) => {
         lSet( memo, key.split( "." ), item.value );
         return memo;
     }, {} );
@@ -20,7 +20,7 @@ export const getAppSettingsPropertyInLevaFormat = (
     plugins: SettingsMeta["enabledPlugins"],
     fields: string[]
 ): FieldDefinition | undefined => {
-    if ( [":app", ":plugin", ":function", ":macro"].includes( fields[0] ) ) {
+    if ( [ ":app", ":plugin", ":function", ":macro" ].includes( fields[0] ) ) {
         console.error( "YOU ARE USING ROOT KEYS", fields );
         return undefined;
     }
@@ -46,7 +46,7 @@ export const getSessionSettingsPropertyInLevaFormat = (
     plugins: SettingsMeta["enabledPlugins"],
     fields: string[]
 ): FieldDefinition | undefined => {
-    if ( [":app", ":plugin", ":function", ":macro"].includes( fields[0] ) ) {
+    if ( [ ":app", ":plugin", ":function", ":macro" ].includes( fields[0] ) ) {
         console.error( "YOU ARE USING ROOT KEYS", fields );
         return undefined;
     }
@@ -221,14 +221,6 @@ const getMinimapConfig = ( minimap: SettingsMeta["data"]["minimap"] ): MinimapCo
         label: "Minimap Soft Edges",
         value: minimap.softEdges,
     },
-    "minimap.mode": {
-        label: "Minimap Mode",
-        value: minimap.mode,
-        options: {
-            "2D (Ortho)": "2d",
-            "3D": "3d",
-        },
-    },
     "minimap.scale": {
         label: "Minimap Size % Height",
         min: 1,
@@ -353,18 +345,11 @@ export const getPostProcessingConfig = (
         max: maxAntiAlias,
         step: 1,
     },
-    "postprocessing.toneMapping": {
-        label: "Tone Mapping Exposure",
-        value: postprocessing.toneMapping,
-        min: 0,
-        max: 2,
-        step: 0.1,
-    },
     "postprocessing.bloom": {
         label: "Bloom Intensity",
         value: postprocessing.bloom,
         min: 0,
-        max: 1000,
+        max: 10,
         step: 0.1,
     },
     "postprocessing.brightness": {
@@ -416,7 +401,7 @@ const getPostProcessing3DConfig = (
     "postprocessing3d.toneMapping": {
         label: "Tone Mapping Exposure",
         value: postprocessing3d.toneMapping,
-        min: 0,
+        min: 1,
         max: 2,
         step: 0.1,
     },
@@ -424,8 +409,8 @@ const getPostProcessing3DConfig = (
         label: "Bloom Intensity",
         value: postprocessing3d.bloom,
         min: 0,
-        max: 1000,
-        step: 1,
+        max: 10,
+        step: 0.01,
     },
     "postprocessing3d.brightness": {
         label: "Brightness",
