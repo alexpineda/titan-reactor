@@ -199,25 +199,8 @@ export const createWorldComposer = async (
 
             await setSceneController( sceneController, targetData );
 
-            // build frame to compile materials
-            sceneComposer.onFrame(
-                0,
-                0,
-                viewInputComposer.primaryViewport!.renderMode3D,
-                viewInputComposer.primaryViewport!.camera.userData.direction
-            );
-
-            postProcessingComposer.changeRenderModeImmediate( true );
-
-            renderComposer
-                .getWebGLRenderer()
-                .render( sceneComposer.scene, viewInputComposer.primaryCamera! );
-
-            postProcessingComposer.changeRenderModeImmediate( false );
-
-            renderComposer
-                .getWebGLRenderer()
-                .render( sceneComposer.scene, viewInputComposer.primaryCamera! );
+            openBwComposer.precompile();
+            postProcessingComposer.precompile( viewInputComposer.primaryCamera! );
 
             events.emit( "resize", surfaceComposer.gameSurface );
             events.emit( "settings-changed", {

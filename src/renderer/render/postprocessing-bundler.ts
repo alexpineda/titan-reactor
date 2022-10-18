@@ -14,7 +14,6 @@ import {
     OutlineEffect,
     OverrideMaterialManager,
     Pass,
-    PixelationEffect,
     RenderPass,
     SelectiveBloomEffect,
     ToneMappingEffect,

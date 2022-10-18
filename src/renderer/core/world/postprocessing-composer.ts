@@ -10,7 +10,14 @@ import { Janitor } from "three-janitor";
 import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";
-import { MathUtils, Mesh, Object3D, PerspectiveCamera, Vector3 } from "three";
+import {
+    MathUtils,
+    Mesh,
+    Object3D,
+    OrthographicCamera,
+    PerspectiveCamera,
+    Vector3,
+} from "three";
 import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewInputComposer } from "@core/world/view-composer";
@@ -24,7 +31,7 @@ export type PostProcessingComposer = ReturnType<typeof createPostProcessingCompo
 
 export const createPostProcessingComposer = (
     world: World,
-    { scene, images, sprites, terrain }: SceneComposer,
+    { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer,
     viewports: ViewInputComposer,
     assets: Assets
 ) => {
@@ -57,7 +64,7 @@ export const createPostProcessingComposer = (
         if ( postProcessingBundle.options3d ) {
             for ( const image of images ) {
                 if ( image instanceof Image3D ) {
-                    image.material.envMapIntensity =
+                    image.image3dMaterial.envMapIntensity =
                         postProcessingBundle.options3d.envMap;
                 }
             }
@@ -104,7 +111,8 @@ export const createPostProcessingComposer = (
         addToBloom( image );
 
         if ( image instanceof Image3D && postProcessingBundle.options3d ) {
-            image.material.envMapIntensity = postProcessingBundle.options3d.envMap;
+            image.image3dMaterial.envMapIntensity =
+                postProcessingBundle.options3d.envMap;
             image.castShadow = !ignoreCastShadow.includes(
                 assets.refId( image.dat.index )
             );
@@ -165,8 +173,25 @@ export const createPostProcessingComposer = (
     world.events.on( "dispose", () => janitor.dispose() );
 
     return {
-        changeRenderModeImmediate: ( renderMode3D: boolean ) => {
-            _changeRenderMode( renderMode3D );
+        precompile( camera: PerspectiveCamera | OrthographicCamera ) {
+            postProcessingBundle.updateCamera( camera );
+
+            _changeRenderMode( true );
+            renderComposer.setBundlePasses( postProcessingBundle );
+
+            // build frame to compile materials
+            sceneComposer.onFrame( 0, 0, true, 0 );
+
+            renderComposer.getWebGLRenderer().compile( scene, camera );
+
+            // build frame to compile materials
+            _changeRenderMode( false );
+            renderComposer.setBundlePasses( postProcessingBundle );
+            sceneComposer.onFrame( 0, 0, false, 0 );
+
+            renderComposer.getWebGLRenderer().compile( scene, camera );
+
+            renderComposer.render( 0 );
         },
         api: {
             changeRenderMode( renderMode3D?: boolean ) {

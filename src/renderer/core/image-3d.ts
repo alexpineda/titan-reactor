@@ -45,7 +45,8 @@ export class Image3D extends Object3D implements ImageBase {
     #times = new Float32Array();
     #action?: AnimationAction;
 
-    readonly material: Image3DMaterial;
+    // we cannot name this  `material` as three.js render will pick it up in an incorrect way
+    readonly image3dMaterial: Image3DMaterial;
 
     _zOff: number;
 
@@ -55,7 +56,7 @@ export class Image3D extends Object3D implements ImageBase {
 
         this.model = Image3D.clone( atlas.model );
 
-        this.material = standardMaterialToImage3DMaterial( atlas.mesh.material );
+        this.image3dMaterial = standardMaterialToImage3DMaterial( atlas.mesh.material );
 
         this.add( this.model );
 
@@ -66,7 +67,7 @@ export class Image3D extends Object3D implements ImageBase {
         this.model.traverse( ( o: Object3D ) => {
             if ( o instanceof Mesh ) {
                 this.mesh = o as Mesh<BufferGeometry, Image3DMaterial>;
-                o.material = this.material;
+                o.material = this.image3dMaterial;
                 const geometry = o.geometry as BufferGeometry;
 
                 if ( o instanceof SkinnedMesh ) {
@@ -137,7 +138,7 @@ export class Image3D extends Object3D implements ImageBase {
     }
 
     setTeamColor( val: Color | undefined = white ) {
-        this.material.teamColor = val;
+        this.image3dMaterial.teamColor = val;
     }
 
     setModifiers() {}
@@ -157,7 +158,7 @@ export class Image3D extends Object3D implements ImageBase {
     }
 
     setEmissive( val: number ) {
-        this.material.emissiveIntensity = val;
+        this.image3dMaterial.emissiveIntensity = val;
     }
 
     get frame() {

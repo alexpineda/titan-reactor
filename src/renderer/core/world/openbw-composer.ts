@@ -1,5 +1,4 @@
 import { SoundChannels } from "@audio/sound-channels";
-import { TilesBufferView } from "@buffer-view/tiles-buffer-view";
 import { skipHandler } from "@openbw/skip-handler";
 import {
     REPLAY_MAX_SPEED,
@@ -17,6 +16,7 @@ import { World } from "./world";
 import { mixer } from "@core/global";
 import { Timer } from "@utils/timer";
 import { borrow, Borrowed } from "@utils/object-utils";
+import { SimpleBufferView } from "@buffer-view/simple-buffer-view";
 
 export const createOpenBWComposer = (
     world: World,
@@ -76,15 +76,10 @@ export const createOpenBWComposer = (
         resetCompletedUpgrades( _currentFrame );
     } );
 
-    const _tiles = new TilesBufferView(
-        TilesBufferView.STRUCT_SIZE,
-        0,
-        0,
-        world.openBW.HEAPU8
-    );
+    const _tiles = new SimpleBufferView( 4, 0, 0, world.openBW.HEAPU8 );
     const buildCreep = ( frame: number ) => {
-        _tiles.ptrIndex = world.openBW.getTilesPtr();
-        _tiles.itemsCount = world.openBW.getTilesSize();
+        _tiles.address = world.openBW.getTilesPtr();
+        _tiles.viewSize = world.openBW.getTilesSize();
         scene.terrainExtra.creep.generate( _tiles, frame );
     };
 
@@ -126,6 +121,12 @@ export const createOpenBWComposer = (
         },
         get previousBwFrame() {
             return _previousBwFrame;
+        },
+        precompile() {
+            world.openBW.nextFrame();
+            _tiles.address = world.openBW.getTilesPtr();
+            _tiles.viewSize = world.openBW.getTilesSize();
+            scene.terrainExtra.creep.generateImmediate( _tiles );
         },
         update( elapsed: number, frame: number ) {
             lastElapsed = elapsed;

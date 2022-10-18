@@ -1,8 +1,6 @@
 import {
     HalfFloatType,
     LinearEncoding,
-    PerspectiveCamera,
-    Scene,
     ShaderChunk,
     sRGBEncoding,
     Vector4,
@@ -34,7 +32,7 @@ const createWebGLRenderer = () => {
         precision: "highp",
     } );
     renderer.outputEncoding = sRGBEncoding;
-    renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
+    renderer.debug.checkShaderErrors = false; // process.env.NODE_ENV === "development";
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = VSMShadowMap;
@@ -161,19 +159,6 @@ export class TitanRenderComposer {
         }
 
         this.composer.dispose();
-    }
-
-    compileScene( scene: Scene ) {
-        const precompileCamera = new PerspectiveCamera(
-            15,
-            window.innerWidth / window.innerHeight,
-            0,
-            10000
-        );
-        precompileCamera.updateProjectionMatrix();
-        precompileCamera.position.setY( 1000 );
-        precompileCamera.lookAt( 0, 0, 0 );
-        this.getWebGLRenderer().render( scene, precompileCamera );
     }
 
     // for rendering atlases ahead of time like terrain textures, icons, etc.

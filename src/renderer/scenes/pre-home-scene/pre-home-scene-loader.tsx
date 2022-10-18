@@ -5,7 +5,7 @@ import { log } from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
-import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
+import {  waitForTruthy } from "@utils/wait-for";
 import path from "path";
 import { Filter } from "@audio/filter";
 import { SceneState } from "../scene";
