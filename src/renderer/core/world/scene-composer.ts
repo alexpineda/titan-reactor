@@ -50,6 +50,7 @@ import { ImageBase } from "..";
 import { ImageHDMaterial } from "@core/image-hd-material";
 import { calculateImagesFromTechTreeUnits } from "@utils/preload-map-units-and-sprites";
 import { TimeSliceJob } from "@utils/time-slice-job";
+import { GameViewPort } from "../../camera/game-viewport";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 const white = new Color( 0xffffff );
@@ -389,8 +390,8 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         onFrame(
             delta: number,
             elapsed: number,
-            renderMode3D: boolean,
-            direction: number
+            viewport: GameViewPort | boolean,
+            direction?: number
         ) {
             preloader.update( elapsed );
 
@@ -440,8 +441,27 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 }
             }
 
-            for ( const sprite of spritesIterator ) {
-                buildSprite( sprite, delta, renderMode3D, direction );
+            // support precompile w/out viewport
+            if ( typeof viewport === "boolean" ) {
+                for ( const sprite of spritesIterator ) {
+                    buildSprite(
+                        sprite,
+                        delta,
+                        viewport,
+                        direction!
+                    );
+                }
+            } else {
+                viewport.updateDirection32();
+
+                for ( const sprite of spritesIterator ) {
+                    buildSprite(
+                        sprite,
+                        delta,
+                        viewport.renderMode3D,
+                        viewport.camera.userData.direction
+                    );
+                }
             }
         },
         resetImageCache() {

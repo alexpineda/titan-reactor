@@ -6,6 +6,8 @@ import {
 } from "common/types";
 import lSet from "lodash.set";
 
+const isProd = process.env.NODE_ENV !== "development";
+
 export const generateAppSettingsFromLevaFormat = (
     settings: Record<string, { value: any }>
 ) => {
@@ -288,6 +290,11 @@ const getInputConfig = (
         min: 0,
         max: 1,
     },
+    "input.unitSelection": {
+        label: "Enable Unit Selection",
+        value: input.unitSelection,
+        hidden: true,
+    },
 } );
 
 type AudioConfig = {
@@ -351,6 +358,7 @@ export const getPostProcessingConfig = (
         min: 0,
         max: 10,
         step: 0.1,
+        hidden: isProd,
     },
     "postprocessing.brightness": {
         label: "Brightness",
@@ -404,6 +412,7 @@ const getPostProcessing3DConfig = (
         min: 1,
         max: 2,
         step: 0.1,
+        hidden: isProd,
     },
     "postprocessing3d.bloom": {
         label: "Bloom Intensity",
@@ -432,6 +441,7 @@ const getPostProcessing3DConfig = (
         min: 1,
         max: 20,
         step: 1,
+        hidden: isProd,
     },
     "postprocessing3d.depthFocalRange": {
         label: "Depth Focal Range",
@@ -439,6 +449,7 @@ const getPostProcessing3DConfig = (
         min: 1,
         max: 20,
         step: 1,
+        hidden: isProd,
     },
     "postprocessing3d.depthBokehScale": {
         label: "Depth Bokeh Scale",
@@ -446,6 +457,7 @@ const getPostProcessing3DConfig = (
         min: 1,
         max: 5,
         step: 0.1,
+        hidden: isProd,
     },
     "postprocessing3d.depthBlurQuality": {
         label: "Depth Blur Quality",
@@ -470,11 +482,13 @@ const getPostProcessing3DConfig = (
         min: 0,
         max: 2,
         step: 0.05,
+        hidden: isProd,
     },
     "postprocessing3d.sunlightDirection": {
         label: "Sunlight Position",
         value: postprocessing3d.sunlightDirection,
         step: 1,
+        hidden: isProd,
     },
     "postprocessing3d.sunlightIntensity": {
         label: "Sunlight Intensity",
@@ -482,10 +496,12 @@ const getPostProcessing3DConfig = (
         step: 0.25,
         min: 0,
         max: 20,
+        hidden: isProd,
     },
     "postprocessing3d.sunlightColor": {
         label: "Sunlight Color",
         value: postprocessing3d.sunlightColor,
+        hidden: isProd,
     },
     "postprocessing3d.shadowQuality": {
         label: "Shadow Quality",
@@ -493,5 +509,6 @@ const getPostProcessing3DConfig = (
         min: 0,
         max: 8,
         step: 1,
+        hidden: isProd,
     },
 } );

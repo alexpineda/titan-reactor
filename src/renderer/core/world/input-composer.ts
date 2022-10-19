@@ -77,9 +77,8 @@ export const createInputComposer = (
             }
 
             unitSelectionBox.enabled =
-                unitSelectionBox.isActive ||
-                ( !overlay.insideMinimap &&
-                    world.settings.getState().input.unitSelection );
+                world.settings.getState().input.unitSelection &&
+                ( unitSelectionBox.isActive || !overlay.insideMinimap );
 
             unitSelectionBox.update();
 

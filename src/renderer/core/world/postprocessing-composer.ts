@@ -109,19 +109,22 @@ export const createPostProcessingComposer = (
     const _transition = {
         enabled: false,
         progress: 0,
-        value: false,
+        onComplete: () => {},
     };
 
-    const _startTransitionRenderMode = ( renderMode3D: boolean ) => {
+    const _startTransition = ( fn: () => void ) => {
+        if ( _transition.enabled ) {
+            return;
+        }
         _transition.progress = 0;
-        _transition.value = renderMode3D;
+        _transition.onComplete = fn;
         _transition.enabled = true;
 
         postProcessingBundle.enablePixelation( true );
         postProcessingBundle.setPixelation( 0 );
     };
 
-    const _transitionRenderMode = ( delta: number ) => {
+    const _updateTransition = ( delta: number ) => {
         if ( !_transition.enabled ) {
             return;
         }
@@ -134,7 +137,7 @@ export const createPostProcessingComposer = (
             _transition.enabled = false;
             postProcessingBundle.enablePixelation( false );
         } else if ( _transition.progress > 1 ) {
-            viewports.changeRenderMode( _transition.value );
+            _transition.onComplete();
         }
     };
 
@@ -192,10 +195,12 @@ export const createPostProcessingComposer = (
         },
         api: {
             changeRenderMode( renderMode3D?: boolean ) {
-                _startTransitionRenderMode(
-                    renderMode3D ?? !viewports.primaryRenderMode3D
-                );
+                const newRenderMode = renderMode3D ?? !viewports.primaryRenderMode3D;
+                _startTransition( () => viewports.changeRenderMode( newRenderMode ) );
             },
+        },
+        startTransition( fn: () => void ) {
+            _startTransition( fn );
         },
         get overlayScene() {
             return postProcessingBundle.overlayScene;
@@ -206,13 +211,13 @@ export const createPostProcessingComposer = (
         },
 
         render( delta: number, elapsed: number ) {
-            _transitionRenderMode( delta );
+            _updateTransition( delta );
 
             viewports.primaryViewport!.orbit.getTarget( _target );
             _target.setY( terrain.getTerrainY( _target.x, _target.z ) );
 
             for ( const v of viewports.activeViewports() ) {
-                v.updateCamera( world.settings.getState().input.dampingFactor, delta );
+                v.update( world.settings.getState().input.dampingFactor, delta );
 
                 if ( v === viewports.primaryViewport ) {
                     if ( v.needsUpdate ) {
@@ -224,6 +229,8 @@ export const createPostProcessingComposer = (
                 } else {
                     // iterate all images again and update image frames according to different view camera
                     //TODO: iterate over image objects and add image address to get buffer view
+
+                    v.updateDirection32();
 
                     for ( const spriteBuffer of spritesIterator ) {
                         const object = sprites.get( spriteBuffer.index );

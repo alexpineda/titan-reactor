@@ -45,7 +45,7 @@ export const createOpenBWComposer = (
                     typeId,
                     unitTypeId,
                     scene.pxToWorld,
-                    viewInput.audio,
+                    viewInput.primaryViewport!.audioType,
                     viewInput.primaryViewport!.projectedView,
                     soundChannels
                 );
@@ -103,7 +103,7 @@ export const createOpenBWComposer = (
                 typeId,
                 unitTypeId,
                 scene.pxToWorld,
-                viewInput.audio,
+                viewInput.primaryViewport!.audioType,
                 viewInput.primaryViewport!.projectedView,
                 soundChannels
             );

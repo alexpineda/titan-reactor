@@ -79,7 +79,6 @@ const _va = new Vector3(),
 export class SceneController extends PluginBase implements SceneController {
     override isSceneController = true;
     viewports: GameViewPort[] = [];
-    gameOptions: { audio: "stereo" | "3d" } = { audio: "stereo" };
     override get viewport() {
         return this.viewports[0];
     }

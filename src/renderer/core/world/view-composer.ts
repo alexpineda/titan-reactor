@@ -121,10 +121,6 @@ export const createViewControllerComposer = (
             return count;
         },
 
-        get audio(): Required<SceneController>["gameOptions"]["audio"] | null {
-            return sceneController?.gameOptions.audio ?? null;
-        },
-
         async activate(
             newController: SceneController | null | undefined,
             firstRunData?: any

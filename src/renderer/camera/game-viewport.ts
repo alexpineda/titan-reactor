@@ -48,6 +48,8 @@ export class GameViewPort {
     freezeCamera = false;
 
     needsUpdate = true;
+    rotateSprites = false;
+    audioType: "stereo" | "3d" | null = "stereo";
 
     set renderMode3D( val: boolean ) {
         this.#renderMode3D = val;
@@ -118,7 +120,7 @@ export class GameViewPort {
 
     set center( val: Vector2 | undefined | null ) {
         this.#center = val;
-        this.update();
+        this.#updateViewport();
     }
 
     get center() {
@@ -134,7 +136,7 @@ export class GameViewPort {
         if ( this.constrainToAspect ) {
             this.#width = this.#height * this.aspect;
         }
-        this.update();
+        this.#updateViewport();
     }
 
     set width( val: number ) {
@@ -142,7 +144,7 @@ export class GameViewPort {
         if ( this.constrainToAspect ) {
             this.#height = this.#width / this.aspect;
         }
-        this.update();
+        this.#updateViewport();
     }
 
     get width() {
@@ -158,7 +160,7 @@ export class GameViewPort {
         if ( typeof val === "number" ) {
             this.#left = val <= 1 ? this.#surface.bufferWidth * val : val;
         }
-        this.update();
+        this.#updateViewport();
     }
 
     set right( val: number | undefined | null ) {
@@ -166,7 +168,7 @@ export class GameViewPort {
         if ( typeof val === "number" ) {
             this.#right = val <= 1 ? this.#surface.bufferWidth * val : val;
         }
-        this.update();
+        this.#updateViewport();
     }
 
     get right() {
@@ -182,7 +184,7 @@ export class GameViewPort {
         if ( typeof val === "number" ) {
             this.#top = val <= 1 ? this.#surface.bufferHeight * val : val;
         }
-        this.update();
+        this.#updateViewport();
     }
 
     set bottom( val: number | undefined | null ) {
@@ -190,14 +192,14 @@ export class GameViewPort {
         if ( typeof val === "number" ) {
             this.#bottom = val <= 1 ? this.#surface.bufferHeight * val : val;
         }
-        this.update();
+        this.#updateViewport();
     }
 
     get bottom() {
         return this.#bottom;
     }
 
-    update() {
+    #updateViewport() {
         const surfaceWidth = this.#surface.bufferWidth;
         const surfaceHeight = this.#surface.bufferHeight;
 
@@ -249,7 +251,7 @@ export class GameViewPort {
         if ( this.constrainToAspect ) {
             this.height = this.#height;
         } else {
-            this.update();
+            this.#updateViewport();
         }
     }
 
@@ -288,15 +290,17 @@ export class GameViewPort {
         this.cameraShake.restore( this.camera );
     }
 
-    updateCamera( targetDamping: number, delta: number ) {
+    update( targetDamping: number, delta: number ) {
         this.orbit.dampingFactor = MathUtils.damp(
             this.orbit.dampingFactor,
             targetDamping,
             0.0001,
             delta
         );
+    }
 
-        const dir = this.renderMode3D
+    updateDirection32() {
+        const dir = this.rotateSprites
             ? getDirection32( this.projectedView.center, this.camera.position )
             : 0;
         if ( dir != this.camera.userData.direction ) {

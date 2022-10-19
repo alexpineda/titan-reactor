@@ -89,7 +89,7 @@ export const createWorldComposer = async (
 
     events.on( "settings-changed", ( { settings } ) => mixer.setVolumes( settings.audio ) );
 
-    const setSceneController = async ( controllername: string, defaultData?: any ) => {
+    const _setSceneController = async ( controllername: string, defaultData?: any ) => {
         const sceneController = plugins.native
             .getAllSceneControllers()
             .find( ( handler ) => handler.name === controllername );
@@ -99,8 +99,6 @@ export const createWorldComposer = async (
             await viewControllerComposer.activate( sceneController, defaultData );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
-        } else {
-            throw new Error( `Scene controller ${controllername} not found` );
         }
     };
 
@@ -125,7 +123,12 @@ export const createWorldComposer = async (
             rhs.input?.sceneController &&
             rhs.input.sceneController !== viewControllerComposer.sceneController?.name
         ) {
-            setTimeout( () => setSceneController( settings.input.sceneController ), 0 );
+            postProcessingComposer.startTransition( () => {
+                setTimeout(
+                    () => _setSceneController( settings.input.sceneController ),
+                    0
+                );
+            } );
         }
     } );
 
@@ -193,7 +196,7 @@ export const createWorldComposer = async (
 
             await plugins.activate( gameTimeApi, settings, reloadPlugins );
 
-            await setSceneController( sceneController, targetData );
+            await _setSceneController( sceneController, targetData );
 
             openBwComposer.precompile();
             postProcessingComposer.precompile( viewControllerComposer.primaryCamera! );
@@ -244,8 +247,7 @@ export const createWorldComposer = async (
                 sceneComposer.onFrame(
                     delta,
                     elapsed,
-                    viewControllerComposer.primaryViewport.renderMode3D,
-                    viewControllerComposer.primaryViewport.camera.userData.direction
+                    viewControllerComposer.primaryViewport
                 );
 
                 overlayComposer.onFrame( openBwComposer.completedUpgrades );
