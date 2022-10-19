@@ -143,7 +143,7 @@ export const MacroPanel = ( {
                                 updateMacro( { ...macro, enabled: e.target.checked } )
                             }
                         />
-                        Enabled On Default
+                        Enabled
                     </label>
 
                     <label>
@@ -175,7 +175,7 @@ export const MacroPanel = ( {
                                 payload: macro.id,
                             } );
                         }}>
-                        Reset Actions (In Game)
+                        Reset Preview
                     </button>
 
                     <button

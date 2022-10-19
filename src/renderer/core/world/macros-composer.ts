@@ -4,8 +4,6 @@ import { SettingsSessionStore } from "./settings-session-store";
 import { Janitor } from "three-janitor";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "../global-events";
-import { WorldEvents } from "./world-events";
-import { TypeEmitter } from "@utils/type-emitter";
 import { TargetComposer } from "./target-composer";
 import { log } from "@ipc/log";
 import debounce from "lodash.debounce";
@@ -14,10 +12,7 @@ import { withErrorMessage } from "common/utils/with-error-message";
 
 export type MacrosComposer = ReturnType<typeof createMacrosComposer>;
 
-export const createMacrosComposer = (
-    events: TypeEmitter<WorldEvents>,
-    settings: SettingsSessionStore
-) => {
+export const createMacrosComposer = ( settings: SettingsSessionStore ) => {
     const janitor = new Janitor( "MacrosComposer" );
 
     const targets = new TargetComposer();
@@ -58,13 +53,6 @@ export const createMacrosComposer = (
             }
         } ),
         "exec-macro"
-    );
-
-    janitor.mop(
-        events.on( "mouse-click", ( button ) => {
-            return macros.mouseTrigger( button );
-        } ),
-        "mouse-click"
     );
 
     return {

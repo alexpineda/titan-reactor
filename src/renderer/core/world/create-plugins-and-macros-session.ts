@@ -19,7 +19,7 @@ export const createPluginsAndMacroSession = async (
     settings: SettingsSessionStore,
     openBW: OpenBW
 ) => {
-    const macrosComposer = createMacrosComposer( _events, settings );
+    const macrosComposer = createMacrosComposer( settings );
 
     const macrosProxy = new TypeEmitterProxy( _events );
     const eventsProxy = new TypeEmitterProxy( _events );

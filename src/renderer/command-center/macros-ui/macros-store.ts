@@ -13,7 +13,6 @@ import { immer } from "zustand/middleware/immer";
 import { MathUtils } from "three";
 import { ManualTrigger } from "@macros/manual-trigger";
 import { HotkeyTrigger } from "@macros/hotkey-trigger";
-import { MouseTrigger } from "@macros/mouse-trigger";
 import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { sanitizeActionable } from "common/macros/sanitize-macros";
 import { withErrorMessage } from "common/utils/with-error-message";
@@ -29,7 +28,7 @@ interface Actions {
 
     createMacro(
         name: string,
-        trigger: ManualTrigger | HotkeyTrigger | MouseTrigger | WorldEventTrigger
+        trigger: ManualTrigger | HotkeyTrigger | WorldEventTrigger
     ): Promise<string>;
     updateMacro( macro: MacroDTO ): void;
     deleteMacro( macroId: string ): void;
@@ -79,11 +78,7 @@ export const createMacroStore = ( onSave?: ( settings: SettingsMeta ) => void ) 
 
             async createMacro(
                 name: string,
-                trigger:
-                    | ManualTrigger
-                    | HotkeyTrigger
-                    | MouseTrigger
-                    | WorldEventTrigger
+                trigger: ManualTrigger | HotkeyTrigger | WorldEventTrigger
             ) {
                 const id = MathUtils.generateUUID();
 

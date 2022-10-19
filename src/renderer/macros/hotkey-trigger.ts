@@ -41,10 +41,10 @@ export class HotkeyTrigger implements MacroTrigger {
     }
 
     stringify() {
-        const shiftKey = this.value.shiftKey ? ["Shift"] : [];
-        const ctrlKey = this.value.ctrlKey ? ["Ctrl"] : [];
-        const altKey = this.value.altKey ? ["Alt"] : [];
-        const v = [...shiftKey, ...ctrlKey, ...altKey, ...this.value.codes].join( "+" );
+        const shiftKey = this.value.shiftKey ? [ "Shift" ] : [];
+        const ctrlKey = this.value.ctrlKey ? [ "Ctrl" ] : [];
+        const altKey = this.value.altKey ? [ "Alt" ] : [];
+        const v = [ ...shiftKey, ...ctrlKey, ...altKey, ...this.value.codes ].join( "+" );
         return v;
     }
 

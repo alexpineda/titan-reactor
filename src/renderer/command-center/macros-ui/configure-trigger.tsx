@@ -6,7 +6,6 @@ import { MacroDTO, TriggerType } from "common/types";
 import { useMacroStore } from "./use-macros-store";
 
 import { HotkeyTrigger, HotkeyTriggerDTO } from "@macros/hotkey-trigger";
-import { MouseTrigger, MouseTriggerDTO } from "@macros/mouse-trigger";
 import { WorldEventTrigger, WorldEventTriggerDTO } from "@macros/world-event-trigger";
 import { ManualTrigger } from "@macros/manual-trigger";
 
@@ -17,11 +16,6 @@ export const ConfigureTrigger = ( { macro }: { macro: MacroDTO } ) => {
     const hotkeyTrigger =
         macro.trigger.type === TriggerType.Hotkey
             ? HotkeyTrigger.deserialize( macro.trigger.value as HotkeyTriggerDTO )
-            : null;
-
-    const mouseTrigger =
-        macro.trigger.type === TriggerType.Mouse
-            ? MouseTrigger.deserialize( macro.trigger.value as MouseTriggerDTO )
             : null;
 
     const eventTrigger =
@@ -48,15 +42,6 @@ export const ConfigureTrigger = ( { macro }: { macro: MacroDTO } ) => {
         }
     };
 
-    const changeMouseTriggerCode = ( e: MouseEvent ) => {
-        e.preventDefault();
-        mouseTrigger!.copy( e );
-        updateTriggerValue( mouseTrigger!.serialize() );
-    };
-
-    {
-        /* trigger configuration */
-    }
     return (
         <>
             <div
@@ -71,9 +56,6 @@ export const ConfigureTrigger = ( { macro }: { macro: MacroDTO } ) => {
                             switch ( type ) {
                                 case TriggerType.Hotkey:
                                     trigger = new HotkeyTrigger();
-                                    break;
-                                case TriggerType.Mouse:
-                                    trigger = new MouseTrigger();
                                     break;
                                 case TriggerType.WorldEvent:
                                     trigger = new WorldEventTrigger();
@@ -118,13 +100,6 @@ export const ConfigureTrigger = ( { macro }: { macro: MacroDTO } ) => {
                             </label>
                         </div>
                     )}
-                    {mouseTrigger && (
-                        <input
-                            value={mouseTrigger.stringify()}
-                            onMouseDown={( e ) => changeMouseTriggerCode( e.nativeEvent )}
-                            readOnly={true}
-                        />
-                    )}
                     {eventTrigger && (
                         <select
                             onChange={( e ) => {
@@ -144,7 +119,9 @@ export const ConfigureTrigger = ( { macro }: { macro: MacroDTO } ) => {
             {macro.trigger.type === TriggerType.Hotkey && (
                 <KeyboardPreview
                     previewKey={
-                        HotkeyTrigger.deserialize( macro.trigger.value as HotkeyTriggerDTO ).value.codes[0]
+                        HotkeyTrigger.deserialize(
+                            macro.trigger.value as HotkeyTriggerDTO
+                        ).value.codes[0]
                     }
                     svgProps={{
                         style: {

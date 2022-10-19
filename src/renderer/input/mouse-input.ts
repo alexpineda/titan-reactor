@@ -1,11 +1,17 @@
 import { Vector2, Vector3 } from "three";
 import { Janitor } from "three-janitor";
-import { MouseTriggerDTO } from "@macros/mouse-trigger";
 
 const passive = { passive: true };
 
 const clicked = new Vector3();
 const released = new Vector3();
+
+export type MouseEventDTO = {
+    ctrlKey: boolean;
+    shiftKey: boolean;
+    altKey: boolean;
+    button: number;
+};
 
 export class MouseInput {
     #_mouseWheelTimeout?: NodeJS.Timeout;
@@ -21,7 +27,7 @@ export class MouseInput {
     #clientX = 0;
     #clientY = 0;
 
-    event: MouseTriggerDTO = {
+    event: MouseEventDTO = {
         ctrlKey: false,
         shiftKey: false,
         altKey: false,

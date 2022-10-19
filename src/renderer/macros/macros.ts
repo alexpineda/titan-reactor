@@ -13,7 +13,6 @@ import { HotkeyTrigger, HotkeyTriggerDTO } from "./hotkey-trigger";
 import { KeyCombo } from "./key-combo";
 import { WorldEventTrigger, WorldEventTriggerDTO } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
-import { MouseTrigger, MouseTriggerDTO } from "./mouse-trigger";
 import { TargetComposer } from "@core/world/target-composer";
 import { fieldOperation } from "@stores/field-operation";
 
@@ -26,11 +25,9 @@ export class Macros {
 
     meta: {
         hotkeyMacros: Macro[];
-        mouseMacros: Macro[];
         hookMacros: Macro[];
     } = {
         hotkeyMacros: [],
-        mouseMacros: [],
         hookMacros: [],
     };
 
@@ -144,23 +141,6 @@ export class Macros {
         janitor.mop( this.#listenForKeyCombos( "keyup" ), "keyup" );
 
         return janitor;
-    }
-
-    mouseTrigger( e: MouseTriggerDTO ) {
-        const candidates: Macro[] = [];
-        for ( const macro of this.meta.mouseMacros ) {
-            const trigger = macro.trigger as MouseTrigger;
-            if ( trigger.value.test( e ) ) {
-                candidates.push( macro );
-            }
-        }
-
-        for ( const macro of candidates ) {
-            // preventDefault
-            if ( this.#execMacro( macro, e ) === false ) {
-                return false;
-            }
-        }
     }
 
     *[Symbol.iterator]() {
@@ -288,10 +268,6 @@ export class Macros {
                 trigger = WorldEventTrigger.deserialize(
                     macro.trigger.value as WorldEventTriggerDTO
                 );
-            } else if ( macro.trigger.type === TriggerType.Mouse ) {
-                trigger = MouseTrigger.deserialize(
-                    macro.trigger.value as MouseTriggerDTO
-                );
             }
             const newMacro = new Macro(
                 macro.id,
@@ -320,9 +296,5 @@ export class Macros {
                     ( a.trigger as HotkeyTrigger ).weight -
                     ( b.trigger as HotkeyTrigger ).weight
             );
-
-        this.meta.mouseMacros = this.macros.filter(
-            ( m ) => m.trigger instanceof MouseTrigger
-        );
     }
 }

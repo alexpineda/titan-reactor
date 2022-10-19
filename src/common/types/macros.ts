@@ -84,7 +84,6 @@ export enum TriggerType {
     None = "None",
     Hotkey = "Hotkey",
     WorldEvent = "WorldEvent",
-    Mouse = "Mouse",
 }
 export interface MacroTrigger {
     type: TriggerType;

@@ -1,5 +1,5 @@
 import { Unit } from "@core/unit";
-import { MouseTriggerDTO } from "@macros/mouse-trigger";
+import { MouseEventDTO } from "@input/mouse-input";
 import GameSurface from "@render/game-surface";
 import { DeepPartial, SessionSettingsData } from "common/types";
 import { ImageBase } from "..";
@@ -79,5 +79,5 @@ export interface WorldEvents {
 
     "dispose": undefined;
 
-    "mouse-click": MouseTriggerDTO;
+    "mouse-click": MouseEventDTO;
 }
