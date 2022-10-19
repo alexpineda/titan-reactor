@@ -19,7 +19,7 @@ import {
 } from "three";
 import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
-import { ViewInputComposer } from "@core/world/view-composer";
+import { ViewControllerComposer } from "@core/world/view-composer";
 import { World } from "./world";
 import { isMesh } from "@utils/image-utils";
 
@@ -32,7 +32,7 @@ export type PostProcessingComposer = ReturnType<typeof createPostProcessingCompo
 export const createPostProcessingComposer = (
     world: World,
     { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer,
-    viewports: ViewInputComposer,
+    viewports: ViewControllerComposer,
     assets: Assets
 ) => {
     const janitor = new Janitor( "PostProcessingComposer" );

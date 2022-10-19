@@ -5,7 +5,6 @@ import { Janitor } from "three-janitor";
 import { DamageType, Explosion } from "common/enums";
 import { Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
-import { createInputComposer } from "./input-composer";
 import { World } from "./world";
 import { SceneController } from "@plugins/scene-controller";
 import { easeInCubic } from "@utils/function-utils";
@@ -29,9 +28,9 @@ const bulletStrength = {
 
 const empty: GameViewPort[] = [];
 
-export type ViewInputComposer = ReturnType<typeof createViewInputComposer>;
+export type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
 
-export const createViewInputComposer = (
+export const createViewControllerComposer = (
     world: World,
     { gameSurface }: SurfaceComposer
 ) => {
@@ -45,7 +44,6 @@ export const createViewInputComposer = (
     const _audioPosition = new Vector3();
 
     const janitor = new Janitor( "ViewInputComposer" );
-    const inputs = janitor.mop( createInputComposer( world ), "inputs" );
 
     world.events.on( "resize", ( surface ) => {
         for ( const viewport of getViewports() ) {
@@ -60,7 +58,6 @@ export const createViewInputComposer = (
     } );
 
     return {
-        inputs,
         api: {
             get viewport() {
                 return getViewports()[0];
@@ -68,38 +65,11 @@ export const createViewInputComposer = (
             get secondViewport() {
                 return getViewports()[1];
             },
-            ...inputs.api,
         },
-        update( delta: number, elapsed: number ) {
+        update( delta: number ) {
             if ( !sceneController ) {
-                inputs.mouse.stopPropagation = true;
                 return;
             }
-
-            inputs.update();
-
-            if ( !inputs.mouse.stopPropagation ) {
-                sceneController.onCameraMouseUpdate &&
-                    sceneController.onCameraMouseUpdate(
-                        delta / 100,
-                        elapsed,
-                        inputs.mouse.mouseScrollY,
-                        inputs.mouse.screenDrag,
-                        inputs.mouse.lookAt,
-                        inputs.mouse.move,
-                        inputs.mouse.clientX,
-                        inputs.mouse.clientY,
-                        inputs.mouse.clicked,
-                        inputs.mouse.modifiers
-                    );
-            }
-
-            sceneController.onCameraKeyboardUpdate &&
-                sceneController.onCameraKeyboardUpdate(
-                    delta / 100,
-                    elapsed,
-                    inputs.keyboard.vector
-                );
 
             sceneController.viewport.orbit.getTarget( _target );
             sceneController.viewport.orbit.getPosition( _position );
@@ -129,10 +99,6 @@ export const createViewInputComposer = (
             return getViewports();
         },
 
-        get getSceneController() {
-            return sceneController;
-        },
-
         deactivate() {
             sceneController = null;
         },
@@ -157,13 +123,6 @@ export const createViewInputComposer = (
 
         get audio(): Required<SceneController>["gameOptions"]["audio"] | null {
             return sceneController?.gameOptions.audio ?? null;
-        },
-
-        onMinimapDragUpdate(
-            ...args: Parameters<Required<SceneController>["onMinimapDragUpdate"]>
-        ) {
-            sceneController?.onMinimapDragUpdate &&
-                sceneController.onMinimapDragUpdate( ...args );
         },
 
         async activate(
@@ -231,7 +190,7 @@ export const createViewInputComposer = (
         },
 
         get sceneController() {
-            return this.getSceneController;
+            return sceneController;
         },
 
         get primaryCamera() {

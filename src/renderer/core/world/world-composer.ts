@@ -19,12 +19,13 @@ import { createOverlayComposer } from "./overlay-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createCommandsComposer } from "./commands-composer";
 import { createGameLoopComposer } from "./game-loop-composer";
-import { createViewInputComposer } from "./view-composer";
+import { createViewControllerComposer } from "./view-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World } from "./world";
-import { borrow, mix } from "@utils/object-utils";
+import { mix } from "@utils/object-utils";
 import { mixer } from "@core/global";
 import { WorldEvents } from "./world-events";
+import { createInputComposer } from "./input-composer";
 
 export const createWorldComposer = async (
     openBW: OpenBW,
@@ -61,25 +62,27 @@ export const createWorldComposer = async (
     const surfaceComposer = createSurfaceComposer( world );
     const sceneComposer = await createSceneComposer( world, assets );
     const commandsComposer = createCommandsComposer( world, commands );
-    const viewInputComposer = createViewInputComposer( world, surfaceComposer );
+    const inputsComposer = createInputComposer( world, sceneComposer );
+    const viewControllerComposer = createViewControllerComposer( world, surfaceComposer );
     const sandboxApi = createSandboxApi( world, sceneComposer.pxToWorldInverse );
     const openBwComposer = createOpenBWComposer(
         world,
         sceneComposer,
-        viewInputComposer
+        viewControllerComposer
     );
 
     const postProcessingComposer = createPostProcessingComposer(
         world,
         sceneComposer,
-        viewInputComposer,
+        viewControllerComposer,
         assets
     );
     const overlayComposer = createOverlayComposer(
         world,
         sceneComposer,
-        borrow( surfaceComposer ),
-        viewInputComposer,
+        surfaceComposer,
+        inputsComposer,
+        viewControllerComposer,
         postProcessingComposer,
         assets
     );
@@ -93,8 +96,9 @@ export const createWorldComposer = async (
 
         if ( sceneController ) {
             plugins.native.activateSceneController( sceneController );
-            await viewInputComposer.activate( sceneController, defaultData );
-            overlayComposer.unitSelectionBox.camera = viewInputComposer.primaryCamera!;
+            await viewControllerComposer.activate( sceneController, defaultData );
+            inputsComposer.unitSelectionBox.camera =
+                viewControllerComposer.primaryCamera!;
         } else {
             throw new Error( `Scene controller ${controllername} not found` );
         }
@@ -102,7 +106,7 @@ export const createWorldComposer = async (
 
     const unsetSceneController = () => {
         plugins.native.activateSceneController( undefined );
-        viewInputComposer.deactivate();
+        viewControllerComposer.deactivate();
     };
 
     janitor.on(
@@ -119,7 +123,7 @@ export const createWorldComposer = async (
     events.on( "settings-changed", ( { settings, rhs } ) => {
         if (
             rhs.input?.sceneController &&
-            rhs.input.sceneController !== viewInputComposer.getSceneController?.name
+            rhs.input.sceneController !== viewControllerComposer.sceneController?.name
         ) {
             setTimeout( () => setSceneController( settings.input.sceneController ), 0 );
         }
@@ -146,9 +150,9 @@ export const createWorldComposer = async (
         surfaceComposer.api,
         sceneComposer.api,
         openBwComposer.api,
-        viewInputComposer.api,
-        postProcessingComposer.api,
-        overlayComposer.api
+        inputsComposer.api,
+        viewControllerComposer.api,
+        postProcessingComposer.api
     ) as GameTimeApi;
 
     return {
@@ -192,7 +196,7 @@ export const createWorldComposer = async (
             await setSceneController( sceneController, targetData );
 
             openBwComposer.precompile();
-            postProcessingComposer.precompile( viewInputComposer.primaryCamera! );
+            postProcessingComposer.precompile( viewControllerComposer.primaryCamera! );
 
             events.emit( "resize", surfaceComposer.gameSurface );
             events.emit( "settings-changed", {
@@ -200,6 +204,8 @@ export const createWorldComposer = async (
                 rhs: settings.getState(),
             } );
             events.emit( "world-start" );
+
+            window.gc!();
 
             gameLoopComposer.start();
 
@@ -216,23 +222,30 @@ export const createWorldComposer = async (
         },
 
         update( delta: number, elapsed: number ) {
-            if ( !viewInputComposer.primaryViewport ) return;
+            if ( !viewControllerComposer.primaryViewport ) return;
 
             if ( frameResetRequested ) {
                 events.emit( "frame-reset" );
                 frameResetRequested = false;
             }
 
-            viewInputComposer.update( delta, elapsed );
+            viewControllerComposer.update( delta );
 
             overlayComposer.update( delta );
+
+            inputsComposer.update(
+                delta,
+                elapsed,
+                viewControllerComposer,
+                overlayComposer
+            );
 
             if ( openBwComposer.update( elapsed, world.openBW.nextFrame() ) ) {
                 sceneComposer.onFrame(
                     delta,
                     elapsed,
-                    viewInputComposer.primaryViewport.renderMode3D,
-                    viewInputComposer.primaryViewport.camera.userData.direction
+                    viewControllerComposer.primaryViewport.renderMode3D,
+                    viewControllerComposer.primaryViewport.camera.userData.direction
                 );
 
                 overlayComposer.onFrame( openBwComposer.completedUpgrades );
@@ -255,7 +268,7 @@ export const createWorldComposer = async (
 
             this.onRender( delta, elapsed );
 
-            viewInputComposer.inputs.mouse.reset();
+            inputsComposer.reset();
         },
 
         onRender: ( delta: number, elapsed: number ) => {

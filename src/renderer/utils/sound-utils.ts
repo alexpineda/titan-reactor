@@ -4,7 +4,7 @@ import gameStore from "@stores/game-store";
 import { SoundChannels } from "@audio/sound-channels";
 import { ProjectedCameraView } from "renderer/camera/projected-camera-view";
 import { PxToWorld } from "common/utils/conversions";
-import { ViewInputComposer } from "@core/world/view-composer";
+import { ViewControllerComposer } from "@core/world/view-composer";
 import { mixer } from "@core/global";
 
 export const MinPlayVolume = 10;
@@ -73,7 +73,7 @@ export function buildSound(
     typeId: number,
     unitTypeId: number,
     pxToWorld: PxToWorld,
-    audio: ViewInputComposer["audio"],
+    audio: ViewControllerComposer["audio"],
     projectedView: ProjectedCameraView,
     soundChannels: SoundChannels
 ) {

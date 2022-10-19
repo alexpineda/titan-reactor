@@ -11,7 +11,7 @@ import { floor32 } from "common/utils/conversions";
 import { SceneComposer } from "./scene-composer";
 import { MathUtils } from "three";
 import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
-import { ViewInputComposer } from "@core/world/view-composer";
+import { ViewControllerComposer } from "@core/world/view-composer";
 import { World } from "./world";
 import { mixer } from "@core/global";
 import { Timer } from "@utils/timer";
@@ -21,7 +21,7 @@ import { SimpleBufferView } from "@buffer-view/simple-buffer-view";
 export const createOpenBWComposer = (
     world: World,
     scene: Pick<SceneComposer, "pxToWorld" | "terrainExtra">,
-    viewInput: ViewInputComposer
+    viewInput: ViewControllerComposer
 ) => {
     let _currentFrame = 0;
     let _previousBwFrame = -1;

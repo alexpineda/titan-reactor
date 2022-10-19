@@ -28,9 +28,6 @@ export class MouseInput {
         button: -1,
     };
 
-    // whether or not to continue processing mouse input
-    stopPropagation = false;
-
     direction = new Vector3();
 
     constructor( domElement: HTMLElement ) {
@@ -175,7 +172,6 @@ export class MouseInput {
         this.#lookAt.y = 0;
         this.#clicked = undefined;
         this.#released = undefined;
-        this.stopPropagation = false;
 
         this.event.altKey = false;
         this.event.ctrlKey = false;
