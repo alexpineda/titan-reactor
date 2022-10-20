@@ -1,47 +1,57 @@
-import { BufferGeometry, Mesh, MeshBasicMaterial, Shader, PlaneGeometry } from "three";
+import { BufferGeometry, Mesh, PlaneGeometry, ShaderMaterial } from "three";
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import { Image3D } from "./image-3d";
 
-export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
+class SelectionMaterial extends ShaderMaterial {
+    set size( value: number ) {
+        this.uniforms.uSize.value = value;
+        this.uniformsNeedUpdate = true;
+    }
+
+    constructor() {
+        super( {
+            defines: {
+                USE_UV: "",
+            },
+            uniforms: {
+                uSize: { value: 1 },
+            },
+            fragmentShader: `
+                uniform float uSize;
+                varying vec2 vUv;
+
+                void main() {
+
+                    float dst = distance(vUv, vec2(0.5, 0.5)) / 0.5;
+
+                    float thickness = 0.05 * (1. / uSize);
+                    gl_FragColor = vec4(0., 1., 0., smoothstep(0.98 - thickness, 1. - thickness, dst) * smoothstep(0., 0.02, 1. - dst));
+
+                    
+                }
+            `,
+            vertexShader: `
+                uniform float uSize;
+                varying vec2 vUv;
+
+                void main() {
+                    vUv = uv;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position * uSize , 1.0);
+                }
+
+            `,
+        } );
+
+        this.transparent = true;
+    }
+}
+export class SelectionCircle3D extends Mesh<BufferGeometry, SelectionMaterial> {
     #spriteDat?: SpriteDAT;
-    #uniforms = {
-        uSize: { value: 1 },
-    };
 
     constructor() {
         const _geometry = new PlaneGeometry( 1, 1 );
-
-        super(
-            _geometry,
-            new MeshBasicMaterial( {
-                // @ts-expect-error
-                onBeforeCompile: ( shader: Shader ) => {
-                    const fs = shader.fragmentShader;
-                    shader.fragmentShader = fs.replace(
-                        "#include <map_fragment>",
-                        `
-                #include <map_fragment>
-
-                float dst = distance(vUv, vec2(0.5, 0.5)) / 0.5;
-
-                float thickness = 0.05 * uSize;
-                diffuseColor = vec4(0., 1., 0., smoothstep(0.98 - thickness, 1. - thickness, dst) * smoothstep(0., 0.02, 1. - dst));
-            `
-                    );
-                    shader.fragmentShader = `
-                uniform float uSize;
-                                ${shader.fragmentShader}
-                            `;
-
-                    shader.uniforms.uSize = this.#uniforms.uSize;
-                },
-            } )
-        );
-        this.material.defines = {
-            USE_UV: "",
-        };
-        this.material.transparent = true;
+        super( _geometry, new SelectionMaterial() );
         this.rotation.x = -Math.PI / 2;
         this.name = "SelectionCircle3D";
     }
@@ -50,13 +60,9 @@ export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
         if ( spriteDat !== this.#spriteDat ) {
             const r = image.boundingSphere.radius;
             const m = r > 1 ? r * 1.6 : r * 1.1;
-            this.geometry.dispose();
 
-            this.#uniforms.uSize.value = 1 / m;
-            //TODO: don't
-            this.geometry = new PlaneGeometry( m, m );
+            this.material.size = m;
 
-            this.material.needsUpdate = true;
             this.#spriteDat = spriteDat;
 
             this.position.setY( image.boundingBox.min.y );
