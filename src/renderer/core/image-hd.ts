@@ -82,6 +82,7 @@ export class ImageHD
             false
         );
         // posAttribute.usage = DynamicDrawUsage;
+        posAttribute.needsUpdate = true;
         this.geometry.setAttribute( "position", posAttribute );
 
         const uvAttribute = new BufferAttribute(
@@ -90,6 +91,7 @@ export class ImageHD
             false
         );
         // uvAttribute.usage = DynamicDrawUsage;
+        uvAttribute.needsUpdate = true;
         this.geometry.setAttribute( "uv", uvAttribute );
 
         this._zOff = 0;
@@ -125,10 +127,6 @@ export class ImageHD
 
         this.material.alphaTest = 0.01;
         this.scale.set( atlas.spriteWidth / 128, atlas.spriteHeight / 128, 1 );
-
-        // spriteWidth is only valid with HD, have to scale to HD2 if applicable
-        this.spriteWidth = atlas.spriteWidth * ( atlas.unitTileScale / 4 );
-        this.spriteHeight = atlas.spriteHeight * ( atlas.unitTileScale / 4 );
 
         if ( this.dat.drawFunction === drawFunctions.rleShadow ) {
             this.material.blending = SubtractiveBlending;
@@ -218,15 +216,14 @@ export class ImageHD
             frame / this.atlas!.frames.length + 0.5 / this.atlas!.frames.length;
         ( this.material as ImageHDMaterial ).flipped = flip;
 
-        // this.#pos = flip
-        //     ? this.atlas!.uvPos[frame].flippedPos
-        //     : this.atlas!.uvPos[frame].pos;
-        // this.#uv = flip
-        //     ? this.atlas!.uvPos[frame].flippedUv
-        //     : this.atlas!.uvPos[frame].uv;
-
-        // this.geometry.setAttribute( "position", this.#pos );
-        // this.geometry.setAttribute( "uv", this.#uv );
+        // this.geometry.setAttribute(
+        //     "position",
+        //     flip ? this.atlas!.uvPos[frame].flippedPos : this.atlas!.uvPos[frame].pos
+        // );
+        // this.geometry.setAttribute(
+        //     "uv",
+        //     flip ? this.atlas!.uvPos[frame].flippedUv : this.atlas!.uvPos[frame].uv
+        // );
 
         this.frame = frame;
         this.flip = flip;

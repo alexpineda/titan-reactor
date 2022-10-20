@@ -1,4 +1,3 @@
-import { calculateFrame } from "@utils/image-utils";
 import { drawFunctions } from "common/enums";
 import { Color, DynamicDrawUsage, InstancedBufferAttribute, Matrix4 } from "three";
 import { ImageHD } from "./image-hd";
@@ -102,16 +101,6 @@ export class ImageHDInstanced extends ImageHD {
     override setFrame( frame: number, flip: boolean ) {
         this.frame = frame;
         this.flip = flip;
-        calculateFrame(
-            this.atlas!.frames[frame],
-            flip,
-            this.atlas!.textureWidth,
-            this.atlas!.textureHeight,
-            this.spriteWidth,
-            this.spriteHeight,
-            this,
-            this
-        );
     }
 
     override get frame() {

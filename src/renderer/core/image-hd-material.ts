@@ -1,5 +1,5 @@
 import { AnimAtlas } from "@image/atlas";
-import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
+import { extend_withSpriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 import { drawFunctions } from "common/enums";
 import {
     Color,
@@ -248,7 +248,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         //  glVertID 2 flipped       0.0     3.0
         //  glVertID 3 flipped       0.0     3.5
 
-        spriteImageProjection( shader, {
+        extend_withSpriteImageProjection( shader, {
             header: `
                 precision highp sampler2DArray;
             

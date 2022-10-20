@@ -174,11 +174,11 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
 
         const anim = loadAnimAtlas( await loadAnimBuffer( refImageId, res ), imageId, res );
 
-        if ( atlases[imageId]?.isHD2 && anim.isHD ) {
-            setHDMipMaps( anim, atlases[imageId] );
+        if ( atlases[refImageId]?.isHD2 && anim.isHD ) {
+            setHDMipMaps( anim, atlases[refImageId] );
         }
 
-        if ( anim.isHD2 && atlases[imageId]?.isHD ) {
+        if ( anim.isHD2 && atlases[refImageId]?.isHD ) {
             log.warn( "hd2 after hd" );
         }
 

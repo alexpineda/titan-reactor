@@ -1,5 +1,5 @@
 import { AnimAtlas } from "@image/atlas";
-import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
+import { extend_withSpriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 import { drawFunctions } from "common/enums";
 import {
     Color,
@@ -191,7 +191,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
 
         extend( "fragmentShader", "#include <map_fragment>", mapFragments );
 
-        spriteImageProjection( shader, {
+        extend_withSpriteImageProjection( shader, {
             post: `
             vTeamColor = aTeamColor;
             vModifierData = aModifierData;

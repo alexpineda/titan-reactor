@@ -81,7 +81,7 @@ export class ImageEntities {
             this.#images.set( imageIndex, image );
             this.#units.delete( image );
 
-            image.updateImageType( atlas );
+            image.updateImageType( atlas, true );
         } else {
             image.updateImageType( atlas );
         }

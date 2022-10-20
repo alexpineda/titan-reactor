@@ -89,13 +89,18 @@ export const loadAnimAtlas = (
             2,
             false
         );
+
+        //HD2 is not accurate in anim
+        const spriteWidth = sprite.w * ( scale / 4 );
+        const spriteHeight = sprite.h * ( scale / 4 );
+
         calculateFrame(
             frame,
             false,
-            sprite.maps.diffuse.width,
-            sprite.maps.diffuse.height,
-            sprite.w,
-            sprite.h,
+            diffuse.image.width,
+            diffuse.image.height,
+            spriteWidth,
+            spriteHeight,
             pos,
             uv
         );
@@ -103,10 +108,10 @@ export const loadAnimAtlas = (
         calculateFrame(
             frame,
             true,
-            sprite.maps.diffuse.width,
-            sprite.maps.diffuse.height,
-            sprite.w,
-            sprite.h,
+            diffuse.image.width,
+            diffuse.image.height,
+            spriteWidth,
+            spriteHeight,
             flippedPos,
             flippedUv
         );

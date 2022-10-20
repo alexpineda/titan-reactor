@@ -18,7 +18,7 @@ import { SpriteDAT, SpriteType } from "common/types";
 import { getMaxUnitEnergy } from "@utils/unit-utils";
 import { Unit } from "./unit";
 import gameStore from "@stores/game-store";
-import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
+import { extend_withSpriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 
 // dummy map till I figure out how to get uv attribute in shader
 const map = new DataTexture( new Uint8Array( [ 0 ] ), 1, 1, RedFormat, UnsignedByteType );
@@ -129,7 +129,7 @@ class SelectionBarMaterial extends MeshBasicMaterial {
         `
             );
 
-        spriteImageProjection( shader );
+        extend_withSpriteImageProjection( shader );
     }
 }
 

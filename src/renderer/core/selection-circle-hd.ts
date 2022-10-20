@@ -10,7 +10,7 @@ import {
 
 import { SpriteDAT } from "common/bwdat/sprites-dat";
 import gameStore from "@stores/game-store";
-import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
+import { extend_withSpriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 import { SpriteType } from "common/types";
 
 //TODO: change to shader material
@@ -31,7 +31,7 @@ class SelectionCircleMaterial extends MeshBasicMaterial {
     `
         );
 
-        spriteImageProjection( shader );
+        extend_withSpriteImageProjection( shader );
     }
 }
 

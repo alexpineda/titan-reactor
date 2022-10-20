@@ -178,23 +178,12 @@ export const createPostProcessingComposer = (
 
     return {
         precompile( camera: PerspectiveCamera | OrthographicCamera ) {
-            _changeRenderMode( true );
-            renderComposer.setBundlePasses( postProcessingBundle );
-            renderComposer.composer.setMainScene( scene );
-            renderComposer.composer.setMainCamera( camera );
-
-            sceneComposer.onFrame( 0, 0, true, 0 );
-
-            renderComposer.getWebGLRenderer().compile( scene, camera );
-
             _changeRenderMode( false );
             renderComposer.setBundlePasses( postProcessingBundle );
             renderComposer.composer.setMainScene( scene );
             renderComposer.composer.setMainCamera( camera );
 
             sceneComposer.onFrame( 0, 0, false, 0 );
-
-            renderComposer.getWebGLRenderer().compile( scene, camera );
 
             renderComposer.render( 0 );
         },
