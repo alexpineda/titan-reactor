@@ -2,7 +2,6 @@ import {
     BufferAttribute,
     BufferGeometry,
     Color,
-    InterleavedBufferAttribute,
     Intersection,
     Matrix4,
     Mesh,
@@ -60,9 +59,6 @@ export class ImageHD
     isInstanced = false;
     atlas?: AnimAtlas;
 
-    #uv: BufferAttribute | InterleavedBufferAttribute;
-    #pos: BufferAttribute | InterleavedBufferAttribute;
-
     #frame = 0;
     #flip = false;
 
@@ -97,9 +93,6 @@ export class ImageHD
         this.geometry.setAttribute( "uv", uvAttribute );
 
         this._zOff = 0;
-
-        this.#uv = uvAttribute;
-        this.#pos = posAttribute;
 
         this.matrixAutoUpdate = false;
         // @ts-expect-error
@@ -149,9 +142,9 @@ export class ImageHD
             this.material.map.magFilter = NearestFilter;
         }
 
-        this.material.needsUpdate = true;
+        this.material.uvPosTex = atlas.uvPosDataTex;
 
-        this.rotation.set( 0, 0, 0 );
+        this.material.needsUpdate = true;
 
         return this;
     }
@@ -211,34 +204,32 @@ export class ImageHD
     setFrame( frame: number, flip: boolean ) {
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if ( this.atlas!.frames[frame] === undefined ) {
+            if ( process.env.NODE_ENV !== "production" ) {
+                throw new Error(
+                    `Invalid frame ${frame}/${this.atlas!.frames.length} for atlas ${
+                        this.atlas!.imageIndex
+                    }`
+                );
+            }
             return;
         }
 
-        this.#pos = flip
-            ? this.atlas!.uvPos[frame].flippedPos
-            : this.atlas!.uvPos[frame].pos;
-        this.#uv = flip
-            ? this.atlas!.uvPos[frame].flippedUv
-            : this.atlas!.uvPos[frame].uv;
+        ( this.material as ImageHDMaterial ).frame =
+            frame / this.atlas!.frames.length + 0.5 / this.atlas!.frames.length;
+        ( this.material as ImageHDMaterial ).flipped = flip;
 
-        this.geometry.setAttribute( "position", this.#pos );
-        this.geometry.setAttribute( "uv", this.#uv );
+        // this.#pos = flip
+        //     ? this.atlas!.uvPos[frame].flippedPos
+        //     : this.atlas!.uvPos[frame].pos;
+        // this.#uv = flip
+        //     ? this.atlas!.uvPos[frame].flippedUv
+        //     : this.atlas!.uvPos[frame].uv;
 
-        // calculateFrame(
-        //     this.atlas!.frames[frame],
-        //     flip,
-        //     this.atlas!.textureWidth,
-        //     this.atlas!.textureHeight,
-        //     this.spriteWidth,
-        //     this.spriteHeight,
-        //     this.#pos,
-        //     this.#uv
-        // );
+        // this.geometry.setAttribute( "position", this.#pos );
+        // this.geometry.setAttribute( "uv", this.#uv );
 
         this.frame = frame;
         this.flip = flip;
-        // this.#uv.needsUpdate = true;
-        // this.#pos.needsUpdate = true;
     }
 
     override raycast( raycaster: Raycaster, intersects: Intersection[] ) {
@@ -295,11 +286,12 @@ export class ImageHD
         const x = _uv.x - 0.5;
         const y = _uv.y - 0.5;
 
+        const posArray = this.flip
+            ? this.atlas!.uvPos[this.frame].flippedPos.array
+            : this.atlas!.uvPos[this.frame].pos.array;
+
         const intersectQuad =
-            x > this.geometry.attributes.position.array[0] &&
-            x < this.geometry.attributes.position.array[3] &&
-            y > this.geometry.attributes.position.array[1] &&
-            y < this.geometry.attributes.position.array[7];
+            x > posArray[0] && x < posArray[3] && y > posArray[1] && y < posArray[7];
 
         if ( !intersectQuad ) return;
 

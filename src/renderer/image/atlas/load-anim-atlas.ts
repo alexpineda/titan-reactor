@@ -1,10 +1,20 @@
 import { AnimDds, UnitTileScale } from "common/types";
 
 import { parseAnim, createDDSTexture } from "../formats";
-import { BufferAttribute, DataTexture, LinearEncoding, TextureEncoding } from "three";
+import {
+    BufferAttribute,
+    ClampToEdgeWrapping,
+    DataArrayTexture,
+    FloatType,
+    LinearEncoding,
+    NearestFilter,
+    RGBAFormat,
+    TextureEncoding,
+} from "three";
 import { Janitor } from "three-janitor";
 import { parseDDS } from "@image/formats/parse-dds";
 import { calculateFrame } from "@utils/image-utils";
+import { renderComposer } from "@render/render-composer";
 
 const getBufDds = ( buf: Buffer, { ddsOffset, size }: AnimDds ) =>
     buf.slice( ddsOffset, ddsOffset + size );
@@ -106,11 +116,11 @@ export const loadAnimAtlas = (
         flippedPos.needsUpdate = true;
         flippedUv.needsUpdate = true;
 
-        return { pos, uv, flippedPos, flippedUv: flippedUv };
+        return { pos, uv, flippedPos, flippedUv };
     } );
 
     //pos xy, uv xy (4 entries x flipped x 4 verticies = 16 entires per frame)
-    const uvPosData = new Float32Array( frames.length * 4 * 4 * 2 );
+    const uvPosData = new Float32Array( frames.length * 4 * 8 );
 
     for ( let frame = 0; frame < uvPos.length; frame++ ) {
         const _uvPos = uvPos[frame];
@@ -134,7 +144,14 @@ export const loadAnimAtlas = (
         }
     }
 
-    const uvPosDataTex = new DataTexture( uvPosData, uvPos.length, 8 );
+    const uvPosDataTex = new DataArrayTexture( uvPosData, uvPos.length, 1, 8 );
+    uvPosDataTex.format = RGBAFormat;
+    uvPosDataTex.type = FloatType;
+    uvPosDataTex.magFilter = uvPosDataTex.minFilter = NearestFilter;
+    uvPosDataTex.wrapS = uvPosDataTex.wrapT = ClampToEdgeWrapping;
+    uvPosDataTex.needsUpdate = true;
+
+    renderComposer.getWebGLRenderer().initTexture( uvPosDataTex );
 
     return {
         isHD: scale === UnitTileScale.HD,

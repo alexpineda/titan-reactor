@@ -34,6 +34,12 @@ interface DynamicUniforms {
     uParentMatrix: {
         value: Matrix4;
     };
+    uvPosTex: {
+        value: Texture | undefined;
+    };
+    uFrameFlipped: {
+        value: Vector2;
+    };
 }
 
 export class ImageHDMaterial extends MeshBasicMaterial {
@@ -53,6 +59,9 @@ export class ImageHDMaterial extends MeshBasicMaterial {
             teamMask: {
                 value: undefined,
             },
+            uvPosTex: {
+                value: undefined,
+            },
             warpInFlashTexture: {
                 value: undefined,
             },
@@ -67,6 +76,9 @@ export class ImageHDMaterial extends MeshBasicMaterial {
             },
             uParentMatrix: {
                 value: new Matrix4(),
+            },
+            uFrameFlipped: {
+                value: new Vector2(),
             },
         };
     }
@@ -88,6 +100,18 @@ export class ImageHDMaterial extends MeshBasicMaterial {
 
     get teamColor() {
         return this.#dynamicUniforms.uTeamColor.value;
+    }
+
+    set uvPosTex( val: Texture ) {
+        this.#dynamicUniforms.uvPosTex.value = val;
+    }
+
+    set frame( val: number ) {
+        this.#dynamicUniforms.uFrameFlipped.value.x = val;
+    }
+
+    set flipped( val: boolean ) {
+        this.#dynamicUniforms.uFrameFlipped.value.y = val ? 1 : 0;
     }
 
     set warpInFlashGRP( val: AnimAtlas | undefined ) {
@@ -201,7 +225,9 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         }
 
         mapFragments.push( [
-            "",
+            `
+            // diffuseColor = mix( diffuseColor, vec4(1.), 1. -  step(0.1, vUv.x) * step(0.1, vUv.y) * step(vUv.x, 0.9) * step(vUv.y, 0.9) );
+        `,
             `
     uniform float modifier;
     uniform vec2 modifierData;
@@ -211,7 +237,34 @@ export class ImageHDMaterial extends MeshBasicMaterial {
 
         extend( "fragmentShader", "#include <map_fragment>", mapFragments );
 
-        spriteImageProjection( shader );
+        //                       frame 0   frame 1
+        //
+        //  glVertID 0               rgba     rgba
+        //  glVertID 1               0.0     0.5
+        //  glVertID 2               0.0     1.0
+        //  glVertID 3               0.0     1.5
+        //  glVertID 0 flipped       0.0     2.0
+        //  glVertID 1 flipped       0.0     2.5
+        //  glVertID 2 flipped       0.0     3.0
+        //  glVertID 3 flipped       0.0     3.5
+
+        spriteImageProjection( shader, {
+            header: `
+                precision highp sampler2DArray;
+            
+                uniform vec2 uFrameFlipped;
+                uniform sampler2DArray uvPosTex;
+
+            `,
+            pre: `
+
+                vec3 fUv = vec3(uFrameFlipped.x, 0., gl_VertexID + int(uFrameFlipped.y) * 4);
+                vec4 posUv = texture(uvPosTex, fUv);
+
+                transformed = vec3(posUv.x, posUv.y, transformed.z);
+                vUv = vec2(posUv.z, posUv.w);
+            `,
+        } );
 
         Object.assign( shader.uniforms, this.#dynamicUniforms );
     }

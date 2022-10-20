@@ -306,6 +306,8 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 applyRenderModeToImageHD( imageData, image, renderMode3D, direction );
             } else if ( isImage3d( image ) ) {
                 applyModelEffectsToImage3d( imageData, image, unit );
+            } else {
+                throw new Error( "unknown image type" );
             }
 
             _images.push( image );

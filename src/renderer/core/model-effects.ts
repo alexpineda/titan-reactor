@@ -30,7 +30,7 @@ export const applyRenderModeToSprite = (
                     sprite.position.y = terrainY + 0.1;
                     break;
                 default:
-                    sprite.rotation.x = 0;
+                    sprite.rotation.set( 0, 0, 0 );
             }
         }
     }
@@ -108,6 +108,8 @@ export const applyModelEffectsToImage3d = (
 
     if ( unit && image === overlayEffectsMainImage.image ) {
         image.rotation.y = !image.isLooseFrame ? getAngle( unit.direction ) : 0;
+    } else {
+        image.rotation.y = 0;
     }
 
     if ( modelSetModifiers.images[imageTypeId] ) {

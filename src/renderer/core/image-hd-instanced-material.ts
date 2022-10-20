@@ -26,6 +26,9 @@ interface DynamicUniforms {
     modifierData: {
         value: Vector2;
     };
+    uvPosTex: {
+        value: Texture | undefined;
+    };
 }
 
 export class ImageHDInstancedMaterial extends MeshBasicMaterial {
@@ -53,6 +56,9 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
             },
             modifier: {
                 value: 0,
+            },
+            uvPosTex: {
+                value: undefined,
             },
         };
     }
@@ -93,6 +99,10 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
 
     get modifier() {
         return this.#dynamicUniforms.modifier.value;
+    }
+
+    set uvPosTex( val: Texture ) {
+        this.#dynamicUniforms.uvPosTex.value = val;
     }
 
     override onBeforeCompile( shader: Shader ) {
@@ -181,15 +191,14 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
 
         extend( "fragmentShader", "#include <map_fragment>", mapFragments );
 
-        spriteImageProjection(
-            shader,
-            `
+        spriteImageProjection( shader, {
+            post: `
             vTeamColor = aTeamColor;
             vModifierData = aModifierData;
             vModifierType = aModifierType;
             vUvPos = aUvPos;
-        `
-        );
+        `,
+        } );
         shader.vertexShader = `
             attribute vec3 aTeamColor;
             attribute vec3 aModifierData;
