@@ -14,13 +14,12 @@ import {
     Sphere,
     Vector3,
 } from "three";
-
-import type { GltfAtlas } from "common/types";
 import type { ImageBase } from ".";
 import { standardMaterialToImage3DMaterial } from "@utils/material-utils";
 import { Image3DMaterial } from "./image-3d-material";
 import gameStore from "@stores/game-store";
 import { calculateAABB, parallelTraverse } from "@utils/mesh-utils";
+import { GltfAtlas } from "@image/atlas";
 
 const white = new Color( 0xffffff );
 

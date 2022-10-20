@@ -11,13 +11,8 @@ import { getAngle } from "@utils/unit-utils";
 import { SpriteType } from "common/types";
 import { Image3D } from "./image-3d";
 import { ImageHD } from "./image-hd";
-import { ImageHDInstanced } from "./image-hd-instanced";
 import { modelSetModifiers } from "./model-effects-configuration";
 import { Unit } from "./unit";
-
-// if ( import.meta.hot ) {
-//     import.meta.hot.accept( "./model-effects-configuration" );
-// }
 
 export const overlayEffectsMainImage: { image: Image3D | null } = { image: null };
 
@@ -42,10 +37,7 @@ export const applyRenderModeToSprite = (
 };
 
 let imageTypeId: number;
-export const applyOverlayEffectsToImageHD = (
-    imageBuffer: ImageBufferView,
-    image: ImageHD | ImageHDInstanced
-) => {
+export const applyOverlayEffectsToImageHD = ( imageBuffer: ImageBufferView ) => {
     imageTypeId = gameStore().assets!.refId( imageBuffer.typeId );
 
     if ( modelSetModifiers.images[imageTypeId] ) {
@@ -58,9 +50,6 @@ export const applyOverlayEffectsToImageHD = (
                             imageIsHidden( imageBuffer ) ? 0 : 1
                         );
                     }
-                    break;
-                case "flat-on-ground":
-                    image.material.flatProjection = false;
                     break;
             }
         }
@@ -105,7 +94,7 @@ export const applyRenderModeToImageHD = (
     image.setFrame( _frameInfo.frame, _frameInfo.flipped );
 
     if ( renderMode3D ) {
-        applyOverlayEffectsToImageHD( imageBuffer, image );
+        applyOverlayEffectsToImageHD( imageBuffer );
     }
 };
 

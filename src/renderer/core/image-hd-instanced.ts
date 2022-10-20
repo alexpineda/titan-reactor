@@ -1,6 +1,7 @@
+import { calculateFrame } from "@utils/image-utils";
 import { drawFunctions } from "common/enums";
 import { Color, DynamicDrawUsage, InstancedBufferAttribute, Matrix4 } from "three";
-import { calculateFrame, ImageHD } from "./image-hd";
+import { ImageHD } from "./image-hd";
 import { ImageHDInstancedMaterial } from "./image-hd-instanced-material";
 
 const white = new Color( 0xffffff );

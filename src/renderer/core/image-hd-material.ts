@@ -1,6 +1,6 @@
+import { AnimAtlas } from "@image/atlas";
 import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 import { drawFunctions } from "common/enums";
-import { AnimAtlas } from "common/types";
 import {
     Color,
     Matrix4,
@@ -8,9 +8,11 @@ import {
     Shader,
     SpriteMaterialParameters,
     Texture,
+    Vector2,
 } from "three";
 
 interface DynamicUniforms {
+    //TODO: change to palette
     uTeamColor: {
         value: Color;
     };
@@ -23,14 +25,8 @@ interface DynamicUniforms {
     modifier: {
         value: number;
     };
-    modifierData1: {
-        value: number;
-    };
-    modifierData2: {
-        value: number;
-    };
-    uFlatProjection: {
-        value: boolean;
+    modifierData: {
+        value: Vector2;
     };
     uLocalMatrix: {
         value: Matrix4;
@@ -60,18 +56,11 @@ export class ImageHDMaterial extends MeshBasicMaterial {
             warpInFlashTexture: {
                 value: undefined,
             },
-            //TODO: move to vec3
-            modifierData1: {
-                value: 0,
-            },
-            modifierData2: {
-                value: 0,
+            modifierData: {
+                value: new Vector2(),
             },
             modifier: {
                 value: 0,
-            },
-            uFlatProjection: {
-                value: true,
             },
             uLocalMatrix: {
                 value: new Matrix4(),
@@ -105,20 +94,12 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         this.#dynamicUniforms.warpInFlashTexture.value = val?.diffuse;
     }
 
-    set modifierData1( val: number ) {
-        this.#dynamicUniforms.modifierData1.value = val;
+    set modifierData( val: Vector2 ) {
+        this.#dynamicUniforms.modifierData.value = val;
     }
 
-    get modifierData1() {
-        return this.#dynamicUniforms.modifierData1.value;
-    }
-
-    set modifierData2( val: number ) {
-        this.#dynamicUniforms.modifierData2.value = val;
-    }
-
-    get modifierData2() {
-        return this.#dynamicUniforms.modifierData2.value;
+    get modifierData() {
+        return this.#dynamicUniforms.modifierData.value;
     }
 
     set modifier( val: number ) {
@@ -130,17 +111,6 @@ export class ImageHDMaterial extends MeshBasicMaterial {
 
     get modifier() {
         return this.#dynamicUniforms.modifier.value;
-    }
-
-    set flatProjection( val: boolean ) {
-        if ( val !== this.#dynamicUniforms.uFlatProjection.value ) {
-            this.#dynamicUniforms.uFlatProjection.value = val;
-            this.#generateProgramCacheKey();
-        }
-    }
-
-    get flatProjection() {
-        return this.#dynamicUniforms.uFlatProjection.value;
     }
 
     set localMatrix( val: Matrix4 ) {
@@ -209,7 +179,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         } else if ( this.modifier === drawFunctions.warpFlash ) {
             mapFragments.push( [
                 `
-        vec2 warpUv = vUv * 0.2 + vec2(0.2 * mod(modifierData1, 5.), 0.2 * floor(modifierData1 / 5.));
+        vec2 warpUv = vUv * 0.2 + vec2(0.2 * mod(modifierData.x, 5.), 0.2 * floor(modifierData.x / 5.));
         vec4 warp = texture2D( warpInFlashTexture, warpUv );
         diffuseColor = vec4(warp.rgb, diffuseColor.a);
       `,
@@ -217,7 +187,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         } else if ( this.modifier === drawFunctions.warpFlash2 ) {
             mapFragments.push( [
                 `
-        float flashPower = 1. - ((modifierData1 - 48.) / 15.);
+        float flashPower = 1. - ((modifierData.x - 48.) / 15.);
         diffuseColor = vec4( mix( diffuseColor.rgb, vec3(1.), flashPower ), diffuseColor.a );
       `,
             ] );
@@ -234,24 +204,20 @@ export class ImageHDMaterial extends MeshBasicMaterial {
             "",
             `
     uniform float modifier;
-    uniform float modifierData1;
-    uniform float modifierData2;
+    uniform vec2 modifierData;
     uniform sampler2D warpInFlashTexture;
     `,
         ] );
 
         extend( "fragmentShader", "#include <map_fragment>", mapFragments );
 
-        //TODO: deprecate branch once sprite rotation is fixed and always project
-        if ( this.flatProjection ) {
-            spriteImageProjection( shader );
-        }
+        spriteImageProjection( shader );
 
         Object.assign( shader.uniforms, this.#dynamicUniforms );
     }
 
     #generateProgramCacheKey() {
-        const newKey = `${!!this.teamMask}${this.modifier}${this.flatProjection}`;
+        const newKey = `${!!this.teamMask}${this.modifier}`;
         if ( this.#customCacheKey !== newKey ) {
             this.needsUpdate = true;
             this.#customCacheKey = newKey;

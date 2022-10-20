@@ -1,12 +1,12 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
 import { fileExists } from "common/utils/file-exists";
-import { AnimAtlas, BwDAT, Settings, UnitTileScale } from "common/types";
+import { BwDAT, Settings, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import { openCascStorage, readCascFile } from "common/casclib";
 
-import { createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
+import { AnimAtlas, createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
 
 import gameStore, { setAsset } from "@stores/game-store";
 import { generateCursorIcons, generateUIIcons } from "./generate-icons/generate-icons";

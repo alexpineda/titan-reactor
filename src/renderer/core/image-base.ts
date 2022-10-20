@@ -1,4 +1,5 @@
-import { AnimAtlas, UnitTileScale, ImageDAT } from "common/types";
+import { AnimAtlas } from "@image/atlas";
+import { UnitTileScale, ImageDAT } from "common/types";
 import type { Color, Object3D } from "three";
 
 export interface ImageBase extends Object3D {

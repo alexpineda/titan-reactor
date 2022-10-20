@@ -1,12 +1,13 @@
+import { AnimAtlas } from "@image/atlas";
 import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 import { drawFunctions } from "common/enums";
-import { AnimAtlas } from "common/types";
 import {
     Color,
     MeshBasicMaterial,
     Shader,
     SpriteMaterialParameters,
     Texture,
+    Vector2,
 } from "three";
 
 interface DynamicUniforms {
@@ -22,11 +23,8 @@ interface DynamicUniforms {
     modifier: {
         value: number;
     };
-    modifierData1: {
-        value: number;
-    };
-    modifierData2: {
-        value: number;
+    modifierData: {
+        value: Vector2;
     };
 }
 
@@ -50,11 +48,8 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
             warpInFlashTexture: {
                 value: undefined,
             },
-            modifierData1: {
-                value: 0,
-            },
-            modifierData2: {
-                value: 0,
+            modifierData: {
+                value: new Vector2(),
             },
             modifier: {
                 value: 0,
@@ -83,20 +78,12 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         this.#dynamicUniforms.warpInFlashTexture.value = val?.diffuse;
     }
 
-    set modifierData1( val: number ) {
-        this.#dynamicUniforms.modifierData1.value = val;
+    set modifierData( val: Vector2 ) {
+        this.#dynamicUniforms.modifierData.value = val;
     }
 
-    get modifierData1() {
-        return this.#dynamicUniforms.modifierData1.value;
-    }
-
-    set modifierData2( val: number ) {
-        this.#dynamicUniforms.modifierData2.value = val;
-    }
-
-    get modifierData2() {
-        return this.#dynamicUniforms.modifierData2.value;
+    get modifierData() {
+        return this.#dynamicUniforms.modifierData.value;
     }
 
     set modifier( val: number ) {

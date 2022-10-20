@@ -8,7 +8,7 @@ import { isGltfAtlas } from "@utils/image-utils";
 import { IndexedObjectPool } from "@utils/data-structures/indexed-object-pool";
 import { IterableMap } from "@utils/data-structures/iteratible-map";
 import { Janitor } from "three-janitor";
-import { AnimAtlas } from "common/types";
+import { AnimAtlas } from "@image/atlas";
 
 export class ImageEntities {
     #freeImages = new IndexedObjectPool<ImageBase>();

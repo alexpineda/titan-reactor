@@ -1,6 +1,25 @@
-import { Mesh, Object3D, Texture } from "three";
-import { ImageDAT, GltfAtlas, AnimFrame } from "common/types";
+import {
+    AnimationClip,
+    BufferGeometry,
+    Mesh,
+    MeshStandardMaterial,
+    Object3D,
+    SkinnedMesh,
+    Texture,
+} from "three";
+import { ImageDAT, AnimFrame } from "common/types";
 import { loadGlb } from "../formats/load-glb";
+import { AnimAtlas } from "./load-anim-atlas";
+
+export interface GltfAtlas extends AnimAtlas {
+    isGLTF: boolean;
+    model: Object3D; //
+    mesh:
+        | Mesh<BufferGeometry, MeshStandardMaterial>
+        | SkinnedMesh<BufferGeometry, MeshStandardMaterial>;
+    animations: AnimationClip[];
+    fixedFrames: number[];
+}
 
 export const loadGlbAtlas = async (
     glbFileName: string,

@@ -2,7 +2,6 @@ import {
     BufferAttribute,
     BufferGeometry,
     Color,
-    DynamicDrawUsage,
     InterleavedBufferAttribute,
     Intersection,
     Matrix4,
@@ -17,65 +16,14 @@ import {
 } from "three";
 
 import { drawFunctions } from "common/enums";
-import { AnimFrame, AnimAtlas } from "common/types";
 import { ImageBase } from ".";
 import { ImageHDMaterial } from "./image-hd-material";
 import gameStore from "@stores/game-store";
 import { ImageHDInstancedMaterial } from "./image-hd-instanced-material";
+import { AnimAtlas } from "@image/atlas";
 
 const white = new Color( 0xffffff );
 const CLOAK_OPACITY = 0.6;
-
-//dds is flipped y so we don't do it in our uvs
-export const calculateFrame = (
-    frame: AnimFrame,
-    flipFrame: boolean,
-    textureWidth: number,
-    textureHeight: number,
-    spriteWidth: number,
-    spriteHeight: number,
-    pos: {
-        setX: ( index: number, value: number ) => void;
-        setY: ( index: number, value: number ) => void;
-    },
-    uv: { setXY: ( index: number, x: number, y: number ) => void }
-) => {
-    const yOff = 0.5;
-
-    const _leftU = frame.x / textureWidth;
-    const _rightU = ( frame.x + frame.w ) / textureWidth;
-    const u0 = flipFrame ? _rightU : _leftU;
-    const u1 = flipFrame ? _leftU : _rightU;
-
-    const v1 = frame.y / textureHeight;
-    const v0 = ( frame.y + frame.h ) / textureHeight;
-
-    const py0 = 1 - ( frame.yoff + frame.h ) / spriteHeight - yOff;
-    const py1 = 1 - frame.yoff / spriteHeight - yOff;
-
-    if ( flipFrame ) {
-        pos.setX( 0, ( spriteWidth - ( frame.xoff + frame.w ) ) / spriteWidth - 0.5 );
-        pos.setX( 1, ( spriteWidth - frame.xoff ) / spriteWidth - 0.5 );
-        pos.setX( 2, ( spriteWidth - frame.xoff ) / spriteWidth - 0.5 );
-        pos.setX( 3, ( spriteWidth - ( frame.xoff + frame.w ) ) / spriteWidth - 0.5 );
-    } else {
-        pos.setX( 0, frame.xoff / spriteWidth - 0.5 );
-        pos.setX( 1, ( frame.xoff + frame.w ) / spriteWidth - 0.5 );
-        pos.setX( 2, ( frame.xoff + frame.w ) / spriteWidth - 0.5 );
-        pos.setX( 3, frame.xoff / spriteWidth - 0.5 );
-    }
-
-    //0,0 bottom left -> 0,1 bottom right -> 1,1 top right ->0,1 top left
-    uv.setXY( 0, u0, v0 );
-    uv.setXY( 1, u1, v0 );
-    uv.setXY( 2, u1, v1 );
-    uv.setXY( 3, u0, v1 );
-
-    pos.setY( 0, py0 );
-    pos.setY( 1, py0 );
-    pos.setY( 2, py1 );
-    pos.setY( 3, py1 );
-};
 
 const _worldScale = new Vector3();
 const _mvPosition = new Vector3();
@@ -137,7 +85,7 @@ export class ImageHD
             3,
             false
         );
-        posAttribute.usage = DynamicDrawUsage;
+        // posAttribute.usage = DynamicDrawUsage;
         this.geometry.setAttribute( "position", posAttribute );
 
         const uvAttribute = new BufferAttribute(
@@ -145,7 +93,7 @@ export class ImageHD
             2,
             false
         );
-        uvAttribute.usage = DynamicDrawUsage;
+        // uvAttribute.usage = DynamicDrawUsage;
         this.geometry.setAttribute( "uv", uvAttribute );
 
         this._zOff = 0;
@@ -181,7 +129,6 @@ export class ImageHD
         this.material.map = atlas.diffuse;
         this.material.teamMask = atlas.teammask;
         this.material.warpInFlashGRP = gameStore().assets?.atlases[210];
-        this.material.flatProjection = true;
 
         this.material.alphaTest = 0.01;
         this.scale.set( atlas.spriteWidth / 128, atlas.spriteHeight / 128, 1 );
@@ -223,8 +170,7 @@ export class ImageHD
 
     setModifiers( modifier: number, modifierData1: number, modifierData2: number ) {
         this.material.modifier = modifier;
-        this.material.modifierData1 = modifierData1;
-        this.material.modifierData2 = modifierData2;
+        this.material.modifierData.set( modifierData1, modifierData2 );
         this.setOpacityFromModifiers( modifier, modifierData1 );
     }
 
@@ -268,21 +214,31 @@ export class ImageHD
             return;
         }
 
-        calculateFrame(
-            this.atlas!.frames[frame],
-            flip,
-            this.atlas!.textureWidth,
-            this.atlas!.textureHeight,
-            this.spriteWidth,
-            this.spriteHeight,
-            this.#pos,
-            this.#uv
-        );
+        this.#pos = flip
+            ? this.atlas!.uvPos[frame].flippedPos
+            : this.atlas!.uvPos[frame].pos;
+        this.#uv = flip
+            ? this.atlas!.uvPos[frame].flippedUv
+            : this.atlas!.uvPos[frame].uv;
+
+        this.geometry.setAttribute( "position", this.#pos );
+        this.geometry.setAttribute( "uv", this.#uv );
+
+        // calculateFrame(
+        //     this.atlas!.frames[frame],
+        //     flip,
+        //     this.atlas!.textureWidth,
+        //     this.atlas!.textureHeight,
+        //     this.spriteWidth,
+        //     this.spriteHeight,
+        //     this.#pos,
+        //     this.#uv
+        // );
 
         this.frame = frame;
         this.flip = flip;
-        this.#uv.needsUpdate = true;
-        this.#pos.needsUpdate = true;
+        // this.#uv.needsUpdate = true;
+        // this.#pos.needsUpdate = true;
     }
 
     override raycast( raycaster: Raycaster, intersects: Intersection[] ) {

@@ -1,4 +1,4 @@
-import { AnimAtlas } from "common/types";
+import { AnimAtlas } from "@image/atlas";
 import {
     Color,
     MeshStandardMaterial,
