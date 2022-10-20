@@ -108,6 +108,7 @@ export const createPostProcessingComposer = (
 
     const _transition = {
         enabled: false,
+        executed: false,
         progress: 0,
         onComplete: () => {},
     };
@@ -119,6 +120,7 @@ export const createPostProcessingComposer = (
         _transition.progress = 0;
         _transition.onComplete = fn;
         _transition.enabled = true;
+        _transition.executed = false;
 
         postProcessingBundle.enablePixelation( true );
         postProcessingBundle.setPixelation( 0 );
@@ -137,7 +139,10 @@ export const createPostProcessingComposer = (
             _transition.enabled = false;
             postProcessingBundle.enablePixelation( false );
         } else if ( _transition.progress > 1 ) {
-            _transition.onComplete();
+            if ( !_transition.executed ) {
+                _transition.onComplete();
+                _transition.executed = true;
+            }
         }
     };
 

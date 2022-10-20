@@ -1,4 +1,4 @@
-import { flatProjection } from "@utils/shader-utils";
+import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 import { drawFunctions } from "common/enums";
 import { AnimAtlas } from "common/types";
 import {
@@ -176,7 +176,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
                 content.push( replace );
             }
 
-            for ( const [contentChunk, headerChunk] of chunks ) {
+            for ( const [ contentChunk, headerChunk ] of chunks ) {
                 if ( contentChunk ) {
                     content.push( contentChunk );
                 }
@@ -242,9 +242,9 @@ export class ImageHDMaterial extends MeshBasicMaterial {
 
         extend( "fragmentShader", "#include <map_fragment>", mapFragments );
 
+        //TODO: deprecate branch once sprite rotation is fixed and always project
         if ( this.flatProjection ) {
-            // flatProjectionGroup(shader);
-            flatProjection( shader );
+            spriteImageProjection( shader );
         }
 
         Object.assign( shader.uniforms, this.#dynamicUniforms );

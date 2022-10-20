@@ -1,4 +1,4 @@
-import { flatProjection } from "@utils/shader-utils";
+import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 import { drawFunctions } from "common/enums";
 import { AnimAtlas } from "common/types";
 import {
@@ -125,7 +125,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
                 content.push( replace );
             }
 
-            for ( const [contentChunk, headerChunk] of chunks ) {
+            for ( const [ contentChunk, headerChunk ] of chunks ) {
                 if ( contentChunk ) {
                     content.push( contentChunk );
                 }
@@ -194,7 +194,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
 
         extend( "fragmentShader", "#include <map_fragment>", mapFragments );
 
-        flatProjection(
+        spriteImageProjection(
             shader,
             `
             vTeamColor = aTeamColor;

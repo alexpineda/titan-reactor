@@ -23,6 +23,12 @@ export class GameSurface extends Surface {
         document.addEventListener( "pointerlockerror", () => {
             this.#shouldHavePointerLock = false;
         } );
+
+        document.addEventListener( "onpointerlockchange", () => {
+            if ( document.pointerLockElement ) {
+                this.#shouldHavePointerLock = true;
+            }
+        } );
     }
 
     override setDimensions(
@@ -86,7 +92,6 @@ export class GameSurface extends Surface {
     }
 
     requestPointerLock() {
-        this.#shouldHavePointerLock = true;
         this.canvas.requestPointerLock();
     }
 

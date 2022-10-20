@@ -18,7 +18,7 @@ ColorManagement.legacyMode = false;
 // modify global shadow intensity
 ShaderChunk.shadowmap_pars_fragment = ShaderChunk.shadowmap_pars_fragment.replace(
     "return shadow;",
-    "return max( 0.5, shadow );"
+    "return max( 0.3, shadow );"
 );
 
 const createWebGLRenderer = () => {
@@ -32,7 +32,7 @@ const createWebGLRenderer = () => {
         precision: "highp",
     } );
     renderer.outputEncoding = sRGBEncoding;
-    renderer.debug.checkShaderErrors = false; // process.env.NODE_ENV === "development";
+    renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = VSMShadowMap;

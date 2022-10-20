@@ -154,8 +154,6 @@ export class PostProcessingBundler {
     }
 
     update() {
-        console.log( "updating passes" );
-
         renderComposer.composer.multisampling = Math.min(
             this.options.antialias,
             // @ts-expect-error

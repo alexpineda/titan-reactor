@@ -52,8 +52,10 @@ export class GameViewPort {
     audioType: "stereo" | "3d" | null = "stereo";
 
     set renderMode3D( val: boolean ) {
-        this.#renderMode3D = val;
-        this.needsUpdate = true;
+        if ( val !== this.#renderMode3D ) {
+            this.#renderMode3D = val;
+            this.needsUpdate = true;
+        }
     }
 
     get renderMode3D() {

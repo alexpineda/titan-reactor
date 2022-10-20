@@ -303,9 +303,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             }
 
             if ( isImageHd( image ) ) {
-                // set frame
                 applyRenderModeToImageHD( imageData, image, renderMode3D, direction );
-                // image.material.flatProjection = false;
             } else if ( isImage3d( image ) ) {
                 applyModelEffectsToImage3d( imageData, image, unit );
             }
@@ -327,15 +325,16 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             if ( isInstancedImageHd( image ) ) {
                 image.updateInstanceMatrix( sprite.matrixWorld );
             } else if ( isImageHd( image ) ) {
-                image.position.add( sprite.position );
                 image.updateMatrix();
-                // cheaper than updateMatrixWorld since parents are all identity
-                image.matrixWorld.copy( image.matrix );
-                image.matrixWorldNeedsUpdate = false;
 
+                // for raycasting (frustum culling), need worldMatrix
+                image.updateMatrixWorld();
+
+                // for spherical projection
                 ( image.material as ImageHDMaterial ).parentMatrix.copy(
                     sprite.matrixWorld
                 );
+
                 ( image.material as ImageHDMaterial ).localMatrix.copy( image.matrix );
             } else if ( isImage3d( image ) ) {
                 image.updateMatrix();
@@ -371,6 +370,9 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         2000
     );
 
+    const _alreadyCalculated = new Set<number>(),
+        _cameraWorldDirection = new Vector3();
+
     return {
         images,
         sprites,
@@ -396,9 +398,9 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             preloader.update( elapsed );
 
             if ( preloader.isComplete() && elapsed - preloader.timeCompleted > 10000 ) {
-                //TODO: don't dump all units, track ones already completed
                 const work = calculateImagesFromTechTreeUnits(
-                    units.units._dangerousArray.map( ( unit ) => unit.typeId )
+                    units.units._dangerousArray.map( ( unit ) => unit.typeId ),
+                    _alreadyCalculated
                 );
                 preloader.addWork( work );
             }
@@ -444,14 +446,11 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             // support precompile w/out viewport
             if ( typeof viewport === "boolean" ) {
                 for ( const sprite of spritesIterator ) {
-                    buildSprite(
-                        sprite,
-                        delta,
-                        viewport,
-                        direction!
-                    );
+                    buildSprite( sprite, delta, viewport, direction! );
                 }
             } else {
+                viewport.camera.getWorldDirection( _cameraWorldDirection );
+
                 viewport.updateDirection32();
 
                 for ( const sprite of spritesIterator ) {

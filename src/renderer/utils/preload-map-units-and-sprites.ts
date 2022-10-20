@@ -60,10 +60,19 @@ export const preloadMapUnitsAndSpriteFiles = async (
     );
 };
 
-export const calculateImagesFromTechTreeUnits = ( units: number[] ) => {
+export const calculateImagesFromTechTreeUnits = (
+    units: number[],
+    cache?: Set<number>
+) => {
     const assets = gameStore().assets!;
 
     const nextUnits = units
+        .filter( ( unitId ) => {
+            if ( cache === undefined ) {
+                return true;
+            }
+            return !cache.has( unitId );
+        } )
         .map( ( unit ) => {
             const units = techTree[unit]?.units;
             if ( units ) {
@@ -84,5 +93,10 @@ export const calculateImagesFromTechTreeUnits = ( units: number[] ) => {
             return assets.bwDat.units[unit] !== undefined;
         } );
 
+    if ( cache ) {
+        for ( const unit of units ) {
+            cache.add( unit );
+        }
+    }
     return calculateImagesFromUnitsIscript( assets.bwDat, nextUnits );
 };
