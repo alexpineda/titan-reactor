@@ -3,6 +3,7 @@ import {
     BufferGeometry,
     Color,
     DataTexture,
+    Matrix4,
     Mesh,
     MeshBasicMaterial,
     RedFormat,
@@ -13,13 +14,14 @@ import {
     WebGLRenderer,
 } from "three";
 
-import { SpriteDAT } from "common/types";
+import { SpriteDAT, SpriteType } from "common/types";
 import { getMaxUnitEnergy } from "@utils/unit-utils";
 import { Unit } from "./unit";
 import gameStore from "@stores/game-store";
+import { spriteImageProjection } from "@utils/shader-utils/sprite-image-projection";
 
 // dummy map till I figure out how to get uv attribute in shader
-const map = new DataTexture( new Uint8Array( [0] ), 1, 1, RedFormat, UnsignedByteType );
+const map = new DataTexture( new Uint8Array( [ 0 ] ), 1, 1, RedFormat, UnsignedByteType );
 map.needsUpdate = true;
 
 class SelectionBarMaterial extends MeshBasicMaterial {
@@ -34,6 +36,9 @@ class SelectionBarMaterial extends MeshBasicMaterial {
         energyColor: Uniform;
         energy: Uniform;
         hasEnergy: Uniform;
+
+        uLocalMatrix: Uniform;
+        uParentMatrix: Uniform;
     };
 
     constructor() {
@@ -52,6 +57,9 @@ class SelectionBarMaterial extends MeshBasicMaterial {
             energyColor: new Uniform( energyColor ),
             energy: new Uniform( 0 ),
             hasEnergy: new Uniform( 0 ),
+
+            uLocalMatrix: new Uniform( new Matrix4() ),
+            uParentMatrix: new Uniform( new Matrix4() ),
         };
     }
 
@@ -121,7 +129,7 @@ class SelectionBarMaterial extends MeshBasicMaterial {
         `
             );
 
-        // flatProjection(shader);
+        spriteImageProjection( shader );
     }
 }
 
@@ -131,13 +139,13 @@ const hpColorYellow = new Color( 188 / 255, 193 / 255, 35 / 255 );
 const shieldsColor = new Color( 10 / 255, 58 / 255, 200 / 255 );
 const energyColor = new Color( 158 / 255, 34 / 255, 189 / 255 );
 
-export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
+export class SelectionBars extends Mesh<BufferGeometry, SelectionBarMaterial> {
     constructor() {
         const _geometry = new BufferGeometry();
-        _geometry.setIndex( [0, 1, 2, 0, 2, 3] );
+        _geometry.setIndex( [ 0, 1, 2, 0, 2, 3 ] );
 
         const posAttribute = new BufferAttribute(
-            new Float32Array( [-0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0] ),
+            new Float32Array( [ -0.5, -0.5, 0, 0.5, -0.5, 0, 0.5, 0.5, 0, -0.5, 0.5, 0 ] ),
             3,
             false
         );
@@ -145,7 +153,7 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
         _geometry.setAttribute( "position", posAttribute );
 
         const uvAttribute = new BufferAttribute(
-            new Float32Array( [0, 0, 1, 0, 1, 1, 0, 1] ),
+            new Float32Array( [ 0, 0, 1, 0, 1, 1, 0, 1 ] ),
             2,
             false
         );
@@ -155,12 +163,15 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
         super( _geometry, new SelectionBarMaterial() );
 
         this.visible = false;
+        this.frustumCulled = false;
+
         this.name = "SelectionBars";
     }
 
     update(
         unit: Unit,
-        sprite: SpriteDAT,
+        sprite: SpriteType,
+        spriteDat: SpriteDAT,
         completedUpgrades: number[],
         renderOrder: number
     ) {
@@ -169,34 +180,38 @@ export class SelectionBars extends Mesh<BufferGeometry, MeshBasicMaterial> {
             return;
         }
         this.visible = true;
-
-        const frameY =
-            gameStore().assets!.bwDat.grps[561 + sprite.selectionCircle.index].frames[0]
-                .h / 2;
-        this.position.y = -( sprite.selectionCircleOffset + frameY + 8 ) / 32;
-        this.scale.set( sprite.healthBar / 32, 0.4, 1 );
-
         this.renderOrder = renderOrder + 10;
 
-        const material = this.material as SelectionBarMaterial;
-        material.needsUpdate = true;
+        this.material.needsUpdate = true;
 
-        material.customUniforms.hp.value = unit.hp / unit.extras.dat.hp;
+        this.material.customUniforms.hp.value = unit.hp / unit.extras.dat.hp;
 
         const hasShields = unit.extras.dat.shieldsEnabled;
         const hasEnergy = unit.extras.dat.isSpellcaster;
 
-        material.customUniforms.hasEnergy.value = hasEnergy ? 1 : 0;
-        material.customUniforms.hasShields.value = hasShields ? 1 : 0;
+        this.material.customUniforms.hasEnergy.value = hasEnergy ? 1 : 0;
+        this.material.customUniforms.hasShields.value = hasShields ? 1 : 0;
 
         if ( hasShields ) {
-            material.customUniforms.shields.value =
+            this.material.customUniforms.shields.value =
                 unit.shields / unit.extras.dat.shields;
         }
 
         if ( hasEnergy ) {
-            material.customUniforms.energy.value =
+            this.material.customUniforms.energy.value =
                 unit.energy / getMaxUnitEnergy( unit.extras.dat, completedUpgrades );
         }
+
+        const frameY =
+            gameStore().assets!.bwDat.grps[561 + spriteDat.selectionCircle.index]
+                .frames[0].h / 2;
+
+        this.position.y = -( spriteDat.selectionCircleOffset + frameY + 8 ) / 32;
+        this.scale.set( spriteDat.healthBar / 32, 0.4, 1 );
+        this.updateMatrix();
+        this.matrixWorldNeedsUpdate = false;
+
+        this.material.customUniforms.uParentMatrix.value.copy( sprite.matrixWorld );
+        this.material.customUniforms.uLocalMatrix.value.copy( this.matrix );
     }
 }

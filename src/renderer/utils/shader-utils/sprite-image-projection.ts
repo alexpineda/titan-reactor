@@ -1,5 +1,5 @@
 import { Shader, ShaderChunk } from "three";
-import vertShader from "./spherical-projection.vert.glsl?raw";
+import vertShader from "./sprite-image-projection.vert.glsl?raw";
 
 // similar to cheat-spherical except that it keeps the child (image) local matrix intact
 export const spriteImageProjection = ( shader: Shader, additionalInsert = "" ) => {

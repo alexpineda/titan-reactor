@@ -41,7 +41,6 @@ export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
         this.material.defines = {
             USE_UV: "",
         };
-        // this.material.depthTest = false;
         this.material.transparent = true;
         this.rotation.x = -Math.PI / 2;
         this.name = "SelectionCircle3D";
@@ -53,17 +52,17 @@ export class SelectionCircle3D extends Mesh<BufferGeometry, MeshBasicMaterial> {
             const m = r > 1 ? r * 1.6 : r * 1.1;
             this.geometry.dispose();
 
-            // const v = image.boundingBox.min;
-            // const v2 = image.boundingBox.max;
-            // const m = Math.max(Math.abs(v.x - v2.x), Math.abs(v.z - v2.z));
-
             this.#uniforms.uSize.value = 1 / m;
+            //TODO: don't
             this.geometry = new PlaneGeometry( m, m );
 
             this.material.needsUpdate = true;
             this.#spriteDat = spriteDat;
 
             this.position.setY( image.boundingBox.min.y );
+
+            this.updateMatrix();
         }
+        this.updateMatrixWorld();
     }
 }

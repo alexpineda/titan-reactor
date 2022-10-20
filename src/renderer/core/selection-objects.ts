@@ -1,42 +1,26 @@
 import { SelectionCircleHD } from "@core/selection-circle-hd";
 import { SelectionBars } from "@core/selection-bars";
 import range from "common/utils/range";
-import { Camera, Group, Vector3 } from "three";
+import { Group } from "three";
 import { SpriteDAT, SpriteType } from "common/types";
 import { Unit } from "@core";
 import { SpriteEntities } from "@core/sprite-entities";
 import { Assets } from "@image/assets";
 import { SelectionCircle3D } from "./selection-circle-3d";
 import { isImage3d, isImageHd } from "@utils/image-utils";
-const _cameraWorldDirection = new Vector3();
 
 export class SelectionObject extends Group {
     #circle3d = new SelectionCircle3D();
     #circle2d = new SelectionCircleHD();
     #bars = new SelectionBars();
 
-    #group2d = new Group();
-
     constructor() {
         super();
         this.visible = false;
         this.name = "SelectionObject";
 
-        this.#group2d.add( this.#circle2d, this.#bars );
-
-        this.add( this.#group2d, this.#circle3d );
-
-        if ( import.meta.hot ) {
-            import.meta.hot.accept( "./selection-circle-3d", ( module ) => {
-                if ( module && module.SelectionCircle3D ) {
-                    this.remove( this.#circle3d );
-                    this.#circle3d =
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-                        new module.SelectionCircle3D() as SelectionCircle3D;
-                    this.add( this.#circle3d );
-                }
-            } );
-        }
+        this.add( this.#circle2d, this.#bars, this.#circle3d );
+        this.frustumCulled = false;
     }
 
     update(
@@ -45,29 +29,31 @@ export class SelectionObject extends Group {
         spriteDat: SpriteDAT,
         completedUpgrades: number[]
     ) {
-        this.#bars.update( unit, spriteDat, completedUpgrades, sprite.renderOrder );
+        // this.position.copy( sprite.position );
+        // this.updateMatrix();
+        // this.updateMatrixWorld();
+        this.matrix.copy( sprite.matrix );
+        this.matrixWorld.copy( sprite.matrixWorld );
 
-        this.position.copy( sprite.position );
+        this.#bars.update(
+            unit,
+            sprite,
+            spriteDat,
+            completedUpgrades,
+            sprite.renderOrder
+        );
 
         if ( isImageHd( sprite.userData.mainImage ) ) {
             this.#circle2d.visible = true;
             this.#circle3d.visible = false;
 
-            this.#circle2d.update( spriteDat );
+            this.#circle2d.update( sprite, spriteDat );
         } else if ( isImage3d( sprite.userData.mainImage ) ) {
             this.#circle2d.visible = false;
             this.#circle3d.visible = true;
 
             this.#circle3d.update( spriteDat, sprite.userData.mainImage );
         }
-
-        this.#group2d.lookAt(
-            this.position.x - _cameraWorldDirection.x,
-            this.position.y - _cameraWorldDirection.y,
-            this.position.z - _cameraWorldDirection.z
-        );
-
-        this.updateMatrixWorld();
     }
 }
 
@@ -81,12 +67,10 @@ export const createSelectionDisplayComposer = ( assets: Assets ) => {
     };
 
     function update(
-        camera: Camera,
         sprites: SpriteEntities,
         completedUpgrades: number[][],
         selectedUnits: Unit[]
     ) {
-        camera.getWorldDirection( _cameraWorldDirection );
         let sprite: SpriteType | undefined;
 
         for ( let i = 0; i < 12; i++ ) {

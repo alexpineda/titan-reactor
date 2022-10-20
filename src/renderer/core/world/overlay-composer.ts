@@ -14,7 +14,6 @@ import {
 import { SceneComposer } from "./scene-composer";
 import { World } from "./world";
 import { WorldEvents } from "./world-events";
-import { ViewControllerComposer } from "./view-composer";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
@@ -46,7 +45,6 @@ export const createOverlayComposer = (
     }: SceneComposer,
     surfaces: SurfaceComposer,
     inputs: InputsComposer,
-    views: ViewControllerComposer,
     post: PostProcessingComposer,
     assets: Assets
 ): OverlayComposer => {
@@ -271,7 +269,6 @@ export const createOverlayComposer = (
 
         onFrame( completedUpgrades: number[][] ) {
             selectionDisplayComposer.update(
-                views.primaryCamera!,
                 sprites,
                 completedUpgrades,
                 selectedUnits._dangerousArray
