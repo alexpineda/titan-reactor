@@ -11,7 +11,7 @@ import { Search } from "./app-frame/search";
 import { EmptySection } from "./app-frame/empty-section";
 
 const App = ( { surface }: { surface: Surface } ) => {
-    const [search, setSearch] = useState( "" );
+    const [ search, setSearch ] = useState( "" );
 
     const { blockFrameCount, selectedBlock } = useIscriptStore(
         ( store ) => ( {

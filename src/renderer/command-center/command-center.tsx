@@ -1,8 +1,8 @@
+import "./style.css";
 import search from "libnpmsearch";
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import "./style.css";
 import { savePluginsConfig } from "@ipc/plugins";
 import { useSettingsStore, settingsStore } from "@stores/settings-store";
 import { PluginConfig, PluginMetaData } from "common/types";
@@ -54,7 +54,7 @@ const searchPackages = async ( cb: ( val: RemotePackage[] ) => void ) => {
         } )
     ).filter( ( pkg ) => !officialPackages.some( ( p ) => p.name === pkg.name ) );
 
-    const results = [...officialPackages, ...publicPackages];
+    const results = [ ...officialPackages, ...publicPackages ];
     cb( results );
 };
 
@@ -69,30 +69,30 @@ interface Plugin {
 const CommandCenter = () => {
     const settings = useSettingsStore();
     const { enabledPlugins, disabledPlugins } = settings;
-    const [plugin, setSelectedPluginPackage] = useState<Plugin>( {
+    const [ plugin, setSelectedPluginPackage ] = useState<Plugin>( {
         local: enabledPlugins[0] ?? disabledPlugins[0],
     } );
 
-    const [remotePackages, setRemotePackages] = useState<RemotePackage[]>( [] );
-    const [pagination] = useState( 0 );
-    const [banner, setBanner] = useState( "" );
+    const [ remotePackages, setRemotePackages ] = useState<RemotePackage[]>( [] );
+    const [ pagination ] = useState( 0 );
+    const [ banner, setBanner ] = useState( "" );
 
-    const [tabIndex, setTabIndex] = useState( 0 );
-    const [mainTabIndex, setMainTabIndex] = useState( 0 );
+    const [ tabIndex, setTabIndex ] = useState( 0 );
+    const [ mainTabIndex, setMainTabIndex ] = useState( 0 );
 
     useEffect( () => {
         if ( banner ) {
             const t = setTimeout( () => setBanner( "" ), 5000 );
             return () => clearTimeout( t );
         }
-    }, [banner] );
+    }, [ banner ] );
 
     useEffect( () => {
         if ( !plugin.local ) {
             setSelectedPluginPackage( { remote: undefined } );
         }
         searchPackages( setRemotePackages );
-    }, [pagination] );
+    }, [ pagination ] );
 
     // Safety precaution: If the plugin is not remotely hosted don't allow deletion on disk
     const matchingRemotePlugin = remotePackages.find(

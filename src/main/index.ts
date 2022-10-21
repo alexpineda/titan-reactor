@@ -53,7 +53,6 @@ const createConfigurationWindow = () => {
         nodeIntegration: true,
         removeMenu: true,
         backgroundThrottling: true,
-        backgroundColor: "#000000",
         devTools: true,
         filepath: "command-center.html",
     } );
@@ -90,7 +89,6 @@ if ( !gotTheLock ) {
                 nodeIntegration: true,
                 removeMenu: true,
                 backgroundThrottling: true,
-                backgroundColor: "#000000",
                 devTools: true,
                 filepath: "iscriptah.html",
             } );
