@@ -5,13 +5,16 @@ import { MacroAction, MacroActionSequence, Operator } from "common/types";
 
 jest.mock( "@ipc/log" );
 
+let _group = 0;
+
 const util = {
     createAction( partial?: Partial<MacroAction> ): MacroAction {
         return {
             type: "action",
             id: "1",
             operator: Operator.SetToDefault,
-            path: [":app"],
+            path: [ ":app" ],
+            group: _group++,
             ...partial,
         };
     },

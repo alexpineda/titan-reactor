@@ -4,6 +4,7 @@ import {
     MacroCondition,
     MacroTrigger,
 } from "common/types";
+import groupBy from "lodash.groupby";
 import { MathUtils } from "three";
 
 export class Macro {
@@ -13,6 +14,7 @@ export class Macro {
     actions: MacroAction[];
     conditions: MacroCondition[] = [];
     actionSequence = MacroActionSequence.AllSync;
+    #groups: Record<string, MacroAction[]> = {};
     #counter = 0;
     id: string;
 
@@ -30,16 +32,18 @@ export class Macro {
         this.actions = actions;
         this.actionSequence = actionSequence;
         this.conditions = conditions;
+        this.#groups = groupBy( this.actions, ( a ) => a.group );
     }
 
     getActionSequence() {
+        const groupArray = Object.values( this.#groups );
         if ( this.actionSequence === MacroActionSequence.SingleAlternate ) {
-            const nextInSequence = this.actions.slice( this.#counter, this.#counter + 1 );
-            this.#counter = ( this.#counter + 1 ) % this.actions.length;
+            const nextInSequence = groupArray[this.#counter];
+            this.#counter = ( this.#counter + 1 ) % groupArray.length;
             return nextInSequence;
         } else if ( this.actionSequence === MacroActionSequence.SingleRandom ) {
-            const i = MathUtils.randInt( 0, this.actions.length - 1 );
-            return this.actions.slice( i, i + 1 );
+            const i = MathUtils.randInt( 0, groupArray.length - 1 );
+            return groupArray[i];
         } else {
             return this.actions;
         }

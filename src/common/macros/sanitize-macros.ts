@@ -32,6 +32,11 @@ export const sanitizeMacros = (
 
                 patchMutationInstruction( action, settings );
 
+                if ( action.group === undefined ) {
+                    action.group =
+                        Math.max( ...macro.actions.map( ( a ) => a.group ?? 0 ), 0 ) + 1;
+                }
+
                 sanitizeActionable( action, settings );
             } catch ( e ) {
                 logger &&
@@ -127,12 +132,12 @@ export const getAvailableOperationsForAction = (
     settings: SettingsAndPluginsMeta
 ): Operator[] => {
     if ( action.path[0] === ":function" ) {
-        return [Operator.Execute];
+        return [ Operator.Execute ];
     } else if ( action.path[0] === ":macro" ) {
         if ( action.path[2] === "enabled" ) {
             return getAvailableOperationsForTypeOfField( "boolean" );
         } else if ( action.path[2] === "program" ) {
-            return [Operator.Execute, Operator.SetToDefault];
+            return [ Operator.Execute, Operator.SetToDefault ];
         }
         return [];
     } else {
@@ -187,7 +192,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
     settings: SettingsAndPluginsMeta
 ) {
     if ( action.path.length === 0 ) {
-        action.path = [":app"];
+        action.path = [ ":app" ];
     }
 
     if ( action.path[0] === ":app" ) {
@@ -197,7 +202,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         );
 
         if ( !field ) {
-            action.path = [":app", "audio", "music"];
+            action.path = [ ":app", "audio", "music" ];
 
             field = getAppFieldDefinition(
                 settings,
@@ -209,7 +214,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
             patchValue( action, field );
         }
     } else if ( action.path[0] === ":plugin" ) {
-        const [, pluginName] = action.path;
+        const [ , pluginName ] = action.path;
 
         const plugin =
             settings.enabledPlugins.find( ( p ) => p.name === pluginName ) ??
@@ -242,7 +247,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
                 ? action.path[2]
                 : Object.keys( plugin.config ?? {} ).find( ( k ) => k !== "system" );
 
-        action.path = [":plugin", plugin.name];
+        action.path = [ ":plugin", plugin.name ];
 
         if ( fieldName ) {
             action.path.push( fieldName );

@@ -44,6 +44,7 @@ export interface MacroAction<T extends TargetType = TargetType> {
     path: TargetedPath<T>;
     value?: unknown;
     operator: Operator;
+    group?: number;
 }
 
 export interface MacroCondition<T extends TargetType = TargetType> {

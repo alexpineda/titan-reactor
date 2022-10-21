@@ -15,8 +15,11 @@ import { ConfigureTrigger } from "./configure-trigger";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { spaceOutCapitalLetters } from "@utils/string-utils";
-import usePrevious from "@utils/use-previous";
+import usePrevious from "@utils/react/use-previous";
 import { PreviewContext } from "./PreviewContext";
+
+import groupBy from "lodash.groupby";
+import { ActionableGroupPanel } from "./actionable-panel/actionable-group-panel";
 
 export const MacroPanel = ( {
     macro,
@@ -44,7 +47,7 @@ export const MacroPanel = ( {
         if ( nameRef.current ) {
             nameRef.current.innerText = macro.name.split( ":" ).slice( -1 )[0];
         }
-    }, [] );
+    }, [ macro.name ] );
 
     const prevActivePreview = usePrevious( activePreview );
 
@@ -60,7 +63,13 @@ export const MacroPanel = ( {
                 payload: macro.id,
             } );
         }
-    }, [ activePreview, macros.revision ] );
+    }, [
+        activePreview,
+        macros.revision,
+        prevActivePreview,
+        macro.id,
+        macro.actionSequence,
+    ] );
 
     return (
         <div
@@ -245,9 +254,10 @@ export const MacroPanel = ( {
                             Conditions
                         </p>
                     )}
-                    {macro.conditions.map( ( condition ) => (
+                    {macro.conditions.map( ( condition, index ) => (
                         <ActionablePanel
                             key={condition.id}
+                            index={index}
                             macro={macro}
                             action={condition}
                             pluginsMetadata={pluginsMetadata}
@@ -262,14 +272,18 @@ export const MacroPanel = ( {
                             Actions
                         </p>
                     )}
-                    {macro.actions.map( ( action ) => (
-                        <ActionablePanel
-                            macro={macro}
-                            key={action.id}
-                            action={action}
-                            pluginsMetadata={pluginsMetadata}
-                        />
-                    ) )}
+                    {Object.entries( groupBy( macro.actions, ( action ) => action.group ) )
+                        .sort( ( a, b ) => Number( a[0] ) - Number( b[0] ) )
+                        .map( ( [ groupId, actions ], index ) => (
+                            <ActionableGroupPanel
+                                key={groupId}
+                                index={index}
+                                groupId={groupId}
+                                macro={macro}
+                                actions={actions}
+                                pluginsMetadata={pluginsMetadata}
+                            />
+                        ) )}
                 </PreviewContext.Provider>
             </div>
         </div>

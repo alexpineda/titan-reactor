@@ -17,6 +17,7 @@ import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { sanitizeActionable } from "common/macros/sanitize-macros";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { log } from "@ipc/log";
+import { WritableDraft } from "immer/dist/internal";
 
 interface State {
     macros: MacrosDTO;
@@ -36,7 +37,25 @@ interface Actions {
     createActionable( macro: MacroDTO, action: Actionable ): void;
     updateActionable( macro: MacroDTO, action: Actionable ): void;
     deleteActionable( macro: MacroDTO, action: Actionable ): void;
+    reOrderAction(
+        macroId: string,
+        actionId: string,
+        group: number,
+        order: 1 | -1
+    ): void;
 }
+
+const insertAction = (
+    actionId: string,
+    insertLocationId: string,
+    actions: WritableDraft<MacroAction[]>,
+    offset = 0
+) => {
+    const idx1 = actions.findIndex( ( a ) => a.id === actionId );
+    const action = actions.splice( idx1, 1 )[0];
+    const idx2 = actions.findIndex( ( a ) => a.id === insertLocationId );
+    actions.splice( idx2 + offset, 0, action );
+};
 
 export const createMacroStore = ( onSave?: ( settings: SettingsMeta ) => void ) =>
     create(
@@ -135,6 +154,10 @@ export const createMacroStore = ( onSave?: ( settings: SettingsMeta ) => void ) 
                     if ( saneActionable.type === "condition" ) {
                         macro.conditions.push( saneActionable );
                     } else {
+                        const maxGroup = Math.max(
+                            ...macro.actions.map( ( a ) => a.group ?? 0 )
+                        );
+                        saneActionable.group = maxGroup + 1;
                         macro.actions.push( saneActionable );
                     }
                 } );
@@ -185,6 +208,70 @@ export const createMacroStore = ( onSave?: ( settings: SettingsMeta ) => void ) 
                             macro.conditions = macro.conditions.filter(
                                 ( a ) => a.id !== actionable.id
                             );
+                        }
+                    }
+                } );
+
+                get().persist();
+            },
+
+            reOrderAction(
+                macroId: string,
+                actionId: string,
+                group: number,
+                order: 1 | -1
+            ) {
+                set( ( state ) => {
+                    const macro = state.macros.macros.find( ( m ) => m.id === macroId );
+
+                    if ( macro ) {
+                        const grouped = macro.actions.filter( ( a ) => a.group === group );
+
+                        const gIdx = grouped.findIndex( ( a ) => a.id === actionId );
+
+                        if ( gIdx === -1 ) {
+                            return;
+                        }
+
+                        // move to top of previous group
+                        if ( gIdx === 0 && order === -1 ) {
+                            const prevGroup = macro.actions.filter(
+                                ( a ) => a.group === group - 1
+                            );
+                            if ( prevGroup.length ) {
+                                insertAction(
+                                    actionId,
+                                    prevGroup[prevGroup.length - 1].id,
+                                    macro.actions,
+                                    1
+                                );
+                            }
+                            const action = macro.actions.find(
+                                ( a ) => a.id === actionId
+                            )!;
+                            action.group = group - 1;
+
+                            // move to beginning of next group
+                        } else if ( order === 1 && gIdx === grouped.length - 1 ) {
+                            const nextGroup = macro.actions.filter(
+                                ( a ) => a.group === group + 1
+                            );
+                            if ( nextGroup.length ) {
+                                insertAction( actionId, nextGroup[0].id, macro.actions );
+                            }
+                            const action = macro.actions.find(
+                                ( a ) => a.id === actionId
+                            )!;
+                            action.group = group + 1;
+                            return;
+                            // move up or down
+                        } else if ( order === -1 ) {
+                            const prev = grouped[gIdx - 1];
+
+                            insertAction( actionId, prev.id, macro.actions );
+                        } else {
+                            const next = grouped[gIdx + 1];
+                            insertAction( actionId, next.id, macro.actions, 1 );
                         }
                     }
                 } );
