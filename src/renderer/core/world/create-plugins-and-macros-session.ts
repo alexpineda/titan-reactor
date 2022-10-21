@@ -39,7 +39,7 @@ export const createPluginsAndMacroSession = async (
     };
 
     const create = async () => {
-        const pluginSession = await createPluginSession( openBW );
+        const pluginSession = await createPluginSession( openBW, eventsProxy );
 
         macrosComposer.macros.targets.setHandler( ":plugin", {
             action: ( action ) =>

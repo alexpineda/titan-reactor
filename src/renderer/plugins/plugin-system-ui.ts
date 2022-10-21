@@ -1,5 +1,5 @@
 import { Janitor } from "three-janitor";
-import { PluginMetaData, OpenBW } from "common/types";
+import { PluginMetaData, OpenBW, DeepPartial } from "common/types";
 import { settingsStore } from "@stores/settings-store";
 import {
     useGameStore,
@@ -19,6 +19,7 @@ import {
     UI_SYSTEM_RUNTIME_READY,
     UI_SYSTEM_PLUGIN_DISABLED,
     UI_SYSTEM_PLUGINS_ENABLED,
+    UI_STATE_EVENT_PRODUCTION,
 } from "./events";
 import { waitForTruthy } from "@utils/wait-for";
 import { DumpedUnit, Unit } from "@core/unit";
@@ -28,20 +29,9 @@ import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { normalizePluginConfiguration } from "@utils/function-utils";
-
-// const createMeta = (id: string, url: string) => {
-//     const meta = document.createElement("meta");
-//     meta.id = id;
-//     meta.httpEquiv = "Content-Security-Policy";
-//     meta.content = url;
-
-//     const el = document.getElementById(id);
-//     if (el) {
-//         el.remove();
-//     }
-
-//     document.head.appendChild(meta);
-// }
+import { Timer } from "@utils/timer";
+import { TypeEmitterProxy } from "@utils/type-emitter";
+import { WorldEvents } from "@core/world/world-events";
 
 const screenChanged = ( screen: SceneStore ) => {
     return {
@@ -54,8 +44,10 @@ const screenChanged = ( screen: SceneStore ) => {
 };
 
 let _lastSend: Record<string, any> = {};
-const _makeReplayPosition = () => ( {
-    frame: 0,
+const _productionTimer = new Timer();
+const _makeOnFrame = () => 0;
+
+const _makeOnProduction = () => ( {
     playerData: new Int32Array(),
     unitProduction: [
         new Int32Array(),
@@ -89,10 +81,19 @@ const _makeReplayPosition = () => ( {
     ],
 } );
 
-const _replayPosition = {
-    type: UI_STATE_EVENT_ON_FRAME,
-    payload: _makeReplayPosition(),
+const _onProduction = {
+    type: UI_STATE_EVENT_PRODUCTION,
+    payload: _makeOnProduction(),
 };
+
+const _onFrame = {
+    type: UI_STATE_EVENT_ON_FRAME,
+    payload: _makeOnFrame(),
+};
+
+const _unitsPayload: DeepPartial<Unit>[] = new Array( 12 ).fill( 0 ).map( () => ( {
+    extras: {},
+} ) );
 
 const worldPartial = ( world: ReplayAndMapStore ) => {
     return {
@@ -111,7 +112,7 @@ const worldPartial = ( world: ReplayAndMapStore ) => {
 };
 const _selectedUnitMessage: {
     type: string;
-    payload: DumpedUnit[];
+    payload: DumpedUnit[] | DeepPartial<Unit>[];
 } = {
     type: UI_STATE_EVENT_UNITS_SELECTED,
     payload: [],
@@ -124,7 +125,8 @@ export interface PluginStateMessage {
     [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions;
     [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>["payload"];
     [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>;
-    [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeReplayPosition>;
+    [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeOnFrame>;
+    [UI_STATE_EVENT_PRODUCTION]: ReturnType<typeof _makeOnProduction>;
     [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage["payload"];
 }
 
@@ -133,35 +135,16 @@ export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement( "iframe" );
     #janitor = new Janitor( "PluginSystemUI" );
     #isRunning = false;
-    #dumpUnit: ( unit: Unit ) => DumpedUnit;
+    #openBW: OpenBW;
 
     refresh: () => void;
 
-    isRunning() {
-        if ( this.#isRunning ) {
-            return Promise.resolve( true );
-        }
-
-        return new Promise( ( resolve ) => {
-            const _listener = ( evt: MessageEvent ) => {
-                if ( evt.data?.type === UI_SYSTEM_RUNTIME_READY ) {
-                    this.#isRunning = true;
-                    window.removeEventListener( "message", _listener );
-                    resolve( true );
-                }
-            };
-
-            window.addEventListener( "message", _listener );
-        } );
-    }
-
-    constructor( pluginPackages: PluginMetaData[], dumpUnitCall: ( id: number ) => any ) {
-        this.#dumpUnit = ( unit: Unit ) => {
-            return {
-                ...unit,
-                ...dumpUnitCall( unit.id ),
-            } as DumpedUnit;
-        };
+    constructor(
+        openBW: OpenBW,
+        pluginPackages: PluginMetaData[],
+        events: TypeEmitterProxy<WorldEvents>
+    ) {
+        this.#openBW = openBW;
 
         this.#iframe.style.backgroundColor = "transparent";
         this.#iframe.style.border = "none";
@@ -183,7 +166,8 @@ export class PluginSystemUI {
             [UI_STATE_EVENT_WORLD_CHANGED]: worldPartial(
                 useReplayAndMapStore.getState()
             ),
-            [UI_STATE_EVENT_ON_FRAME]: _makeReplayPosition(),
+            [UI_STATE_EVENT_ON_FRAME]: _makeOnFrame(),
+            [UI_STATE_EVENT_PRODUCTION]: _makeOnProduction(),
             [UI_STATE_EVENT_UNITS_SELECTED]: _selectedUnitMessage.payload,
         } );
 
@@ -238,6 +222,12 @@ export class PluginSystemUI {
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         };
 
+        events.on( "selected-units-changed", ( units ) => {
+            this.#onUnitsUpdated( units );
+        } );
+
+        //TODO: migrate these to world events
+        // do we need this?
         this.#janitor.mop(
             useGameStore.subscribe( ( game, prev ) => {
                 if ( game.dimensions !== prev.dimensions ) {
@@ -257,15 +247,15 @@ export class PluginSystemUI {
             "screen"
         );
 
-        this.#janitor.mop(
-            useReplayAndMapStore.subscribe( ( world ) => {
-                this.sendMessage( {
-                    type: UI_STATE_EVENT_WORLD_CHANGED,
-                    payload: worldPartial( world ),
-                } );
-            } ),
-            "world"
-        );
+        // this.#janitor.mop(
+        //     useReplayAndMapStore.subscribe( ( world ) => {
+        //         this.sendMessage( {
+        //             type: UI_STATE_EVENT_WORLD_CHANGED,
+        //             payload: worldPartial( world ),
+        //         } );
+        //     } ),
+        //     "world"
+        // );
 
         this.refresh();
 
@@ -273,11 +263,46 @@ export class PluginSystemUI {
         this.#janitor.mop( () => document.body.removeChild( this.#iframe ), "iframe" );
     }
 
-    #unitsToUnitsPayload = ( units: Unit[] ): Unit[] | DumpedUnit[] => {
+    isRunning() {
+        if ( this.#isRunning ) {
+            return Promise.resolve( true );
+        }
+
+        return new Promise( ( resolve ) => {
+            const _listener = ( evt: MessageEvent ) => {
+                if ( evt.data?.type === UI_SYSTEM_RUNTIME_READY ) {
+                    this.#isRunning = true;
+                    window.removeEventListener( "message", _listener );
+                    resolve( true );
+                }
+            };
+
+            window.addEventListener( "message", _listener );
+        } );
+    }
+
+    #unitsToUnitsPayload = ( units: Unit[] ): DeepPartial<Unit>[] | DumpedUnit[] => {
+        for ( let i = 0; i < units.length; i++ ) {
+            _unitsPayload[i].id = units[i].id;
+            _unitsPayload[i].kills = units[i].kills;
+            _unitsPayload[i].energy = units[i].energy;
+            _unitsPayload[i].hp = units[i].hp;
+            _unitsPayload[i].owner = units[i].owner;
+            _unitsPayload[i].resourceAmount = units[i].resourceAmount;
+            _unitsPayload[i].shields = units[i].shields;
+            _unitsPayload[i].remainingBuildTime = units[i].remainingBuildTime;
+            _unitsPayload[i].typeId = units[i].typeId;
+        }
         if ( units.length === 1 ) {
-            return units.map( this.#dumpUnit );
+            const dumped = this.#openBW.get_util_funcs().dump_unit( units[0].id );
+            return [
+                {
+                    ..._unitsPayload[0],
+                    ...dumped,
+                } as DumpedUnit,
+            ];
         } else {
-            return units;
+            return _unitsPayload.slice( 0, units.length );
         }
     };
 
@@ -313,76 +338,97 @@ export class PluginSystemUI {
 
     reset() {
         _lastSend = {};
-        _replayPosition.payload = _makeReplayPosition();
+        _onProduction.payload = _makeOnProduction();
         _selectedUnitMessage.payload = [];
     }
 
-    onFrame(
-        openBW: OpenBW,
-        currentFrame: number,
-        playerDataAddr: number,
-        productionDataAddr: number,
-        selectedUnits: Unit[]
-    ) {
+    onFrameReset( frame: number ) {
+        this.reset();
+        _onFrame.payload = frame;
+        this.sendMessage( _onFrame );
+
+        this.#onProduction();
+    }
+
+    onFrame( currentFrame: number, selectedUnits: Unit[] ) {
         const time = getSecond( currentFrame );
 
         // update the ui every game second
         if ( _lastSend[UI_STATE_EVENT_ON_FRAME] !== time ) {
             _lastSend[UI_STATE_EVENT_ON_FRAME] = time;
 
-            // minerals, gas, supply, supply_max, worker_supply, army_supply, apm
-            const playerData = openBW.HEAP32.slice(
-                playerDataAddr >> 2,
-                ( playerDataAddr >> 2 ) + 7 * 8
-            );
+            _onFrame.payload = currentFrame;
 
-            // production data is 8 arrays (players) of 3 vectors (unit, upgrades, research),
-            // each vector is first stored as 3 ints (addresses)
-            // so we first read units via copyData(), then increment to the next vector, and then read the upgrades via copyData() and so on.
-            // unit = id, count, progress
-            // upgrades = id, level, progress
-            // research = id, progress
+            this.sendMessage( _onFrame );
+        }
 
-            const productionData = new StdVector( openBW.HEAP32, productionDataAddr );
+        _productionTimer.update();
 
-            _productionTransferables.length = 0;
-            _productionTransferables.push( playerData.buffer );
+        if ( _productionTimer.getElapsed() > 1000 ) {
+            _productionTimer.resetElapsed();
 
-            //TODO: perhaps a more readable abstraction would benefit here
-            for ( let player = 0; player < 8; player++ ) {
-                _replayPosition.payload.unitProduction[player] =
-                    productionData.copyData();
-                _productionTransferables.push(
-                    _replayPosition.payload.unitProduction[player]!.buffer
-                );
-                productionData.address += 3;
-                _replayPosition.payload.upgrades[player] = productionData.copyData();
-                _productionTransferables.push(
-                    _replayPosition.payload.upgrades[player]!.buffer
-                );
-                productionData.address += 3;
-                _replayPosition.payload.research[player] = productionData.copyData();
-                _productionTransferables.push(
-                    _replayPosition.payload.research[player]!.buffer
-                );
-                productionData.address += 3;
-            }
-
-            _replayPosition.payload.frame = currentFrame;
-            _replayPosition.payload.playerData = playerData;
-
-            this.sendMessage( _replayPosition, _productionTransferables );
+            this.#onProduction();
 
             // in this case only change if the empty state has changed
             if (
                 _lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 ||
                 selectedUnits.length > 0
             ) {
-                //TODO move this out to supply to native as well
-                _selectedUnitMessage.payload = this.#unitsToUnitsPayload( selectedUnits );
-                this.sendMessage( _selectedUnitMessage );
-                _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = selectedUnits.length;
+                this.#onUnitsUpdated( selectedUnits );
             }
         }
+    }
+
+    #onProduction() {
+        const playerDataAddr = this.#openBW._get_buffer( 8 );
+        const productionDataAddr = this.#openBW._get_buffer( 9 );
+
+        // minerals, gas, supply, supply_max, worker_supply, army_supply, apm
+        const playerData = this.#openBW.HEAP32.slice(
+            playerDataAddr >> 2,
+            ( playerDataAddr >> 2 ) + 7 * 8
+        );
+
+        // production data is 8 arrays (players) of 3 vectors (unit, upgrades, research),
+        // each vector is first stored as 3 ints (addresses)
+        // so we first read units via copyData(), then increment to the next vector, and then read the upgrades via copyData() and so on.
+        // unit = id, count, progress
+        // upgrades = id, level, progress
+        // research = id, progress
+
+        const productionData = new StdVector( this.#openBW.HEAP32, productionDataAddr );
+
+        _productionTransferables.length = 0;
+        _productionTransferables.push( playerData.buffer );
+
+        //TODO: perhaps a more readable abstraction would benefit here
+        for ( let player = 0; player < 8; player++ ) {
+            _onProduction.payload.unitProduction[player] = productionData.copyData();
+            _productionTransferables.push(
+                _onProduction.payload.unitProduction[player]!.buffer
+            );
+            productionData.address += 3;
+            _onProduction.payload.upgrades[player] = productionData.copyData();
+            _productionTransferables.push(
+                _onProduction.payload.upgrades[player]!.buffer
+            );
+            productionData.address += 3;
+            _onProduction.payload.research[player] = productionData.copyData();
+            _productionTransferables.push(
+                _onProduction.payload.research[player]!.buffer
+            );
+            productionData.address += 3;
+        }
+
+        _onProduction.payload.playerData = playerData;
+
+        this.sendMessage( _onProduction, _productionTransferables );
+    }
+
+    #onUnitsUpdated( units: Unit[] ) {
+        //TODO move this out to supply to native as well
+        _selectedUnitMessage.payload = this.#unitsToUnitsPayload( units );
+        this.sendMessage( _selectedUnitMessage );
+        _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = units.length;
     }
 }

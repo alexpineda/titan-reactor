@@ -129,6 +129,8 @@ declare module "titan-reactor/host" {
         };
         frame: {
             frame: number;
+        };
+        production: {
             playerData: Int32Array;
             unitProduction: Int32Array[];
             research: Int32Array[];
@@ -706,8 +708,8 @@ declare module "titan-reactor/host" {
             this.orbit = this.reset();
             this.postProcessing = {
                 ...bundle,
-                passes: [...bundle.passes],
-                effects: [...bundle.effects],
+                passes: [ ...bundle.passes ],
+                effects: [ ...bundle.effects ],
             };
             this.spriteRenderOptions = {
                 unitScale: 1,
@@ -1499,12 +1501,12 @@ declare module "titan-reactor/host" {
                 attributes: EffectAttribute.DEPTH,
                 blendFunction: BlendFunction.ALPHA,
                 uniforms: new Map( [
-                    ["fog", new Uniform( null )],
-                    ["fogResolution", new Uniform( new Vector2() )],
-                    ["viewInverse", new Uniform( new Matrix4() )],
-                    ["projectionInverse", new Uniform( new Matrix4() )],
-                    ["color", new Uniform( new Color( 0, 0, 0 ) )],
-                    ["fogUvTransform", new Uniform( new Vector4() )],
+                    [ "fog", new Uniform( null ) ],
+                    [ "fogResolution", new Uniform( new Vector2() ) ],
+                    [ "viewInverse", new Uniform( new Matrix4() ) ],
+                    [ "projectionInverse", new Uniform( new Matrix4() ) ],
+                    [ "color", new Uniform( new Color( 0, 0, 0 ) ) ],
+                    [ "fogUvTransform", new Uniform( new Vector4() ) ],
                 ] ),
             } );
         }
@@ -1734,7 +1736,7 @@ declare module "titan-reactor/host" {
             }
             fs.writeFileSync(
                 "filelist.json",
-                ["export default", JSON.stringify( paths )].join( " " )
+                [ "export default", JSON.stringify( paths ) ].join( " " )
             );
         }
         clear() {

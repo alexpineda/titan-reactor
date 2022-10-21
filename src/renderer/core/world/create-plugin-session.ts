@@ -12,17 +12,20 @@ import { Janitor } from "three-janitor";
 import { createPluginSessionStore } from "@core/world/plugin-session-store";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "@core/global-events";
+import { WorldEvents } from "./world-events";
+import { TypeEmitterProxy } from "@utils/type-emitter";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
-export const createPluginSession = async ( openBW: OpenBW ) => {
+export const createPluginSession = async (
+    openBW: OpenBW,
+    events: TypeEmitterProxy<WorldEvents>
+) => {
     const janitor = new Janitor( "PluginSession" );
 
     const pluginPackages = settingsStore().enabledPlugins;
     const uiPlugins = janitor.mop(
-        new PluginSystemUI( pluginPackages, ( id ) =>
-            openBW.get_util_funcs().dump_unit( id )
-        ),
+        new PluginSystemUI( openBW, pluginPackages, events ),
         "uiPlugins"
     );
     const nativePlugins = janitor.mop(
@@ -48,6 +51,10 @@ export const createPluginSession = async ( openBW: OpenBW ) => {
     );
 
     await uiPlugins.isRunning();
+
+    events.on( "frame-reset", ( frame ) => {
+        uiPlugins.onFrameReset( frame );
+    } );
 
     janitor.mop(
         globalEvents.on(

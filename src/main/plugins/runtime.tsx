@@ -76,7 +76,7 @@ export const usePlayers = () => {
     return useStore( _usePlayers ) ?? [];
 };
 
-const _usePlayerFrame = ( state: StateMessage ) => state.frame!.playerData;
+const _usePlayerFrame = ( state: StateMessage ) => state.production!.playerData;
 export const usePlayerFrame = () => {
     const playerData = useStore( _usePlayerFrame );
     return ( id: number ) => getPlayerInfo( id, playerData );
@@ -91,7 +91,14 @@ export const usePlayer = () => {
 
 const _useSelectedUnits = ( state: StateMessage ) => state.units;
 export const useSelectedUnits = () => {
-    return useStore( _useSelectedUnits ) ?? [];
+    return ( useStore( _useSelectedUnits ) ?? [] ).map( ( unit ) => {
+        return {
+            ...unit,
+            extras: {
+                dat: assets.bwDat.units[unit.typeId],
+            },
+        };
+    } );
 };
 
 const _useProgress = ( state: StateMessage ) => state.progress;
@@ -156,8 +163,9 @@ const mapResearchInProduction = ( input: Int32Array, research: TechDataDAT ) => 
     isResearch: true,
 } );
 
+const _useProduction = ( state: StateMessage ) => state.production!;
 export const useProduction = () => {
-    const { unitProduction, upgrades, research } = useFrame()!;
+    const { unitProduction, upgrades, research } = useStore( _useProduction );
 
     return [
         ( playerId: number ) =>
@@ -204,7 +212,7 @@ interface ComponentsStore {
 
 const useComponents = create<ComponentsStore>( ( set, get ) => ( {
     components: [],
-    add: ( item ) => set( { components: [...get().components, item] } ),
+    add: ( item ) => set( { components: [ ...get().components, item ] } ),
     remove: ( id ) =>
         set( { components: get().components.filter( ( c ) => c.pluginId !== id ) } ),
 } ) );
@@ -371,7 +379,7 @@ export const RollingNumber = ( {
         return () => {
             rollingNumber.current.stop();
         };
-    }, [value] );
+    }, [ value ] );
 
     return <span ref={numberRef} {...props}></span>;
 };
@@ -379,7 +387,7 @@ export const RollingNumber = ( {
 export class PlayerInfo {
     _struct_size = 7;
     playerId = 0;
-    playerData: Required<StateMessage>["frame"]["playerData"] = new Int32Array();
+    playerData: Required<StateMessage>["production"]["playerData"] = new Int32Array();
 
     get _offset() {
         return this._struct_size * this.playerId;
@@ -416,7 +424,7 @@ export class PlayerInfo {
 const playerInfo = new PlayerInfo();
 const getPlayerInfo = (
     playerId: number,
-    playerData: Required<StateMessage>["frame"]["playerData"]
+    playerData: Required<StateMessage>["production"]["playerData"]
 ) => {
     playerInfo.playerData = playerData;
     playerInfo.playerId = playerId;
@@ -439,7 +447,7 @@ const updateDimensionsCss = ( dimensions: MinimapDimensions ) => {
 
 function convertIcons() {
     const b = ( data: ArrayBuffer ) =>
-        URL.createObjectURL( new Blob( [data], { type: "octet/stream" } ) );
+        URL.createObjectURL( new Blob( [ data ], { type: "octet/stream" } ) );
 
     for ( let i = 0; i < assets.cmdIcons.length; i++ ) {
         const icon = assets.cmdIcons[i];
@@ -577,7 +585,7 @@ export const useStyleSheet = ( content: string, deps = [] ) => {
     const { pluginId } = useContext( PluginContext )!;
     useEffect( () => {
         setPluginStyleSheet( pluginId, content );
-    }, [content, ...deps] );
+    }, [ content, ...deps ] );
 
     useEffect( () => {
         return () => removePluginStylesheet( pluginId );
@@ -646,7 +654,7 @@ const App = ( { components }: { components: Component[] } ) => {
     useEffect( () => {
         if ( !containerDiv.current ) return;
 
-        if ( ["@home", "@loading"].includes( screen! ) ) {
+        if ( [ "@home", "@loading" ].includes( screen! ) ) {
             containerDiv.current.style.opacity = "1";
         } else {
             let opacity = 0;
@@ -659,13 +667,13 @@ const App = ( { components }: { components: Component[] } ) => {
             }, 50 );
             return () => clearInterval( cancelId );
         }
-    }, [screen] );
+    }, [ screen ] );
 
     const appLoaded = screen !== "@loading";
 
     const screenFilter = ( component: Component ) =>
         appLoaded &&
-        ["@replay", "@map"].includes( screen! ) &&
+        [ "@replay", "@map" ].includes( screen! ) &&
         ( component.screen ?? "" ).includes( screen! );
 
     const renderComponent = ( component: Component ) => (

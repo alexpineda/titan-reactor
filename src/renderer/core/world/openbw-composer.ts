@@ -70,10 +70,10 @@ export const createOpenBWComposer = (
             }
         );
 
-    world.events.on( "frame-reset", () => {
-        _currentFrame = world.openBW.getCurrentFrame();
+    world.events.on( "frame-reset", ( frame ) => {
+        _currentFrame = frame;
         _previousBwFrame = -1;
-        resetCompletedUpgrades( _currentFrame );
+        resetCompletedUpgrades( frame );
     } );
 
     const _tiles = new SimpleBufferView( 4, 0, 0, world.openBW.HEAPU8 );
@@ -130,7 +130,7 @@ export const createOpenBWComposer = (
         },
         update( elapsed: number, frame: number ) {
             lastElapsed = elapsed;
-            // _currentFrame = world.openBW.tryCatch(world.openBW.nextFrame);
+            _currentFrame = frame;
 
             if ( frame !== _previousBwFrame ) {
                 world.openBW.generateFrame();

@@ -227,7 +227,7 @@ export const createWorldComposer = async (
             if ( !viewControllerComposer.primaryViewport ) return;
 
             if ( frameResetRequested ) {
-                events.emit( "frame-reset" );
+                events.emit( "frame-reset", world.openBW.getCurrentFrame() );
                 frameResetRequested = false;
             }
 
@@ -252,10 +252,7 @@ export const createWorldComposer = async (
                 overlayComposer.onFrame( openBwComposer.completedUpgrades );
 
                 plugins.ui.onFrame(
-                    openBW,
                     openBwComposer.currentFrame,
-                    openBW._get_buffer( 8 ),
-                    openBW._get_buffer( 9 ),
                     sceneComposer.selectedUnits._dangerousArray
                 );
 

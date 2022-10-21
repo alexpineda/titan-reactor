@@ -47,7 +47,7 @@ export interface WorldEvents {
     "selected-units-changed": Unit[];
     "completed-upgrade": { owner: number; typeId: number; level: number };
     "completed-tech": { owner: number; typeId: number };
-    "frame-reset": undefined;
+    "frame-reset": number;
     "minimap-enter": undefined;
     "minimap-leave": undefined;
 

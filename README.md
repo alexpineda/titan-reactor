@@ -24,18 +24,20 @@
   <img src="https://user-images.githubusercontent.com/586716/153120765-4fa4faf4-0e46-42b9-ba08-10ab5ace2f20.gif" />
 </p>
 
-
-
 <br/>
 
 ### Roadmap
 
-- [Priority Roadmap](https://lucky-equinox-32f.notion.site/Priority-Roadmap-ac07f27f9e44451d8b535a7e5e94db2b)
-- [Long Term Roadmap](https://lucky-equinox-32f.notion.site/Titan-Reactor-Roadmap-919e5145075a45b7b012b59fa6756d62)
+-   [Priority Roadmap](https://lucky-equinox-32f.notion.site/Priority-Roadmap-ac07f27f9e44451d8b535a7e5e94db2b)
+-   [Long Term Roadmap](https://lucky-equinox-32f.notion.site/Titan-Reactor-Roadmap-919e5145075a45b7b012b59fa6756d62)
+
 ### Requirements
-- A purchased copy of Starcraft Remastered.
+
+-   A purchased copy of Starcraft Remastered.
+
 ### Downloads
-- Available via the [Releases Page](https://github.com/imbateam-gg/titan-reactor/releases)
+
+-   Available via the [Releases Page](https://github.com/imbateam-gg/titan-reactor/releases)
 
 ### Developing Plugins
 
@@ -43,15 +45,13 @@ Developing plugins for Titan Reactor is easy and requires no build tools! A know
 
 [See the CREATING_PLUGINS document for more details.](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
 
-
-
 ### Replay Data
 
 Replay data is not shared or transmitted by Titan Reactor. However, you may explicitly grant a plugin permission to access replay information for its own functionality.
 
 ### Development Installation
 
-*Using node 16 and yarn*
+_Using node 16 and yarn 1.x_
 
 `git lfs install`
 
@@ -65,7 +65,6 @@ and then
 
 The OpenBW wasm files are included (via git lfs). If you wish to build them yourself [visit the openbw fork repository](https://github.com/imbateam-gg/openbw).
 
-
 ### Legal
 
-Titan Reactor is made available via the GPL3 license. The documentation and functionality provided by Titan Reactor may only be utilized with assets provided by ownership of Starcraft. Starcraft® - Copyright © 1998 Blizzard Entertainment, Inc. All rights reserved. Starcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries. Titan Reactor and any of its maintainers are in no way associated with or endorsed by Blizzard Entertainment®
+Titan Reactor is made available via the GPLv3 license. The documentation and functionality provided by Titan Reactor may only be utilized with assets provided by ownership of Starcraft. Starcraft® - Copyright © 1998 Blizzard Entertainment, Inc. All rights reserved. Starcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries. Titan Reactor and any of its maintainers are in no way associated with or endorsed by Blizzard Entertainment®

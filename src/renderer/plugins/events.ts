@@ -9,6 +9,7 @@ export const UI_SYSTEM_PLUGIN_DISABLED = "system:plugin-disabled";
 export const UI_SYSTEM_PLUGINS_ENABLED = "system:plugins-enabled";
 
 export const UI_STATE_EVENT_ON_FRAME = "frame";
+export const UI_STATE_EVENT_PRODUCTION = "production";
 export const UI_STATE_EVENT_DIMENSIONS_CHANGED = "dimensions";
 export const UI_STATE_EVENT_SCREEN_CHANGED = "screen";
 export const UI_STATE_EVENT_WORLD_CHANGED = "world";
