@@ -42,7 +42,7 @@ export const ActionablePanel = ( props: ActionablePanelProps ) => {
                         onChange={( evt ) => {
                             updateActionable( macro, {
                                 ...action,
-                                path: [evt.target.value as TargetType],
+                                path: [ evt.target.value as TargetType ],
                             } );
                         }}
                         value={action.path[0]}>

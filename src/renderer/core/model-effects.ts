@@ -21,6 +21,7 @@ export const applyRenderModeToSprite = (
     sprite: SpriteType,
     terrainY: number
 ) => {
+    sprite.rotation.x = 0;
     if ( modelSetModifiers.sprites[spriteTypeId] ) {
         for ( const effect of modelSetModifiers.sprites[spriteTypeId] ) {
             switch ( effect.type ) {
@@ -29,8 +30,6 @@ export const applyRenderModeToSprite = (
                     sprite.rotation.x = -Math.PI / 2;
                     sprite.position.y = terrainY + 0.1;
                     break;
-                default:
-                    sprite.rotation.set( 0, 0, 0 );
             }
         }
     }
