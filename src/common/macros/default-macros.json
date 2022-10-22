@@ -1,80 +1,81 @@
-[{
+[
+    {
         "id": "11fed136-304d-4ad8-95fb-74448b3be159",
-        "name": "Camera: Tilt",
+        "name": "Camera: 💺Tilt",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "KeyT"
-                ],
+                "codes": ["KeyT"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
+        "actions": [
+            {
                 "type": "action",
                 "id": "624938cb-249d-4b04-9a6b-e942a64d0995",
-                "path": [
-                    ":plugin",
-                    "@titan-reactor-plugins/camera-standard",
-                    "tilt"
-                ],
-                "operator": "SetToDefault"
+                "path": [":plugin", "@titan-reactor-plugins/camera-standard", "tilt"],
+                "operator": "Set",
+                "value": 35,
+                "group": 1
             },
             {
                 "type": "action",
                 "id": "504f2ac2-2c13-47b9-8b3d-32bd2578f616",
-                "path": [
-                    ":plugin",
-                    "@titan-reactor-plugins/camera-standard",
-                    "tilt"
-                ],
-                "operator": "Min"
+                "path": [":plugin", "@titan-reactor-plugins/camera-standard", "tilt"],
+                "operator": "SetToDefault",
+                "value": 35,
+                "group": 2
             }
         ],
         "enabled": true,
         "actionSequence": "SingleAlternate",
-        "conditions": [{
-            "type": "condition",
-            "id": "3cfb107d-4f39-403e-8daa-ef64f6b58ea1",
-            "path": [
-                ":app",
-                "input",
-                "sceneController"
-            ],
-            "comparator": "Equals",
-            "value": "@titan-reactor-plugins/camera-standard"
-        }]
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "3cfb107d-4f39-403e-8daa-ef64f6b58ea1",
+                "path": [":app", "input", "sceneController"],
+                "comparator": "Equals",
+                "value": "@titan-reactor-plugins/camera-standard"
+            }
+        ]
     },
     {
         "id": "a3f34c04-957a-4ac3-816b-ac0740fe38e4",
-        "name": "Replay: Toggle Pause",
+        "name": "Replay: ⏯️ Toggle Pause",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "KeyP"
-                ],
+                "codes": ["KeyP"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "a18c3df7-e903-44ae-bbbd-9aa73f4bdd96",
-            "path": [
-                ":function"
-            ],
-            "operator": "Execute",
-            "value": "api.togglePause();\napi.simpleMessage(`⏯️`);"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "a18c3df7-e903-44ae-bbbd-9aa73f4bdd96",
+                "path": [":function"],
+                "operator": "Execute",
+                "value": "api.togglePause();\napi.simpleMessage(`⏯️`);",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "27f54945-b793-41d4-bedd-b42e2015896a",
+                "path": [":app", "session", "type"],
+                "comparator": "Equals",
+                "value": "replay"
+            }
+        ]
     },
     {
         "id": "f69ebf7e-31cb-41f0-9761-a46538280d89",
@@ -85,21 +86,28 @@
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "F5"
-                ],
+                "codes": ["F5"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "9647b127-355e-47b5-940e-269864c4a91f",
-            "path": [
-                ":function"
-            ],
-            "operator": "Execute",
-            "value": "api.changeRenderMode();"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "74f749ce-e219-4179-9e6a-c8d87d19581f",
+                "path": [":macro", "11fed136-304d-4ad8-95fb-74448b3be159", "program"],
+                "operator": "Execute",
+                "value": true,
+                "group": 2
+            },
+            {
+                "type": "action",
+                "id": "9647b127-355e-47b5-940e-269864c4a91f",
+                "path": [":function"],
+                "operator": "Execute",
+                "value": "api.changeRenderMode();",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
         "conditions": []
@@ -111,67 +119,46 @@
             "type": "None",
             "value": null
         },
-        "actions": [{
+        "actions": [
+            {
                 "type": "action",
                 "id": "9738f275-008d-4cd2-b8e5-1d5b57c19422",
-                "path": [
-                    ":app",
-                    "minimap",
-                    "position"
-                ],
+                "path": [":app", "minimap", "position"],
                 "operator": "Set",
-                "value": [
-                    -0.162012939453086,
-                    -0.18998870849609578
-                ]
+                "value": [-0.162012939453086, -0.18998870849609578],
+                "group": 1
             },
             {
                 "type": "action",
                 "id": "1e0332c3-6bee-4ef5-bdac-8e08be0dbc22",
-                "path": [
-                    ":app",
-                    "minimap",
-                    "scale"
-                ],
+                "path": [":app", "minimap", "scale"],
                 "operator": "Set",
-                "value": 3.600000000000003
+                "value": 3.600000000000003,
+                "group": 2
             },
             {
                 "type": "action",
                 "id": "43daf709-6eb4-41b2-9c17-f55551f18f4e",
-                "path": [
-                    ":app",
-                    "minimap",
-                    "softEdges"
-                ],
+                "path": [":app", "minimap", "softEdges"],
                 "operator": "Set",
-                "value": false
+                "value": false,
+                "group": 3
             },
             {
                 "type": "action",
                 "id": "eb9e214c-61e4-474b-be1a-351816ba6b58",
-                "path": [
-                    ":app",
-                    "minimap",
-                    "opacity"
-                ],
+                "path": [":app", "minimap", "opacity"],
                 "operator": "Max",
-                "value": 1
+                "value": 1,
+                "group": 4
             },
             {
                 "type": "action",
                 "id": "11adfb82-134c-4f21-90cb-e04bbcd2a334",
-                "path": [
-                    ":app",
-                    "minimap",
-                    "rotation"
-                ],
+                "path": [":app", "minimap", "rotation"],
                 "operator": "Set",
-                "value": [
-                    -0.33999999999999975,
-                    0,
-                    0
-                ]
+                "value": [-0.33999999999999975, 0, 0],
+                "group": 5
             }
         ],
         "enabled": true,
@@ -187,33 +174,26 @@
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "KeyM"
-                ],
+                "codes": ["KeyM"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
+        "actions": [
+            {
                 "type": "action",
                 "id": "b01d003f-736f-4560-b1f3-50c61f5dcd29",
-                "path": [
-                    ":macro",
-                    "3f5fb9d4-2a67-4f7e-b70c-fad69f752067",
-                    "program"
-                ],
+                "path": [":macro", "3f5fb9d4-2a67-4f7e-b70c-fad69f752067", "program"],
                 "operator": "Execute",
-                "value": true
+                "value": true,
+                "group": 1
             },
             {
                 "type": "action",
                 "id": "a9299cb0-d6f1-4466-92b3-c63faa1e800c",
-                "path": [
-                    ":macro",
-                    "3f5fb9d4-2a67-4f7e-b70c-fad69f752067",
-                    "program"
-                ],
+                "path": [":macro", "3f5fb9d4-2a67-4f7e-b70c-fad69f752067", "program"],
                 "operator": "SetToDefault",
-                "value": true
+                "value": true,
+                "group": 2
             }
         ],
         "enabled": true,
@@ -229,16 +209,15 @@
                 "eventName": "minimap-enter"
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "5c3c3369-04ac-4e30-9954-04352bffbe93",
-            "path": [
-                ":app",
-                "minimap",
-                "opacity"
-            ],
-            "operator": "Increase"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "5c3c3369-04ac-4e30-9954-04352bffbe93",
+                "path": [":app", "minimap", "opacity"],
+                "operator": "Increase",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
         "conditions": []
@@ -252,67 +231,56 @@
                 "eventName": "minimap-leave"
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "89122d4a-8a28-4305-a0f9-db9f03d2ff98",
-            "path": [
-                ":app",
-                "minimap",
-                "opacity"
-            ],
-            "operator": "SetToDefault"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "89122d4a-8a28-4305-a0f9-db9f03d2ff98",
+                "path": [":app", "minimap", "opacity"],
+                "operator": "SetToDefault",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
         "conditions": []
     },
     {
         "id": "702e5376-973d-4927-a4ec-6b23d4e1ebee",
-        "name": "Alternate Scene Controller",
+        "name": "✈️Change Scene Controller",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "Tab"
-                ],
+                "codes": ["Backquote"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
+        "actions": [
+            {
                 "type": "action",
                 "id": "76407af6-0f09-4690-9479-58ecc9300918",
-                "path": [
-                    ":app",
-                    "input",
-                    "sceneController"
-                ],
+                "path": [":app", "input", "sceneController"],
                 "operator": "Set",
-                "value": "@titan-reactor-plugins/camera-standard"
+                "value": "@titan-reactor-plugins/camera-standard",
+                "group": 1
             },
             {
                 "type": "action",
                 "id": "a3e17199-4394-4063-8a4b-4a1f727383c5",
-                "path": [
-                    ":app",
-                    "input",
-                    "sceneController"
-                ],
+                "path": [":app", "input", "sceneController"],
                 "operator": "Set",
-                "value": "@titan-reactor-plugins/camera-battle"
+                "value": "@titan-reactor-plugins/camera-battle",
+                "group": 2
             },
             {
                 "type": "action",
                 "id": "4b98f985-1989-4fdf-a7b5-11ce76929c2a",
-                "path": [
-                    ":app",
-                    "input",
-                    "sceneController"
-                ],
+                "path": [":app", "input", "sceneController"],
                 "operator": "Set",
-                "value": "@titan-reactor-plugins/camera-overview"
+                "value": "@titan-reactor-plugins/camera-overview",
+                "group": 3
             }
         ],
         "enabled": true,
@@ -321,38 +289,31 @@
     },
     {
         "id": "d61cdeed-ee93-4f68-bf5f-0785f637db16",
-        "name": "Toggle Global Audio",
+        "name": "🎵 Toggle Global Audio",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "KeyS"
-                ],
+                "codes": ["KeyS"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
+        "actions": [
+            {
                 "type": "action",
                 "id": "f860a7ef-6769-404a-b9a9-fd79b4c7dfe9",
-                "path": [
-                    ":app",
-                    "audio",
-                    "global"
-                ],
-                "operator": "Min"
+                "path": [":app", "audio", "global"],
+                "operator": "Min",
+                "group": 1
             },
             {
                 "type": "action",
                 "id": "19ecb8d8-4650-48c7-8607-e5fcb965f3e7",
-                "path": [
-                    ":app",
-                    "audio",
-                    "global"
-                ],
-                "operator": "SetToDefault"
+                "path": [":app", "audio", "global"],
+                "operator": "SetToDefault",
+                "group": 2
             }
         ],
         "enabled": true,
@@ -361,114 +322,229 @@
     },
     {
         "id": "992a0c10-193c-4215-8433-7ca7ed2eb6c5",
-        "name": "Replay: Speed Up",
+        "name": "Replay: 🔼 Speed Up",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "KeyU"
-                ],
+                "codes": ["KeyU"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "0209b1e3-293d-4bb2-abff-aa84760e5c0d",
-            "path": [
-                ":function"
-            ],
-            "operator": "Execute",
-            "value": "const speed = api.speedUp(); \napi.simpleMessage(`🔼 ${speed}x`);"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "0209b1e3-293d-4bb2-abff-aa84760e5c0d",
+                "path": [":function"],
+                "operator": "Execute",
+                "value": "const speed = api.speedUp(); \napi.simpleMessage(`🔼 ${speed}x`);",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "311e9fdb-decb-42d2-81b4-ee687fa24485",
+                "path": [":app", "session", "type"],
+                "comparator": "Equals",
+                "value": "replay"
+            }
+        ]
     },
     {
         "id": "d84beadd-d056-4389-90a8-ed3ca086c1e5",
-        "name": "Replay: Speed Down",
+        "name": "Replay: 🔽 Speed Down",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "KeyD"
-                ],
+                "codes": ["KeyD"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "1c38fad7-7a5d-4d8f-9b3f-53f6b48aae23",
-            "path": [
-                ":function"
-            ],
-            "operator": "Execute",
-            "value": "const speed = api.speedDown(); \napi.simpleMessage(`🔽 ${speed}x`);"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "1c38fad7-7a5d-4d8f-9b3f-53f6b48aae23",
+                "path": [":function"],
+                "operator": "Execute",
+                "value": "const speed = api.speedDown(); \napi.simpleMessage(`🔽 ${speed}x`);",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "2a25db28-47d0-44ff-9ad7-d13ad10827ad",
+                "path": [":app", "session", "type"],
+                "comparator": "Equals",
+                "value": "replay"
+            }
+        ]
     },
     {
         "id": "188e4b3a-d59f-4cc4-8e0d-a319b2ffdd04",
-        "name": "Replay: Skip Backwards",
+        "name": "Replay: ⏪ Skip Backwards",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "BracketLeft"
-                ],
+                "codes": ["BracketLeft"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "83132fdf-8731-4b18-805b-886765b5e5cc",
-            "path": [
-                ":function"
-            ],
-            "operator": "Execute",
-            "value": "api.skipBackward(); \napi.simpleMessage('⏪')"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "83132fdf-8731-4b18-805b-886765b5e5cc",
+                "path": [":function"],
+                "operator": "Execute",
+                "value": "api.skipBackward(10); \napi.simpleMessage('⏪')",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "737d0317-5d2e-409d-a183-eb5a3ebe4ed8",
+                "path": [":app", "session", "type"],
+                "comparator": "Equals",
+                "value": "replay"
+            }
+        ]
     },
     {
         "id": "6e76f1f2-9d3d-424d-893d-f05b00622d16",
-        "name": "Replay: Skip Forwards",
+        "name": "Replay: ⏩ Skip Forwards",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": [
-                    "BracketRight"
-                ],
+                "codes": ["BracketRight"],
                 "onKeyUp": false
             }
         },
-        "actions": [{
-            "type": "action",
-            "id": "2a1d13d8-5b36-47e0-9fb0-5cc7381087de",
-            "path": [
-                ":function"
-            ],
-            "operator": "Execute",
-            "value": "api.skipForward(); \napi.simpleMessage('⏩');"
-        }],
+        "actions": [
+            {
+                "type": "action",
+                "id": "2a1d13d8-5b36-47e0-9fb0-5cc7381087de",
+                "path": [":function"],
+                "operator": "Execute",
+                "value": "api.skipForward(); \napi.simpleMessage('⏩');",
+                "group": 1
+            }
+        ],
         "enabled": true,
         "actionSequence": "AllSync",
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "d56078b0-a1e6-4368-a9f4-868cadebb933",
+                "path": [":app", "session", "type"],
+                "comparator": "Equals",
+                "value": "replay"
+            }
+        ]
+    },
+    {
+        "id": "5070c56e-189d-4672-9914-791016f8b869",
+        "name": "🚥 Swap Colors",
+        "trigger": {
+            "type": "Hotkey",
+            "value": {
+                "ctrlKey": false,
+                "altKey": false,
+                "shiftKey": false,
+                "codes": ["Tab"],
+                "onKeyUp": false
+            }
+        },
+        "actions": [
+            {
+                "type": "action",
+                "id": "b2e66ead-a917-4295-b37b-21c224e84e45",
+                "path": [":plugin", "@titan-reactor-plugins/player-colors", "enabled"],
+                "operator": "Toggle",
+                "group": 1
+            }
+        ],
+        "enabled": true,
+        "actionSequence": "SingleAlternate",
         "conditions": []
+    },
+    {
+        "id": "d9e1cfae-2ae3-45df-8752-805282fb974c",
+        "name": "Map Viewer: No Fog",
+        "trigger": {
+            "type": "WorldEvent",
+            "value": {
+                "eventName": "world-start"
+            }
+        },
+        "actions": [
+            {
+                "type": "action",
+                "id": "738c6bac-e2db-4a9b-9e33-84f8d5165609",
+                "path": [":app", "postprocessing", "fogOfWar"],
+                "operator": "Min",
+                "group": 1
+            }
+        ],
+        "enabled": true,
+        "actionSequence": "AllSync",
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "ff1f5a91-0e78-4075-8bf4-dde2bd7a3dc8",
+                "path": [":app", "session", "type"],
+                "comparator": "Equals",
+                "value": "map"
+            }
+        ]
+    },
+    {
+        "id": "cafec262-c8a3-4615-92ca-b13eb16dfcf2",
+        "name": "Follow Units: Right Click to Follow",
+        "trigger": {
+            "type": "WorldEvent",
+            "value": {
+                "eventName": "mouse-click"
+            }
+        },
+        "actions": [
+            {
+                "type": "action",
+                "id": "2f495d89-3a52-4176-a499-910d7b2c7e45",
+                "path": [":function"],
+                "operator": "Execute",
+                "value": "const unit = api.getHoveredUnit();\n\nif (unit) {\n  api.followUnits([unit]);\n  return false;\n} else {\n  api.followUnits([]); \n}",
+                "group": 1
+            }
+        ],
+        "enabled": true,
+        "actionSequence": "AllSync",
+        "conditions": [
+            {
+                "type": "condition",
+                "id": "be922abe-f1c5-472a-a7ec-1de050c2e2e2",
+                "path": [":function"],
+                "comparator": "Execute",
+                "value": "return this.context.button === 2;"
+            }
+        ]
     }
 ]

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6]
+
 ## Added
 
 -   Exposed default enabled/disabled switch for macros
@@ -252,7 +254,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Good support for HD2/HD terrain, sluggish first render time, on the todo list.
 -   Unit selection / unit boxing for the time being.
 
-[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.5...HEAD
+[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.6...HEAD
+[0.6.6]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.5...v0.6.6
 [0.6.5]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.0...v0.6.4
 [0.6.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.5.3...v0.6.0
