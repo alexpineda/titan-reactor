@@ -10,7 +10,7 @@ import { log } from "@ipc/log";
 export async function homeSceneLoader(): Promise<SceneState> {
     const janitor = new Janitor( "home-scene-loader" );
     log.debug( "Loading home scene" );
-    janitor.mop( createWraithScene() );
+    janitor.mop( await createWraithScene() );
 
     root.render( <Home surface={getSurface().canvas} /> );
 

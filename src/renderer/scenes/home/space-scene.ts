@@ -119,9 +119,10 @@ const _sceneResizeHandler = () => {
 let fireTexture: Texture;
 
 export const preloadIntro = async () => {
-    //TODO submit to types
-    //@ts-expect-error
-    fireTexture = new EXRLoader().load( path.join( __static, "./FireBall03_8x8.exr" ) );
+    if ( fireTexture === undefined ) {
+        //@ts-expect-error
+        fireTexture = new EXRLoader().load( path.join( __static, "./FireBall03_8x8.exr" ) );
+    }
 
     const envmap = loadEnvironmentMap( path.join( __static, "./envmap.hdr" ), () =>
         processStore().increment()
@@ -155,7 +156,13 @@ export const getSurface = () => introSurface;
 
 let _noiseInstance: WraithNoise;
 
-export function createWraithScene() {
+let _runs = 0;
+
+export async function createWraithScene() {
+    if ( _runs++ > 0 ) {
+        await preloadIntro();
+    }
+
     const janitor = new Janitor( "intro" );
 
     _noiseInstance = janitor.mop( createWraithNoise() );
@@ -168,39 +175,35 @@ export function createWraithScene() {
         passive: true,
     } );
 
-    _sceneResizeHandler();
+    setTimeout( () => {
+        _sceneResizeHandler();
+    }, 0 );
 
-    const scene = janitor.mop( new Scene() );
+    const scene = new Scene();
+    scene.name = "intro-scene";
     scene.background = gameStore().assets!.skyBox;
-    const slight = new DirectionalLight( 0xffffff, 5 );
 
     wraiths.init();
-    scene.add( wraiths.object );
+    scene.add( janitor.mop( wraiths.object ) );
 
     // janitor.mop(wraiths, "wraiths");
     janitor.mop( battleCruiser.particles.object );
     janitor.mop( wraiths.particles.object );
 
-    scene.add( distantStars() );
+    scene.add( janitor.mop( distantStars() ) );
 
-    scene.add( battleCruiser.object );
+    scene.add( janitor.mop( battleCruiser.object ) );
 
-    scene.add( asteroids.object );
+    scene.add( janitor.mop( asteroids.object ) );
 
-    scene.add( battleLights.object );
+    scene.add( janitor.mop( battleLights.object ) );
 
     const playRemixInterval = setInterval( () => {
         playRemix();
     }, 60000 * 3 + Math.random() * 60000 * 10 );
     janitor.add( () => clearInterval( playRemixInterval ), "remix" );
 
-    scene.userData = {
-        wraiths: wraiths,
-        battleCruiser: battleCruiser,
-        asteroids: asteroids,
-        battleLights: battleLights,
-        controls: controls,
-    };
+    const slight = new DirectionalLight( 0xffffff, 5 );
     scene.add( slight );
 
     introSurface.setDimensions( window.innerWidth, window.innerHeight, devicePixelRatio );
@@ -250,36 +253,31 @@ export function createWraithScene() {
     sun.updateMatrixWorld();
 
     glitchEffect.blendMode.setOpacity( 0.5 );
-    const glitchPass = janitor.mop( new EffectPass( camera.get(), glitchEffect ) );
+    const glitchPass = new EffectPass( camera.get(), glitchEffect );
     const tone = new ToneMappingEffect();
 
     const vignet = new VignetteEffect( {
         darkness: 0.55,
     } );
 
-    const postProcessingBundle = {
-        enabled: true,
-        passes: [
+    renderComposer.setBundlePasses( {
+        passes: janitor.mop( [
             renderPass,
-            janitor.mop(
-                new EffectPass(
-                    camera.get(),
-                    new BloomEffect( {
-                        intensity: 1.25,
-                        blendFunction: BlendFunction.SCREEN,
-                        mipmapBlur: true,
-                    } ),
-                    new SMAAEffect(),
-                    tone,
-                    godRaysEffect,
-                    vignet
-                )
+            new EffectPass(
+                camera.get(),
+                new BloomEffect( {
+                    intensity: 1.25,
+                    blendFunction: BlendFunction.SCREEN,
+                    mipmapBlur: true,
+                } ),
+                new SMAAEffect(),
+                tone,
+                godRaysEffect,
+                vignet
             ),
             glitchPass,
-        ],
-        effects: [],
-    };
-    renderComposer.setBundlePasses( postProcessingBundle );
+        ] ),
+    } );
 
     renderComposer.getWebGLRenderer().compile( scene, camera.get() );
 

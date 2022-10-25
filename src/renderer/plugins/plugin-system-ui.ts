@@ -247,15 +247,15 @@ export class PluginSystemUI {
             "screen"
         );
 
-        // this.#janitor.mop(
-        //     useReplayAndMapStore.subscribe( ( world ) => {
-        //         this.sendMessage( {
-        //             type: UI_STATE_EVENT_WORLD_CHANGED,
-        //             payload: worldPartial( world ),
-        //         } );
-        //     } ),
-        //     "world"
-        // );
+        this.#janitor.mop(
+            useReplayAndMapStore.subscribe( ( world ) => {
+                this.sendMessage( {
+                    type: UI_STATE_EVENT_WORLD_CHANGED,
+                    payload: worldPartial( world ),
+                } );
+            } ),
+            "world"
+        );
 
         this.refresh();
 

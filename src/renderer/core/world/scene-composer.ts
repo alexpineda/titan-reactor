@@ -361,12 +361,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             if ( assets.hasImageAtlas( imageId ) ) {
                 return false;
             }
-            requestIdleCallback( () => {
-                assets
-                    .loadImageAtlasAsync( imageId, assets.bwDat )
-                    .then( next )
-                    .catch( next );
-            } );
+            assets.loadImageAtlasAsync( imageId, assets.bwDat ).then( next ).catch( next );
         },
         calculateImagesFromTechTreeUnits( world.map.units.map( ( unit ) => unit.unitId ) ),
         2000

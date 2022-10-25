@@ -49,7 +49,7 @@ const createWraith = (
     let nextSwerveRate = 1000;
     const _nextSwerveAngle = Math.PI / 3.5;
 
-    const [wx, wy, wz] = [
+    const [ wx, wy, wz ] = [
         MathUtils.randInt( 1000, 4000 ),
         MathUtils.randInt( 1000, 4000 ),
         MathUtils.randInt( 1000, 4000 ),
@@ -77,7 +77,7 @@ const createWraith = (
     particles.object.position.set( 0, 0, -0.2 );
     wraith.add( particles.object.clone() );
 
-    const elapsed = [0, 0, 0, 0];
+    const elapsed = [ 0, 0, 0, 0 ];
 
     return Object.assign( wraith, {
         init() {
@@ -171,14 +171,14 @@ export const createWraiths = () => {
             const particleUpdate = defaultUpdate( {
                 size: createSpline(
                     MathUtils.lerp,
-                    [0, 0.12, 0.24, 0.36, 0.48, 1],
-                    [2, 2, 0.5, 0.35, 0.1, 0.1],
+                    [ 0, 0.12, 0.24, 0.36, 0.48, 1 ],
+                    [ 2, 2, 0.5, 0.35, 0.1, 0.1 ],
                     0.05
                 ),
                 alpha: createSpline(
                     MathUtils.lerp,
-                    [0, 0.12, 0.24, 0.36, 0.48, 0.86, 1],
-                    [0.3, 0.3, 0.5, 1, 0.5, 0.1, 0]
+                    [ 0, 0.12, 0.24, 0.36, 0.48, 0.86, 1 ],
+                    [ 0.3, 0.3, 0.5, 1, 0.5, 0.1, 0 ]
                 ),
                 velocity: new Vector3( 0, 0, -700 ),
             } );

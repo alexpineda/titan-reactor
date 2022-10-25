@@ -44,6 +44,7 @@ export const createAsteroids = () => {
                 ( asteroid.children[0] as Mesh ).material,
                 20
             );
+            asteroids.name = "asteroids";
 
             range( 0, 5 ).forEach( ( i: number ) => {
                 const pos = new Vector3(
