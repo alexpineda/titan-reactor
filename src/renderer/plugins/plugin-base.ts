@@ -35,7 +35,6 @@ export class PluginBase {
         this.rawConfig = structuredClone( pluginPackage.config );
     }
 
-    callCustomHook: ( hook: string, ...args: any[] ) => any = () => {};
     sendUIMessage: ( message: any ) => void = () => {};
 
     /**

@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+
+-   Macro groups
+
+## Fixed
+
+-   Bunker overlay offset (marine fire)
+
+## Changed
+
+-   Plugin permissions changed from under `config` to `root` of package.json
+
 ## [0.6.6]
 
 ## Added

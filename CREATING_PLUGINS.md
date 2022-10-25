@@ -11,7 +11,6 @@
     - [CSS](#css)
   - [Host Plugin](#host-plugin)
     - [Hooks](#hooks)
-    - [Custom Hooks](#custom-hooks)
     - [Scene Controller Plugins](#scene-controller-plugins)
     - [Communicating between Game and your UI component](#communicating-between-game-and-your-ui-component)
   - [Special Permissions](#special-permissions)
@@ -287,26 +286,6 @@ export default class Plugin extends PluginBase {
 }
 ```
 
-### Custom Hooks
-
-Custom hooks must start with `onCustom...`;
-
-```js
-onFrame() {
-  if (this.currentFrame > this.maxFrame - 100) {
-    this.callCustomHook("onCustomPing");
-  }
-}
-```
-
-In another plugin. We could also respond by returning a value or reading `this.context` to read other plugins values in the chain.
-
-```js
-onCustomPing() {
-  console.log("pong")
-}
-```
-
 ### Scene Controller Plugins
 
 A scene controller is a special plugin that responds to user input in order to change camera positions and transitions.
@@ -411,11 +390,11 @@ In order to activate a permission, place it in your config.json like so:
 
 ```json
     "config": {
-        "system": {
-            "permissions": [
+        ...,
+        "permissions": [
                 "replay.commands"
-            ]
-        }
+        ],
+        ...
     }
 ```
 

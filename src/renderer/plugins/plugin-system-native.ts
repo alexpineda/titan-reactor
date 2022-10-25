@@ -6,7 +6,7 @@ import {
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
-import { PERMISSION_REPLAY_COMMANDS } from "./permissions";
+import { PERMISSION_REPLAY_COMMANDS, VALID_PERMISSIONS } from "./permissions";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
 import { mix } from "@utils/object-utils";
@@ -78,21 +78,21 @@ export class PluginSystemNative {
 
             plugin.isSceneController = pluginPackage.isSceneController;
 
-            // const permissions = ( pluginPackage.config?.system.permissions ?? [] ).reduce(
-            //     ( acc: Record<string, boolean>, permission: string ) => {
-            //         if ( VALID_PERMISSIONS.includes( permission ) ) {
-            //             acc[permission] = true;
-            //         } else {
-            //             log.warn(
-            //                 `Invalid permission ${permission} for plugin ${pluginPackage.name}`
-            //             );
-            //         }
-            //         return acc;
-            //     },
-            //     {}
-            // );
+            const permissions = ( pluginPackage.permissions ?? [] ).reduce(
+                ( acc: Record<string, boolean>, permission ) => {
+                    if ( ( VALID_PERMISSIONS as readonly string[] ).includes( permission ) ) {
+                        acc[permission] = true;
+                    } else {
+                        log.warn(
+                            `Invalid permission ${permission} for plugin ${pluginPackage.name}`
+                        );
+                    }
+                    return acc;
+                },
+                {}
+            );
 
-            this.#permissions.set( pluginPackage.id, {} );
+            this.#permissions.set( pluginPackage.id, permissions );
 
             plugin.sendUIMessage = throttle(
                 ( message: any ) => {

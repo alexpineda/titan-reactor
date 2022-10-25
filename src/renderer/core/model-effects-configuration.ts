@@ -56,18 +56,18 @@ const spriteRemnants = [
     134, 139, 141, 143, 147, 150, 158, 160, 192, 230, 236, 484, 490,
 ];
 
-const remnantImages = [7, 16, 20, 24, 32, 37, 53, 57, 89, 124, 230, 241, 920, 946];
+const remnantImages = [ 7, 16, 20, 24, 32, 37, 53, 57, 89, 124, 230, 241, 920, 946 ];
 // guardian birth 27?, devourer 917
-const birthImages = [2, 15, 19, 27, 31, 40, 44, 49, 52, 56, 917, 919];
-const placeFlatOnGround = [...remnantImages, ...birthImages]
-    .map( ( id ) => ( { [id]: [{ type: "flat-on-ground" }] } ) )
+const birthImages = [ 2, 15, 19, 27, 31, 40, 44, 49, 52, 56, 917, 919 ];
+const placeFlatOnGround = [ ...remnantImages, ...birthImages ]
+    .map( ( id ) => ( { [id]: [ { type: "flat-on-ground" } ] } ) )
     .reduce( ( a, b ) => ( { ...a, ...b } ), {} ) as Record<
     number,
     ModelSetModifierFlatOnGround[]
 >;
 
 const spritesFlat = spriteRemnants
-    .map( ( id ) => ( { [id]: [{ type: "flat-on-ground" }] } ) )
+    .map( ( id ) => ( { [id]: [ { type: "flat-on-ground" } ] } ) )
     .reduce( ( a, b ) => ( { ...a, ...b } ), {} ) as Record<
     number,
     ModelSetModifierFlatOnGround[]
@@ -151,7 +151,7 @@ export const modelSetModifiers: ModelSetModifiers = {
         235: [
             {
                 type: "emissive:frames",
-                frames: [0],
+                frames: [ 0 ],
             },
             {
                 type: "scale",
@@ -163,7 +163,7 @@ export const modelSetModifiers: ModelSetModifiers = {
         239: [
             {
                 type: "emissive:frames",
-                frames: [3],
+                frames: [ 3 ],
             },
             {
                 type: "scale",
@@ -278,8 +278,8 @@ export const modelSetModifiers: ModelSetModifiers = {
 // re-use gltf files
 export const modelSetFileRefIds = new Map( [
     // siege turret -> siege base
-    [251, 254],
+    [ 251, 254 ],
 
     // lurker egg -> egg,
-    [914, 21],
+    [ 914, 21 ],
 ] );

@@ -21,6 +21,7 @@ export interface PluginPackage {
     repository?: string | { type?: string; url?: string };
     peerDependencies?: Record<string, string>;
     config?: PluginConfig;
+    permissions?: string[];
 }
 
 export interface PluginMetaData extends PluginPackage {
@@ -81,10 +82,6 @@ export interface NativePlugin {
      * Send a message to your plugin UI.
      */
     sendUIMessage( message: any ): void;
-    /**
-     * Call your custom hook. Must be defined in the package.json first.
-     */
-    callCustomHook( hook: string, ...args: any[] ): any;
 
     /**
      * Called when a plugin has it's configuration changed by the user

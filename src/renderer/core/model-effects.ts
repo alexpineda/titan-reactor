@@ -71,7 +71,10 @@ export const applyRenderModeToImageHD = (
     image.material.depthWrite = false;
 
     //TODO: don't set directional on firebat flame (421) if eminating from bunker (see: bwgame.h:12513)
-    if ( imageHasDirectionalFrames( imageData ) ) {
+    if (
+        imageHasDirectionalFrames( imageData ) &&
+        imageData.typeId !== imageTypes.bunkerOverlay
+    ) {
         _frameInfo = applyCameraDirectionToImageFrame( direction, imageData );
     } else {
         _frameInfo.frame = imageData.frameIndex;

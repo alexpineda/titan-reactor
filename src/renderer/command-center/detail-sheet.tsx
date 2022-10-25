@@ -8,14 +8,15 @@ import ErrorBoundary from "./error-boundary";
 import { createLevaPanel } from "./create-leva-panel";
 import { groupConfigByFolder } from "@utils/leva-utils";
 import { Schema } from "leva/plugin";
+import { VALID_PERMISSIONS } from "@plugins/permissions";
 
-// const permissionDescriptions: Record<VALID_PERMISSIONS, string> = {
-//     "replay.file": "Allows the plugin to access the replay file entirely",
-//     "replay.commands":
-//         "Allows the plugin to access the replay commands like select units, move and attack.",
-//     "device": "Allows the plugin to access your device.",
-//     "sandbox": "Allows the plugin to access the sandbox.",
-// };
+const permissionDescriptions: Record<VALID_PERMISSIONS, string> = {
+    "replay.file": "Allows the plugin to access the replay file entirely",
+    "replay.commands":
+        "Allows the plugin to access the replay commands like select units, move and attack.",
+    "device": "Allows the plugin to access your device.",
+    "sandbox": "Allows the plugin to access the sandbox.",
+};
 
 export const DetailSheet = ( {
     pluginPackage,
@@ -27,13 +28,14 @@ export const DetailSheet = ( {
     updateAvailable?: boolean;
 } ) => {
     const store = useCreateStore();
-    for ( const [folder, data] of controls ) {
+    for ( const [ folder, data ] of controls ) {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
         useControls( folder, data as unknown as Schema, { store } );
     }
 
-    // const permissions = ( pluginPackage.config?.system?.permissions ?? [] ).map( ( p ) => (
-    //     <li key={p}>{permissionDescriptions[p as VALID_PERMISSIONS]}</li>
-    // ) );
+    const permissions = ( pluginPackage.permissions ?? [] ).map( ( p ) => (
+        <li key={p}>{permissionDescriptions[p as VALID_PERMISSIONS]}</li>
+    ) );
 
     const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
     const pluginApiVersion =
@@ -60,12 +62,12 @@ export const DetailSheet = ( {
                                 ✅ This is an official plugin.
                             </div>
                         )}
-                        {/* {!!permissions.length && (
+                        {!!permissions.length && (
                             <div style={{ marginTop: "1rem" }}>
                                 ⚠️ This plugin has special permissions:{" "}
                                 <ul>{permissions}</ul>
                             </div>
-                        )} */}
+                        )}
                         <p>
                             <span style={{ fontWeight: "bold" }}>Version:</span>{" "}
                             {pluginPackage.version}

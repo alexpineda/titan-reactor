@@ -25,7 +25,7 @@ import {
 } from "common/ipc-handle-names";
 import { setStorageIsCasc, setStoragePath } from "common/casclib";
 
-const supportedLanguages = ["en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU"];
+const supportedLanguages = [ "en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU" ];
 
 const getEnvLocale = ( env = process.env ) => {
     return env.LC_ALL ?? env.LC_MESSAGES ?? env.LANG ?? env.LANGUAGE;
@@ -159,7 +159,7 @@ export class Settings {
 
     async getMeta(): Promise<SettingsMeta> {
         const errors = [];
-        const files = ["plugins"];
+        const files = [ "plugins" ];
 
         for ( const file of files ) {
             if (
@@ -175,7 +175,7 @@ export class Settings {
 
         const isBareDirectory = await foldersExist(
             this.#settings.directories.starcraft,
-            ["anim", "arr"]
+            [ "anim", "arr" ]
         );
         if ( !( await this.isCascStorage() ) ) {
             if (
@@ -228,7 +228,7 @@ export class Settings {
      */
     async save( settings: Partial<SettingsType> = {} ) {
         this.#settings = Object.assign( {}, this.#settings, settings );
-        this.#settings.plugins.enabled = [...new Set( this.#settings.plugins.enabled )];
+        this.#settings.plugins.enabled = [ ...new Set( this.#settings.plugins.enabled ) ];
         this.#settings.macros = sanitizeMacros(
             this.#settings.macros,
             {

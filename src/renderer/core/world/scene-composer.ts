@@ -34,7 +34,7 @@ import {
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import { calculateFollowedUnitsTarget, unitIsFlying } from "@utils/unit-utils";
-import { drawFunctions, unitTypes } from "common/enums";
+import { drawFunctions, imageTypes, unitTypes } from "common/enums";
 import { ImageStruct, UnitTileScale } from "common/types";
 import { Assets } from "@image/assets";
 import { floor32, makePxToWorld } from "common/utils/conversions";
@@ -264,7 +264,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             image.position.set( 0, 0, 0 );
 
             //overlay offsets typically
-            if ( image instanceof ImageHD ) {
+            if ( image instanceof ImageHD && imageData.typeId !== imageTypes.bunkerOverlay ) {
                 image.position.x = imageData.x / 32;
                 // flying building or drone, don't use 2d offset
                 image.position.y = imageIsFrozen( imageData ) ? 0 : -imageData.y / 32;
