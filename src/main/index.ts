@@ -12,6 +12,7 @@ import browserWindows from "./windows";
 import { getBootupLogs } from "./log";
 import { GO_TO_START_PAGE, LOG_MESSAGE } from "common/ipc-handle-names";
 import { logService } from "./logger/singleton";
+import electronIsDev from "electron-is-dev";
 
 const settingsPath = path.join( getUserDataPath(), "settings.json" );
 
@@ -52,7 +53,7 @@ const createConfigurationWindow = () => {
             windows.config = null;
         },
         nodeIntegration: true,
-        removeMenu: true,
+        removeMenu: !electronIsDev,
         backgroundThrottling: true,
         devTools: true,
         filepath: "command-center.html",

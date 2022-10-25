@@ -11,7 +11,7 @@ export const MacrosPanel = () => {
     const {
         macros: { macros },
     } = useMacroStore();
-    const [selectedMacroId, selectMacroId] = useState<string | null>(
+    const [ selectedMacroId, selectMacroId ] = useState<string | null>(
         macros[0]?.id ?? null
     );
 
@@ -22,7 +22,10 @@ export const MacrosPanel = () => {
                     style={{
                         display: "flex",
                     }}>
-                    <aside>
+                    <aside
+                        style={{
+                            minWidth: "30%",
+                        }}>
                         <CreateMacro onCreated={selectMacroId} />
                         <TreeList
                             macros={macros}

@@ -69,7 +69,7 @@ function TreeListNode( {
     selected: string | null;
     onSelect: ( id: string ) => void;
 } ) {
-    const [collapsed, setCollapsed] = React.useState( false );
+    const [ collapsed, setCollapsed ] = React.useState( false );
 
     return (
         <div
@@ -121,7 +121,7 @@ const isMacroTreeNode = ( x: MacroTreeNode | MacroDTO | undefined ): x is MacroT
     x !== undefined && "children" in x;
 
 const getNode = ( node: MacroTreeNode, path: string[] ): MacroTreeNode => {
-    const [head, ...tail] = path;
+    const [ head, ...tail ] = path;
 
     const child = node.children.find( ( x ) => x.name === head );
 
