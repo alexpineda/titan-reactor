@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker, dialog, nativeTheme } from "electron";
+import { app, powerSaveBlocker, nativeTheme, crashReporter } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -11,6 +11,7 @@ import pluginServer from "./plugins/server";
 import browserWindows from "./windows";
 import { getBootupLogs } from "./log";
 import { GO_TO_START_PAGE, LOG_MESSAGE } from "common/ipc-handle-names";
+import { logService } from "./logger/singleton";
 
 const settingsPath = path.join( getUserDataPath(), "settings.json" );
 
@@ -71,9 +72,17 @@ if ( !gotTheLock ) {
     app.commandLine.appendSwitch( "strict-origin-isolation" );
     app.commandLine.appendSwitch( "js-flags", "--expose-gc" );
     app.commandLine.appendSwitch( "--disable-gpu-process-crash-limit" );
-    // app.commandLine.appendSwitch("--disable-frame-rate-limit")
+    app.commandLine.appendSwitch( "--enable-logging=file" );
+
     app.disableDomainBlockingFor3DAPIs();
 
+    crashReporter.start( {
+        productName: "titan-reactor",
+        companyName: "imbateam",
+        submitURL:
+            "https://submit.backtrace.io/imbateam/6c0b4a6e4e557991c206cefa5ca48712c1a34e2f03f0d50c90672f034b58affc/minidump",
+        uploadToServer: true,
+    } );
     nativeTheme.themeSource = "light";
 
     createAppMenu(
@@ -95,27 +104,11 @@ if ( !gotTheLock ) {
         }
     );
 
-    if ( process.defaultApp ) {
-        if ( process.argv.length >= 2 ) {
-            app.setAsDefaultProtocolClient(
-                "titan-reactor",
-                process.execPath,
-                process.argv.slice( 1 )
-            );
-        }
-    } else {
-        app.setAsDefaultProtocolClient( "titan-reactor" );
-    }
-
     app.on( "second-instance", () => {
         if ( windows.main ) {
             if ( windows.main.isMinimized() ) windows.main.restore();
             windows.main.focus();
         }
-    } );
-
-    app.on( "open-url", ( _, url ) => {
-        dialog.showErrorBox( "Welcome Back", `You arrived from: ${url}` );
     } );
 
     app.on( "ready", async () => {
@@ -159,5 +152,13 @@ if ( !gotTheLock ) {
 
         // prevent new windows
         contents.setWindowOpenHandler( () => ( { action: "deny" } ) );
+    } );
+
+    app.on( "child-process-gone", ( _, details ) => {
+        logService.error( details.reason );
+    } );
+
+    app.on( "render-process-gone", ( _, __, details ) => {
+        logService.error( details.reason );
     } );
 }
