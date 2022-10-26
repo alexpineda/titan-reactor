@@ -146,7 +146,7 @@ export const createOverlayComposer = (
         setDimensions();
     } );
 
-    setDimensions();
+    // setDimensions();
 
     function applySettings( { settings }: WorldEvents["settings-changed"] ) {
         minimap.rotation.set(
@@ -185,6 +185,8 @@ export const createOverlayComposer = (
         cursorMaterial.uniforms.uCursorSize.value =
             settingsStore().data.graphics.cursorSize;
         cursorMaterial.uniformsNeedUpdate = true;
+
+        cursorGraphics.visible = settings.input.cursorVisible;
 
         setDimensions();
     }

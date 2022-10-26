@@ -54,6 +54,7 @@ export const defaultSettingsV6: SettingsV6 = {
         rotateSpeed: 0.15,
         zoomLevels: [ 0.5, 1, 2 ],
         unitSelection: true,
+        cursorVisible: true,
     },
     utilities: {
         sanityCheckReplayCommands: false,

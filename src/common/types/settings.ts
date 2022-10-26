@@ -92,6 +92,7 @@ export interface SettingsV6 {
         cameraShakeStrength: number;
         zoomLevels: [number, number, number];
         unitSelection: boolean;
+        cursorVisible: boolean;
     };
     utilities: {
         sanityCheckReplayCommands: boolean;

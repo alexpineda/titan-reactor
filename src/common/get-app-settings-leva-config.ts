@@ -295,6 +295,11 @@ const getInputConfig = (
         value: input.unitSelection,
         hidden: true,
     },
+    "input.cursorVisible": {
+        label: "Mouse Cursor Visible",
+        value: input.cursorVisible,
+        hidden: true,
+    },
 } );
 
 type AudioConfig = {
