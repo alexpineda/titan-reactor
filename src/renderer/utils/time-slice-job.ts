@@ -1,10 +1,11 @@
 export class TimeSliceJob<T> {
-    processor: ( work: T, next: () => void ) => boolean | undefined;
+    processor: ( work: T, next: () => void ) => boolean | void;
     #workload: T[];
     #lastUpdate = 0;
     #interval: number;
     #next: () => void;
     #available: boolean;
+    #timer: NodeJS.Timeout | null = null;
 
     timeCompleted: number;
 
@@ -12,8 +13,20 @@ export class TimeSliceJob<T> {
         return this.#workload.length === 0;
     }
 
+    set autoUpdate( val: boolean ) {
+        clearInterval( this.#timer! );
+        if ( val ) {
+            this.#lastUpdate = Date.now();
+            this.#timer = setInterval( () => {
+                this.update( Date.now() );
+            }, this.#interval );
+        } else {
+            this.#timer = null;
+        }
+    }
+
     constructor(
-        processor: ( work: T, next: () => void ) => boolean | undefined,
+        processor: ( work: T, next: () => void ) => boolean | void,
         workload: T[],
         interval: number
     ) {
@@ -42,8 +55,9 @@ export class TimeSliceJob<T> {
             !this.isComplete()
         ) {
             const _isComplete = this.isComplete();
-            // eslint-disable-next-line no-empty
+            this.#available = false;
             while ( this.processor( this.#workload.pop()!, this.#next ) === false ) {
+                this.#available = true;
                 if ( this.isComplete() ) {
                     break;
                 }

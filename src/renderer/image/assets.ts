@@ -20,6 +20,7 @@ import { loadDatFilesRemote } from "@ipc/files";
 import { parseDDS } from "./formats/parse-dds";
 import { b2ba } from "@utils/bin-utils";
 import processStore from "@stores/process-store";
+import { TimeSliceJob } from "@utils/time-slice-job";
 
 // if ( import.meta.hot ) {
 //     import.meta.hot.accept( "@core/model-effects-configuration" );
@@ -138,6 +139,37 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
     const glbFileName = ( imageId: number ) =>
         path.join( directories.assets, `00${imageId}`.slice( -3 ) + ".glb" );
 
+    const hdLoaderJob = new TimeSliceJob<number>(
+        ( imageId: number, next ) => {
+            _loadAtlas( imageId, UnitTileScale.HD ).then( next );
+        },
+        [],
+        400
+    );
+    hdLoaderJob.autoUpdate = true;
+
+    const _loadAtlas = async ( imageId: number, res: UnitTileScale, fakeHD = false ) => {
+        const refImageId = refId( imageId );
+
+        const anim = loadAnimAtlas( await loadAnimBuffer( refImageId, res ), imageId, res );
+
+        if ( atlases[refImageId]?.isHD2 && anim.isHD ) {
+            setHDMipMaps( anim, atlases[refImageId] );
+        }
+
+        if ( anim.isHD2 && atlases[refImageId]?.isHD ) {
+            log.warn( "hd2 after hd" );
+        }
+
+        // assigning to a new object since ImageHD needs to test against its existing atlas
+        atlases[imageId] = Object.assign( {}, atlases[imageId], anim, {
+            isHD: fakeHD ? true : anim.isHD,
+        } );
+        atlases[refImageId] = Object.assign( {}, atlases[refImageId], anim, {
+            isHD: fakeHD ? true : anim.isHD,
+        } );
+    };
+
     /**
      * Loads an image atlas for HD2, HD and GLTF.
      * It will load HD2/GLB at once then load HD once HD2.
@@ -172,23 +204,11 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
             glbExists.set( refImageId, await fileExists( glbFileName( glbRefImageId ) ) );
         }
 
-        const anim = loadAnimAtlas( await loadAnimBuffer( refImageId, res ), imageId, res );
-
-        if ( atlases[refImageId]?.isHD2 && anim.isHD ) {
-            setHDMipMaps( anim, atlases[refImageId] );
+        if ( res === UnitTileScale.HD && settings !== "ignore" ) {
+            hdLoaderJob.addWork( imageId );
+        } else {
+            await _loadAtlas( imageId, res, settings === "force" );
         }
-
-        if ( anim.isHD2 && atlases[refImageId]?.isHD ) {
-            log.warn( "hd2 after hd" );
-        }
-
-        // assigning to a new object since ImageHD needs to test against its existing atlas
-        atlases[imageId] = Object.assign( {}, atlases[imageId], anim, {
-            isHD: settings === "force" ? true : anim.isHD,
-        } );
-        atlases[refImageId] = Object.assign( {}, atlases[refImageId], anim, {
-            isHD: settings === "force" ? true : anim.isHD,
-        } );
 
         if ( glbExists.get( refImageId ) ) {
             glbExists.set( refImageId, false );
