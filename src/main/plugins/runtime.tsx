@@ -1,19 +1,17 @@
+import type { DumpedUnit } from "@core/unit";
+import type {
+    RTPluginStateMessage,
+    RTMinimapDimensions,
+    RTUIStateAssets,
+    RTPluginMetaData,
+    RTTechDataDAT,
+    RTUnitDAT,
+    RTUpgradeDAT,
+} from "@utils/types/runtime.types";
 import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
-import {
-    DumpedUnit,
-    MinimapDimensions,
-    TechDataDAT,
-    Unit,
-    UnitDAT,
-    UpgradeDAT,
-    PluginMetaData,
-    PluginStateMessage,
-    UIStateAssets,
-    // eslint-disable-next-line
-} from "titan-reactor/host";
 
 // split up an array into chunks of size n
 function chunk( arr: Int32Array, n: number ) {
@@ -42,7 +40,7 @@ interface Plugin {
     script: HTMLScriptElement;
 }
 
-type StateMessage = Partial<PluginStateMessage>;
+type StateMessage = Partial<RTPluginStateMessage>;
 const useStore = create<StateMessage>( () => ( {
     screen: {
         screen: "@home",
@@ -95,29 +93,24 @@ export const useSelectedUnits = () => {
         return {
             ...unit,
             extras: {
-                dat: assets.bwDat.units[unit.typeId],
+                dat: assets.bwDat.units[unit.typeId!],
             },
         };
     } );
 };
 
-const _useProgress = ( state: StateMessage ) => state.progress;
-export const useProgress = () => {
-    return useStore( _useProgress ) ?? [];
-};
-
-const unitIsComplete = ( unit: Unit ) => {
-    return ( unit.statusFlags & 0x01 ) === 1;
+const unitIsComplete = ( unit: DumpedUnit ) => {
+    return ( unit.statusFlags! & 0x01 ) === 1;
 };
 
 export const getUnitIcon = ( unit: DumpedUnit ) => {
     if (
-        ( unit.extras.dat.isBuilding &&
-            !unit.extras.dat.isZerg &&
+        ( unit.extras!.dat.isBuilding &&
+            !unit.extras!.dat.isZerg &&
             unitIsComplete( unit ) &&
             unit.buildQueue?.length ) ||
-        ( unit.extras.dat.isZerg &&
-            !unit.extras.dat.isBuilding &&
+        ( unit.extras!.dat.isZerg &&
+            !unit.extras!.dat.isBuilding &&
             unit.buildQueue?.length )
     ) {
         return unit.buildQueue[0];
@@ -136,7 +129,7 @@ export const getUnitIcon = ( unit: DumpedUnit ) => {
     return null;
 };
 
-const mapUnitInProduction = ( input: Int32Array, unit: UnitDAT ) =>
+const mapUnitInProduction = ( input: Int32Array, unit: RTUnitDAT ) =>
     unit.isTurret
         ? null
         : {
@@ -147,7 +140,7 @@ const mapUnitInProduction = ( input: Int32Array, unit: UnitDAT ) =>
               isUnit: true,
           };
 
-const mapUpgradeInProduction = ( input: Int32Array, upgrade: UpgradeDAT ) => ( {
+const mapUpgradeInProduction = ( input: Int32Array, upgrade: RTUpgradeDAT ) => ( {
     typeId: input[0],
     icon: upgrade.icon,
     level: input[1],
@@ -156,7 +149,7 @@ const mapUpgradeInProduction = ( input: Int32Array, upgrade: UpgradeDAT ) => ( {
         input[2]! / ( upgrade.researchTimeBase + upgrade.researchTimeFactor * input[1]! ),
 } );
 
-const mapResearchInProduction = ( input: Int32Array, research: TechDataDAT ) => ( {
+const mapResearchInProduction = ( input: Int32Array, research: RTTechDataDAT ) => ( {
     typeId: input[0],
     icon: research.icon,
     progress: input[1]! / research.researchTime,
@@ -247,7 +240,7 @@ const _removePlugin = ( pluginId: string ) => {
     delete _plugins[plugin.id];
 };
 
-const _addPlugin = ( plugin: PluginMetaData ) => {
+const _addPlugin = ( plugin: RTPluginMetaData ) => {
     if ( !plugin.indexFile ) {
         return;
     }
@@ -270,8 +263,7 @@ const _addPlugin = ( plugin: PluginMetaData ) => {
     } );
 };
 
-//@ts-expect-error
-export const assets: UIStateAssets = {};
+export const assets: RTUIStateAssets = {} as RTUIStateAssets;
 // TODO: export enums type defs
 export const enums: any = {};
 class RollingValue {
@@ -431,16 +423,13 @@ const getPlayerInfo = (
     return playerInfo;
 };
 
-const updateDimensionsCss = ( dimensions: MinimapDimensions ) => {
+const updateDimensionsCss = ( dimensions: RTMinimapDimensions ) => {
     setPluginStyleSheet(
         "game-dimension-css-vars",
         `:root {
         --minimap-width: ${dimensions.minimapWidth}px;
         --minimap-height: ${dimensions.minimapHeight}px;
-        --minimap-matrix: matrix3d(${
-            /* @ts-expect-error */
-            dimensions.matrix.join( "," )
-        });
+        --minimap-matrix: matrix3d(${dimensions.matrix.join( "," )});
       }`
     );
 };
@@ -463,36 +452,28 @@ function convertIcons() {
         }
     }
 
-    assets.raceInsetIcons.protoss = URL.createObjectURL(
-        assets.raceInsetIcons.protoss as Blob
-    );
-    assets.raceInsetIcons.zerg = URL.createObjectURL(
-        assets.raceInsetIcons.zerg as Blob
-    );
-    assets.raceInsetIcons.terran = URL.createObjectURL(
-        assets.raceInsetIcons.terran as Blob
-    );
+    assets.raceInsetIcons.protoss = URL.createObjectURL( assets.raceInsetIcons.protoss );
+    assets.raceInsetIcons.zerg = URL.createObjectURL( assets.raceInsetIcons.zerg );
+    assets.raceInsetIcons.terran = URL.createObjectURL( assets.raceInsetIcons.terran );
 
     assets.workerIcons.protoss = b( assets.workerIcons.protoss as ArrayBuffer );
     assets.workerIcons.zerg = b( assets.workerIcons.zerg as ArrayBuffer );
     assets.workerIcons.terran = b( assets.workerIcons.terran as ArrayBuffer );
     assets.workerIcons.apm = b( assets.workerIcons.apm as ArrayBuffer );
 
-    assets.gameIcons.energy = URL.createObjectURL( assets.gameIcons.energy as Blob );
-    assets.gameIcons.minerals = URL.createObjectURL( assets.gameIcons.minerals as Blob );
+    assets.gameIcons.energy = URL.createObjectURL( assets.gameIcons.energy );
+    assets.gameIcons.minerals = URL.createObjectURL( assets.gameIcons.minerals );
 
-    assets.gameIcons.protoss = URL.createObjectURL( assets.gameIcons.protoss as Blob );
-    assets.gameIcons.terran = URL.createObjectURL( assets.gameIcons.terran as Blob );
+    assets.gameIcons.protoss = URL.createObjectURL( assets.gameIcons.protoss );
+    assets.gameIcons.terran = URL.createObjectURL( assets.gameIcons.terran );
     assets.gameIcons.vespeneProtoss = URL.createObjectURL(
-        assets.gameIcons.vespeneProtoss as Blob
+        assets.gameIcons.vespeneProtoss
     );
     assets.gameIcons.vespeneTerran = URL.createObjectURL(
-        assets.gameIcons.vespeneTerran as Blob
+        assets.gameIcons.vespeneTerran
     );
-    assets.gameIcons.vespeneZerg = URL.createObjectURL(
-        assets.gameIcons.vespeneZerg as Blob
-    );
-    assets.gameIcons.zerg = URL.createObjectURL( assets.gameIcons.zerg as Blob );
+    assets.gameIcons.vespeneZerg = URL.createObjectURL( assets.gameIcons.vespeneZerg );
+    assets.gameIcons.zerg = URL.createObjectURL( assets.gameIcons.zerg );
 }
 
 const _messageListener = function ( event: MessageEvent ) {
@@ -539,16 +520,16 @@ const _messageListener = function ( event: MessageEvent ) {
         }
     } else {
         if ( event.data.type === "dimensions" ) {
-            updateDimensionsCss( event.data.payload );
+            updateDimensionsCss( event.data.payload as RTMinimapDimensions );
         }
-        useStore.setState( { [event.data.type]: event.data.payload } );
+        useStore.setState( { [event.data.type]: event.data.payload as unknown } );
     }
 };
 window.addEventListener( "message", _messageListener );
 
 const PluginContext = createContext<Component | null>( null );
 
-export const useMessage = ( cb?: ( event: any ) => void, deps = [] ) => {
+export const useMessage = ( cb?: ( event: any ) => void, deps: unknown[] = [] ) => {
     const { messageHandler } = useContext( PluginContext )!;
 
     useEffect( () => {
@@ -557,13 +538,13 @@ export const useMessage = ( cb?: ( event: any ) => void, deps = [] ) => {
         };
         messageHandler.addEventListener( "message", handler );
         return () => messageHandler.removeEventListener( "message", handler );
-    }, deps );
+    }, [ ...deps, cb, messageHandler ] );
 };
 
 export const useSendMessage = () => {
     const { pluginId } = useContext( PluginContext )!;
 
-    return ( message: any ) =>
+    return ( message: unknown ) =>
         window.parent.postMessage(
             {
                 type: "system:custom-message",
@@ -578,7 +559,7 @@ export const useSendMessage = () => {
 
 export const usePluginConfig = () => {
     const { pluginId } = useContext( PluginContext )!;
-    return useConfig( ( store: any ) => store[pluginId] );
+    return useConfig( ( store: Record<string, unknown> ) => store[pluginId] );
 };
 
 export const useStyleSheet = ( content: string, deps = [] ) => {

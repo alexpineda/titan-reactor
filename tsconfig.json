@@ -5,6 +5,7 @@
         "moduleResolution": "node",
         "noImplicitOverride": true,
         "allowJs": true,
+        "checkJs": false,
         "allowSyntheticDefaultImports": true,
         "emitDecoratorMetadata": true,
         "esModuleInterop": true,
@@ -20,6 +21,10 @@
         "lib": ["DOM", "DOM.Iterable", "ESNext"],
         "noErrorTruncation": true,
         "noUncheckedIndexedAccess": false,
+
+        "declaration": true,
+        "declarationMap": true,
+        "declarationDir": "./dist/types",
 
         "noUnusedLocals": true,
         "noUnusedParameters": true,
@@ -57,7 +62,7 @@
             "@macros": ["renderer/macros/index.ts"]
         },
         "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
-        
+
         "outDir": "generated",
         "resolveJsonModule": true
     },

@@ -4,6 +4,7 @@
     "version": "0.6.6",
     "description": "An OpenBW Renderer",
     "main": "dist/electron/main/index.js",
+    "typings": "dist/types/index.d.ts",
     "scripts": {
         "dev": "vite",
         "sanity": "yarn typecheck && yarn test:once",
@@ -18,7 +19,7 @@
         "lint": "yarn eslint . && yarn prettier --check .",
         "clean-dev-win": "taskkill /f /im node.exe",
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
-        "build-api-types": "ts-node -T .\\build\\apis\\build-api-types.ts"
+        "build-api-types": "ts-node -T .\\build\\api\\index.ts"
     },
     "browserslist": [
         "last 2 Chrome versions"
