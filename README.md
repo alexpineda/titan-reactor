@@ -49,6 +49,10 @@ Developing plugins for Titan Reactor is easy and requires no build tools! A know
 
 Replay data is not shared or transmitted by Titan Reactor. However, you may explicitly grant a plugin permission to access replay information for its own functionality.
 
+### Donations
+
+If you use this software, please donate (one time) to the [MS Society](https://mssociety.ca/). If donating to that particular charity is not possible, please try and donate to a medical oriented charity of your choosing.
+
 ### Development Installation
 
 _Using node 16 and yarn 1.x_

@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v0.6.7]
+
 ## Added
 
 -   Macro groups
@@ -14,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Fixed
 
 -   Bunker overlay offset (marine fire)
--   Long delay on initial load
+-   Fix issue where the app would "crash" on loading due to some changes in latest electron api (memory cage in v21)
 
 ## Changed
 
@@ -267,7 +269,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Good support for HD2/HD terrain, sluggish first render time, on the todo list.
 -   Unit selection / unit boxing for the time being.
 
-[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.6...HEAD
+[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.7...HEAD
+[0.6.7]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.6...v0.6.7
 [0.6.6]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.5...v0.6.6
 [0.6.5]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.4...v0.6.5
 [0.6.4]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.0...v0.6.4
