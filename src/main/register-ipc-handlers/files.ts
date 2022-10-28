@@ -15,7 +15,11 @@ ipcMain.handle( OPEN_FILE, async ( _, filepath: string = "" ) => {
 } );
 
 ipcMain.handle( LOAD_DAT_FILES, async () => {
-    await openCascStorage( settings.get().directories.starcraft );
+    try {
+        await openCascStorage( settings.get().directories.starcraft );
+    } catch ( e ) {
+        return {};
+    }
 
     return await loadDATFiles( readCascFile );
 } );

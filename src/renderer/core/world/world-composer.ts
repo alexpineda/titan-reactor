@@ -207,7 +207,9 @@ export const createWorldComposer = async (
             } );
             events.emit( "world-start" );
 
-            window.gc!();
+            if ( window.gc ) {
+                window.gc();
+            }
 
             gameLoopComposer.start();
 

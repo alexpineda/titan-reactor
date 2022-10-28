@@ -72,8 +72,9 @@ if ( !gotTheLock ) {
     app.commandLine.appendSwitch( "disable-xr-sandbox" );
     app.commandLine.appendSwitch( "strict-origin-isolation" );
     app.commandLine.appendSwitch( "js-flags", "--expose-gc" );
-    app.commandLine.appendSwitch( "--disable-gpu-process-crash-limit" );
-    app.commandLine.appendSwitch( "--enable-logging=file" );
+    app.commandLine.appendSwitch( "disable-gpu-process-crash-limit" );
+    app.commandLine.appendSwitch( "enable-logging=file" );
+    app.commandLine.appendSwitch( "--trace-warnings" );
 
     app.disableDomainBlockingFor3DAPIs();
 

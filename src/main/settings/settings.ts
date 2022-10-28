@@ -13,7 +13,6 @@ import { findReplaysPath } from "../starcraft/find-replay-paths";
 import { foldersExist } from "./folders-exist";
 import { doMigrations } from "./migrate";
 import { findPluginsPath } from "../starcraft/find-plugins-path";
-import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { logService } from "../logger/singleton";
@@ -43,12 +42,6 @@ async function loadJSON<T>( filepath: string ): Promise<T | null> {
         const json = JSON.parse( contents ) as T;
         return json;
     } catch ( e ) {
-        log.error(
-            withErrorMessage(
-                e,
-                `@settings/load: Error loading settings.json from ${filepath}`
-            )
-        );
         return null;
     }
 }

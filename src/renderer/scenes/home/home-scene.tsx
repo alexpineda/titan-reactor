@@ -5,6 +5,7 @@ import youtubeLogo from "@image/assets/youtube.png";
 import githubLogo from "@image/assets/github.png";
 import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
 import { GlobalErrorState } from "../error-state";
+import packageJSON from "../../../../package.json";
 
 const iconStyle = {
     width: "var(--size-8)",
@@ -102,6 +103,15 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                     </div>
                 </div>
             )}
+            <p
+                style={{
+                    position: "absolute",
+                    right: 0,
+                    bottom: 0,
+                    color: "var(--gray-4)",
+                }}>
+                v{packageJSON.version}
+            </p>
         </div>
     );
 };

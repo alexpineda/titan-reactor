@@ -45,7 +45,11 @@ export const openCascStorage = async ( bwPath: string ) => {
     if ( _storageHandle ) {
         casclib.closeStorage( _storageHandle );
     }
-    _storageHandle = ( await casclib.openStorage( bwPath ) ) as unknown;
+    try {
+        _storageHandle = ( await casclib.openStorage( bwPath ) ) as unknown;
+    } catch ( e ) {
+        throw new Error( `Failed to open CASC storage at ${bwPath}` );
+    }
 };
 
 export const closeCascStorage = () => {

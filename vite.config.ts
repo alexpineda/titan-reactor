@@ -63,7 +63,6 @@ export default defineConfig((env) => {
                             // For Debug
                             sourcemap: true,
                             outDir: "dist/electron/main",
-                            minify: false,
                         },
                         // Will start Electron via VSCode Debug
                         plugins: [process.env.VSCODE_DEBUG ? onstart() : null],

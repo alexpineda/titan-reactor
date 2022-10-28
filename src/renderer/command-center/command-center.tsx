@@ -19,6 +19,10 @@ import { PluginButton } from "./plugin-button";
 import { ReplayQueue } from "./replay-queue";
 import semver from "semver";
 
+import "../../../bundled/assets/normalize.min.css";
+import "../../../bundled/assets/open-props.1.4.min.css";
+import "../../../bundled/assets/buttons.min.css";
+
 document.title = "Command Center";
 
 const s = document.createElement( "link" );
