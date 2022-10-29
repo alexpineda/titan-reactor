@@ -27,6 +27,7 @@ export class PluginSystemNative {
 
     #permissions = new Map<string, Record<string, boolean>>();
     #sendCustomUIMessage: ( pluginId: string, message: any ) => void;
+    #compartments = new WeakMap<PluginBase, { globalThis: object }>();
 
     [Symbol.iterator]() {
         return this.#plugins[Symbol.iterator]();
@@ -103,6 +104,8 @@ export class PluginSystemNative {
             );
 
             log.debug( `@plugin-system-native: initialized plugin "${plugin.name}"` );
+
+            this.#compartments.set( plugin, compartment );
 
             return plugin;
         } catch ( e: unknown ) {

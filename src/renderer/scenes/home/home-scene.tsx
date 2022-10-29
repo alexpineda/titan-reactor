@@ -103,15 +103,16 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                     </div>
                 </div>
             )}
-            <p
+            <div
                 style={{
                     position: "absolute",
                     right: 0,
                     bottom: 0,
                     color: "var(--gray-4)",
                 }}>
-                v{packageJSON.version}
-            </p>
+                <p>Created by Ricardo Alejandro, aka DarkMatter</p>
+                <p>v{packageJSON.version}</p>
+            </div>
         </div>
     );
 };

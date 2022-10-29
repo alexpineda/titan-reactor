@@ -1,5 +1,5 @@
 export const PERMISSION_REPLAY_COMMANDS = "replay.commands";
-export const PERMISSION_REPLAY_FILE = "replay.file";
+export const PERMISSION_REPLAY_FILE = "replay";
 export const PERMISSION_SYSTEM = "system";
 export const PERMISSION_SANDBOX = "sandbox";
 

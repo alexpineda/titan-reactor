@@ -67,7 +67,7 @@ export const createPluginSessionStore = (
 
             plugins.hook_onConfigChanged(
                 plugin.id,
-                lSet( plugin.rawConfig!, [path[1], "value"], value )
+                lSet( plugin.rawConfig!, [ path[1], "value" ], value )
             );
 
             uiPlugins.sendMessage( {
@@ -90,7 +90,7 @@ export const createPluginSessionStore = (
     const vars = plugins.reduce( ( acc, plugin ) => {
         Object.keys( plugin.rawConfig ?? {} ).forEach( ( key ) => {
             if ( key !== "system" ) {
-                const compKey = [plugin.name, key];
+                const compKey = [ plugin.name, key ];
                 lSet( acc, compKey, store.createVariable( compKey ) );
             }
         } );
@@ -100,9 +100,9 @@ export const createPluginSessionStore = (
             settingsStore().enabledPlugins.find( ( p ) => p.id === plugin.id )
                 ?.externMethods ?? []
         ).map( ( method ) => {
-            lSet( acc, [plugin.name, method], ( ...args: any[] ) =>
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-                plugin[method as keyof PluginBase]( ...args )
+            lSet( acc, [ plugin.name, method ], ( ...args: any[] ) =>
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                ( plugin[method as keyof PluginBase] as any )( ...args )
             );
         } );
 

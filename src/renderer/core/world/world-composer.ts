@@ -1,7 +1,7 @@
 import { OpenBW } from "@openbw/openbw";
 import { Assets } from "@image/assets";
 import { Janitor } from "three-janitor";
-import { createPluginsAndMacroSession } from "./create-plugins-and-macros-session";
+import { ApiSession } from "./api-session";
 import { createSettingsSessionStore } from "./settings-session-store";
 import { ipcRenderer } from "electron";
 import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
@@ -26,6 +26,7 @@ import { mix } from "@utils/object-utils";
 import { mixer } from "@core/global";
 import { WorldEvents } from "./world-events";
 import { createInputComposer } from "./input-composer";
+import { settingsStore } from "@stores/settings-store";
 
 export const createWorldComposer = async (
     openBW: OpenBW,
@@ -37,7 +38,7 @@ export const createWorldComposer = async (
     const janitor = new Janitor( "WorldComposer" );
     const events = janitor.mop( new TypeEmitter<WorldEvents>(), "events" );
     const settings = janitor.mop( createSettingsSessionStore( events ) );
-    const plugins = await createPluginsAndMacroSession( events, settings, openBW );
+
     const fogOfWarEffect = janitor.mop( new FogOfWarEffect(), "FogOfWarEffect" );
     const fogOfWar = new FogOfWar( map.size[0], map.size[1], openBW, fogOfWarEffect );
 
@@ -48,7 +49,6 @@ export const createWorldComposer = async (
         commands,
         fogOfWar,
         fogOfWarEffect,
-        plugins,
         settings,
         janitor,
         events,
@@ -89,12 +89,12 @@ export const createWorldComposer = async (
     events.on( "settings-changed", ( { settings } ) => mixer.setVolumes( settings.audio ) );
 
     const _setSceneController = async ( controllername: string, defaultData?: any ) => {
-        const sceneController = plugins.native
+        const sceneController = apiSession.native
             .getAllSceneControllers()
             .find( ( handler ) => handler.name === controllername );
 
         if ( sceneController ) {
-            plugins.native.activateSceneController( sceneController );
+            apiSession.native.activateSceneController( sceneController );
             await viewControllerComposer.activate( sceneController, defaultData );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
@@ -102,7 +102,7 @@ export const createWorldComposer = async (
     };
 
     const unsetSceneController = () => {
-        plugins.native.activateSceneController( undefined );
+        apiSession.native.activateSceneController( undefined );
         viewControllerComposer.deactivate();
     };
 
@@ -157,6 +157,8 @@ export const createWorldComposer = async (
         postProcessingComposer.api
     ) as GameTimeApi;
 
+    let apiSession = new ApiSession();
+
     return {
         world,
 
@@ -191,9 +193,14 @@ export const createWorldComposer = async (
             if ( reloadPlugins ) {
                 events.emit( "world-end" );
                 unsetSceneController();
+
+                apiSession.dispose();
+                apiSession = new ApiSession();
+                
+                await settingsStore().load();
             }
 
-            await plugins.activate( gameTimeApi, settings, reloadPlugins );
+            await apiSession.activate( events, settings, openBW, gameTimeApi );
 
             await _setSceneController( sceneController, targetData );
 
@@ -253,14 +260,14 @@ export const createWorldComposer = async (
 
                 overlayComposer.onFrame( openBwComposer.completedUpgrades );
 
-                plugins.ui.onFrame(
+                apiSession.ui.onFrame(
                     openBwComposer.currentFrame,
                     sceneComposer.selectedUnits._dangerousArray
                 );
 
                 commandsComposer.onFrame( openBwComposer.currentFrame );
 
-                plugins.native.hook_onFrame(
+                apiSession.native.hook_onFrame(
                     openBwComposer.currentFrame,
                     commandsComposer.commandsThisFrame
                 );
@@ -272,11 +279,11 @@ export const createWorldComposer = async (
         },
 
         onRender: ( delta: number, elapsed: number ) => {
-            plugins.native.hook_onBeforeRender( delta, elapsed );
+            apiSession.native.hook_onBeforeRender( delta, elapsed );
 
             postProcessingComposer.render( delta, elapsed );
 
-            plugins.native.hook_onRender( delta, elapsed );
+            apiSession.native.hook_onRender( delta, elapsed );
         },
     };
 };

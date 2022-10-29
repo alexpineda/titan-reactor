@@ -298,11 +298,6 @@ import { SceneController } from "titan-reactor/host";
 
 export default class PluginAddon extends SceneController implements SceneController {
 
-// REQUIRED
-gameOptions = {
-    audio: "3d" as const,
-}
-
 // REQUIRED.
 async onEnterScene(prevSceneExitData) {
   // try our best to transition the camera location

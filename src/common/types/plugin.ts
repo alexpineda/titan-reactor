@@ -108,11 +108,6 @@ export interface NativePlugin {
      */
     onFrame?( frame: number, commands?: any[] ): void;
     /**
-     * Used for message passing in hooks
-     */
-    context?: any;
-
-    /**
      * When a game has been loaded and the game loop is about to begin
      */
     onSceneReady?(): void;

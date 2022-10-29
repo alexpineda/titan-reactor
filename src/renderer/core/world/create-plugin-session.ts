@@ -14,21 +14,32 @@ import { createPluginSessionStore } from "@core/world/plugin-session-store";
 import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "@core/global-events";
 import { WorldEvents } from "./world-events";
-import { TypeEmitterProxy } from "@utils/type-emitter";
+import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
 export const createPluginSession = async (
     openBW: OpenBW,
-    events: TypeEmitterProxy<WorldEvents>
+    _events: TypeEmitter<WorldEvents>
 ) => {
     const janitor = new Janitor( "PluginSession" );
 
+    const events = janitor.mop( new TypeEmitterProxy( _events ) );
+
     const pluginPackages = settingsStore().enabledPlugins;
     const uiPlugins = janitor.mop(
-        new PluginSystemUI( openBW, pluginPackages, events ),
+        new PluginSystemUI( openBW, pluginPackages ),
         "uiPlugins"
     );
+
+    events.on( "frame-reset", ( frame ) => {
+        uiPlugins.onFrameReset( frame );
+    } );
+
+    events.on( "selected-units-changed", ( units ) => {
+        uiPlugins.onUnitsUpdated( units );
+    } );
+
     const nativePlugins = janitor.mop(
         new PluginSystemNative(
             pluginPackages,
@@ -52,10 +63,6 @@ export const createPluginSession = async (
     );
 
     await uiPlugins.isRunning();
-
-    events.on( "frame-reset", ( frame ) => {
-        uiPlugins.onFrameReset( frame );
-    } );
 
     janitor.mop(
         globalEvents.on(

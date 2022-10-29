@@ -31,8 +31,6 @@ import { getSecond } from "common/utils/conversions";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import { Timer } from "@utils/timer";
-import { TypeEmitterProxy } from "@utils/type-emitter";
-import { WorldEvents } from "@core/world/world-events";
 
 const screenChanged = ( screen: SceneStore ) => {
     return {
@@ -140,11 +138,7 @@ export class PluginSystemUI {
 
     refresh: () => void;
 
-    constructor(
-        openBW: OpenBW,
-        pluginPackages: PluginMetaData[],
-        events: TypeEmitterProxy<WorldEvents>
-    ) {
+    constructor( openBW: OpenBW, pluginPackages: PluginMetaData[] ) {
         this.#openBW = openBW;
 
         this.#iframe.style.backgroundColor = "transparent";
@@ -222,10 +216,6 @@ export class PluginSystemUI {
             // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         };
-
-        events.on( "selected-units-changed", ( units ) => {
-            this.#onUnitsUpdated( units );
-        } );
 
         //TODO: migrate these to world events
         // do we need this?
@@ -307,11 +297,10 @@ export class PluginSystemUI {
         }
     };
 
-    onUnitsSelected( units: Unit[] ) {
-        this.sendMessage( {
-            type: UI_STATE_EVENT_UNITS_SELECTED,
-            payload: this.#unitsToUnitsPayload( units ),
-        } );
+    onUnitsUpdated( units: Unit[] ) {
+        _selectedUnitMessage.payload = this.#unitsToUnitsPayload( units );
+        this.sendMessage( _selectedUnitMessage );
+        _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = units.length;
     }
 
     sendMessage( message: object, transfer?: Transferable[] ) {
@@ -375,7 +364,7 @@ export class PluginSystemUI {
                 _lastSend[UI_STATE_EVENT_UNITS_SELECTED] > 0 ||
                 selectedUnits.length > 0
             ) {
-                this.#onUnitsUpdated( selectedUnits );
+                this.onUnitsUpdated( selectedUnits );
             }
         }
     }
@@ -424,12 +413,5 @@ export class PluginSystemUI {
         _onProduction.payload.playerData = playerData;
 
         this.sendMessage( _onProduction, _productionTransferables );
-    }
-
-    #onUnitsUpdated( units: Unit[] ) {
-        //TODO move this out to supply to native as well
-        _selectedUnitMessage.payload = this.#unitsToUnitsPayload( units );
-        this.sendMessage( _selectedUnitMessage );
-        _lastSend[UI_STATE_EVENT_UNITS_SELECTED] = units.length;
     }
 }

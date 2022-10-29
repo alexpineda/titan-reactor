@@ -8,14 +8,6 @@ export interface SceneController
     extends Omit<NativePlugin, "config">,
         GameTimeApi,
         Injectables {
-    //TODO MOve this to hidden settings
-    gameOptions: {
-        /**
-         * Audio mode in stereo is classic bw style, 3d is spatial.
-         */
-        audio: "stereo" | "3d";
-    };
-
     /**
      * Updates every frame with the current mouse data.
      *
@@ -90,7 +82,7 @@ export class SceneController extends PluginBase implements SceneController {
         return Promise.resolve( prevData );
     }
 
-    //TODO: remove this completely, hardcode in plugins via the callback
+    //TODO: change to globalThis
     onUpdateAudioMixerLocation( target: Vector3, position: Vector3 ) {
         return position.lerp(
             target,

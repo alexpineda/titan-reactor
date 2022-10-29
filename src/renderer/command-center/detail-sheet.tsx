@@ -11,11 +11,13 @@ import { Schema } from "leva/plugin";
 import { VALID_PERMISSIONS } from "@plugins/permissions";
 
 const permissionDescriptions: Record<VALID_PERMISSIONS, string> = {
-    "replay.file": "Allows the plugin to access the replay file entirely",
+    "replay": "Allows the plugin to access the replay file entirely",
     "replay.commands":
         "Allows the plugin to access the replay commands like select units, move and attack.",
-    "device": "Allows the plugin to access your device.",
-    "sandbox": "Allows the plugin to access the sandbox.",
+    "system":
+        "Allows the plugin to access your entire system (file system, libraries, etc.).",
+    "sandbox":
+        "Allows the plugin to create units, destroy units, and order units around.",
 };
 
 export const DetailSheet = ( {
