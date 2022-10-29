@@ -107,6 +107,7 @@ export const createPluginsAndMacroSession = async (
                 } )
             );
 
+            //TODO: implement via globalThis instead?
             janitor.mop(
                 this.native.injectApi(
                     mix(

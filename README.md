@@ -45,13 +45,17 @@ Developing plugins for Titan Reactor is easy and requires no build tools! A know
 
 [See the CREATING_PLUGINS document for more details.](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
 
-### Replay Data
+### Replay Data Security
 
-Replay data is not shared or transmitted by Titan Reactor. However, you may explicitly grant a plugin permission to access replay information for its own functionality.
+Replay data is not shared or transmitted by Titan Reactor. You may explicitly grant a plugin permission to access replay information for its own functionality.
 
 ### Donations
 
-If you use this software, please donate (one time) to the [MS Society](https://mssociety.ca/). If donating to that particular charity is not possible, please try and donate to a medical oriented charity of your choosing.
+If you use this software, please donate (one time) to the [MS Society](https://mssociety.ca/). If donating to that particular charity is not possible, please try and donate to a medical oriented charity of your choosing. Thank you.
+
+### Special Thank You
+
+I suspect the usual folks are in for a big thank you: heinerman, tec27, neiv, tcsmoo, icza, farty1billion, poiuy_qwert and anyone/everyone that has helped either actively or passively ( by using your tools, and/or my taking liberties with your code, respecting license of course ). Big up to xiarobear for partnering up long term (almost 3 years?) with the artwork. <3
 
 ### Development Installation
 

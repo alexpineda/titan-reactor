@@ -71,7 +71,7 @@ export const createMacrosComposer = ( settings: SettingsSessionStore ) => {
                             actions.get( action )!();
                         } else {
                             const fn = container.globalThis.Function(
-                                action.value as object
+                                action.value as string
                             ) as () => void;
                             actions.set( action, fn );
                             fn();

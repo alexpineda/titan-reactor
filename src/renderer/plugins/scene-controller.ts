@@ -90,6 +90,7 @@ export class SceneController extends PluginBase implements SceneController {
         return Promise.resolve( prevData );
     }
 
+    //TODO: remove this completely, hardcode in plugins via the callback
     onUpdateAudioMixerLocation( target: Vector3, position: Vector3 ) {
         return position.lerp(
             target,

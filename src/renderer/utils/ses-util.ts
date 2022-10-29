@@ -6,20 +6,21 @@ import * as enums from "common/enums";
 import { Janitor } from "three-janitor";
 import { mix } from "./object-utils";
 
-// declare global {
-//     interface Window {
-//         harden<T>(obj: T): T;
-//         lockdown(): void;
-//         Compartment: any;
-//     }
-// }
+export const createCompartment = ( userEnv: object = {} ) => {
+    const userModules = {
+        THREE,
+        postprocessing,
+        Janitor,
+        enums,
+        cameraControls,
+        context: undefined,
+    };
+    const systemModules = {
+        console: harden( console ),
+        Image: harden( Image ),
+    };
 
-export const createCompartment = ( env: object = {} ) => {
-    const modules = { THREE, postprocessing, Janitor, enums, cameraControls };
-
-    const compartment = new Compartment(
-        mix( env, { console: harden( console ) }, modules, { Image: harden( Image ) } )
-    );
+    const compartment = new Compartment( mix( {}, userEnv, userModules, systemModules ) );
 
     compartment.globalThis.Math = Math;
 
@@ -32,16 +33,16 @@ export const lockdown_ = () => {
 
         // @ts-expect-error
         window.Compartment = function Compartment( env: object ) {
-            // const windowCopy = {...window};
-            // delete windowCopy.require;
-            const globalThis: Record<string, any> = {};
+            const globalThis: Record<string, any> = env;
             globalThis.Function = ( code: string ) => {
-                const vars = `const {${Object.keys( env ).join( "," )}} = arguments[0];\n`;
+                const vars = `
+                    const {${Object.keys( env ).join( "," )}} = this;
+                `;
                 // eslint-disable-next-line @typescript-eslint/no-implied-eval
                 const fn = Function( vars + code );
 
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                return fn.bind( globalThis, env );
+                return fn.bind( globalThis );
             };
             return {
                 evaluate( code: string ) {

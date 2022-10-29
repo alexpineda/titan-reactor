@@ -69,8 +69,8 @@ export const createWindow = ( createWindowArgs: CreateWindowArgs ) => {
     }
 
     const w = new BrowserWindow( {
-        width: 800,
-        height: 600,
+        width: 1200,
+        height: 900,
         backgroundColor,
         show: false,
         webPreferences: {

@@ -6,8 +6,6 @@ import path from "path";
 import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
 
-const wasmFileLocation = path.join( __static, "titan.wasm" );
-
 export interface OpenBW extends OpenBWWasm {}
 export class OpenBW implements OpenBW {
     #wasm!: OpenBWWasm;
@@ -24,10 +22,10 @@ export class OpenBW implements OpenBW {
         this.#wasm = ( await initializeWASM( {
             locateFile: ( filename: string ) => {
                 if ( filename === "titan.worker.js" ) {
-                    return path.join( __static, filename );
+                    return path.join( __static, "titan.worker.js" );
                 }
             },
-            wasmBinary: readFileSync( wasmFileLocation ),
+            wasmBinary: readFileSync( path.join( __static, "titan.wasm" ) ),
         } ) ) as OpenBWWasm;
         mix( this, this.#wasm );
     }
@@ -114,6 +112,15 @@ export class OpenBW implements OpenBW {
             return this.#wasm._replay_get_value( 2 );
         }
         return this.#wasm._next_frame();
+    };
+
+    nextFrameSafe = () => {
+        try {
+            return this.nextFrame();
+        } catch ( e ) {
+            this.#withOpenBWError( e );
+            return 0;
+        }
     };
 
     nextFrameNoAdvance() {

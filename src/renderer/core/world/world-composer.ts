@@ -244,7 +244,7 @@ export const createWorldComposer = async (
                 overlayComposer
             );
 
-            if ( openBwComposer.update( elapsed, world.openBW.nextFrame() ) ) {
+            if ( openBwComposer.update( elapsed, world.openBW.nextFrameSafe() ) ) {
                 sceneComposer.onFrame(
                     delta,
                     elapsed,
