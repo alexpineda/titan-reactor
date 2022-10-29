@@ -1,5 +1,3 @@
-import { ReadFile } from "common/types";
-import type OpenBWFileList from "../../renderer/openbw/openbw-filelist";
 import { EmscriptenPreamble } from "./emscripten";
 import { SoundStruct } from "./structs";
 
@@ -79,79 +77,4 @@ export interface OpenBWWasm extends EmscriptenPreamble {
     getExceptionMessage: ( e: unknown ) => string;
 
     setupCallbacks: ( callbacks: Callbacks ) => void;
-}
-
-export interface OpenBW extends OpenBWWasm {
-    running: boolean;
-    files: OpenBWFileList;
-
-    unitGenerationSize: number;
-
-    isSandboxMode: () => boolean;
-    setSandboxMode: ( mode: boolean ) => boolean | undefined;
-
-    // updates frame and creep data
-    generateFrame: () => void;
-
-    getFowSize: () => number;
-    getFowPtr: () => number;
-    setPlayerVisibility: ( visibility: number ) => void;
-
-    getCreepSize: () => number;
-    getCreepPtr: () => number;
-
-    getCreepEdgesSize: () => number;
-    getCreepEdgesPtr: () => number;
-
-    getTilesPtr: () => number;
-    getTilesSize: () => number;
-
-    getSoundObjects: () => SoundStruct[];
-
-    getLastError: () => number;
-    getLastErrorMessage: () => string | null;
-
-    getSpritesOnTileLineSize: () => number;
-    getSpritesOnTileLineAddress: () => number;
-
-    getPlayersAddress: () => number;
-
-    getUnitsAddr: () => number;
-
-    getBulletsAddress: () => number;
-    getBulletsDeletedCount: () => number;
-    getBulletsDeletedAddress: () => number;
-
-    getSoundsAddress: () => number;
-    getSoundsCount: () => number;
-
-    setGameSpeed: ( speed: number ) => void;
-    getGameSpeed: () => number;
-
-    setCurrentFrame: ( frame: number ) => void;
-    getCurrentFrame: () => number;
-
-    getIScriptProgramDataSize: () => number;
-    getIScriptProgramDataAddress: () => number;
-
-    isPaused: () => boolean;
-    setPaused: ( paused: boolean ) => void;
-
-    isReplay: () => boolean;
-    nextFrame: () => number;
-    nextFrameNoAdvance: () => number;
-    tryCatch: <T>( callback: () => T ) => T;
-    loadReplay: ( buffer: Buffer ) => void;
-    loadMap: ( buffer: Buffer ) => void;
-    start: ( readFile: ReadFile ) => Promise<void>;
-
-    uploadHeightMap: ( data: Uint8ClampedArray, width: number, height: number ) => void;
-    loadReplayWithHeightMap: (
-        replayBuffer: Buffer,
-        data: Uint8ClampedArray,
-        width: number,
-        height: number
-    ) => void;
-
-    setUnitLimits: ( unitLimits: number ) => void;
 }

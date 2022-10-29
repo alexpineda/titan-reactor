@@ -1,4 +1,5 @@
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+
 import {
     UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
     UI_SYSTEM_MOUSE_CLICK,

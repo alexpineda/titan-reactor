@@ -1,4 +1,4 @@
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
 
 export const skipHandler =
     (

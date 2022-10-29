@@ -1,6 +1,6 @@
 import { UnitsBufferViewIterator } from "@buffer-view/units-buffer-view";
 import { orders } from "common/enums";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
 import range from "common/utils/range";
 import { CMDS } from "../process-replay/commands/commands";
 import CommandsStream from "../process-replay/commands/commands-stream";

@@ -6,7 +6,8 @@ import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import { createPluginSession } from "./create-plugin-session";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+
 import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
 

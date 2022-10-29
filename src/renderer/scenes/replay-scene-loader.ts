@@ -7,7 +7,8 @@ import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 import fs from "fs";
 import Chk from "bw-chk";
 
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+
 import { GameTypes } from "common/enums";
 import { openFile } from "@ipc/files";
 import { log } from "@ipc/log";

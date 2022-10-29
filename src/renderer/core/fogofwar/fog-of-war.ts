@@ -7,7 +7,7 @@ import {
     Vector2,
     Vector4,
 } from "three";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
 import { FogOfWarEffect } from "./fog-of-war-effect";
 
 export class FogOfWar {

@@ -14,7 +14,7 @@ export enum PlayerController {
 }
 
 import { Race } from "common/enums";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
 
 /**
  * Maps to openbw player_t

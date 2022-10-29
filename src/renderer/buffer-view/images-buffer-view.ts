@@ -1,4 +1,5 @@
-import { OpenBW, ImageStruct } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+import { ImageStruct } from "common/types";
 import { IScriptBufferView } from "./iscript-buffer-view";
 export class ImageBufferView implements ImageStruct {
     #address = 0;

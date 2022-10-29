@@ -1,5 +1,6 @@
 import { StdVector } from "@buffer-view";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+
 import range from "common/utils/range";
 
 export const createCompletedUpgradesHelper = (
@@ -59,7 +60,7 @@ export const createCompletedUpgradesHelper = (
             } else if ( j === size - 1 ) {
                 if ( val === 0 && !arr.includes( typeId ) ) {
                     arr.push( typeId );
-                    arrReset.push( [typeId, currentBwFrame] );
+                    arrReset.push( [ typeId, currentBwFrame ] );
                     callback( owner, typeId, level );
                 }
             } else if ( j === 1 ) {
@@ -75,13 +76,13 @@ export const createCompletedUpgradesHelper = (
     const resetCompletedUpgrades = ( frame: number ) => {
         for ( let player = 0; player < 8; player++ ) {
             completedResearchReset[player] = completedResearchReset[player].filter(
-                ( [_, techFrame] ) => techFrame <= frame
+                ( [ _, techFrame ] ) => techFrame <= frame
             );
-            completedResearch[player] = completedResearch.map( ( [techId] ) => techId );
+            completedResearch[player] = completedResearch.map( ( [ techId ] ) => techId );
             completedUpgradesReset[player] = completedUpgradesReset[player].filter(
-                ( [_, techFrame] ) => techFrame <= frame
+                ( [ _, techFrame ] ) => techFrame <= frame
             );
-            completedUpgrades[player] = completedUpgrades.map( ( [techId] ) => techId );
+            completedUpgrades[player] = completedUpgrades.map( ( [ techId ] ) => techId );
         }
     };
 

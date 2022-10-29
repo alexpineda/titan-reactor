@@ -2,7 +2,8 @@ import Chk from "bw-chk";
 import loadScm from "@utils/load-scm";
 import { log } from "@ipc/log";
 import processStore from "@stores/process-store";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+
 import { waitForTruthy } from "@utils/wait-for";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";

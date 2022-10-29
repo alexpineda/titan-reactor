@@ -1,5 +1,6 @@
 import { Janitor } from "three-janitor";
-import { PluginMetaData, OpenBW, DeepPartial } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+import { PluginMetaData, DeepPartial } from "common/types";
 import { settingsStore } from "@stores/settings-store";
 import {
     useGameStore,

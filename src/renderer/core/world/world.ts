@@ -2,7 +2,8 @@ import CommandsStream from "@process-replay/commands/commands-stream";
 import { Janitor } from "three-janitor";
 import { TypeEmitter } from "@utils/type-emitter";
 import Chk from "bw-chk";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+
 import { BasePlayer, FogOfWar, FogOfWarEffect } from "..";
 import { PluginsAndMacroSession } from "./create-plugins-and-macros-session";
 import { SettingsSessionStore } from "./settings-session-store";

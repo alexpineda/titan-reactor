@@ -1,4 +1,5 @@
-import { OpenBW, SpriteStruct } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+import { SpriteStruct } from "common/types";
 import { ImageBufferView } from ".";
 import { IntrusiveList } from "./intrusive-list";
 

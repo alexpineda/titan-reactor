@@ -1,5 +1,6 @@
 import type Chk from "bw-chk";
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
+
 import { BasePlayer } from "@core";
 import { getOpenBW } from "@openbw";
 import { renderComposer } from "@render";

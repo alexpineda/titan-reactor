@@ -1,14 +1,15 @@
-import { OpenBW } from "common/types";
-import { createOpenBW } from "./create-openbw";
+import { OpenBW } from "./openbw";
 
-const openBws = new Map<number, OpenBW>();
+const instances = new Map<number, OpenBW>();
 
 const getOpenBW = async ( instance = 0 ) => {
-    if ( openBws.has( instance ) ) return openBws.get( instance )!;
+    if ( instances.has( instance ) ) return instances.get( instance )!;
 
-    const openBW = await createOpenBW();
+    const openBW = new OpenBW();
+    await openBW.init();
 
-    openBws.set( instance, openBW );
+    instances.set( instance, openBW );
+
     return openBW;
 };
 

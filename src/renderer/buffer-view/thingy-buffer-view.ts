@@ -1,4 +1,4 @@
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
 import { ThingyStruct } from "common/types/structs/thingy-struct";
 import { FP8 } from "./fixed-point";
 import { SpritesBufferView } from "./sprites-buffer-view";

@@ -1,4 +1,4 @@
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
 import { IScriptStateStruct } from "common/types/structs/iscript-struct";
 
 export class IScriptBufferView implements IScriptStateStruct {

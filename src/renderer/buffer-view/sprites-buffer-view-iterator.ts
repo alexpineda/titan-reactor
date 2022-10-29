@@ -1,4 +1,4 @@
-import { OpenBW } from "common/types";
+import { OpenBW } from "@openbw/openbw";
 import { IntrusiveList } from "./intrusive-list";
 import { SpritesBufferView } from "./sprites-buffer-view";
 
