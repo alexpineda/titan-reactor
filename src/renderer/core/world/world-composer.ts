@@ -3,8 +3,6 @@ import { Assets } from "@image/assets";
 import { Janitor } from "three-janitor";
 import { ApiSession } from "./api-session";
 import { createSettingsSessionStore } from "./settings-session-store";
-import { ipcRenderer } from "electron";
-import { CLEAR_ASSET_CACHE, RELOAD_PLUGINS } from "common/ipc-handle-names";
 import { GameTimeApi } from "./game-time-api";
 import Chk from "bw-chk";
 import { SimpleText } from "@render/simple-text";
@@ -27,6 +25,7 @@ import { mixer } from "@core/global";
 import { WorldEvents } from "./world-events";
 import { createInputComposer } from "./input-composer";
 import { settingsStore } from "@stores/settings-store";
+import { globalEvents } from "@core/global-events";
 
 export const createWorldComposer = async (
     openBW: OpenBW,
@@ -106,17 +105,6 @@ export const createWorldComposer = async (
         viewControllerComposer.deactivate();
     };
 
-    janitor.on(
-        ipcRenderer,
-        CLEAR_ASSET_CACHE,
-        () => {
-            assets.resetAssetCache();
-            sceneComposer.resetImageCache();
-            frameResetRequested = true;
-        },
-        "clear-asset-cache"
-    );
-
     events.on( "settings-changed", ( { settings, rhs } ) => {
         if (
             rhs.input?.sceneController &&
@@ -168,16 +156,11 @@ export const createWorldComposer = async (
 
             gameLoopComposer.onUpdate( this.update.bind( this ) );
 
-            janitor.on(
-                ipcRenderer,
-                RELOAD_PLUGINS,
-                async () => {
-                    await this.activate(
-                        true,
-                        settings.getState().input.sceneController
-                    );
-                },
-                "reload-plugins"
+            janitor.mop(
+                globalEvents.on( "reload-all-plugins", async () => {
+                    await settingsStore().load();
+                    this.activate( true, settings.getState().input.sceneController );
+                } )
             );
         },
 
@@ -196,8 +179,6 @@ export const createWorldComposer = async (
 
                 apiSession.dispose();
                 apiSession = new ApiSession();
-                
-                await settingsStore().load();
             }
 
             await apiSession.activate( events, settings, openBW, gameTimeApi );

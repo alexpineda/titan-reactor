@@ -78,7 +78,6 @@ const CommandCenter = () => {
     } );
 
     const [ remotePackages, setRemotePackages ] = useState<RemotePackage[]>( [] );
-    const [ pagination ] = useState( 0 );
     const [ banner, setBanner ] = useState( "" );
 
     const [ tabIndex, setTabIndex ] = useState( 0 );
@@ -96,7 +95,7 @@ const CommandCenter = () => {
             setSelectedPluginPackage( { remote: undefined } );
         }
         searchPackages( setRemotePackages );
-    }, [ pagination ] );
+    }, [ plugin.local ] );
 
     // Safety precaution: If the plugin is not remotely hosted don't allow deletion on disk
     const matchingRemotePlugin = remotePackages.find(

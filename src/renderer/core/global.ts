@@ -10,6 +10,7 @@ import {
     OPEN_ISCRIPTAH,
     OPEN_MAP_DIALOG,
     OPEN_REPLAY_DIALOG,
+    RELOAD_PLUGINS,
     SEND_BROWSER_WINDOW,
     SERVER_API_FIRE_MACRO,
 } from "common/ipc-handle-names";
@@ -219,3 +220,5 @@ useSettingsStore.subscribe( ( settings ) => {
     setStorageIsCasc( settings.isCascStorage );
     setStoragePath( settings.data.directories.starcraft );
 } );
+
+ipcRenderer.on( RELOAD_PLUGINS, () => globalEvents.emit( "reload-all-plugins" ) );

@@ -31,6 +31,7 @@ export const localPluginRepository = (
         if (
             confirm( "This will download the plugin into your plugins folder. Continue?" )
         ) {
+            setBanner( "Installing please wait.." );
             const installedPlugin = await installPlugin( packageName );
             if ( installedPlugin ) {
                 const plugin = ( await reload() ).enabledPlugins.find(
@@ -47,12 +48,14 @@ export const localPluginRepository = (
 
     tryUpdatePlugin: async ( packageName: string ) => {
         if ( confirm( "This will update the plugin in your plugins folder. Continue?" ) ) {
+            setBanner( "Updating please wait.." );
             const installedPlugin = await installPlugin( packageName );
             if ( installedPlugin ) {
                 const plugin = ( await reload() ).enabledPlugins.find(
                     ( p ) => p.id === installedPlugin.id
                 );
                 setSelectedPluginPackage( { plugin } );
+                setBanner( `${installedPlugin.name} updated!` );
                 log.info( `Succesfully updated ${packageName}` );
             } else {
                 setBanner( `Failed to update ${packageName}` );
@@ -62,6 +65,7 @@ export const localPluginRepository = (
 
     tryDisablePlugin: async ( pluginId: string ) => {
         if ( confirm( "Are you sure you want to disable this plugin?" ) ) {
+            setBanner( "Please wait.." );
             if ( await disablePlugin( pluginId ) ) {
                 setSelectedPluginPackage( { plugin: undefined } );
                 await reload();
@@ -73,7 +77,8 @@ export const localPluginRepository = (
 
     tryEnablePlugin: async ( pluginId: string ) => {
         if ( confirm( "Do you wish to continue and enable this plugin?" ) ) {
-            if ( await enablePlugins( [pluginId] ) ) {
+            setBanner( "Please wait.." );
+            if ( await enablePlugins( [ pluginId ] ) ) {
                 await reload();
                 const plugin = ( await reload() ).enabledPlugins.find(
                     ( p ) => p.id === pluginId
@@ -87,6 +92,7 @@ export const localPluginRepository = (
 
     tryDeletePlugin: async ( pluginId: string ) => {
         if ( confirm( "Are you sure you wish to place this plugin in the trashbin?" ) ) {
+            setBanner( "Please wait.." );
             if ( await deletePlugin( pluginId ) ) {
                 setBanner( "Plugin files were placed in trash bin" );
                 setSelectedPluginPackage( { plugin: undefined } );

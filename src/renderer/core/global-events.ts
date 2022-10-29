@@ -16,6 +16,7 @@ export interface GlobalEvents {
     "load-iscriptah": string;
     "log-message": { message: string; level: LogLevel; server?: boolean };
     "initial-install-error-plugins": undefined;
+    "reload-all-plugins": undefined;
     "exec-macro": string;
     "reset-macro-actions": string;
     "exec-macro-action": { action: MacroAction; withReset: boolean };

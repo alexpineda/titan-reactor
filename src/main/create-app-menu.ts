@@ -8,12 +8,11 @@ import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton";
 import {
-    CLEAR_ASSET_CACHE,
     OPEN_MAP_DIALOG,
     OPEN_REPLAY_DIALOG,
     RELOAD_PLUGINS,
 } from "common/ipc-handle-names";
-import electronIsDev from "electron-is-dev";
+// import electronIsDev from "electron-is-dev";
 
 const settingsPath = path.join( getUserDataPath() );
 export const logFilePath = path.join( getUserDataPath(), "logs" );
@@ -114,20 +113,17 @@ export default (
                         browserWindows.main?.webContents.send( RELOAD_PLUGINS );
                     },
                 },
-                ...( electronIsDev
-                    ? [{ type: "separator" }, { role: "toggledevtools" }]
-                    : [] ),
+                { type: "separator" },
+                { role: "toggledevtools" },
+
+                // ...( electronIsDev
+                //     ? [ { type: "separator" }, { role: "toggledevtools" } ]
+                //     : [] ),
                 { type: "separator" },
                 {
                     label: "&IScriptah - Animation Viewer",
                     click: function () {
                         openIscriptah();
-                    },
-                },
-                {
-                    label: "Clear Asset Cache",
-                    click: () => {
-                        browserWindows.main?.webContents.send( CLEAR_ASSET_CACHE );
                     },
                 },
             ],

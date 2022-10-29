@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Added
+
+-   Additional messaging when updating / installing plugins
+
+## Removed
+
+-   Clear asset cache menu item
+
 ## [v0.6.7]
 
 ## Added
