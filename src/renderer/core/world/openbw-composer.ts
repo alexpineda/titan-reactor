@@ -124,6 +124,7 @@ export const createOpenBWComposer = (
         },
         precompile() {
             world.openBW.nextFrame();
+            world.openBW.generateFrame();
             _tiles.address = world.openBW.getTilesPtr();
             _tiles.viewSize = world.openBW.getTilesSize();
             scene.terrainExtra.creep.generateImmediate( _tiles );

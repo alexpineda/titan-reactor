@@ -16,20 +16,20 @@ export const getIdentifierDefinitions = (
     return id.getDefinitionNodes();
 };
 
-export type TSMValidNodes =
-    | tsm.TypeAliasDeclaration
-    | tsm.InterfaceDeclaration
-    | tsm.ClassDeclaration;
+// export type TSMValidNodes =
+//     | tsm.TypeAliasDeclaration
+//     | tsm.InterfaceDeclaration
+//     | tsm.ClassDeclaration;
 
 export class TSMProcessedNodeCache {
-    #nodes = new Set<TSMValidNodes>();
-    #defNode = new Map<TSMValidNodes, TSMValidNodes>();
+    #nodes = new Set<tsm.Node>();
+    #defNode = new Map<tsm.Node, tsm.Node>();
 
-    containsNode(node: TSMValidNodes) {
+    containsNode(node: tsm.Node) {
         return this.#nodes.has(node);
     }
 
-    addNode(node: TSMValidNodes, defNode: TSMValidNodes) {
+    addNode(node: tsm.Node, defNode: tsm.Node) {
         this.#nodes.add(node);
         this.#defNode.set(node, defNode);
     }
@@ -38,7 +38,7 @@ export class TSMProcessedNodeCache {
         return [...this.#nodes.values()];
     }
 
-    getDefNode(node: TSMValidNodes) {
+    getDefNode(node: tsm.Node) {
         return this.#defNode.get(node);
     }
 }

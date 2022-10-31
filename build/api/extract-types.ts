@@ -4,18 +4,31 @@ import {
     fn,
     getIdentifierDefinitions,
     TSMProcessedNodeCache,
-    TSMValidNodes,
 } from "./util";
 import { readFileSync } from "fs";
 import { basename } from "path";
 
+type NamedType =
+    | tsm.ClassDeclaration
+    | tsm.InterfaceDeclaration
+    | tsm.TypeAliasDeclaration;
+
 // reads files and concatenates them into a single string
-const concat = (files: string[]) => {
-    return files.map(fn).map((file) => ({
-        filename: basename(file),
-        content: readFileSync(file, "utf8"),
-    }));
-};
+function hasName(node: tsm.Node): node is NamedType {
+    return (
+        tsm.Node.isClassDeclaration(node) ||
+        tsm.Node.isInterfaceDeclaration(node) ||
+        tsm.Node.isTypeAliasDeclaration(node)
+    );
+}
+
+function isExportable(node: tsm.Node): node is NamedType {
+    return (
+        tsm.Node.isClassDeclaration(node) ||
+        tsm.Node.isInterfaceDeclaration(node) ||
+        tsm.Node.isTypeAliasDeclaration(node)
+    );
+}
 
 export type Diagnostic = {
     nodeModules: string[];
@@ -41,12 +54,16 @@ type InputFile = {
 
 export const extractTypesFromFiles = async ({
     files,
-    globalIgnore,
     prependFiles,
+    validNodeKinds = [
+        tsm.SyntaxKind.TypeAliasDeclaration,
+        tsm.SyntaxKind.InterfaceDeclaration,
+        tsm.SyntaxKind.ClassDeclaration,
+    ],
 }: {
     files: InputFile[];
-    globalIgnore: string[];
     prependFiles: string[];
+    validNodeKinds?: tsm.SyntaxKind[];
 }) => {
     const inProject = new tsm.Project({
         tsConfigFilePath: fn("./tsconfig.json"),
@@ -76,6 +93,7 @@ export const extractTypesFromFiles = async ({
 
     let result = {
         content: "",
+        prepend: "",
         diagnostics: {
             nodeModules: [],
             external: [],
@@ -87,12 +105,25 @@ export const extractTypesFromFiles = async ({
     const writeContent = (str) => (result.content += str + "\n");
 
     prependFiles.map(fn).forEach((file) => {
-        const sourceFile = inProject.getSourceFiles(file)[0];
-        const defFile = emitFileDeclaration(inProject, sourceFile, outProject);
-        writeContent(defFile.declFile.getFullText());
+        const prependProject = new tsm.Project({
+            skipAddingFilesFromTsConfig: true,
+            compilerOptions: {
+                ...inProject.getCompilerOptions(),
+                declaration: true,
+                emitDeclarationOnly: true,
+                declarationDir: "/outdir",
+                allowJs: true,
+                target: tsm.ScriptTarget.ESNext,
+                module: tsm.ModuleKind.ESNext,
+            },
+            fileSystem,
+        });
+        const sourceFile = inProject.getSourceFile(file);
+        const defFile = emitFileDeclaration(inProject, sourceFile, prependProject);
+        result.prepend += defFile.declFile.print();
     });
 
-    const workNodes: TSMValidNodes[] = [];
+    const workNodes: tsm.Node[] = [];
 
     const declMap = new Map<
         tsm.SourceFile,
@@ -102,19 +133,17 @@ export const extractTypesFromFiles = async ({
         }
     >();
 
-    const addWork = (child: TSMValidNodes) => {
+    const addWork = (child: tsm.Node) => {
         workNodes.push(child);
     };
 
     for (const file of files) {
         const sourceFile = inProject.getSourceFiles(file.file)[0];
-        for (const childNode of [
-            ...sourceFile.getTypeAliases(),
-            ...sourceFile.getInterfaces(),
-            ...sourceFile.getClasses(),
-        ]) {
-            addWork(childNode);
-        }
+        sourceFile.forEachChild((node) => {
+            if (validNodeKinds.includes(node.getKind())) {
+                addWork(node);
+            }
+        });
     }
 
     // gather identifiers
@@ -122,6 +151,10 @@ export const extractTypesFromFiles = async ({
 
     for (const workNode of workNodes) {
         if (processed.containsNode(workNode)) {
+            continue;
+        }
+
+        if (isExportable(workNode) && workNode.isExported() === false) {
             continue;
         }
 
@@ -152,18 +185,19 @@ export const extractTypesFromFiles = async ({
             );
         }
 
-        let declNode: TSMValidNodes;
-        for (const _declNode of declMap
-            .get(workItemSourceFile)
-            .declFile.getChildrenOfKind(workNode.getKind())) {
+        let declNode: tsm.Node;
+
+        declMap.get(workItemSourceFile).declFile.forEachDescendant((_declNode) => {
+            if (workNode.getKind() !== _declNode.getKind()) return;
             //TODO: map this by pos not by id if we want to support other types of nodes
-            if ((_declNode as TSMValidNodes).getName() === workNode.getName()) {
+            if ((_declNode as tsm.Node).getName() === workNode.getName()) {
                 if (declNode) {
                     throw new Error("Duplicate node found");
                 }
-                declNode = _declNode as TSMValidNodes;
+                declNode = _declNode as tsm.Node;
             }
-        }
+        });
+
         if (!declNode) {
             throw new Error("Node not found");
         }
@@ -174,7 +208,6 @@ export const extractTypesFromFiles = async ({
         const pn = p?.getName ? p.getName() : "<>";
 
         result.diagnostics.tree.push({
-            // parent: workNode.getParent() ? workNode.getParent().getName() : "<root>",
             parent: pn,
             child: workNode.getSourceFile().getFilePath(),
             childType: workNode.getKindName(),
@@ -201,7 +234,7 @@ export const extractTypesFromFiles = async ({
                     d.getKind() === tsm.SyntaxKind.InterfaceDeclaration ||
                     d.getKind() === tsm.SyntaxKind.ClassDeclaration
                 ) {
-                    addWork(d as TSMValidNodes);
+                    addWork(d);
                 }
             }
         }
@@ -225,21 +258,17 @@ export const extractTypesFromFiles = async ({
             if (base) {
                 addWork(base);
             }
-        } else {
-            throw new Error(`Unknown kind ${workNode.getKindName()}`);
         }
     }
 
-    let mashedOut = "";
-
-    for (const decl of declMap) {
-        decl[1].declFile.forEachChild((node) => {
-            if (tsm.Node.isImportDeclaration(node)) {
-                return;
-            }
-            mashedOut += node.getFullText();
-        });
-    }
+    // for (const decl of declMap) {
+    //     decl[1].declFile.forEachChild((node) => {
+    //         if (tsm.Node.isImportDeclaration(node)) {
+    //             return;
+    //         }
+    //         mashedOut += node.getFullText();
+    //     });
+    // }
     for (const node of processed.getAllNodes()) {
         const id = node.getFirstChildByKind(tsm.SyntaxKind.Identifier);
         if (!id) {
@@ -264,10 +293,8 @@ export const extractTypesFromFiles = async ({
         // for (const def of) {
         //     mashedOut = mashedOut + "\n" + def.textSpan;
         // }
-        // mashedOut = mashedOut + "\n" + processed.getDefNode(node).print();
+        writeContent(processed.getDefNode(node).print());
     }
-
-    result.content = mashedOut;
 
     result.diagnostics.files = outProject.getSourceFiles().map((file) => {
         return {

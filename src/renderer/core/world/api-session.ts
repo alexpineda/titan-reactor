@@ -30,12 +30,11 @@ export class ApiSession {
         this.#janitor = new Janitor();
 
         this.#events = new WeakRef( events );
-        this.#plugins = this.#janitor.mop(
-            await createPluginSession( openBW, events )
-        );
+        this.#plugins = this.#janitor.mop( await createPluginSession( openBW, events ) );
 
         this.#macros = this.#janitor.mop( createMacrosComposer( settings ) );
         const eventsProxy = this.#janitor.mop( new TypeEmitterProxy( events ) );
+        const customEvents = this.#janitor.mop( new TypeEmitter() );
 
         this.#macros.macros.targets.setHandler( ":plugin", {
             action: ( action ) =>
@@ -47,10 +46,7 @@ export class ApiSession {
 
         this.#janitor.add(
             useSettingsStore.subscribe( ( settings ) => {
-                if (
-                    settings.data.macros.revision !==
-                    this.#macros.macros.revision
-                ) {
+                if ( settings.data.macros.revision !== this.#macros.macros.revision ) {
                     this.#macros.macros.deserialize( settings.data.macros );
 
                     this.#hookMacrosToWorldEvents();
@@ -66,6 +62,7 @@ export class ApiSession {
                 plugins: borrow( this.#plugins.store.vars ),
                 settings: borrow( settings.vars ),
                 events: eventsProxy,
+                customEvents,
             } )
         );
 
@@ -75,6 +72,7 @@ export class ApiSession {
                     {
                         settings: settings.vars,
                         events: eventsProxy,
+                        customEvents,
                     },
                     gameTimeApi
                 )

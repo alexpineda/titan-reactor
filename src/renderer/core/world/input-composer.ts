@@ -97,8 +97,7 @@ export const createInputComposer = (
 
             sceneController.onCameraMouseUpdate &&
                 sceneController.onCameraMouseUpdate(
-                    //TODO change this to 1000
-                    delta / 100,
+                    delta / 1000,
                     elapsed,
                     mouseInput.mouseScrollY,
                     mouseInput.screenDrag,
@@ -112,7 +111,7 @@ export const createInputComposer = (
 
             sceneController.onCameraKeyboardUpdate &&
                 sceneController.onCameraKeyboardUpdate(
-                    delta / 100,
+                    delta / 1000,
                     elapsed,
                     arrowKeyInput.vector
                 );
