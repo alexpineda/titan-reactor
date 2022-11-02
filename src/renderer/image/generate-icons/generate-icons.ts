@@ -32,7 +32,7 @@ const generateWireframeOffscreen = async ( readFile: ReadFile ) => {
             destCanvas: c2,
             icons: parseDdsGrp( wireframeData ).map( ( dds ) => b2ba( dds ) ),
         },
-        [c1, c2]
+        [ c1, c2 ]
     );
 
     worker.onmessage = function ( {

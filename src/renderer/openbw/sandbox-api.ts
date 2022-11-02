@@ -13,6 +13,10 @@ const identityPxToWorld: PxToWorld = {
 
 export type SandboxAPI = ReturnType<typeof createSandboxApi>;
 
+/**
+ * @public
+ * Sandbox API in order to manipulate the game state.
+ */
 export const createSandboxApi = ( _world: World, pxToWorldInverse: PxToWorld ) => {
     const world = borrow( _world );
 

@@ -8,6 +8,9 @@ import { Color } from "three";
 import { createSandboxApi } from "@openbw/sandbox-api";
 import { Unit } from "@core/unit";
 
+/**
+ * @public
+ */
 export interface GameTimeApi {
     sandboxApi: ReturnType<typeof createSandboxApi>;
     viewport: GameViewPort;

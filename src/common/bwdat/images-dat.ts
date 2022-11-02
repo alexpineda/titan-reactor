@@ -1,7 +1,9 @@
 import { DAT } from "./dat";
 import imageNames from "./image-names";
 import { ReadFile } from "../types";
-
+/**
+ * @public
+ */
 export interface ImageDAT {
     index: number;
     grpFile: string;

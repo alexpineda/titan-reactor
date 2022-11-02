@@ -2,6 +2,9 @@ import { DAT } from "./dat";
 import { SpriteDAT } from "./sprites-dat";
 import { ReadFile } from "../types";
 
+/**
+ * @public
+ */
 export interface FlingyDAT {
     sprite: SpriteDAT;
     speed: number;

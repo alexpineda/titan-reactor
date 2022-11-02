@@ -20,6 +20,11 @@ const isNumber = ( value: any ): value is number => {
 type DirectionalCamera = ( PerspectiveCamera | OrthographicCamera ) & {
     userData: { direction: number; prevDirection: number };
 };
+
+/**
+ * @public
+ * A "view" into the game. Every viewport contains it's own camera, dimensions, and additional properties.
+ */
 export class GameViewPort {
     #enabled = false;
     camera: DirectionalCamera;

@@ -1,6 +1,9 @@
 import { DAT } from "./dat";
 import { ReadFile } from "../types";
 
+/**
+ * @public
+ */
 export interface UpgradeDAT {
     mineralCostBase: number;
     mineralCostFactor: number;

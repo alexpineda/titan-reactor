@@ -1,12 +1,19 @@
 import { promises as fsPromises } from "fs";
 import path from "path";
 import { fileExists } from "common/utils/file-exists";
-import { BwDAT, Settings, UnitTileScale } from "common/types";
+import { BwDAT, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
 import { openCascStorage, readCascFile } from "common/casclib";
 
-import { AnimAtlas, createDDSTexture, loadAnimAtlas, loadGlbAtlas, parseAnim } from ".";
+import {
+    AnimAtlas,
+    createDDSTexture,
+    loadAnimAtlas,
+    loadGlbAtlas,
+    parseAnim,
+    RefAnim,
+} from ".";
 
 import gameStore, { setAsset } from "@stores/game-store";
 import { generateCursorIcons, generateUIIcons } from "./generate-icons/generate-icons";
@@ -39,25 +46,22 @@ const setHDMipMaps = ( hd: AnimAtlas, hd2: AnimAtlas ) => {
     }
 };
 
+/**
+ * @public
+ * Most game assets excepting sprites / images.
+ */
 export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture;
     bwDat: BwDAT;
     wireframeIcons?: Blob[];
 } & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
 
-export type UIStateAssets = Pick<
-    Assets,
-    | "bwDat"
-    | "gameIcons"
-    | "cmdIcons"
-    | "raceInsetIcons"
-    | "workerIcons"
-    | "wireframeIcons"
->;
-
 const _hardfiles = [ ".glb", ".hdr", ".png", ".exr", ".js", ".wasm" ];
 
-export const initializeAssets = async ( directories: Settings["directories"] ) => {
+export const initializeAssets = async ( directories: {
+    starcraft: string;
+    assets: string;
+} ) => {
     electronFileLoader( ( file: string, directory?: string ) => {
         log.debug( file );
 
@@ -126,8 +130,8 @@ export const initializeAssets = async ( directories: Settings["directories"] ) =
     const cursorIcons = await generateCursorIcons( readCascFile );
 
     const refId = ( id: number ) => {
-        if ( sdAnim[id]?.refId !== undefined ) {
-            return sdAnim[id].refId!;
+        if ( sdAnim[id].type === "ref" ) {
+            return ( sdAnim[id] as RefAnim ).refId;
         }
         return id;
     };

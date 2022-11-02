@@ -4,7 +4,9 @@ import { FlingyDAT } from "./flingy-dat";
 import { SoundDAT } from "./sounds-dat";
 import { ReadFile } from "../types";
 
-//eslint-disable-next-line @typescript-eslint/no-empty-interface
+/**
+ * @public
+ */
 export interface UnitDAT extends UnitDATIncomingType {}
 export class UnitDAT implements UnitDAT {
     specialAbilityFlags = 0;
@@ -224,16 +226,16 @@ export class UnitsDAT extends DAT<UnitDATIncomingType> {
             },
             {
                 size: 4,
-                names: ["placementWidth", "placementHeight"],
+                names: [ "placementWidth", "placementHeight" ],
             },
             {
                 size: 4,
-                names: ["addonHorizontal", "addonVertical"],
+                names: [ "addonHorizontal", "addonVertical" ],
                 range: () => range( 106, 202 ),
             },
             {
                 size: 8,
-                names: ["unitSizeLeft", "unitSizeUp", "unitSizeRight", "unitSizeDown"],
+                names: [ "unitSizeLeft", "unitSizeUp", "unitSizeRight", "unitSizeDown" ],
             },
             { size: 2, name: "portrait" },
             { size: 2, name: "mineralCost" },
@@ -264,8 +266,10 @@ export class UnitsDAT extends DAT<UnitDATIncomingType> {
                 end: keyof UnitDATIncomingType
             ): number[] => {
                 if ( entry[start] && entry[end] ) {
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                     return range( 0, entry[end] - entry[start] + 1 ).map(
-                        ( s ) => s + entry[start]
+                        // eslint-disable-next-line
+                        (s) => s + entry[start]
                     );
                 }
                 return [];

@@ -3,8 +3,6 @@ import { LOG_MESSAGE } from "common/ipc-handle-names";
 import { LogLevel } from "common/logging";
 import { settingsStore } from "@stores/settings-store";
 
-type ErrorOrUnknown = Error | unknown;
-
 const logLevels = [ "info", "warn", "error", "debug" ];
 
 const isActiveLevel = ( level: LogLevel ): boolean => {
@@ -15,7 +13,7 @@ const isActiveLevel = ( level: LogLevel ): boolean => {
 };
 
 export const log = {
-    error( msg: string | ErrorOrUnknown ) {
+    error( msg: string | Error | unknown ) {
         if ( typeof msg === "string" ) {
             logBoth( msg, "error" );
         } else {

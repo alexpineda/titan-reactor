@@ -4,6 +4,10 @@ import { Terrain } from "@core/terrain";
 import { BorderTiles } from "./border-tiles";
 import { Sunlight } from "./sunlight";
 
+/**
+ * @public
+ * The root scene of the game.
+ */
 export class BaseScene extends Scene {
     #borderTiles: BorderTiles;
     mapWidth: number;

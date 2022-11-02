@@ -28,10 +28,10 @@ export const loadAnimAtlas = (
 ) => {
     const janitor = new Janitor( "loadAnimAtlas" );
 
-    const [ sprite ] = parseAnim( buf );
+    const sprite = parseAnim( buf )[0];
 
-    if ( !sprite.maps ) {
-        throw new Error( "No sprite maps" );
+    if ( sprite.type === "ref" ) {
+        throw new Error( "not an anim file" );
     }
 
     const ddsBuf = getBufDds( buf, sprite.maps.diffuse );

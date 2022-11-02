@@ -1,30 +1,42 @@
 import { writeFile } from "fs/promises";
 import { fn } from "./util";
-import { extractTypesFromFiles } from "./extract-types";
-import * as tsm from "ts-morph";
+
+import { unrollTypes } from "./unroll-types";
 
 const doThing = async () => {
-    const res = await extractTypesFromFiles({
-        prependFiles: ["./src/main/plugins/runtime.tsx"],
-        files: [
-            {
-                file: "./src/main/plugins/runtime.tsx",
-                //     // file: "./src/renderer/utils/types/runtime.types.ts",
-            },
-        ],
-        validNodeKinds: [
-            tsm.SyntaxKind.ClassDeclaration,
-            tsm.SyntaxKind.InterfaceDeclaration,
-            tsm.SyntaxKind.TypeAliasDeclaration,
-            // tsm.SyntaxKind.VariableDeclaration,
-            // tsm.SyntaxKind.VariableStatement,
-        ],
-        // extraTypes: [`/// <reference types="three" />`],
+    console.log("building runtime types");
+    const runtimeTypes = await unrollTypes({
+        tsConfigFilePath: fn("./tsconfig.json"),
+        inFiles: ["./src/main/plugins/runtime.tsx"],
+        defaultInternal: true,
     });
+    writeFile(
+        fn("./build/api/publish/titan-reactor-runtime/unrolled.json"),
+        JSON.stringify(runtimeTypes.diagnostics, null, 4)
+    );
+    writeFile(
+        fn("./build/api/publish/titan-reactor-runtime/index.d.ts"),
+        runtimeTypes.content
+    );
 
-    writeFile(fn("./build/api/out.d.ts"), res.content);
-    writeFile(fn("./build/api/prepend.d.ts"), res.prepend);
-    writeFile(fn("./build/api/out.json"), JSON.stringify(res.diagnostics, null, 4));
+    console.log("building plugin host types");
+    const pluginHostTypes = await unrollTypes({
+        tsConfigFilePath: fn("./tsconfig.json"),
+        inFiles: ["./src/renderer/utils/types/plugin-host-types.ts"],
+        defaultInternal: true,
+        compilerOptions: {
+            allowJs: false,
+        },
+        wrapInGlobal: ["PluginBase", "SceneController"],
+    });
+    writeFile(
+        fn("./build/api/publish/titan-reactor-host/unrolled.json"),
+        JSON.stringify(pluginHostTypes.diagnostics, null, 4)
+    );
+    writeFile(
+        fn("./build/api/publish/titan-reactor-host/index.d.ts"),
+        pluginHostTypes.content
+    );
 };
 
 doThing();

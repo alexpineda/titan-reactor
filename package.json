@@ -7,9 +7,9 @@
     "typings": "dist/types/index.d.ts",
     "scripts": {
         "dev": "vite",
-        "sanity": "yarn typecheck && yarn test:once",
+        "sanity": "yarn types:check && yarn test:once",
         "deep-cleanse": "yarn eslint .",
-        "typecheck": "tsc --noEmit",
+        "types:check": "tsc --noEmit",
         "test": "jest --watchAll",
         "test:once": "jest --runInBand",
         "test:debug": "node --inspect node_modules/jest/bin/jest --runInBand",

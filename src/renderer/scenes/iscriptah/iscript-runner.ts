@@ -88,7 +88,7 @@ export class IScriptRunner {
     //FIXME: fix types
     _dispatch( command: any, event?: any ) {
         this.logger.log( `🧩 ${command}`, event );
-        this.dispatched.push( [command, event] );
+        this.dispatched.push( [ command, event ] );
         return true;
     }
 
@@ -146,7 +146,7 @@ export class IScriptRunner {
                 }
             }
 
-            const [command, args] = state.commands[state.commandIndex];
+            const [ command, args ] = state.commands[state.commandIndex];
             state.commandIndex++;
 
             switch ( command ) {
@@ -226,12 +226,12 @@ export class IScriptRunner {
                             if ( state.frame < 0 ) {
                                 throw new Error( "frame < 0" );
                             }
-                            this._dispatch( command, [state.frame, state.flip] );
+                            this._dispatch( command, [ state.frame, state.flip ] );
                         } else {
                             //FIXME: see if this matters
                             state.frameset = 0;
                             this.setFrame( args[0], state.flipState, state );
-                            this._dispatch( command, [args[0], state.flipState] );
+                            this._dispatch( command, [ args[0], state.flipState ] );
                         }
                     }
                     break;
@@ -250,7 +250,7 @@ export class IScriptRunner {
                         // state.direction =
                         // this.image.sprite.mainImage.userData.direction;
                         this.setFrameBasedOnDirection( state );
-                        this._dispatch( command, [state.frame, state.flip] );
+                        this._dispatch( command, [ state.frame, state.flip ] );
                     }
                     break;
 
@@ -380,7 +380,7 @@ export class IScriptRunner {
 
                 case "playsndrand":
                     {
-                        const [soundCount, ...sounds] = args;
+                        const [ soundCount, ...sounds ] = args;
                         const soundId = sounds[Math.floor( Math.random() * soundCount )];
                         this._dispatch( command, soundId );
                     }
@@ -400,7 +400,7 @@ export class IScriptRunner {
                     break;
                 case "attackmelee":
                     {
-                        const [soundCount, ...sounds] = args;
+                        const [ soundCount, ...sounds ] = args;
                         const soundId = sounds[Math.floor( Math.random() * soundCount )];
                         this._dispatch( command, soundId );
                     }

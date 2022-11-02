@@ -1,6 +1,4 @@
 declare module "bw-chk" {
-
-
     type NameOrUnknown<T> = T | "Unknown";
     type PossiblyUndefined<T> = {
         [P in keyof T]: T[P] | undefined;
@@ -68,13 +66,13 @@ declare module "bw-chk" {
         isDisabled: boolean;
     }
 
-    type ReadFile = (path: string) => Promise<Buffer>;
+    type ReadFile = ( path: string ) => Promise<Buffer>;
 
     class FileAccess {
-        constructor(cb: ReadFile);
-        tileset: (id: number) => Promise<Buffer>;
-        unit: (id: number) => Promise<Buffer>;
-        sprite: (id: number) => Promise<Buffer>;
+        constructor( cb: ReadFile );
+        tileset: ( id: number ) => Promise<Buffer>;
+        unit: ( id: number ) => Promise<Buffer>;
+        sprite: ( id: number ) => Promise<Buffer>;
     }
 
     class TriggerAction {
@@ -104,9 +102,10 @@ declare module "bw-chk" {
         startLocations?: boolean;
     };
 
-    type FileAccessFn = {
-        (filename: string, isOptional?: boolean): Promise<Buffer | null>;
-    };
+    type FileAccessFn = (
+        filename: string,
+        isOptional?: boolean
+    ) => Promise<Buffer | null>;
 
     export enum ForceFlags {
         None = 0,
@@ -139,10 +138,10 @@ declare module "bw-chk" {
     };
 
     export default class Chk {
-        constructor(data: Buffer);
+        constructor( data: Buffer );
 
-        static customFileAccess: (cb: FileAccessFn) => FileAccess;
-        static fsFileAccess: (directory: string) => FileAccess;
+        static customFileAccess: ( cb: FileAccessFn ) => FileAccess;
+        static fsFileAccess: ( directory: string ) => FileAccess;
         static actionIds(): Record<string, number>;
         static conditionIds(): number[];
 
@@ -158,19 +157,17 @@ declare module "bw-chk" {
         sprites: Sprite[];
         triggers: () => Iterable<Trigger> & {
             size: number;
-            iterateFrom: (index: number) => Iterable<Trigger>;
+            iterateFrom: ( index: number ) => Iterable<Trigger>;
         };
         isEudMap: () => boolean;
-        maxPlayers: (isUms: boolean) => number;
+        maxPlayers: ( isUms: boolean ) => number;
         encoding: () => string;
 
-        image: {
-            (
-                fileAccess: FileAccess,
-                width: number,
-                height: number,
-                options?: ImageOptions
-            ): Promise<Buffer>;
-        };
+        image: (
+            fileAccess: FileAccess,
+            width: number,
+            height: number,
+            options?: ImageOptions
+        ) => Promise<Buffer>;
     }
 }

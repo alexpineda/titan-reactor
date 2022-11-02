@@ -18,12 +18,8 @@ import { sanitizeActionable } from "common/macros/sanitize-macros";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { log } from "@ipc/log";
 import { WritableDraft } from "immer/dist/internal";
-
-interface State {
+export interface MacroStore {
     macros: MacrosDTO;
-}
-
-interface Actions {
     persist(): Promise<SettingsMeta | undefined>;
     busy: boolean;
 
@@ -59,7 +55,7 @@ const insertAction = (
 
 export const createMacroStore = ( onSave?: ( settings: SettingsMeta ) => void ) =>
     create(
-        immer<State & Actions>( ( set, get ) => ( {
+        immer<MacroStore>( ( set, get ) => ( {
             macros: settingsStore().data.macros,
             busy: false,
 

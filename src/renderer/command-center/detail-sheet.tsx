@@ -9,6 +9,7 @@ import { createLevaPanel } from "./create-leva-panel";
 import { groupConfigByFolder } from "@utils/leva-utils";
 import { Schema } from "leva/plugin";
 import { VALID_PERMISSIONS } from "@plugins/permissions";
+import { getAppAPIVersion, getPluginAPIVersion } from "common/utils/api-version";
 
 const permissionDescriptions: Record<VALID_PERMISSIONS, string> = {
     "replay": "Allows the plugin to access the replay file entirely",
@@ -39,9 +40,8 @@ export const DetailSheet = ( {
         <li key={p}>{permissionDescriptions[p as VALID_PERMISSIONS]}</li>
     ) );
 
-    const titanReactorApiVersion = packagejson.config["titan-reactor-api"];
-    const pluginApiVersion =
-        pluginPackage.peerDependencies?.["titan-reactor-api"] ?? "1.0.0";
+    const titanReactorApiVersion = getAppAPIVersion();
+    const pluginApiVersion = getPluginAPIVersion( pluginPackage );
 
     return (
         <ErrorBoundary message="There was an error with this plugin">

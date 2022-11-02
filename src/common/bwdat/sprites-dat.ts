@@ -5,6 +5,9 @@ import spriteNames from "./sprite-names";
 import { ImageDAT } from "./images-dat";
 import { ReadFile } from "../types";
 
+/**
+ * @public
+ */
 export interface SpriteDAT {
     image: ImageDAT;
     name: string;

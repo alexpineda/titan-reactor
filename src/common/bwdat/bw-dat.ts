@@ -9,6 +9,9 @@ import { UnitDAT } from "./units-dat";
 import { UpgradeDAT } from "./upgrades-dat";
 import { WeaponDAT } from "./weapons-dat";
 
+/**
+ * @public
+ */
 export interface BwDAT {
     iscript: IScriptDATType;
     sounds: SoundDAT[];

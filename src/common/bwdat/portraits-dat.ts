@@ -1,6 +1,8 @@
 import { DAT } from "./dat";
 import { ReadFile } from "../types";
-
+/**
+ * @public
+ */
 export interface PortraitDAT {
     filename: string;
 }

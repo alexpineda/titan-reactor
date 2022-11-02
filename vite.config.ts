@@ -19,7 +19,7 @@ const alias = Object.entries(aliases).reduce(
     }
 );
 
-const sharedViteConfig = ({ command }) => ({
+export const sharedViteConfig = ({ command }) => ({
     define: {
         __static: JSON.stringify(
             command === "build" ? "./resources/bundled" : "./bundled"

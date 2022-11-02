@@ -31,6 +31,8 @@ import { getSecond } from "common/utils/conversions";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import { Timer } from "@utils/timer";
+import { Assets } from "@image/assets";
+import { SceneStateID } from "../scenes/scene";
 
 const screenChanged = ( screen: SceneStore ) => {
     return {
@@ -44,6 +46,7 @@ const screenChanged = ( screen: SceneStore ) => {
 
 let _lastSend: Record<string, any> = {};
 const _productionTimer = new Timer();
+
 const _makeOnFrame = () => 0;
 
 const _makeOnProduction = () => ( {
@@ -109,6 +112,7 @@ const worldPartial = ( world: ReplayAndMapStore ) => {
         replay: world.replay?.header,
     };
 };
+
 const _selectedUnitMessage: {
     type: string;
     payload: DumpedUnit[] | DeepPartial<Unit>[];
@@ -119,17 +123,42 @@ const _selectedUnitMessage: {
 
 const _productionTransferables: ArrayBufferLike[] = [];
 
+/**
+ * @resolve
+ */
 export interface PluginStateMessage {
     language: string;
     [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions;
-    [UI_STATE_EVENT_SCREEN_CHANGED]: ReturnType<typeof screenChanged>["payload"];
+    [UI_STATE_EVENT_SCREEN_CHANGED]: {
+        screen: SceneStateID | undefined;
+        error: string | undefined;
+    };
     [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>;
-    [UI_STATE_EVENT_ON_FRAME]: ReturnType<typeof _makeOnFrame>;
-    [UI_STATE_EVENT_PRODUCTION]: ReturnType<typeof _makeOnProduction>;
-    [UI_STATE_EVENT_UNITS_SELECTED]: typeof _selectedUnitMessage["payload"];
+    [UI_STATE_EVENT_ON_FRAME]: number;
+    [UI_STATE_EVENT_PRODUCTION]: {
+        playerData: Int32Array;
+        unitProduction: Int32Array[];
+        research: Int32Array[];
+        upgrades: Int32Array[];
+    };
+    [UI_STATE_EVENT_UNITS_SELECTED]: DumpedUnit[] | DeepPartial<Unit>[];
 }
 
-//TODO: use external hooks for access to state changes
+export interface SystemReadyMessage {
+    initialStore: PluginStateMessage;
+    plugins: PluginMetaData[];
+    assets: Pick<
+        Assets,
+        | "bwDat"
+        | "gameIcons"
+        | "cmdIcons"
+        | "raceInsetIcons"
+        | "workerIcons"
+        | "wireframeIcons"
+    >;
+    enums: any;
+}
+
 export class PluginSystemUI {
     #iframe: HTMLIFrameElement = document.createElement( "iframe" );
     #janitor = new Janitor( "PluginSystemUI" );
@@ -184,7 +213,7 @@ export class PluginSystemUI {
             await waitForTruthy( () => gameStore().assets?.remaining === 0 );
             const assets = gameStore().assets!;
 
-            const payload = {
+            const payload: SystemReadyMessage = {
                 plugins: pluginPackages.map( ( plugin ) => ( {
                     ...plugin,
                     config: normalizePluginConfiguration( plugin.config ?? {} ),
@@ -217,8 +246,6 @@ export class PluginSystemUI {
             this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
         };
 
-        //TODO: migrate these to world events
-        // do we need this?
         this.#janitor.mop(
             useGameStore.subscribe( ( game, prev ) => {
                 if ( game.dimensions !== prev.dimensions ) {
@@ -391,7 +418,6 @@ export class PluginSystemUI {
         _productionTransferables.length = 0;
         _productionTransferables.push( playerData.buffer );
 
-        //TODO: perhaps a more readable abstraction would benefit here
         for ( let player = 0; player < 8; player++ ) {
             _onProduction.payload.unitProduction[player] = productionData.copyData();
             _productionTransferables.push(

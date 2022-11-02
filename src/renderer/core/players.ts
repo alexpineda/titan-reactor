@@ -6,6 +6,9 @@ const makeColor = ( color: string ) => new Color().setStyle( color );
 const makeColors = ( players: Pick<BasePlayer, "color">[] ) =>
     players.map( ( { color } ) => makeColor( color ) );
 
+/**
+ * @public
+ */
 export interface BasePlayer {
     id: number;
     name: string;

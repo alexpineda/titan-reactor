@@ -1,6 +1,10 @@
 import type { UnitDAT } from "common/types";
 import type { UnitStruct } from "common/types/structs";
 
+/**
+ * @public
+ * A unit (and its state) in the game.
+ */
 export interface Unit extends UnitStruct {
     extras: {
         recievingDamage: number;
@@ -9,6 +13,10 @@ export interface Unit extends UnitStruct {
     };
 }
 
+/**
+ * @public
+ * Extended unit information.
+ */
 export interface DumpedUnit extends Partial<Unit> {
     remainingTrainTime?: number;
     upgrade?: {

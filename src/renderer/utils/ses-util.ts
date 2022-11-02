@@ -17,7 +17,6 @@ export const createCompartment = ( userEnv: object = {} ) => {
     };
     const systemModules = {
         console: harden( console ),
-        Image: harden( Image ),
     };
 
     const compartment = new Compartment( mix( {}, userEnv, userModules, systemModules ) );

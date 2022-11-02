@@ -1,13 +1,7 @@
 import type { DumpedUnit } from "@core/unit";
-import type {
-    RTPluginStateMessage,
-    RTMinimapDimensions,
-    RTUIStateAssets,
-    RTPluginMetaData,
-    RTTechDataDAT,
-    RTUnitDAT,
-    RTUpgradeDAT,
-} from "@utils/types/runtime.types";
+import type { PluginStateMessage, SystemReadyMessage } from "@plugins/plugin-system-ui";
+import type { MinimapDimensions } from "@render/minimap-dimensions";
+import type { PluginMetaData, TechDataDAT, UnitDAT, UpgradeDAT } from "common/types";
 import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
@@ -23,7 +17,7 @@ function chunk( arr: Int32Array, n: number ) {
     return chunks;
 }
 
-interface Component {
+export interface Component {
     pluginId: string;
     id: number;
     order: number | undefined;
@@ -40,7 +34,7 @@ interface Plugin {
     script: HTMLScriptElement;
 }
 
-type StateMessage = Partial<RTPluginStateMessage>;
+type StateMessage = Partial<PluginStateMessage>;
 const useStore = create<StateMessage>( () => ( {
     screen: {
         screen: "@home",
@@ -50,36 +44,65 @@ const useStore = create<StateMessage>( () => ( {
 
 // friendly utilities
 const _useLocale = ( state: StateMessage ) => state.language;
+/**
+ * @public
+ * Use the translation function to translate a string
+ */
 export const useLocale = () => {
     return useStore( _useLocale );
 };
 
 const _useReplay = ( state: StateMessage ) => state.world!.replay;
+/**
+ * @public
+ * The replay header information.
+ */
 export const useReplay = () => {
     return useStore( _useReplay );
 };
 
 const _useMap = ( state: StateMessage ) => state.world!.map;
+/**
+ * @public
+ * The map information.
+ */
 export const useMap = () => {
     return useStore( _useMap );
 };
 
 const _useFrame = ( state: StateMessage ) => state.frame;
+/**
+ * @public
+ * The current frame of the replay.
+ */
 export const useFrame = () => {
     return useStore( _useFrame );
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
 const _usePlayers = ( state: StateMessage ) => state.world?.replay?.players;
+/**
+ * @public
+ * All players in the current replay.
+ */
 export const usePlayers = () => {
     return useStore( _usePlayers ) ?? [];
 };
 
 const _usePlayerFrame = ( state: StateMessage ) => state.production!.playerData;
+/**
+ * @public
+ * Returns a function getPlayerInfo that can be used to get resource information about a player.
+ */
 export const usePlayerFrame = () => {
     const playerData = useStore( _usePlayerFrame );
     return ( id: number ) => getPlayerInfo( id, playerData );
 };
 
+/**
+ * @public
+ * Returns a function that can be used to get player information.
+ */
 export const usePlayer = () => {
     const players = usePlayers();
     return ( playerId: number ) => {
@@ -88,6 +111,10 @@ export const usePlayer = () => {
 };
 
 const _useSelectedUnits = ( state: StateMessage ) => state.units;
+/**
+ * @public
+ * Returns user selected units (if any).
+ */
 export const useSelectedUnits = () => {
     return ( useStore( _useSelectedUnits ) ?? [] ).map( ( unit ) => {
         return {
@@ -103,6 +130,10 @@ const unitIsComplete = ( unit: DumpedUnit ) => {
     return ( unit.statusFlags! & 0x01 ) === 1;
 };
 
+/**
+ * @public
+ * Get the icon id for a particular unit type.
+ */
 export const getUnitIcon = ( unit: DumpedUnit ) => {
     if (
         ( unit.extras!.dat.isBuilding &&
@@ -118,10 +149,13 @@ export const getUnitIcon = ( unit: DumpedUnit ) => {
 
     if ( unitIsComplete( unit ) && unit.remainingTrainTime ) {
         if ( unit.typeId === enums.unitTypes.reaver ) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return enums.unitTypes.scarab;
         } else if ( unit.typeId === enums.unitTypes.carrier ) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return enums.unitTypes.interceptor;
         } else if ( unit.typeId === enums.unitTypes.nuclearSilo ) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             return enums.unitTypes.nuclearMissile;
         }
     }
@@ -129,7 +163,7 @@ export const getUnitIcon = ( unit: DumpedUnit ) => {
     return null;
 };
 
-const mapUnitInProduction = ( input: Int32Array, unit: RTUnitDAT ) =>
+const mapUnitInProduction = ( input: Int32Array, unit: UnitDAT ) =>
     unit.isTurret
         ? null
         : {
@@ -140,7 +174,7 @@ const mapUnitInProduction = ( input: Int32Array, unit: RTUnitDAT ) =>
               isUnit: true,
           };
 
-const mapUpgradeInProduction = ( input: Int32Array, upgrade: RTUpgradeDAT ) => ( {
+const mapUpgradeInProduction = ( input: Int32Array, upgrade: UpgradeDAT ) => ( {
     typeId: input[0],
     icon: upgrade.icon,
     level: input[1],
@@ -149,7 +183,7 @@ const mapUpgradeInProduction = ( input: Int32Array, upgrade: RTUpgradeDAT ) => (
         input[2]! / ( upgrade.researchTimeBase + upgrade.researchTimeFactor * input[1]! ),
 } );
 
-const mapResearchInProduction = ( input: Int32Array, research: RTTechDataDAT ) => ( {
+const mapResearchInProduction = ( input: Int32Array, research: TechDataDAT ) => ( {
     typeId: input[0],
     icon: research.icon,
     progress: input[1]! / research.researchTime,
@@ -157,6 +191,11 @@ const mapResearchInProduction = ( input: Int32Array, research: RTTechDataDAT ) =
 } );
 
 const _useProduction = ( state: StateMessage ) => state.production!;
+/**
+ * @public
+ * Returns three functions that can be used to get player production information.
+ * Units, Upgrades and Research.
+ */
 export const useProduction = () => {
     const { unitProduction, upgrades, research } = useStore( _useProduction );
 
@@ -177,6 +216,10 @@ export const useProduction = () => {
     ];
 };
 
+/**
+ * @public
+ * Converts a frame numer to a time string eg 01:00.
+ */
 export const getFriendlyTime = ( frame: number ) => {
     const t = Math.floor( ( frame * 42 ) / 1000 );
     const minutes = Math.floor( t / 60 );
@@ -185,6 +228,9 @@ export const getFriendlyTime = ( frame: number ) => {
     return `${minutes}:${`00${seconds}`.slice( -2 )}`;
 };
 
+/**
+ * @public
+ */
 export const openUrl = ( url: string ) =>
     window.parent.postMessage(
         {
@@ -195,7 +241,7 @@ export const openUrl = ( url: string ) =>
     );
 
 // plugin specific configuration
-const useConfig = create<Record<string, unknown>>( () => ( {} ) );
+const useConfig = create<Record<string, object>>( () => ( {} ) );
 
 interface ComponentsStore {
     components: Component[];
@@ -228,7 +274,7 @@ const removePluginStylesheet = ( id: string ) => {
 const _plugins: Record<string, Plugin> = {};
 
 const _removePlugin = ( pluginId: string ) => {
-    const plugin = _plugins[pluginId];
+    const plugin = _plugins[pluginId] as Plugin | undefined;
     if ( !plugin || pluginId !== plugin.id ) {
         return;
     }
@@ -240,7 +286,7 @@ const _removePlugin = ( pluginId: string ) => {
     delete _plugins[plugin.id];
 };
 
-const _addPlugin = ( plugin: RTPluginMetaData ) => {
+const _addPlugin = ( plugin: PluginMetaData ) => {
     if ( !plugin.indexFile ) {
         return;
     }
@@ -262,10 +308,24 @@ const _addPlugin = ( plugin: RTPluginMetaData ) => {
         [plugin.id]: plugin.config,
     } );
 };
-
-export const assets: RTUIStateAssets = {} as RTUIStateAssets;
-// TODO: export enums type defs
+/**
+ * @public
+ * Images and game data.
+ */
+export type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat"> &
+    ReturnType<typeof convertIcons>;
+/**
+ * @public
+ * Images and game data.
+ */
+export const assets: RuntimeAssets = {} as RuntimeAssets;
+/**
+ * @public
+ * Enums and data for game types.
+ */
 export const enums: any = {};
+
+// TODO: export enums type defs
 class RollingValue {
     #lastTime = 0;
     upSpeed: number;
@@ -340,6 +400,10 @@ class RollingValue {
     }
 }
 
+/**
+ * @public
+ * A number that rolls up and down quickly like a casino slot.
+ */
 export const RollingNumber = ( {
     value,
     upSpeed,
@@ -376,6 +440,10 @@ export const RollingNumber = ( {
     return <span ref={numberRef} {...props}></span>;
 };
 
+/**
+ * @public
+ * Player information.
+ */
 export class PlayerInfo {
     _struct_size = 7;
     playerId = 0;
@@ -423,7 +491,7 @@ const getPlayerInfo = (
     return playerInfo;
 };
 
-const updateDimensionsCss = ( dimensions: RTMinimapDimensions ) => {
+const updateDimensionsCss = ( dimensions: MinimapDimensions ) => {
     setPluginStyleSheet(
         "game-dimension-css-vars",
         `:root {
@@ -434,58 +502,60 @@ const updateDimensionsCss = ( dimensions: RTMinimapDimensions ) => {
     );
 };
 
-function convertIcons() {
+/**
+ * @internal
+ */
+export function convertIcons( {
+    cmdIcons,
+    gameIcons,
+    raceInsetIcons,
+    wireframeIcons,
+    workerIcons,
+}: Required<SystemReadyMessage["assets"]> ) {
     const b = ( data: ArrayBuffer ) =>
         URL.createObjectURL( new Blob( [ data ], { type: "octet/stream" } ) );
 
-    for ( let i = 0; i < assets.cmdIcons.length; i++ ) {
-        const icon = assets.cmdIcons[i];
-        if ( icon instanceof ArrayBuffer ) {
-            assets.cmdIcons[i] = b( icon );
-        }
-    }
-
-    for ( let i = 0; i < assets.wireframeIcons.length; i++ ) {
-        const icon = assets.wireframeIcons[i];
-        if ( icon instanceof Blob ) {
-            assets.wireframeIcons[i] = URL.createObjectURL( icon );
-        }
-    }
-
-    assets.raceInsetIcons.protoss = URL.createObjectURL( assets.raceInsetIcons.protoss );
-    assets.raceInsetIcons.zerg = URL.createObjectURL( assets.raceInsetIcons.zerg );
-    assets.raceInsetIcons.terran = URL.createObjectURL( assets.raceInsetIcons.terran );
-
-    assets.workerIcons.protoss = b( assets.workerIcons.protoss as ArrayBuffer );
-    assets.workerIcons.zerg = b( assets.workerIcons.zerg as ArrayBuffer );
-    assets.workerIcons.terran = b( assets.workerIcons.terran as ArrayBuffer );
-    assets.workerIcons.apm = b( assets.workerIcons.apm as ArrayBuffer );
-
-    assets.gameIcons.energy = URL.createObjectURL( assets.gameIcons.energy );
-    assets.gameIcons.minerals = URL.createObjectURL( assets.gameIcons.minerals );
-
-    assets.gameIcons.protoss = URL.createObjectURL( assets.gameIcons.protoss );
-    assets.gameIcons.terran = URL.createObjectURL( assets.gameIcons.terran );
-    assets.gameIcons.vespeneProtoss = URL.createObjectURL(
-        assets.gameIcons.vespeneProtoss
-    );
-    assets.gameIcons.vespeneTerran = URL.createObjectURL(
-        assets.gameIcons.vespeneTerran
-    );
-    assets.gameIcons.vespeneZerg = URL.createObjectURL( assets.gameIcons.vespeneZerg );
-    assets.gameIcons.zerg = URL.createObjectURL( assets.gameIcons.zerg );
+    return {
+        cmdIcons: cmdIcons.map( b ),
+        wireframeIcons: wireframeIcons.map( ( i ) => URL.createObjectURL( i ) ),
+        raceInsetIcons: {
+            protoss: URL.createObjectURL( raceInsetIcons.protoss ),
+            terran: URL.createObjectURL( raceInsetIcons.terran ),
+            zerg: URL.createObjectURL( raceInsetIcons.zerg ),
+        },
+        workerIcons: {
+            protoss: b( workerIcons.protoss ),
+            terran: b( workerIcons.terran ),
+            zerg: b( workerIcons.zerg ),
+            apm: b( workerIcons.apm ),
+        },
+        gameIcons: {
+            energy: URL.createObjectURL( gameIcons.energy ),
+            minerals: URL.createObjectURL( gameIcons.minerals ),
+            protoss: URL.createObjectURL( gameIcons.protoss ),
+            terran: URL.createObjectURL( gameIcons.terran ),
+            zerg: URL.createObjectURL( gameIcons.zerg ),
+            vespeneProtoss: URL.createObjectURL( gameIcons.vespeneProtoss ),
+            vespeneTerran: URL.createObjectURL( gameIcons.vespeneTerran ),
+            vespeneZerg: URL.createObjectURL( gameIcons.vespeneZerg ),
+        },
+    };
 }
 
 const _messageListener = function ( event: MessageEvent ) {
     if ( event.data.type.startsWith( "system:" ) ) {
         if ( event.data.type === "system:ready" ) {
-            useStore.setState( event.data.payload.initialStore );
+            const payload = event.data.payload as SystemReadyMessage;
+            useStore.setState( payload.initialStore );
 
-            updateDimensionsCss( event.data.payload.initialStore.dimensions );
+            updateDimensionsCss( payload.initialStore.dimensions );
 
-            Object.assign( assets, event.data.payload.assets );
+            Object.assign( assets, payload.assets );
 
-            convertIcons();
+            Object.assign(
+                assets,
+                convertIcons( payload.assets as Required<SystemReadyMessage["assets"]> )
+            );
 
             Object.assign( enums, event.data.payload.enums );
 
@@ -494,13 +564,14 @@ const _messageListener = function ( event: MessageEvent ) {
         } else if ( event.data.type === "system:plugins-enabled" ) {
             event.data.payload.forEach( _addPlugin );
         } else if ( event.data.type === "system:plugin-disabled" ) {
-            _removePlugin( event.data.payload );
+            _removePlugin( event.data.payload as string );
         } else if ( event.data.type === "system:plugin-config-changed" ) {
             useConfig.setState( {
-                [event.data.payload.pluginId]: event.data.payload.config,
+                [event.data.payload.pluginId]: event.data.payload.config as object,
             } );
         } else if ( event.data.type === "system:mouse-click" ) {
-            const { clientX, clientY, button, shiftKey, ctrlKey } = event.data.payload;
+            const { clientX, clientY, button, shiftKey, ctrlKey } = event.data
+                .payload as MouseEvent;
 
             const element = document.elementFromPoint( clientX, clientY )!;
             ReactTestUtils.Simulate.click( element, {
@@ -511,7 +582,10 @@ const _messageListener = function ( event: MessageEvent ) {
                 clientY,
             } );
         } else if ( event.data.type === "system:custom-message" ) {
-            const { message, pluginId } = event.data.payload;
+            const { message, pluginId } = event.data.payload as {
+                message: object;
+                pluginId: string;
+            };
             const plugin = _plugins[pluginId];
             if ( plugin ) {
                 const event = new CustomEvent( "message", { detail: message } );
@@ -520,7 +594,7 @@ const _messageListener = function ( event: MessageEvent ) {
         }
     } else {
         if ( event.data.type === "dimensions" ) {
-            updateDimensionsCss( event.data.payload as RTMinimapDimensions );
+            updateDimensionsCss( event.data.payload as MinimapDimensions );
         }
         useStore.setState( { [event.data.type]: event.data.payload as unknown } );
     }
@@ -529,6 +603,10 @@ window.addEventListener( "message", _messageListener );
 
 const PluginContext = createContext<Component | null>( null );
 
+/**
+ * @public
+ * Receive ipc messages from your native plugin.
+ */
 export const useMessage = ( cb?: ( event: any ) => void, deps: unknown[] = [] ) => {
     const { messageHandler } = useContext( PluginContext )!;
 
@@ -541,6 +619,10 @@ export const useMessage = ( cb?: ( event: any ) => void, deps: unknown[] = [] ) 
     }, [ ...deps, cb, messageHandler ] );
 };
 
+/**
+ * @public
+ * Send ipc messages to your native plugin.
+ */
 export const useSendMessage = () => {
     const { pluginId } = useContext( PluginContext )!;
 
@@ -557,11 +639,19 @@ export const useSendMessage = () => {
         );
 };
 
+/**
+ * @public
+ * Get your users plugin configuration.
+ */
 export const usePluginConfig = () => {
     const { pluginId } = useContext( PluginContext )!;
-    return useConfig( ( store: Record<string, unknown> ) => store[pluginId] );
+    return useConfig( ( store ) => store[pluginId] );
 };
 
+/**
+ * @public
+ * Set a global stylesheet.
+ */
 export const useStyleSheet = ( content: string, deps = [] ) => {
     const { pluginId } = useContext( PluginContext )!;
     useEffect( () => {
@@ -573,9 +663,14 @@ export const useStyleSheet = ( content: string, deps = [] ) => {
     }, [] );
 };
 
+/**
+ * @public
+ */
 export const proxyFetch = ( url: string ) => fetch( `?proxy=${encodeURIComponent( url )}` );
 
-//registerComponent
+/**
+ * @internal
+ */
 export const _rc = (
     pluginId: string,
     component: Component,
@@ -614,7 +709,7 @@ const PluginComponent = ( {
     key: string | number;
     JSXElement: Component["JSXElement"];
 } ) => {
-    const config = usePluginConfig();
+    const config = usePluginConfig() as { _visible: boolean };
     return (
         <ErrorBoundary key={key}>
             <div style={{ display: config._visible ? "block" : "none" }}>
@@ -635,7 +730,7 @@ const App = ( { components }: { components: Component[] } ) => {
     useEffect( () => {
         if ( !containerDiv.current ) return;
 
-        if ( [ "@home", "@loading" ].includes( screen! ) ) {
+        if ( [ "@home", "@loading" ].includes( screen as string ) ) {
             containerDiv.current.style.opacity = "1";
         } else {
             let opacity = 0;
@@ -654,8 +749,8 @@ const App = ( { components }: { components: Component[] } ) => {
 
     const screenFilter = ( component: Component ) =>
         appLoaded &&
-        [ "@replay", "@map" ].includes( screen! ) &&
-        ( component.screen ?? "" ).includes( screen! );
+        [ "@replay", "@map" ].includes( screen as string ) &&
+        ( component.screen ?? "" ).includes( screen as string );
 
     const renderComponent = ( component: Component ) => (
         <PluginContext.Provider value={component}>

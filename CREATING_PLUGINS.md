@@ -6,7 +6,6 @@
     - [Plugin Files](#plugin-files)
     - [Allowing For User Configuration](#allowing-for-user-configuration)
   - [React Plugin](#react-plugin)
-    - [Runtime API Reference](#runtime-api-reference)
     - [registerComponent()](#registercomponent)
     - [CSS](#css)
   - [Host Plugin](#host-plugin)
@@ -40,12 +39,13 @@ You'll first need a `package.json` file under your plugin folder with at least a
     "version": "1.0.0",
     "keywords": ["titan-reactor-plugin"],
     "peerDependencies": {
-        "titan-reactor-api": "2.0.0"
+        "titan-reactor-runtime": "2.0.0",
+        "titan-reactor-host": "2.0.0"
     }
 }
 ```
 
-> We use the [npm package.json](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for our conventions here. `peerDependencies` lets Titan Reactor know about compatibility.
+> We use the [npm package.json](https://docs.npmjs.com/cli/v8/configuring-npm/package-json) for our conventions here. `titan-reactor-runtime` is used for UI plugins and contains type definitions. `titan-reactor-host` is used for native plugins.
 
 ### Plugin Files
 
@@ -71,7 +71,8 @@ We use the `config` value in `package.json` to define user configuration options
     "version": "1.0.0",
     "keywords": ["titan-reactor-plugin"],
     "peerDependencies": {
-        "titan-reactor-api": "2.0.0"
+        "titan-reactor-runtime": "2.0.0",
+        "titan-reactor-host": "2.0.0"
     },
     "config": {
         "userName": {
@@ -92,7 +93,7 @@ Once we've got our basic `package.json` we can start with `index.tsx`:
 
 ```jsx
 import React from "react";
-import { usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor/runtime";
+import { usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor-runtime";
 
 const MyComponent = () => {
 
@@ -108,87 +109,6 @@ registerComponent({ screen: "@replay", snap: "left" }, MyComponent);
 ```
 
 > Calling `registerComponent` lets Titan Reactor know about our new React Component. The screen rule causes the component to mount or unmount it according to the screen which can be either `@replay` or `@map`.
-
-### Runtime API Reference
-
-> It's recommended to use TypeScript to get upto date typing and reference.
-
-**usePluginConfig()**
-
--   Get this plugins configuration values
-
-**useFrame()**
-
--   **frame**
-    -   **frame**: current replay frame
-    -   **playerData**: raw player data, use `usePlayerFrame` utility to extract meaningful data
-    -   **unitProduction**: Int32Array for each player (8 total), with [unitId, count]
-    -   **upgrades**: Int32Array for each player (8 total), with [upgradeId, level, progress]
-    -   **research**: Int32Array for each player (8 total), with [researchId, progress]
-
-**useMap()**
-
--   **map**: [Map](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/common/types/declarations/bw-chk.d.ts#L21)
-
-**useReplay()**
-
--   **replay**: [Replay](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/process-replay/parse-replay.ts#L49)
-
-**usePlayers()**
-
--   Convenience function for accessing `replay.header.players`
-
-**usePlayerFrame()**
-
--   provides function `getPlayerInfo(playerId)` to get frame based information like minerals and gas.
-
-**usePlayer()**
-
--   Convenience function to retrieve a particular player from `replay.header.players`
--   provides function `getPlayer(playerId)`
-
-**useSelectedUnits()**
-
--   Provides Unit objects if any are presently selected
-
-**getUnitIcon(unit)**
-
--   Pass in a selected unit to get the correct icon id to use with `assets.cmdIcons`
-
-**useProduction**
-
--   returns `[getUnits, getUpgrades, getResearch]` where each can be used to get player production information eg `getUnits(player.id)`
-
-**useStyleSheet(content)**
-
--   Set a global stylesheet
-
-**useMessage()**
-
--   Recieve messages from your plugin.js
-
-**useSendMessage()**
-
--   Send messages to your plugin.js
--   provides function `sendMessage(content)`
-
-**getFriendlyTime(frame)**
-
--   Converts a game frame to a time label like 12:01
-
-**RollingResource**
-
--   A component that rolls to a number in an animated fashion
-
-**assets**
-
--   A full set of game assets like icons (mostly in base64) and DAT information
--   See the [Assets](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/assets/assets.ts) type for reference
-
-**enums**
-
--   A full set of game enums like unit types
--   See the [enums](https://github.com/imbateam-gg/titan-reactor/tree/dev/src/common/enums) folder for reference
 
 ### registerComponent()
 
@@ -240,9 +160,7 @@ Open Props is also made available.
 
 ## Host Plugin
 
-When a game is started apis are made available to your Host plugin for that instance of the game.
-
-Since this api is in very active development [please refer to the source code](https://github.com/imbateam-gg/titan-reactor/blob/dev/src/renderer/scenes/replay/replay-scene.ts#L83) for the time being. An npm type package will soon be made available.
+When a game is started apis are made available to your Host plugin for that instance of the game. Your plugin runs in a sandboxed container so most browser APIs will not be available.
 
 > Your `plugin.ts` is loaded in the same process space as Titan Reactor itself. You can listen to hooks and modify scene and state objects, as well as create custom hooks for other plugins to listen to.
 
@@ -253,7 +171,7 @@ Every host plugin can react to hooks.
 > Full documentation is available via typings.
 
 ```ts
-import { PluginBase } from "titan-reactor/host";
+import { PluginBase } from "titan-reactor-host";
 
 // global dependencies are made available
 // THREE - three.js
@@ -293,7 +211,7 @@ A scene controller is a special plugin that responds to user input in order to c
 > Unlike regular plugins, hooks won't be executed unless the scene is active, including the regular plugin hooks.
 
 ```ts
-import { SceneController } from "titan-reactor/host";
+import { SceneController } from "titan-reactor-host";
 
 
 export default class PluginAddon extends SceneController implements SceneController {
@@ -338,7 +256,7 @@ In your `index.tsx`:
 
 ```tsx
 import React from "react";
-import { useMessage, useSendMessage } from "titan-reactor/runtime";
+import { useMessage, useSendMessage } from "titan-reactor-runtime";
 
 const MyComponent = ({ config }) => {
 
@@ -358,7 +276,7 @@ const MyComponent = ({ config }) => {
 In your `plugin.ts`:
 
 ```ts
-import { PluginBase } from "titan-reactor/host";
+import { PluginBase } from "titan-reactor-host";
 
 export default class Plugin extends PluginBase {
     onSceneReady() {

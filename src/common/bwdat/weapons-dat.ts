@@ -2,6 +2,9 @@ import { DAT } from "./dat";
 import { FlingyDAT } from "./flingy-dat";
 import { ReadFile } from "../types";
 
+/**
+ * @public
+ */
 export interface WeaponDAT {
     index: number;
     name: string;

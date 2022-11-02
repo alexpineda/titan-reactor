@@ -23,7 +23,6 @@
         "noUncheckedIndexedAccess": false,
 
         "declaration": true,
-        "declarationMap": true,
         "declarationDir": "./dist/types",
 
         "noUnusedLocals": true,

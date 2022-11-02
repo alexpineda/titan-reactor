@@ -1,5 +1,3 @@
-import { OnChangeHandler } from "leva/plugin";
-
 export enum Operator {
     SetToDefault = "SetToDefault",
     Set = "Set",
@@ -19,7 +17,7 @@ export interface FieldDefinition<T = unknown> {
      */
     type?: string;
 
-    onChange?: OnChangeHandler;
+    onChange?: ( value: any, path: string, context: any ) => void;
     folder?: string;
     label?: string;
     value: T; //number | string | boolean | number[];

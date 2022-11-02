@@ -15,9 +15,9 @@ import log from "../log";
 import { fileExists } from "common/utils/file-exists";
 import { transpile } from "../transpile";
 import { DEFAULT_PLUGIN_PACKAGES } from "common/default-settings";
-import packagejson from "../../../package.json";
 import semver from "semver";
 import { arrayOverwriteMerge } from "@utils/object-utils";
+import { getAppAPIVersion, getPluginAPIVersion } from "common/utils/api-version";
 
 const loadUtf8 = async (
     filepath: string,
@@ -163,7 +163,7 @@ export class PluginManager {
             author: packageJSON.author,
             repository: packageJSON.repository,
             keywords: packageJSON.keywords ?? [],
-            apiVersion: packageJSON.peerDependencies?.["titan-reactor-api"] ?? "1.0.0",
+            apiVersion: getPluginAPIVersion( packageJSON ),
             path: folderName,
             config,
             nativeSource: pluginNative,
@@ -197,17 +197,18 @@ export class PluginManager {
 
             if ( this.#isIncompatible( plugin.apiVersion ) ) {
                 log.error(
-                    `@load-plugins/load-plugin-packages: Plugin ${plugin.name} requires Titan Reactor API version ${plugin.apiVersion} but the current version is ${packagejson.config["titan-reactor-api"]}`
+                    `@load-plugins/load-plugin-packages: Plugin ${
+                        plugin.name
+                    } requires Titan Reactor API version ${
+                        plugin.apiVersion
+                    } but the current version is ${getAppAPIVersion()}`
                 );
             }
         }
     }
 
     #isIncompatible( apiVersion: string ) {
-        return (
-            semver.major( packagejson.config["titan-reactor-api"] ) !==
-            semver.major( apiVersion )
-        );
+        return semver.major( getAppAPIVersion() ) !== semver.major( apiVersion );
     }
 
     async installDefaultPlugins( onNotify: () => void ) {
@@ -350,7 +351,7 @@ const getExternMethods = ( fn: string ) => {
     const regex = /(externMethod([a-zA-Z0-9_$]+))+/g;
     const matches = fn.match( regex );
     if ( matches ) {
-        return [...new Set( matches )];
+        return [ ...new Set( matches ) ];
     } else {
         return [];
     }

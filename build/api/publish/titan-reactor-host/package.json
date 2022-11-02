@@ -1,0 +1,21 @@
+{
+    "name": "titan-reactor-host",
+    "version": "2.0.0",
+    "description": "",
+    "types": "index.d.ts",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Alex Pineda <alexpineda@fastmail.com>",
+    "license": "GPLv3",
+    "peerDependencies": {
+        "camera-controls": "1.37.2",
+        "three-janitor": "^2.0.1",
+        "bw-chk": "^1.3.0",
+        "react": "^18.2.0",
+        "three": "0.145.0"
+    },
+    "files": [
+        "index.d.ts"
+    ]
+}

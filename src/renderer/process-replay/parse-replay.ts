@@ -79,4 +79,8 @@ export const parseReplay = async ( buf: Buffer ) => {
     };
 };
 
+/**
+ * @public
+ * A replay file structure containing header information and raw command and map data
+ */
 export type Replay = Awaited<ReturnType<typeof parseReplay>>;

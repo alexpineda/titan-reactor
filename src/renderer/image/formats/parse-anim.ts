@@ -5,7 +5,29 @@ import range from "common/utils/range";
 
 const versionSD = 0x0101;
 
-export const parseAnim = ( buf: Buffer ) => {
+export type RefAnim = {
+    type: "ref";
+    refId: number;
+};
+
+export type ParseAnimResult =
+    | RefAnim
+    | {
+          type: "sprite";
+          w: number;
+          h: number;
+          maps: Record<string, AnimDds>;
+          frames: {
+              x: number;
+              y: number;
+              xoff: number;
+              yoff: number;
+              w: number;
+              h: number;
+          }[];
+      };
+
+export const parseAnim = ( buf: Buffer ): ParseAnimResult[] => {
     const bl = new BufferList( buf );
 
     const header = bl.shallowSlice( 0, 12 + 10 * 32 );
@@ -44,6 +66,7 @@ export const parseAnim = ( buf: Buffer ) => {
             data.consume( 4 );
             lastOffset = lastOffset + 4 + 8;
             return {
+                type: "ref" as const,
                 refId,
             };
         }
@@ -55,6 +78,7 @@ export const parseAnim = ( buf: Buffer ) => {
         const frames = parseFrames( numFrames, framesOffset );
         lastOffset = framesOffset + numFrames * 16;
         return {
+            type: "sprite" as const,
             w,
             h,
             maps,

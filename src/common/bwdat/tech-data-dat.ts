@@ -1,6 +1,9 @@
 import { DAT } from "./dat";
 import { ReadFile } from "../types";
 
+/**
+ * @public
+ */
 export interface TechDataDAT {
     mineralCost: number;
     vespeneCost: number;

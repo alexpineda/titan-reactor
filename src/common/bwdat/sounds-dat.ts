@@ -1,6 +1,8 @@
 import { DAT } from "./dat";
 import { ReadFile } from "../types";
-
+/**
+ * @public
+ */
 export interface SoundDAT {
     file: string;
     priority: number;
