@@ -10,10 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Added
 
 -   Additional messaging when updating / installing plugins
+-   Type definitons for the UI api
+-   customEvents object replacing custom callback methods
 
 ## Removed
 
 -   Clear asset cache menu item
+-   Plugin callbacks no longer have context value attached
 
 ## [v0.6.7]
 

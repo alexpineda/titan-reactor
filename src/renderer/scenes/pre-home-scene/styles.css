@@ -1,67 +1,97 @@
 @font-face {
-  font-family: "Conthrax";
-  src: url("../../../../bundled/assets/conthrax-rg.otf") format("opentype");
-  /* src: url("../../image/assets/fonts/conthrax-rg.otf") format("opentype"); */
-  font-style: normal;
-  font-weight: 100 400;
+    font-family: "Conthrax";
+    src: url("../../../../bundled/assets/conthrax-rg.otf") format("opentype");
+    /* src: url("../../image/assets/fonts/conthrax-rg.otf") format("opentype"); */
+    font-style: normal;
+    font-weight: 100 400;
 }
 
 @font-face {
-  font-family: "Conthrax-Bold";
-  src: url("../../../../bundled/assets/conthrax-hv.otf") format("opentype");
-  /* src: url("../../image/assets/fonts/conthrax-hv.otf") format("opentype"); */
-  font-style: normal;
-  font-weight: 500 900;
+    font-family: "Conthrax-Bold";
+    src: url("../../../../bundled/assets/conthrax-hv.otf") format("opentype");
+    /* src: url("../../image/assets/fonts/conthrax-hv.otf") format("opentype"); */
+    font-style: normal;
+    font-weight: 500 900;
 }
 
 @font-face {
-  font-family: "Inter";
-  src: url("../../../../bundled/assets/Inter-VariableFont_slnt,wght.ttf") format("truetype");
-  /* src: url("../../image/assets/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype"); */
+    font-family: "Inter";
+    src: url("../../../../bundled/assets/Inter-VariableFont_slnt,wght.ttf")
+        format("truetype");
+    /* src: url("../../image/assets/fonts/Inter-VariableFont_slnt,wght.ttf") format("truetype"); */
 }
 
 :root {
-  --font-sans: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu,
-    Cantarell, Noto Sans, sans-serif, Segoe UI, Roboto, Ubuntu, Cantarell,
-    Noto Sans, sans-serif;
+    --font-sans: Inter, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell,
+        Noto Sans, sans-serif, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans,
+        sans-serif;
 
-  --team-green: "#64c857";
-
+    --team-green: #64c857;
 }
 
 html {
-  background-color: transparent;
+    background-color: transparent;
 }
 
 body {
-  font-family: var(--font-sans);
-  max-block-size: 100%;
-  max-inline-size: 100%;
-  overflow: hidden;
+    font-family: var(--font-sans);
+    max-block-size: 100%;
+    max-inline-size: 100%;
+    overflow: hidden;
 }
 
 @keyframes gradient {
-	0% {
-		background-position: 0% 50%;
-	}
-	50% {
-		background-position: 100% 50%;
-	}
-	100% {
-		background-position: 0% 50%;
-	}
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 ul {
-  list-style: none;
-  padding-inline-start: 0;
+    list-style: none;
+    padding-inline-start: 0;
 }
 
 @keyframes hue {
-  0%, 100%  { filter: saturate(none); } /* hue-rotate(0deg) } */
-  50% { filter: saturate(3) ; } /* hue-rotate(180deg)} */
+    0%,
+    100% {
+        filter: saturate(none);
+    } /* hue-rotate(0deg) } */
+    50% {
+        filter: saturate(3);
+    } /* hue-rotate(180deg)} */
 }
 
 .hue {
-  animation: hue 10s infinite;
+    animation: hue 10s infinite;
+}
+
+.lds-dual-ring {
+    display: inline-block;
+    width: 80px;
+    height: 80px;
+}
+.lds-dual-ring:after {
+    content: " ";
+    display: block;
+    width: 64px;
+    height: 64px;
+    margin: 8px;
+    border-radius: 50%;
+    border: 6px solid var(--team-green);
+    border-color: var(--team-green) transparent var(--team-green) transparent;
+    animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }

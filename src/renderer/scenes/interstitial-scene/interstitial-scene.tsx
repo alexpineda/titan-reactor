@@ -31,6 +31,16 @@ export const InterstitialScene = ( { surface }: { surface: HTMLCanvasElement } )
             />
             {!error && (
                 <div
+                    className="lds-dual-ring"
+                    style={{
+                        position: "absolute",
+                        top: "0",
+                        right: "0",
+                    }}
+                />
+            )}
+            {!error && (
+                <div
                     style={{
                         display: "grid",
                         userSelect: "none",
