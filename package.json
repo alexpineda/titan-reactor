@@ -107,7 +107,7 @@
         "sanitize-filename": "^1.6.3",
         "scm-extractor": "^1.0.6",
         "semver": "^7.3.5",
-        "ses": "^0.15.17",
+        "ses": "^0.16.0",
         "three": "0.145.0",
         "three-gpu-pathtracer": "^0.0.6",
         "three-instanced-uniforms-mesh": "^0.46.0",
