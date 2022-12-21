@@ -1,7 +1,8 @@
 <br />
 
 <h1 align="center">Titan Reactor</h1>
-<h3 align="center">An OpenBW game renderer and sandbox with plugins and macros.</h3>
+<h3 align="center">An OpenBW 2.5D map and replay viewer.</h3>
+<h5 align="center">Written in TypeScript with Three.JS.</h5>
 
 <br>
 
@@ -41,23 +42,15 @@
 
 ### Developing Plugins
 
-Developing plugins for Titan Reactor is easy and requires no build tools! A knowledge of React, javascript, and a basic text editor is all that is needed.
+-   See the [CREATING_PLUGINS](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md) document.
 
-[See the CREATING_PLUGINS document for more details.](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md)
+### Replay Data Privacy
 
-### Replay Data Security
-
-Replay data is not shared or transmitted by Titan Reactor. You may explicitly grant a plugin permission to access replay information for its own functionality.
-
-### Donations
-
-If you use this software, please donate (one time) to the [MS Society](https://mssociety.ca/). If donating to that particular charity is not possible, please try and donate to a medical oriented charity of your choosing. Thank you.
-
-### Special Thank You
-
-I suspect the usual folks are in for a big thank you: heinerman, tec27, neiv, tcsmoo, icza, farty1billion, poiuy_qwert and anyone/everyone that has helped either actively or passively ( by using your tools, and/or my taking liberties with your code, respecting license of course ). Big up to xiarobear for partnering up long term (almost 3 years?) with the artwork. <3
+Replay data is not shared or transmitted by Titan Reactor. Plugins may only access your replay data by granting explicit permission.
 
 ### Development Installation
+
+[Code Architecture WIKI](https://github.com/imbateam-gg/titan-reactor/wiki/Code-Architecture)
 
 _Using node 16 and yarn 1.x_
 
