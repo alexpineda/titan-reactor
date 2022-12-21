@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { AnimationBlocks } from "./animation-blocks";
-import calculateImagesFromIscript from "@utils/images-from-iscript";
+import { calculateImagesFromIScript } from "@utils/images-from-iscript";
 
 import { useGameStore } from "@stores/game-store";
 import { UnitDAT } from "common/types";
@@ -25,7 +25,7 @@ const Unit = ( {
     // const subUnit2 = unit.subUnit2 !== 228 ? bwDat.units[unit.subUnit2] : null;
 
     const imagesFromIscript = useCallback( () => {
-        return [ ...calculateImagesFromIscript( bwDat, unit.flingy.sprite.image, unit ) ];
+        return [ ...calculateImagesFromIScript( bwDat, unit.flingy.sprite.image, unit ) ];
     }, [ bwDat, unit ] );
 
     return (

@@ -139,4 +139,3 @@ export const calculateImagesFromSpritesIscript = (
 
     return [ ...preload ].filter( ( v ) => v !== undefined );
 };
-export default calculateImagesFromIScript;

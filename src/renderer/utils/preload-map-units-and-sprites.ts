@@ -1,20 +1,20 @@
+import type { Assets } from "@image/assets";
 import { CMDS } from "@process-replay/commands/commands";
 import CommandsStream from "@process-replay/commands/commands-stream";
-import { Replay } from "@process-replay/parse-replay";
+import type { Replay } from "@process-replay/parse-replay";
+import gameStore from "@stores/game-store";
 import processStore from "@stores/process-store";
 import {
     calculateImagesFromSpritesIscript,
     calculateImagesFromUnitsIscript,
 } from "@utils/images-from-iscript";
-import Chk from "bw-chk";
-import { Assets } from "@image/assets";
+import type Chk from "bw-chk";
 import { techTree } from "common/enums";
-import gameStore from "@stores/game-store";
 
 export const preloadMapUnitsAndSpriteFiles = async (
-    assets: Assets,
-    map: Chk,
-    replay?: Replay
+    assets: Pick<Assets, "bwDat" | "loadImageAtlasAsync">,
+    map: Pick<Chk, "units" | "sprites">,
+    replay?: Pick<Replay, "rawCmds" | "stormPlayerToGamePlayer">
 ) => {
     const preloadCommandUnits = new Set<number>();
 

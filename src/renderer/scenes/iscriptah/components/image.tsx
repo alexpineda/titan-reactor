@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { AnimationBlocks } from "./animation-blocks";
-import calculateImagesFromIscript from "@utils/images-from-iscript";
+import { calculateImagesFromIScript } from "@utils/images-from-iscript";
 import { ImageDAT } from "common/types";
 import { useGameStore } from "@stores/game-store";
 import { LeftListItem } from "./left-list-item";
@@ -11,8 +11,8 @@ const Image = ( { image, onClick }: { image: ImageDAT; onClick: () => void } ) =
         throw new Error( "No bwDat loaded" );
     }
     const imagesFromIscript = useCallback( () => {
-        return [...calculateImagesFromIscript( bwDat, image, null )];
-    }, [bwDat, image] );
+        return [ ...calculateImagesFromIScript( bwDat, image, null ) ];
+    }, [ bwDat, image ] );
 
     return (
         <div>

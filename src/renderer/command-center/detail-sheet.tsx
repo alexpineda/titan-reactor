@@ -2,7 +2,6 @@ import { PluginMetaData } from "common/types";
 import ReactMarkdown from "react-markdown/index";
 import { useControls, useCreateStore } from "leva";
 import semver from "semver";
-import packagejson from "../../../package.json";
 import { Tab, Tabs } from "./tabs";
 import ErrorBoundary from "./error-boundary";
 import { createLevaPanel } from "./create-leva-panel";

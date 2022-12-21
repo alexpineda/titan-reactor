@@ -110,7 +110,6 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                     bottom: 0,
                     color: "var(--gray-4)",
                 }}>
-                <p>Created by Ricardo Alejandro, aka DarkMatter</p>
                 <p>v{packageJSON.version}</p>
             </div>
         </div>

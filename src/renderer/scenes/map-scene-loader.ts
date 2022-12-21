@@ -55,7 +55,6 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
 
     process.increment();
 
-    // wait for initial assets to load
     if ( settingsStore().data.graphics.preload ) {
         await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map );
     }
