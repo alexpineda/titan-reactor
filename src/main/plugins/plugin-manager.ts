@@ -2,7 +2,7 @@ import PackageJson from "@npmcli/package-json";
 import path from "path";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
-import { shell } from "electron";
+import { shell, app } from "electron";
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge";
@@ -63,13 +63,22 @@ export class PluginManager {
         return this.#pluginPackages.length > 0;
     }
 
+    /**
+     * Reads a plugin directory
+     * - Sanity checks on required files
+     * - Transpiles native plugin files
+     * - Produces a PluginMetaData object
+     * @param folderPath
+     * @param sanitizedFolderLabel
+     * @returns
+     */
     async #loadPluginPackage(
         folderPath: string,
-        folderName: string
+        sanitizedFolderLabel: string
     ): Promise<null | PluginMetaData> {
         if ( !( await fileExists( path.join( folderPath, "package.json" ) ) ) ) {
             log.error(
-                `@load-plugins/load-plugin-packages: package.json missing - ${folderName}`
+                `@load-plugins/load-plugin-packages: package.json missing - ${sanitizedFolderLabel}`
             );
             return null;
         }
@@ -80,14 +89,14 @@ export class PluginManager {
 
         if ( packageJSON.name === undefined ) {
             log.error(
-                `@load-plugins/load-configs: Undefined plugin name - ${folderName}`
+                `@load-plugins/load-configs: Undefined plugin name - ${sanitizedFolderLabel}`
             );
             return null;
         }
 
         if ( packageJSON.version === undefined ) {
             log.error(
-                `@load-plugins/load-configs: Undefined plugin version - ${folderName}`
+                `@load-plugins/load-configs: Undefined plugin version - ${sanitizedFolderLabel}`
             );
             return null;
         }
@@ -107,7 +116,7 @@ export class PluginManager {
                     );
                     if ( result.transpileErrors.length ) {
                         log.error(
-                            `@load-plugins/load-plugin-packages: Plugin ${folderName} transpilation errors: ${result.transpileErrors[0].message} ${result.transpileErrors[0].snippet}`
+                            `@load-plugins/load-plugin-packages: Plugin ${sanitizedFolderLabel} transpilation errors: ${result.transpileErrors[0].message} ${result.transpileErrors[0].snippet}`
                         );
                         return null;
                     }
@@ -116,7 +125,7 @@ export class PluginManager {
                     log.error(
                         withErrorMessage(
                             e,
-                            `@load-plugins/load-plugin-package: Plugin ${folderName} transpilation error`
+                            `@load-plugins/load-plugin-package: Plugin ${sanitizedFolderLabel} transpilation error`
                         )
                     );
                     return null;
@@ -128,7 +137,7 @@ export class PluginManager {
                 | null;
             if ( pluginNative === null ) {
                 log.error(
-                    `@load-plugins/load-plugin-packages: Plugin ${folderName} failed to load plugin.js`
+                    `@load-plugins/load-plugin-packages: Plugin ${sanitizedFolderLabel} failed to load plugin.js`
                 );
                 return null;
             }
@@ -164,7 +173,7 @@ export class PluginManager {
             repository: packageJSON.repository,
             keywords: packageJSON.keywords ?? [],
             apiVersion: getPluginAPIVersion( packageJSON ),
-            path: folderName,
+            path: sanitizedFolderLabel,
             config,
             nativeSource: pluginNative,
             readme: readme ?? undefined,
@@ -344,6 +353,52 @@ export class PluginManager {
             );
             return;
         }
+    }
+
+    async loadRemoteMetaData( repository: string ) {
+        log.info( `@load-plugins/loadRemoteMetaData: ${repository}` );
+
+        try {
+            const folderPath = path.join( app.getPath( "temp" ), "TitanReactor" );
+
+            const manifest = await pacote.manifest( repository );
+            // delete resolvedFolderPath if it exists
+            if ( await fileExists( folderPath ) ) {
+                await shell.trashItem( folderPath );
+            }
+            await pacote.extract( repository, folderPath );
+
+            const folderName = sanitizeFilename( manifest.name.replace( "/", "_" ) );
+
+            try {
+                const loadedPackage = await this.#loadPluginPackage(
+                    folderPath,
+                    folderName
+                );
+
+                if ( loadedPackage ) {
+                    return loadedPackage;
+                } else {
+                    throw new Error( "Could not load plugin" );
+                }
+            } catch ( e ) {
+                log.error(
+                    withErrorMessage(
+                        e,
+                        "@load-plugins/loadRemoteMetaData: Error loading plugin"
+                    )
+                );
+            }
+        } catch ( e ) {
+            log.error(
+                withErrorMessage(
+                    e,
+                    `@load-plugins/loadRemoteMetaData: Error loading plugin ${repository}`
+                )
+            );
+        }
+
+        return null;
     }
 }
 

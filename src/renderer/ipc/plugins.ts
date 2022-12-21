@@ -5,6 +5,7 @@ import {
     DISABLE_PLUGIN,
     ENABLE_PLUGINS,
     INSTALL_PLUGIN,
+    LOAD_REMOTE_PLUGIN_METADATA,
     UPDATE_PLUGIN_CONFIG,
 } from "common/ipc-handle-names";
 import { PluginMetaData } from "common/types";
@@ -29,5 +30,12 @@ export const installPlugin = async ( repository: string ) => {
     return ( await ipcRenderer.invoke(
         INSTALL_PLUGIN,
         repository
+    ) ) as PluginMetaData | null;
+};
+
+export const loadRemoteMetaData = async ( pluginId: string ) => {
+    return ( await ipcRenderer.invoke(
+        LOAD_REMOTE_PLUGIN_METADATA,
+        pluginId
     ) ) as PluginMetaData | null;
 };

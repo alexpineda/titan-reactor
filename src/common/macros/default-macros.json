@@ -543,7 +543,7 @@
                 "id": "be922abe-f1c5-472a-a7ec-1de050c2e2e2",
                 "path": [":function"],
                 "comparator": "Execute",
-                "value": "return this.context.button === 2;"
+                "value": "return context.button === 2;"
             }
         ]
     }

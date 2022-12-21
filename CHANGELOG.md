@@ -12,11 +12,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Additional messaging when updating / installing plugins
 -   Type definitons for the UI api
 -   customEvents object replacing custom callback methods
+-   Spinny loader for better loading feedback
+-   Code architecture documentation in WIKI
+-   Load & display remote plugin README files
 
 ## Removed
 
 -   Clear asset cache menu item
 -   Plugin callbacks no longer have context value attached
+
+## Changed
+
+-   Last plugin tab selected will persist (Info or Configure)
 
 ## [v0.6.7]
 

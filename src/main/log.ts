@@ -17,13 +17,16 @@ export default {
     info: ( message: string ) => {
         logService.info( message );
         _writeBootupLogs && bootupLogs.push( { level: "info", message } );
+        return message;
     },
     warn: ( message: string ) => {
         logService.warn( message );
         _writeBootupLogs && bootupLogs.push( { level: "warn", message } );
+        return message;
     },
     error: ( message: string ) => {
         logService.error( message );
         _writeBootupLogs && bootupLogs.push( { level: "error", message } );
+        return message;
     },
 };

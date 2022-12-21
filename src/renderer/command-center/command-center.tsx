@@ -3,7 +3,7 @@ import search from "libnpmsearch";
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { savePluginsConfig } from "@ipc/plugins";
+import { loadRemoteMetaData, savePluginsConfig } from "@ipc/plugins";
 import { useSettingsStore, settingsStore } from "@stores/settings-store";
 import { PluginConfig, PluginMetaData } from "common/types";
 import { DetailSheet } from "./detail-sheet";
@@ -41,7 +41,9 @@ const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
     } );
 }, 100 );
 
-type RemotePackage = search.Result;
+type RemotePackage = search.Result & {
+    readme?: string;
+};
 
 const LIMIT = 1000;
 const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
@@ -96,6 +98,20 @@ const CommandCenter = () => {
         }
         searchPackages( setRemotePackages );
     }, [ plugin.local ] );
+
+    // populate the readme of a remote plugin
+    useEffect( () => {
+        if ( plugin.remote && !plugin.remote.readme ) {
+            console.log( "load remote metadata" );
+            loadRemoteMetaData( plugin.remote.name ).then( ( metadata ) => {
+                if ( plugin.remote && metadata ) {
+                    console.log( metadata );
+                    plugin.remote.readme = metadata.readme;
+                    setSelectedPluginPackage( { ...plugin } );
+                }
+            } );
+        }
+    }, [ plugin ] );
 
     // Safety precaution: If the plugin is not remotely hosted don't allow deletion on disk
     const matchingRemotePlugin = remotePackages.find(
@@ -262,6 +278,7 @@ const CommandCenter = () => {
                                     display: "flex",
                                     flexDirection: "column",
                                 }}>
+                                {/* Plugin Title & Version */}
                                 <h2>
                                     {plugin.local?.description ??
                                         plugin.local?.name ??

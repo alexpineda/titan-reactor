@@ -4,6 +4,7 @@ import {
     DISABLE_PLUGIN,
     ENABLE_PLUGINS,
     INSTALL_PLUGIN,
+    LOAD_REMOTE_PLUGIN_METADATA,
     ON_PLUGINS_ENABLED,
     RELOAD_PLUGINS,
     UPDATE_PLUGIN_CONFIG,
@@ -20,7 +21,7 @@ ipcMain.handle(
 );
 
 ipcMain.handle( DISABLE_PLUGIN, async ( _, pluginId: string ) => {
-    const pluginNames = await settings.disablePlugins( [pluginId] );
+    const pluginNames = await settings.disablePlugins( [ pluginId ] );
 
     if ( pluginNames ) {
         browserWindows.main?.webContents.send( DISABLE_PLUGIN, pluginId );
@@ -49,4 +50,8 @@ ipcMain.handle( INSTALL_PLUGIN, async ( _, repository: string ) => {
     return await settings.plugins.installPlugin( repository, () => {
         browserWindows.main?.webContents.send( RELOAD_PLUGINS );
     } );
+} );
+
+ipcMain.handle( LOAD_REMOTE_PLUGIN_METADATA, async ( _, repository: string ) => {
+    return await settings.plugins.loadRemoteMetaData( repository );
 } );

@@ -20,6 +20,8 @@ const permissionDescriptions: Record<VALID_PERMISSIONS, string> = {
         "Allows the plugin to create units, destroy units, and order units around.",
 };
 
+let _globalLastTab = 0;
+
 export const DetailSheet = ( {
     pluginPackage,
     controls,
@@ -44,7 +46,11 @@ export const DetailSheet = ( {
 
     return (
         <ErrorBoundary message="There was an error with this plugin">
-            <Tabs defaultSelectedIndex={0}>
+            <Tabs
+                defaultSelectedIndex={_globalLastTab}
+                onChange={( tab ) => {
+                    _globalLastTab = tab;
+                }}>
                 <Tab label="Info">
                     <div style={{ marginTop: "1rem" }}>
                         {semver.major( titanReactorApiVersion ) <
