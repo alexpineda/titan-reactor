@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [v0.6.8]
+## [unreleased]
+
+## [0.6.8] - 2022-12-21
 
 ## Added
 
@@ -25,7 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Last plugin tab selected will persist (Info or Configure)
 
-## [v0.6.7]
+## [0.6.7] - 2022-10-28
 
 ## Added
 
@@ -40,7 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Plugin permissions changed from under `config` to `root` of package.json
 
-## [0.6.6]
+## [0.6.6] - 2022-10-22
 
 ## Added
 
@@ -63,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Small visual glitch with creep colony construction and other images that shared atlases
 -   Big improvement (~5s) on initial loading screen
 
-## [0.6.5]
+## [0.6.5] - 2022-10-06
 
 ## Added
 
@@ -82,7 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Upgraded to Electron 20, TypeScript 4.8.4, Vite build system and others.
 -   Initial macros and plugins setup is automatic and transparent
 
-## [0.6.4]
+## [0.6.4] - 2022-09-19
 
 ## Added
 
@@ -109,7 +111,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   App no longer needs a full reload on initial plugin install
 -   Bullet tracking is now more precise
 
-## [0.6.0]
+## [0.6.0] - 2022-08-20
 
 ## Added
 
@@ -153,7 +155,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Deprecated maxFrame and time fields from the useFrame() hook, use useReplay() and getFriendlyTime() instead
 -   Keyboard shortcuts are no longer part of plugins and are now configured with the hotkey macro system.
 
-## [0.5.3]
+## [0.5.3] - 2022-07-14
 
 ### Added
 
@@ -287,7 +289,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Good support for HD2/HD terrain, sluggish first render time, on the todo list.
 -   Unit selection / unit boxing for the time being.
 
-[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.7...HEAD
+[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.8...HEAD
+[0.6.8]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.7...v0.6.8
 [0.6.7]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.6...v0.6.7
 [0.6.6]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.5...v0.6.6
 [0.6.5]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.4...v0.6.5

@@ -31,6 +31,7 @@
 
 -   [Priority Roadmap](https://lucky-equinox-32f.notion.site/Priority-Roadmap-ac07f27f9e44451d8b535a7e5e94db2b)
 -   [Long Term Roadmap](https://lucky-equinox-32f.notion.site/Titan-Reactor-Roadmap-919e5145075a45b7b012b59fa6756d62)
+-   [Changelog](https://github.com/imbateam-gg/titan-reactor/blob/dev/CHANGELOG.md)
 
 ### Requirements
 
