@@ -93,7 +93,7 @@ Once we've got our basic `package.json` we can start with `index.tsx`:
 
 ```jsx
 import React from "react";
-import { usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor-runtime";
+import { usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor/runtime";
 
 const MyComponent = () => {
 
@@ -256,7 +256,7 @@ In your `index.tsx`:
 
 ```tsx
 import React from "react";
-import { useMessage, useSendMessage } from "titan-reactor-runtime";
+import { useMessage, useSendMessage } from "titan-reactor/runtime";
 
 const MyComponent = ({ config }) => {
 

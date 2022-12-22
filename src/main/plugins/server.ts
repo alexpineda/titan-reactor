@@ -150,7 +150,7 @@ app.get( "*", async function ( req, res ) {
 
         if ( content ) {
             content = `
-            import { _rc } from "titan-reactor-runtime";
+            import { _rc } from "titan-reactor/runtime";
             const registerComponent = (...args) => _rc("${plugin.id}", ...args);
             ${content}
             `;
