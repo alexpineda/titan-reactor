@@ -13,6 +13,7 @@ import { ViewControllerComposer } from "./view-composer";
 import { OverlayComposer } from "./overlay-composer";
 
 export type InputsComposer = ReturnType<typeof createInputComposer>;
+export type InputsComposerApi = InputsComposer["api"];
 
 const _getSelectionUnit =
     ( images: SceneComposer["images"] ) =>
@@ -69,6 +70,7 @@ export const createInputComposer = (
                 return;
             }
 
+            // send the mouse click event and cancel any further input handling if the event was cancelled by a listener
             if ( mouseInput.clicked ) {
                 if ( world.events.emit( "mouse-click", mouseInput.event ) === false ) {
                     unitSelectionBox.enabled = false;

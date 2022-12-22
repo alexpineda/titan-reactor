@@ -11,6 +11,9 @@ import { OpenBW } from "@openbw/openbw";
 import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
 
+/**
+ * A container for plugin and macro session which can be easily disposed of.
+ */
 export class ApiSession {
     #macrosProxy?: TypeEmitterProxy<WorldEvents>;
 
@@ -58,7 +61,7 @@ export class ApiSession {
         // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
         this.#macros.setContainer(
             mix( {
-                api: borrow( gameTimeApi ),
+                api: gameTimeApi,
                 plugins: borrow( this.#plugins.store.vars ),
                 settings: borrow( settings.vars ),
                 events: eventsProxy,
@@ -83,10 +86,16 @@ export class ApiSession {
         this.native.sessionInit();
     }
 
+    /**
+     * Native plugins
+     */
     get native() {
         return this.#plugins.nativePlugins;
     }
 
+    /**
+     * UI plugins
+     */
     get ui() {
         return this.#plugins.uiPlugins;
     }
@@ -98,6 +107,9 @@ export class ApiSession {
         }
     }
 
+    /**
+     * All macros that have world event triggers are registered here.
+     */
     #hookMacrosToWorldEvents() {
         if ( this.#macrosProxy ) {
             this.#macrosProxy.dispose();

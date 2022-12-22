@@ -8,9 +8,9 @@ export const skipHandler =
     ) =>
     ( gameSeconds = 1 ) => {
         const openBW = _openBW.deref()!;
-        const currentFrame = openBW.getCurrentFrame();
-        openBW.setCurrentFrame( currentFrame + gameSeconds * 42 * dir );
-        const frame = openBW.getCurrentFrame();
+        const currentFrame = openBW.getCurrentReplayFrame();
+        openBW.setCurrentReplayFrame( currentFrame + gameSeconds * 42 * dir );
+        const frame = openBW.getCurrentReplayFrame();
         onChange.deref()!( frame );
         return frame;
     };

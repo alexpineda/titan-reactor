@@ -18,6 +18,9 @@ import { Timer } from "@utils/timer";
 import { borrow, Borrowed } from "@utils/object-utils";
 import { SimpleBufferView } from "@buffer-view/simple-buffer-view";
 
+export type OpenBwComposer = ReturnType<typeof createOpenBWComposer>;
+export type OpenBwComposerApi = OpenBwComposer["api"];
+
 export const createOpenBWComposer = (
     world: World,
     scene: Pick<SceneComposer, "pxToWorld" | "terrainExtra">,
@@ -122,6 +125,9 @@ export const createOpenBWComposer = (
         get previousBwFrame() {
             return _previousBwFrame;
         },
+        /**
+         * Compiler shaders ahead of time
+         */
         precompile() {
             world.openBW.nextFrame();
             world.openBW.generateFrame();
@@ -191,7 +197,7 @@ export const createOpenBWComposer = (
             },
             gotoFrame: ( frame: number ) => {
                 const openBW = b_world.openBW.deref()!;
-                openBW.setCurrentFrame( frame );
+                openBW.setCurrentReplayFrame( frame );
                 b_world.reset.deref()!();
             },
             playSound( ...args: Parameters<typeof gtapi_playSound> ) {

@@ -131,7 +131,6 @@ export const createWorldComposer = async (
                 }, 0 );
             },
             sandboxApi,
-
             refreshScene: () => ( frameResetRequested = true ),
             simpleMessage( val: string ) {
                 simpleText.set( val );
@@ -142,7 +141,8 @@ export const createWorldComposer = async (
         openBwComposer.api,
         inputsComposer.api,
         viewControllerComposer.api,
-        postProcessingComposer.api
+        postProcessingComposer.api,
+        overlayComposer.api
     ) as GameTimeApi;
 
     let apiSession = new ApiSession();
@@ -150,7 +150,9 @@ export const createWorldComposer = async (
     return {
         world,
 
-        // binding stuff we can' t do before hand
+        /**
+         * Must be called before any other calls on world composer.
+         */
         init() {
             surfaceComposer.resize( true );
 
@@ -213,11 +215,17 @@ export const createWorldComposer = async (
             surfaceComposer.gameSurface.hide();
         },
 
+        /**
+         * Runs every render frame
+         * @param delta ms since last frame
+         * @param elapsed ms since game start
+         * @returns
+         */
         update( delta: number, elapsed: number ) {
             if ( !viewControllerComposer.primaryViewport ) return;
 
             if ( frameResetRequested ) {
-                events.emit( "frame-reset", world.openBW.getCurrentFrame() );
+                events.emit( "frame-reset", world.openBW.getCurrentReplayFrame() );
                 frameResetRequested = false;
             }
 

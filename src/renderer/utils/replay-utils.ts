@@ -34,7 +34,7 @@ export const detectDesyncedReplay = (
 ) => {
     const b = new UnitsBufferViewIterator( openBW );
 
-    openBW.setCurrentFrame( frame );
+    openBW.setCurrentReplayFrame( frame );
     openBW.nextFrame();
 
     let idleUnits = 0;
@@ -47,7 +47,7 @@ export const detectDesyncedReplay = (
         }
     }
 
-    openBW.setCurrentFrame( 0 );
+    openBW.setCurrentReplayFrame( 0 );
 
     return idleUnits > threshold;
 };

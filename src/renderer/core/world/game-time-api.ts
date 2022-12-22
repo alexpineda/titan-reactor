@@ -1,53 +1,31 @@
-import { BasePlayer } from "@core/players";
-import BaseScene from "@render/base-scene";
 import Chk from "bw-chk";
 import { Assets } from "@image/assets";
-import { PxToWorld } from "common/utils/conversions";
-import { GameViewPort } from "../../camera/game-viewport";
-import { Color } from "three";
 import { createSandboxApi } from "@openbw/sandbox-api";
-import { Unit } from "@core/unit";
+import { OverlayComposerApi } from "./overlay-composer";
+import { InputsComposerApi } from "./input-composer";
+import { SceneComposerApi } from "./scene-composer";
+import { SurfaceComposerApi } from "./surface-composer";
+import { PostProcessingComposerApi } from "./postprocessing-composer";
+import { ViewControllerComposerApi } from "./view-composer";
+import { OpenBwComposerApi } from "./openbw-composer";
 
 /**
  * @public
+ * The exposed api available to macros and plugins.
  */
-export interface GameTimeApi {
-    sandboxApi: ReturnType<typeof createSandboxApi>;
-    viewport: GameViewPort;
-    secondViewport: GameViewPort;
-    simpleMessage( message: string ): void;
-    scene: BaseScene;
-    assets: Assets;
+export interface GameTimeApi
+    extends OverlayComposerApi,
+        InputsComposerApi,
+        SceneComposerApi,
+        SurfaceComposerApi,
+        PostProcessingComposerApi,
+        ViewControllerComposerApi,
+        OpenBwComposerApi {
+    // & world composer api
     map: Chk;
-    toggleFogOfWarByPlayerId( playerId: number ): void;
-    skipForward( seconds: number ): void;
-    skipBackward( seconds: number ): void;
-    speedUp(): number;
-    speedDown(): number;
-    togglePause( setPaused?: boolean ): boolean;
-    getGameSpeed(): number;
-    setGameSpeed( speed: number ): void;
-    refreshScene(): void;
-    pxToWorld: PxToWorld;
-    getCurrentFrame(): number;
-    gotoFrame( frame: number ): void;
+    assets: Assets;
     exitScene(): void;
-    setPlayerColors( colors: string[] ): void;
-    getPlayerColor( playerId: number ): Color;
-    getOriginalColors(): readonly string[];
-    setPlayerNames( names: { name: string; id: number }[] ): void;
-    getOriginalNames(): readonly { name: string; id: number }[];
-    getPlayers(): BasePlayer[];
-    playSound(
-        typeId: number,
-        volumeOrX?: number,
-        y?: number,
-        unitTypeId?: number
-    ): void;
-    togglePointerLock( val: boolean ): void;
-    isPointerLockLost(): boolean;
-    changeRenderMode( renderMode3D: boolean ): void;
-    getHoveredUnit(): Unit | undefined;
-    followUnits( units: Unit[] ): void;
-    getFollowedUnits(): Unit[];
+    sandboxApi: ReturnType<typeof createSandboxApi>;
+    refreshScene(): void;
+    simpleMessage( message: string ): void;
 }

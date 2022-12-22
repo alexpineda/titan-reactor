@@ -53,6 +53,8 @@ import { TimeSliceJob } from "@utils/time-slice-job";
 import { GameViewPort } from "../../camera/game-viewport";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
+export type SceneComposerApi = SceneComposer["api"];
+
 const white = new Color( 0xffffff );
 
 // Primarily concerned about converting OpenBW state to three objects and animations

@@ -28,6 +28,7 @@ const ignoreRecieveShadow = [ 250, 253, 347, 349, 351 ];
 const ignoreCastShadow = [ 347, 349, 351 ];
 
 export type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
+export type PostProcessingComposerApi = PostProcessingComposer["api"];
 
 export const createPostProcessingComposer = (
     world: World,

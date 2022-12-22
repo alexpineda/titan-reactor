@@ -7,6 +7,10 @@ import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
 
 export interface OpenBW extends OpenBWWasm {}
+
+/**
+ * An interface layer between the OpenBW WASM module and the rest of the application.
+ */
 export class OpenBW implements OpenBW {
     #wasm!: OpenBWWasm;
     running = false;
@@ -18,6 +22,9 @@ export class OpenBW implements OpenBW {
 
     unitGenerationSize = 3;
 
+    /**
+     * Load the WASM module and initialize the OpenBW instance.
+     */
     async init() {
         this.#wasm = ( await initializeWASM( {
             locateFile: ( filename: string ) => {
@@ -53,6 +60,9 @@ export class OpenBW implements OpenBW {
         return ( this.#isSandbox = sandbox );
     };
 
+    /**
+     * @param buffer the replay file buffer
+     */
     loadReplay( buffer: Buffer ) {
         this.#isReplay = true;
         this.#isSandbox = false;
@@ -66,6 +76,13 @@ export class OpenBW implements OpenBW {
         }
     }
 
+    /**
+     * OpenBW uses the height map to determine Y coordinates for units so that we don't have to.
+     *
+     * @param data the greyscale height map data
+     * @param width width in px
+     * @param height height inpx
+     */
     uploadHeightMap = ( data: Uint8ClampedArray, width: number, height: number ) => {
         try {
             const heightMapBuf = this.#wasm.allocate( data, this.#wasm.ALLOC_NORMAL );
@@ -76,6 +93,9 @@ export class OpenBW implements OpenBW {
         }
     };
 
+    /**
+     * @param buffer the map file buffer
+     */
     loadMap( buffer: Buffer ) {
         this.#isReplay = false;
         this.#isSandbox = true;
@@ -89,6 +109,9 @@ export class OpenBW implements OpenBW {
         }
     }
 
+    /**
+     * Called after init() to call main() and provide data files.
+     */
     async start( readFile: ReadFile ) {
         if ( this.running ) return;
 
@@ -102,14 +125,19 @@ export class OpenBW implements OpenBW {
         }
     }
 
+    /**
+     * Increments the game frame where openbw will run until the next frame.
+     * If the game is in sandbox mode, the game will run at 24 fps.
+     * @returns the game frame number
+     */
     nextFrame = () => {
         if ( this.#isSandbox ) {
             this.#timer.update();
             if ( this.#timer.getElapsed() > 42 ) {
                 this.#timer.resetElapsed();
-                return this.#wasm._next_no_replay();
+                return this.nextFrameNoAdvance();
             }
-            return this.#wasm._replay_get_value( 2 );
+            return this.getCurrentFrame();
         }
         return this.#wasm._next_frame();
     };
@@ -135,9 +163,16 @@ export class OpenBW implements OpenBW {
     }
 
     setCurrentFrame( frame: number ) {
-        return this.#wasm._replay_set_value( 3, frame );
+        return this.#wasm._replay_set_value( 2, frame );
     }
     getCurrentFrame() {
+        return this.#wasm._replay_get_value( 2 );
+    }
+
+    setCurrentReplayFrame( frame: number ) {
+        return this.#wasm._replay_set_value( 3, frame );
+    }
+    getCurrentReplayFrame() {
         return this.#wasm._replay_get_value( 3 );
     }
 
@@ -156,7 +191,9 @@ export class OpenBW implements OpenBW {
         this.unitGenerationSize = unitLimits === 1700 ? 5 : 3;
     }
 
-    // updates frame and creep data
+    /**
+     * Updates fog of war and creep data
+     */
     generateFrame() {
         this.#wasm._generate_frame();
     }

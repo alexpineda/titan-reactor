@@ -29,6 +29,7 @@ const bulletStrength = {
 const empty: GameViewPort[] = [];
 
 export type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
+export type ViewControllerComposerApi = ViewControllerComposer["api"];
 
 export const createViewControllerComposer = (
     world: World,

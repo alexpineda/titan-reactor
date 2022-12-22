@@ -25,11 +25,16 @@ import { PostProcessingComposer } from "./postprocessing-composer";
 import { InputsComposer } from "./input-composer";
 
 export type OverlayComposer = {
+    api: {
+        isMouseInsideMinimap: () => boolean;
+        getMouseMinimapUV: () => Vector2 | undefined;
+    };
     minimapUv: Vector2 | undefined;
     insideMinimap: boolean;
     update( delta: number ): void;
     onFrame( completedUpgrades: number[][] ): void;
 };
+export type OverlayComposerApi = OverlayComposer["api"];
 
 const _mmIntersect: Intersection[] = [];
 
@@ -236,6 +241,10 @@ export const createOverlayComposer = (
     };
 
     return {
+        api: {
+            isMouseInsideMinimap: () => _insideMinimap,
+            getMouseMinimapUV: () => _minimapUv,
+        },
         get insideMinimap() {
             return _insideMinimap;
         },

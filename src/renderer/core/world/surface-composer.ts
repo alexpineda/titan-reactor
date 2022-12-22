@@ -6,6 +6,7 @@ import debounce from "lodash.debounce";
 import { World } from "./world";
 
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
+export type SurfaceComposerApi = SurfaceComposer["api"];
 
 export const createSurfaceComposer = ( world: World ) => {
     const janitor = new Janitor( "SurfaceComposer" );
