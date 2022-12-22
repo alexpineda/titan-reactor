@@ -102,10 +102,8 @@ const CommandCenter = () => {
     // populate the readme of a remote plugin
     useEffect( () => {
         if ( plugin.remote && !plugin.remote.readme ) {
-            console.log( "load remote metadata" );
             loadRemoteMetaData( plugin.remote.name ).then( ( metadata ) => {
-                if ( plugin.remote && metadata ) {
-                    console.log( metadata );
+                if ( plugin.remote && metadata?.readme && !plugin.remote.readme ) {
                     plugin.remote.readme = metadata.readme;
                     setSelectedPluginPackage( { ...plugin } );
                 }
