@@ -20,7 +20,7 @@ export const makePxToWorld = (
 ): PxToWorld => {
     const _transform = inverted ? invTransform : transform;
 
-    return {
+    return Object.freeze( {
         x: ( x: number ) => _transform( x, mapWidth ),
         y: ( y: number ) => _transform( y, mapHeight ),
         xy: ( x: number, y: number, out?: Vector2 ) => {
@@ -38,7 +38,7 @@ export const makePxToWorld = (
             const ny = _transform( y, mapHeight );
             return ( out ?? new Vector3() ).set( nx, yFunction( nx, ny ), ny );
         },
-    };
+    } );
 };
 
 export enum gameSpeeds {
