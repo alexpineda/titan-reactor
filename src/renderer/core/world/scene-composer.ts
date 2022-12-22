@@ -266,7 +266,10 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             image.position.set( 0, 0, 0 );
 
             //overlay offsets typically
-            if ( image instanceof ImageHD && imageData.typeId !== imageTypes.bunkerOverlay ) {
+            if (
+                image instanceof ImageHD &&
+                imageData.typeId !== imageTypes.bunkerOverlay
+            ) {
                 image.position.x = imageData.x / 32;
                 // flying building or drone, don't use 2d offset
                 image.position.y = imageIsFrozen( imageData ) ? 0 : -imageData.y / 32;
@@ -469,18 +472,40 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             ...createPlayersGameTimeApi( _players, _world ),
             pxToWorld,
             scene,
-            getFollowedUnitsPosition() {
-                if ( followedUnits.size === 0 ) {
-                    return null;
-                }
-                return calculateFollowedUnitsTarget( followedUnits, pxToWorld );
-            },
-            followUnits( units: Unit[] ) {
-                followedUnits.set( units );
-            },
-            getFollowedUnits() {
-                return followedUnits.copyAsArray();
-            },
+            followedUnits: Object.freeze( {
+                clear() {
+                    followedUnits.clear();
+                },
+                hasUnits() {
+                    return followedUnits.size > 0;
+                },
+                getUnits() {
+                    return followedUnits.copyAsArray();
+                },
+                setUnits( units: Unit[] ) {
+                    followedUnits.set( units );
+                },
+                getCentralPosition() {
+                    if ( followedUnits.size === 0 ) {
+                        return null;
+                    }
+                    return calculateFollowedUnitsTarget( followedUnits, pxToWorld );
+                },
+            } ),
+            selectedUnits: Object.freeze( {
+                clear() {
+                    selectedUnits.clear();
+                },
+                hasUnits() {
+                    return selectedUnits.size > 0;
+                },
+                getUnits() {
+                    return selectedUnits.copyAsArray();
+                },
+                setUnits( units: Unit[] ) {
+                    selectedUnits.set( units );
+                },
+            } ),
         } ) )( new WeakRef( players ), borrow( world ) ),
     };
 };
