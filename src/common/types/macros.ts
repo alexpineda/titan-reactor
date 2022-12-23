@@ -68,6 +68,7 @@ export interface MacroTriggerDTO {
 export interface MacroDTO {
     id: string;
     name: string;
+    description?: string;
     enabled: boolean;
     trigger: MacroTriggerDTO;
     actions: MacroAction[];

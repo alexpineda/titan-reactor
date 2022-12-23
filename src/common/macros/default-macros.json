@@ -40,7 +40,8 @@
                 "comparator": "Equals",
                 "value": "@titan-reactor-plugins/camera-standard"
             }
-        ]
+        ],
+        "description": "Toggles the tilt of the camera up and down"
     },
     {
         "id": "a3f34c04-957a-4ac3-816b-ac0740fe38e4",
@@ -75,7 +76,8 @@
                 "comparator": "Equals",
                 "value": "replay"
             }
-        ]
+        ],
+        "description": "Toggles the replay play/pause."
     },
     {
         "id": "f69ebf7e-31cb-41f0-9761-a46538280d89",
@@ -110,7 +112,8 @@
         ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [],
+        "description": "Toggles between 2D sprites and 3D Models. Note that this also affects the postprocessing passes."
     },
     {
         "id": "3f5fb9d4-2a67-4f7e-b70c-fad69f752067",
@@ -163,7 +166,8 @@
         ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [],
+        "description": "Toggles the minimap to a larger size."
     },
     {
         "id": "38b94168-507b-469f-ad6d-ef01ef62b5e6",
@@ -198,7 +202,8 @@
         ],
         "enabled": true,
         "actionSequence": "SingleAlternate",
-        "conditions": []
+        "conditions": [],
+        "description": "Toggles the minimap to a larger size by triggering or resetting the Full Size macro."
     },
     {
         "id": "70a5b555-30fe-4e94-bb49-741ca72bf75b",
@@ -220,7 +225,8 @@
         ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [],
+        "description": "When the mouse enters the minimap, set the opacity slightly more visible."
     },
     {
         "id": "85698267-db1d-49bf-ba2d-1b0560913b0a",
@@ -242,11 +248,12 @@
         ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [],
+        "description": "When the mouse leaves the minimap, set the opacity to the default value."
     },
     {
         "id": "702e5376-973d-4927-a4ec-6b23d4e1ebee",
-        "name": "✈️Change Scene Controller",
+        "name": "✈️Switch Scene Controller",
         "trigger": {
             "type": "Hotkey",
             "value": {
@@ -263,7 +270,7 @@
                 "id": "76407af6-0f09-4690-9479-58ecc9300918",
                 "path": [":app", "input", "sceneController"],
                 "operator": "Set",
-                "value": "@titan-reactor-plugins/camera-standard",
+                "value": "@titan-reactor-plugins/camera-battle",
                 "group": 1
             },
             {
@@ -271,7 +278,7 @@
                 "id": "a3e17199-4394-4063-8a4b-4a1f727383c5",
                 "path": [":app", "input", "sceneController"],
                 "operator": "Set",
-                "value": "@titan-reactor-plugins/camera-standard",
+                "value": "@titan-reactor-plugins/camera-overview",
                 "group": 2
             },
             {
@@ -279,24 +286,25 @@
                 "id": "4b98f985-1989-4fdf-a7b5-11ce76929c2a",
                 "path": [":app", "input", "sceneController"],
                 "operator": "Set",
-                "value": "@titan-reactor-plugins/camera-overview",
+                "value": "@titan-reactor-plugins/camera-standard",
                 "group": 3
             }
         ],
         "enabled": true,
         "actionSequence": "SingleAlternate",
-        "conditions": []
+        "conditions": [],
+        "description": "Switches between the different scene controllers. A scene controller determines how the view is rendered, and how you interact with that view, including camera controls."
     },
     {
         "id": "d61cdeed-ee93-4f68-bf5f-0785f637db16",
-        "name": "🎵 Toggle Global Audio",
+        "name": "🎵 Toggle Music",
         "trigger": {
             "type": "Hotkey",
             "value": {
                 "ctrlKey": false,
                 "altKey": false,
                 "shiftKey": false,
-                "codes": ["KeyS"],
+                "codes": ["KeyM"],
                 "onKeyUp": false
             }
         },
@@ -304,21 +312,22 @@
             {
                 "type": "action",
                 "id": "f860a7ef-6769-404a-b9a9-fd79b4c7dfe9",
-                "path": [":app", "audio", "global"],
+                "path": [":app", "audio", "music"],
                 "operator": "Min",
                 "group": 1
             },
             {
                 "type": "action",
                 "id": "19ecb8d8-4650-48c7-8607-e5fcb965f3e7",
-                "path": [":app", "audio", "global"],
+                "path": [":app", "audio", "music"],
                 "operator": "SetToDefault",
                 "group": 2
             }
         ],
         "enabled": true,
         "actionSequence": "SingleAlternate",
-        "conditions": []
+        "conditions": [],
+        "description": "Toggles music on and off."
     },
     {
         "id": "992a0c10-193c-4215-8433-7ca7ed2eb6c5",
@@ -353,7 +362,8 @@
                 "comparator": "Equals",
                 "value": "replay"
             }
-        ]
+        ],
+        "description": "Speeds the replay up."
     },
     {
         "id": "d84beadd-d056-4389-90a8-ed3ca086c1e5",
@@ -388,7 +398,8 @@
                 "comparator": "Equals",
                 "value": "replay"
             }
-        ]
+        ],
+        "description": "Speeds the replay down."
     },
     {
         "id": "188e4b3a-d59f-4cc4-8e0d-a319b2ffdd04",
@@ -423,7 +434,8 @@
                 "comparator": "Equals",
                 "value": "replay"
             }
-        ]
+        ],
+        "description": "Skips back 10s."
     },
     {
         "id": "6e76f1f2-9d3d-424d-893d-f05b00622d16",
@@ -444,7 +456,7 @@
                 "id": "2a1d13d8-5b36-47e0-9fb0-5cc7381087de",
                 "path": [":function"],
                 "operator": "Execute",
-                "value": "api.skipForward(); \napi.simpleMessage('⏩');",
+                "value": "api.skipForward(10); \napi.simpleMessage('⏩');",
                 "group": 1
             }
         ],
@@ -458,7 +470,8 @@
                 "comparator": "Equals",
                 "value": "replay"
             }
-        ]
+        ],
+        "description": "Skips forward 10s."
     },
     {
         "id": "5070c56e-189d-4672-9914-791016f8b869",
@@ -484,7 +497,8 @@
         ],
         "enabled": true,
         "actionSequence": "SingleAlternate",
-        "conditions": []
+        "conditions": [],
+        "description": "Swaps the player colors from replay values to your custom values."
     },
     {
         "id": "d9e1cfae-2ae3-45df-8752-805282fb974c",
@@ -514,7 +528,8 @@
                 "comparator": "Equals",
                 "value": "map"
             }
-        ]
+        ],
+        "description": "Disables fog in map viewer."
     },
     {
         "id": "cafec262-c8a3-4615-92ca-b13eb16dfcf2",
@@ -531,7 +546,7 @@
                 "id": "2f495d89-3a52-4176-a499-910d7b2c7e45",
                 "path": [":function"],
                 "operator": "Execute",
-                "value": "const unit = api.getHoveredUnit();\n\nif (unit) {\n  api.followedUnits.setUnits([unit]);\n  return false;\n} else {\n  api.followedUnits.clear();\n}",
+                "value": "const unit = api.getHoveredUnit();\n\nif ( unit ) {\n  api.followedUnits.setUnits([unit]);\n  // cancel any other mouse click handlers\n  return false;\n} else {\n  api.followedUnits.clear();\n}",
                 "group": 1
             }
         ],
@@ -545,7 +560,8 @@
                 "comparator": "Execute",
                 "value": "return context.button === 2;"
             }
-        ]
+        ],
+        "description": "Right click to follow a unit. Right click on terrain to unfollow."
     },
     {
         "id": "a82c88ab-a54f-41c3-8186-500829512e5e",
@@ -566,13 +582,14 @@
                 "id": "d98ffeec-67a5-4972-8f5a-66b9ffabf334",
                 "path": [":function"],
                 "operator": "Execute",
-                "value": "if (api.followedUnits.hasUnits()) {\n  api.followedUnits.clear();\n} else {\n  api.followedUnits.setUnits(api.selectedUnits.getUnits());\n}",
+                "value": "if ( api.followedUnits.hasUnits() ) {\n  api.followedUnits.clear();\n} else if ( api.selectedUnits.hasUnits() ) {\n  api.followedUnits.setUnits(api.selectedUnits.getUnits());\n}",
                 "group": null
             }
         ],
         "enabled": true,
         "actionSequence": "AllSync",
-        "conditions": []
+        "conditions": [],
+        "description": "F key to follow selected units. Press again to unfollow."
     },
     {
         "id": "556fd83a-a76e-4ecb-8274-57b0342785e1",
@@ -603,6 +620,7 @@
                 "comparator": "Execute",
                 "value": "return api.isMouseInsideMinimap() && api.followedUnits.hasUnits();"
             }
-        ]
+        ],
+        "description": "Clicking anywhere on the minimap will unfollow currently followed units (if any)"
     }
 ]

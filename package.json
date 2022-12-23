@@ -19,7 +19,7 @@
         "lint": "yarn eslint . && yarn prettier --check .",
         "clean-dev-win": "taskkill /f /im node.exe",
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
-        "build-api-types": "ts-node -T .\\build\\api\\index.ts"
+        "build-api": "ts-node -T .\\build\\api\\index.ts"
     },
     "browserslist": [
         "last 2 Chrome versions"

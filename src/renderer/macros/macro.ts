@@ -9,6 +9,7 @@ import { MathUtils } from "three";
 
 export class Macro {
     name: string;
+    description = "";
     enabled = true;
     trigger: MacroTrigger;
     actions: MacroAction[];

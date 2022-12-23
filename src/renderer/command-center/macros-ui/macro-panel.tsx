@@ -41,13 +41,30 @@ export const MacroPanel = ( {
         }
     };
 
+    const changeMacroDescription = ( description: string | null ) => {
+        if ( description !== null && description.trim() !== "" ) {
+            if ( descriptionRef.current ) {
+                descriptionRef.current.innerText = description;
+            }
+            updateMacro( { ...macro, description } );
+        }
+    };
+
     const nameRef = useRef<HTMLSpanElement>( null );
+    const descriptionRef = useRef<HTMLSpanElement>( null );
 
     useEffect( () => {
         if ( nameRef.current ) {
             nameRef.current.innerText = macro.name.split( ":" ).slice( -1 )[0];
         }
     }, [ macro.name ] );
+
+    useEffect( () => {
+        if ( descriptionRef.current ) {
+            descriptionRef.current.innerText =
+                macro.description ?? "Write a description for this macro";
+        }
+    }, [ macro.description ] );
 
     const prevActivePreview = usePrevious( activePreview );
 
@@ -87,30 +104,55 @@ export const MacroPanel = ( {
                     justifyContent: "start",
                     marginBottom: "var(--size-5)",
                 }}>
-                <h4
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                    }}>
-                    <span
-                        ref={nameRef}
-                        contentEditable
-                        onFocus={() => {
-                            nameRef.current!.innerText = macro.name;
-                        }}
-                        onKeyDown={( e ) => {
-                            if ( e.code === "Enter" ) {
-                                e.preventDefault();
-                                e.currentTarget.blur();
-                            }
-                        }}
-                        onBlur={( e ) => {
-                            renameMacro( e.target.textContent );
-                            nameRef.current!.innerText = e.target
-                                .textContent!.split( ":" )
-                                .slice( -1 )[0];
-                        }}></span>
-                </h4>
+                <div>
+                    <h4
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                        }}>
+                        <span
+                            ref={nameRef}
+                            contentEditable
+                            onFocus={() => {
+                                nameRef.current!.innerText = macro.name;
+                            }}
+                            onKeyDown={( e ) => {
+                                if ( e.code === "Enter" ) {
+                                    e.preventDefault();
+                                    e.currentTarget.blur();
+                                }
+                            }}
+                            onBlur={( e ) => {
+                                renameMacro( e.target.textContent );
+                                nameRef.current!.innerText = e.target
+                                    .textContent!.split( ":" )
+                                    .slice( -1 )[0];
+                            }}></span>
+                    </h4>
+                    <div
+                        style={{
+                            paddingBlock: "var(--size-3)",
+                        }}>
+                        <span
+                            ref={descriptionRef}
+                            contentEditable
+                            onFocus={() => {
+                                descriptionRef.current!.innerText =
+                                    macro.description ?? "";
+                            }}
+                            onKeyDown={( e ) => {
+                                if ( e.code === "Enter" ) {
+                                    e.preventDefault();
+                                    e.currentTarget.blur();
+                                }
+                            }}
+                            onBlur={( e ) => {
+                                changeMacroDescription( e.target.textContent );
+                                descriptionRef.current!.innerText =
+                                    e.target.textContent!;
+                            }}></span>
+                    </div>
+                </div>
 
                 <span>
                     <label>

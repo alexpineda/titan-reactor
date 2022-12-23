@@ -23,6 +23,8 @@ export class Macros {
     #macroAlreadyExecuted = new Set<Macro>();
     #macroDefaultEnabled: WeakMap<Macro, boolean> = new Map();
 
+    // keep these references for performance reasons
+    // so that we are not filtering and sorting the array every time
     meta: {
         hotkeyMacros: Macro[];
         hookMacros: Macro[];
@@ -243,6 +245,7 @@ export class Macros {
             macros: this.macros.map( ( macro ) => ( {
                 id: macro.id,
                 name: macro.name,
+                description: macro.description,
                 enabled: macro.enabled,
                 trigger: {
                     type: macro.trigger.type,
@@ -259,7 +262,6 @@ export class Macros {
         this.revision = macrosDTO.revision;
         this.macros = macrosDTO.macros.map( ( macro ) => {
             let trigger: MacroTrigger = new ManualTrigger();
-            // TODO: add box validations here
             if ( macro.trigger.type === TriggerType.Hotkey ) {
                 trigger = HotkeyTrigger.deserialize(
                     macro.trigger.value as HotkeyTriggerDTO
@@ -277,6 +279,7 @@ export class Macros {
                 macro.actionSequence,
                 macro.conditions
             );
+            newMacro.description = macro.description ?? "";
             newMacro.enabled = macro.enabled;
             this.#macroDefaultEnabled.set( newMacro, newMacro.enabled );
 
