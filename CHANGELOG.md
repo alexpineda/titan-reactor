@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     -   Clicking the minimap unfollows the units
     -   F key will follow selected units or unfollow all units
 -   Macros now have a description field making it easier to understand and explain what a macro does.
+-   Added font size options to official plugins that were missing them
+
+## Fixed
+
+-   Some plugin changes weren't being reflected in the UI
 
 ## Changed
 

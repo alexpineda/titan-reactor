@@ -150,6 +150,10 @@ type UtilConfig = {
 };
 
 const getUtilConfig = ( util: SettingsMeta["data"]["utilities"] ): UtilConfig => ( {
+    "utilities.debugMode": {
+        label: "Debug Mode",
+        value: util.debugMode,
+    },
     "utilities.sanityCheckReplayCommands": {
         label: "Sanity Check Replay Commands (and rewrite command buffer overflows)",
         value: util.sanityCheckReplayCommands,

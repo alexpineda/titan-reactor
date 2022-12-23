@@ -10,6 +10,7 @@ import { OpenBW } from "@openbw/openbw";
 
 import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
+import { globalEvents } from "@core/global-events";
 
 /**
  * A container for plugin and macro session which can be easily disposed of.
@@ -81,6 +82,14 @@ export class ApiSession {
                 )
             ),
             "native.injectApi"
+        );
+
+        this.native.useTryCatchOnHooks =
+            useSettingsStore.getState().data.utilities.debugMode;
+        this.#janitor.mop(
+            globalEvents.on( "command-center-save-settings", ( settings ) => {
+                this.native.useTryCatchOnHooks = settings.data.utilities.debugMode;
+            } )
         );
 
         this.native.sessionInit();

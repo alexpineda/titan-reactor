@@ -20,6 +20,9 @@ type PluginsConfigSnapshot = Record<
     Record<string, number | boolean | string | number[]>
 >;
 
+/**
+ * Native plugin manager for plugins that can access game state and onFrame hooks etc.
+ */
 export class PluginSystemNative {
     #plugins: PluginBase[] = [];
     #janitor = new Janitor( "PluginSystemNative" );
@@ -28,6 +31,12 @@ export class PluginSystemNative {
     #permissions = new Map<string, Record<string, boolean>>();
     #sendCustomUIMessage: ( pluginId: string, message: any ) => void;
     #compartments = new WeakMap<PluginBase, { globalThis: object }>();
+
+    /**
+     * Error trapping is signficantly slower than not using it.
+     * This is enabled when the debug setting is enabled to aid in debugging plugin hooks like onFrame.
+     */
+    useTryCatchOnHooks = false;
 
     [Symbol.iterator]() {
         return this.#plugins[Symbol.iterator]();
@@ -232,7 +241,7 @@ export class PluginSystemNative {
         }
     }
 
-    hook_onBeforeRender( delta: number, elapsed: number ) {
+    #hook_onBeforeRender( delta: number, elapsed: number ) {
         for ( const plugin of this.#plugins ) {
             plugin.onBeforeRender &&
                 this.isRegularPluginOrActiveSceneController( plugin ) &&
@@ -240,13 +249,37 @@ export class PluginSystemNative {
         }
     }
 
-    hook_onRender( delta: number, elapsed: number ) {
+    hook_onBeforeRender( delta: number, elapsed: number ) {
+        if ( this.useTryCatchOnHooks ) {
+            try {
+                this.#hook_onBeforeRender( delta, elapsed );
+            } catch ( e ) {
+                log.error( withErrorMessage( e, "@plugin-system-native: onBeforeRender" ) );
+            }
+        } else {
+            this.#hook_onBeforeRender( delta, elapsed );
+        }
+    }
+
+    #hook_onRender( delta: number, elapsed: number ) {
         for ( const plugin of this.#plugins ) {
             plugin.onRender && plugin.onRender( delta, elapsed );
         }
     }
 
-    hook_onFrame( frame: number, commands: any[] ) {
+    hook_onRender( delta: number, elapsed: number ) {
+        if ( this.useTryCatchOnHooks ) {
+            try {
+                this.#hook_onRender( delta, elapsed );
+            } catch ( e ) {
+                log.error( withErrorMessage( e, "@plugin-system-native: onRender" ) );
+            }
+        } else {
+            this.#hook_onRender( delta, elapsed );
+        }
+    }
+
+    #hook_onFrame( frame: number, commands: any[] ) {
         for ( const plugin of this.#plugins ) {
             if ( plugin.onFrame && this.isRegularPluginOrActiveSceneController( plugin ) ) {
                 if ( this.#permissions.get( plugin.id )?.[PERMISSION_REPLAY_COMMANDS] ) {
@@ -255,6 +288,18 @@ export class PluginSystemNative {
                     plugin.onFrame( frame );
                 }
             }
+        }
+    }
+
+    hook_onFrame( frame: number, commands: any[] ) {
+        if ( this.useTryCatchOnHooks ) {
+            try {
+                this.#hook_onFrame( frame, commands );
+            } catch ( e ) {
+                log.error( withErrorMessage( e, "@plugin-system-native: onFrame" ) );
+            }
+        } else {
+            this.#hook_onFrame( frame, commands );
         }
     }
 

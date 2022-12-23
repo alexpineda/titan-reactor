@@ -85,6 +85,8 @@ export const createWorldComposer = async (
         assets
     );
 
+    let apiSession = new ApiSession();
+
     events.on( "settings-changed", ( { settings } ) => mixer.setVolumes( settings.audio ) );
 
     const _setSceneController = async ( controllername: string, defaultData?: any ) => {
@@ -144,8 +146,6 @@ export const createWorldComposer = async (
         postProcessingComposer.api,
         overlayComposer.api
     ) as GameTimeApi;
-
-    let apiSession = new ApiSession();
 
     return {
         world,
