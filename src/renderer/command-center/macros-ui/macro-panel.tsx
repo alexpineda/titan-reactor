@@ -136,6 +136,10 @@ export const MacroPanel = ( {
                         <span
                             ref={descriptionRef}
                             contentEditable
+                            style={{
+                                display: "inline-block",
+                                width: "50ch"
+                            }}
                             onFocus={() => {
                                 descriptionRef.current!.innerText =
                                     macro.description ?? "";
