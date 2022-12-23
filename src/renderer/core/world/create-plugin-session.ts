@@ -15,6 +15,7 @@ import { createCompartment } from "@utils/ses-util";
 import { globalEvents } from "@core/global-events";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
+import { normalizePluginConfiguration } from "@utils/function-utils";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
@@ -70,7 +71,7 @@ export const createPluginSession = async (
             ( { pluginId, config } ) => {
                 uiPlugins.sendMessage( {
                     type: UI_SYSTEM_PLUGIN_CONFIG_CHANGED,
-                    payload: { pluginId, config },
+                    payload: { pluginId, config: normalizePluginConfiguration( config ) },
                 } );
                 nativePlugins.hook_onConfigChanged( pluginId, config );
                 store.sourceOfTruth.update( nativePlugins.getConfigSnapshot() );
