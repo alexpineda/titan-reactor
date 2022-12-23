@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## Added
+
+-   Two more macros oriented around following / unfollowing units
+    -   Clicking the minimap unfollows the units
+    -   F key will follow selected units or unfollow all units
+
+## Changed
+
+-   API namespace finalized to @titan-reactor-runtime/ui and @titan-reactor-runtime/native
+
 ## [0.6.8] - 2022-12-21
 
 ## Added

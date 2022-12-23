@@ -25,11 +25,10 @@ export const createPlayersGameTimeApi = (
         getOriginalNames() {
             return players().originalNames;
         },
-        getPlayers: () => [...basePlayers!.map( ( p ) => ( { ...p } ) )],
+        getPlayers: () => [ ...basePlayers!.map( ( p ) => ( { ...p } ) ) ],
         toggleFogOfWarByPlayerId( playerId: number ) {
-            if ( players().toggleFogOfWarByPlayerId( playerId ) ) {
-                fogOfWar!.forceInstantUpdate = true;
-            }
+            players().togglePlayerVision( playerId );
+            fogOfWar!.forceInstantUpdate = true;
         },
     };
 };

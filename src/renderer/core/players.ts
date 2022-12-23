@@ -19,7 +19,7 @@ export interface BasePlayer {
 export type PlayerName = Pick<BasePlayer, "id" | "name">;
 
 export class Players extends Array<Player> {
-    playersById: Record<number, Player> = {};
+    #playersById: Record<number, Player> = {};
     originalColors: readonly string[];
     originalNames: readonly PlayerName[];
 
@@ -59,14 +59,14 @@ export class Players extends Array<Player> {
         );
 
         for ( const player of this ) {
-            this.playersById[player.id] = player;
+            this.#playersById[player.id] = player;
         }
 
         visionChanged();
     }
 
     get( id: number ): Player | undefined {
-        return this.playersById[id];
+        return this.#playersById[id];
     }
 
     static override get [Symbol.species]() {
@@ -79,6 +79,13 @@ export class Players extends Array<Player> {
             if ( player.vision ) {
                 this.#visionFlags |= 1 << player.id;
             }
+        }
+    }
+
+    togglePlayerVision( id: number ) {
+        const player = this.get( id );
+        if ( player ) {
+            player.vision = !player.vision;
         }
     }
 
@@ -107,18 +114,10 @@ export class Players extends Array<Player> {
                 );
                 if ( replayPlayer ) {
                     replayPlayer.name = player.name;
+                    this.get( player.id )!.name = player.name;
                 }
             }
             useReplayAndMapStore.setState( { replay: { ...replay } } );
         }
-    }
-
-    toggleFogOfWarByPlayerId( playerId: number ) {
-        const player = this.find( ( p ) => p.id === playerId );
-        if ( player ) {
-            player.vision = !player.vision;
-            return true;
-        }
-        return false;
     }
 }
