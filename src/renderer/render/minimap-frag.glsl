@@ -40,6 +40,7 @@ void main() {
             step(bounds.y, 1.0 - vUv.y)
     );
     // TODO; multiply 0.1 (edge distance) by aspect ratio
+    // also, make unit opacity taper more slowly than everything else
     result.a = mix(
         uOpacity,
         uOpacity *

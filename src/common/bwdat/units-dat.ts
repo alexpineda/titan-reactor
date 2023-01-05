@@ -8,6 +8,9 @@ import { ReadFile } from "../types";
  * @public
  */
 export interface UnitDAT extends UnitDATIncomingType {}
+/**
+ * @public
+ */
 export class UnitDAT implements UnitDAT {
     specialAbilityFlags = 0;
     starEditGroupFlags = 0;
@@ -100,6 +103,9 @@ export class UnitDAT implements UnitDAT {
     }
 }
 
+/**
+ * @public
+ */
 export interface UnitDATIncomingType {
     index: number;
     flingy: any;

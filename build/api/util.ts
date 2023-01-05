@@ -82,7 +82,6 @@ type NamedType =
     | tsm.ComputedPropertyName
     | tsm.TypeQueryNode;
 
-// reads files and concatenates them into a single string
 export function hasOwnIdentifier(node: tsm.Node): node is NamedType {
     return (
         tsm.Node.isClassDeclaration(node) ||
@@ -100,7 +99,7 @@ export function hasOwnIdentifier(node: tsm.Node): node is NamedType {
     );
 }
 
-export function hasJsDocTag<T extends tsm.Node>(node: T, needle: string) {
+function hasJsDocTag<T extends tsm.Node>(node: T, needle: string) {
     if (tsm.Node.isJSDocable(node)) {
         for (const _n of node.getJsDocs()) {
             if (_n.getInnerText().includes(needle)) {
@@ -110,29 +109,6 @@ export function hasJsDocTag<T extends tsm.Node>(node: T, needle: string) {
     }
     return false;
 }
-
-export const isExportedOrExportedAncestry = (node: tsm.Node) => {
-    let _parent = node;
-    while (_parent) {
-        if (
-            (_parent as tsm.InterfaceDeclaration).isExported &&
-            (_parent as tsm.InterfaceDeclaration).isExported()
-        ) {
-            return true;
-        }
-        _parent = _parent.getParent();
-    }
-};
-
-export const isExportableOrExportableAncestry = (node: tsm.Node) => {
-    let _parent = node;
-    while (_parent) {
-        if (tsm.Node.isExportable(_parent)) {
-            return true;
-        }
-        _parent = _parent.getParent();
-    }
-};
 
 export const getExportableNode = (_node: tsm.Node) => {
     const node = tsm.Node.isVariableDeclaration(_node)
@@ -165,18 +141,14 @@ export const getNodeId = (node: tsm.Node) => {
     return null;
 };
 
-export function findMatchingNodeById(needle: tsm.Node, haystack: tsm.Node[]) {
+function findChildrenOfKindById(needle: tsm.Node, haystack: tsm.Node) {
     const needleId = getNodeId(needle);
-    const kind = needle.getKind();
     if (needleId) {
-        for (const child of haystack) {
+        const kind = needle.getKind();
+        const children = haystack.getChildrenOfKind(kind);
+        for (const child of children) {
             const childId = getNodeId(child);
-            const childKind = child.getKind();
-            if (
-                childId &&
-                needleId.getText() === childId.getText() &&
-                kind === childKind
-            ) {
+            if (childId && needleId.getText() === childId.getText()) {
                 return child;
             }
         }
@@ -185,6 +157,9 @@ export function findMatchingNodeById(needle: tsm.Node, haystack: tsm.Node[]) {
     return null;
 }
 
+/**
+ * Simplified node type module resolution.
+ */
 const getFileFromModulePath = (project: tsm.Project, modulePath: string) => {
     let file = project.getSourceFile(`${modulePath}.ts`);
     if (!file) {
@@ -199,6 +174,14 @@ const getFileFromModulePath = (project: tsm.Project, modulePath: string) => {
     return file;
 };
 
+/**
+ * Replace transient imports with regular imports.
+ *
+ * Transient imports are added by typescript like type A = import("a").A which we strip and add
+ * as regular imports.
+ *
+ * @returns
+ */
 export const replaceTransientImports = (
     declarationFile: tsm.SourceFile,
     sourceFile: tsm.SourceFile,
@@ -220,15 +203,16 @@ export const replaceTransientImports = (
                     );
                     if (file) {
                         // find the node with the id and add to work items
-                        const importedNode = findMatchingNodeById(
+                        const importedNode = findChildrenOfKindById(
                             importType,
-                            file.getChildren()
+                            file
                             // [...file.getExportedDeclarations().values()].flat()
                         );
 
                         // strip the import type
                         importType.replaceWithText(getNodeId(importType)!.getText());
 
+                        // add a @transient tag to the imported node for additional clarity
                         if (
                             !hasJsDocTag(importedNode, "transient") &&
                             tsm.Node.isJSDocable(importedNode)
@@ -283,6 +267,9 @@ export const resolveModule = (
     return null;
 };
 
+/**
+ * Whether the node definition is external to the project
+ */
 export const isExternalNode = (node: tsm.Node) => {
     return (
         node.getSourceFile().isInNodeModules() ||
@@ -290,6 +277,14 @@ export const isExternalNode = (node: tsm.Node) => {
     );
 };
 
+/**
+ * Gets the definition nodes for a given node identifier
+ *
+ * @param id The node identifier to get the definition nodes for
+ * @param project
+ * @param allowExternal
+ * @returns
+ */
 export const getDefinitionNodes = (
     id: tsm.Identifier,
     project: tsm.Project,
@@ -332,4 +327,104 @@ export const getDefinitionNodes = (
         }
     }
     return definitionNodes;
+};
+
+export const isReferencedByAncestorDeclaration = (
+    node: tsm.Node,
+    srcDeclNode: tsm.Node
+) => {
+    const id = getNodeId(node)!.getText();
+    let _declParent = srcDeclNode;
+
+    while (_declParent.getParent()) {
+        _declParent = _declParent.getParent();
+    }
+
+    for (const _decl of _declParent.getDescendantsOfKind(node.getKind())) {
+        for (const _id of _decl.getChildrenOfKind(tsm.SyntaxKind.Identifier)) {
+            if (_id.getText() === id) {
+                return true;
+            }
+        }
+    }
+    return false;
+};
+
+/**
+ * For variable declaration node types we actually want the parent variable statement node type since that is exportable
+ * All other nodes are returned as is
+ */
+export const getStatement = (node: tsm.Node) => {
+    if (tsm.Node.isVariableDeclaration(node)) {
+        return node.getFirstAncestorByKindOrThrow(tsm.SyntaxKind.VariableStatement);
+    }
+
+    return node;
+};
+
+type OutputNodeTextOptions = {
+    wrapInGlobal?: string[];
+    defaultInternal?: boolean;
+};
+
+export const outputNodeText = (
+    declNode: tsm.Node,
+    sourceFile: tsm.SourceFile,
+    result: {
+        global: string;
+        content: string;
+    },
+    opts: OutputNodeTextOptions
+) => {
+    const outputNode = getStatement(declNode);
+    if (tsm.Node.isJSDocable(outputNode) && tsm.Node.isExportable(outputNode)) {
+        if (
+            opts.defaultInternal &&
+            !hasJsDocTag(outputNode, "public") &&
+            !hasJsDocTag(outputNode, "internal")
+        ) {
+            outputNode.addJsDoc("@internal");
+        }
+
+        if (hasJsDocTag(outputNode, "internal")) {
+            outputNode.setIsExported(false);
+        }
+    }
+
+    if (
+        opts.wrapInGlobal &&
+        opts.wrapInGlobal.includes(getNodeId(declNode)!.getText())
+    ) {
+        if (isExportable(declNode)) {
+            declNode.setIsExported(false);
+            result.global +=
+                `\n\n//${sourceFile.getFilePath()}\n` + outputNode.getFullText();
+        } else {
+            throw new Error("Cannot wrap in global if not exportable");
+        }
+    } else {
+        result.content +=
+            `\n\n//${sourceFile.getFilePath()}\n` + outputNode.getFullText();
+    }
+};
+
+/**
+ * Gets the declaration node for a given definition node.
+ * These are matched naively by kind and identifier name
+ */
+export const getDeclarationNode = (
+    node: tsm.Node,
+    inProject: tsm.Project,
+    outProject: tsm.Project
+) => {
+    if (hasOwnIdentifier(node)) {
+        const nodeDecl = emitFileDeclaration(
+            inProject,
+            node.getSourceFile(),
+            outProject
+        );
+
+        return findChildrenOfKindById(node, nodeDecl);
+    }
+    return null;
 };

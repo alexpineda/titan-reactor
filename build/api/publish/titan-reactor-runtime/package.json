@@ -1,5 +1,5 @@
 {
-    "name": "titan-reactor-runtime",
+    "name": "@titan-reactor-runtime/ui",
     "version": "2.0.0",
     "description": "",
     "types": "index.d.ts",

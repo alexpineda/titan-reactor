@@ -1,12 +1,14 @@
+
+        import Chk from "bw-chk"
 import React from "react"
-import { BufferAttribute, DataArrayTexture, CubeTexture, DataTexture, Texture } from "three";
-import Chk from "bw-chk"
+import { CompressedTexture, BufferAttribute, DataArrayTexture, CubeTexture, DataTexture, Texture } from "three";
+
 
 
 //D:/dev/titan-reactor/src/main/plugins/runtime.tsx
 
 /** @internal */
-declare function chunk(arr: Int32Array, n: number): never[];
+declare function chunk(arr: Int32Array, n: number): Int32Array[];
 
 //D:/dev/titan-reactor/src/main/plugins/runtime.tsx
 
@@ -250,7 +252,6 @@ declare const parseReplay: (buf: Buffer) => Promise<{
 
 //D:/dev/titan-reactor/src/renderer/process-replay/parse-replay-header.ts
 /// <reference types="node" />
-/** @transient */
 /** @internal */
 interface ReplayPlayer {
     id: number;
@@ -280,8 +281,11 @@ declare const UI_STATE_EVENT_UNITS_SELECTED = "units";
 
 //D:/dev/titan-reactor/src/renderer/core/unit.ts
 
-/** @internal */
-interface DumpedUnit extends Partial<Unit> {
+/**
+ * @public
+ * Extended unit information.
+ */
+export interface DumpedUnit extends Partial<Unit> {
     remainingTrainTime?: number;
     upgrade?: {
         id: number;
@@ -302,8 +306,11 @@ interface DumpedUnit extends Partial<Unit> {
 
 //D:/dev/titan-reactor/src/renderer/core/unit.ts
 
-/** @internal */
-interface Unit extends UnitStruct {
+/**
+ * @public
+ * A unit (and its state) in the game.
+ */
+export interface Unit extends UnitStruct {
     extras: {
         recievingDamage: number;
         selected?: boolean;
@@ -372,8 +379,10 @@ export interface UnitDAT extends UnitDATIncomingType {
 
 //D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
 
-/** @internal */
-interface UnitDATIncomingType {
+/**
+ * @public
+ */
+export interface UnitDATIncomingType {
     index: number;
     flingy: any;
     subUnit1: number;
@@ -422,6 +431,53 @@ interface UnitDATIncomingType {
     buildScore: number;
     destroyScore: number;
     starEditAvailabilityFlags: number;
+}
+
+//D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
+
+/**
+ * @public
+ */
+export declare class UnitDAT implements UnitDAT {
+    specialAbilityFlags: number;
+    starEditGroupFlags: number;
+    name: string;
+    isBuilding: boolean;
+    isAddon: boolean;
+    isFlyer: boolean;
+    isResourceMiner: boolean;
+    isTurret: boolean;
+    isFlyingBuilding: boolean;
+    isHero: boolean;
+    regenerates: boolean;
+    animatedIdle: boolean;
+    cloakable: boolean;
+    twoUnitsInOneEgg: boolean;
+    singleEntity: boolean;
+    isResourceDepot: boolean;
+    isResourceContainer: boolean;
+    isRobotic: boolean;
+    isDetector: boolean;
+    isOrganic: boolean;
+    requiresCreep: boolean;
+    unusedFlag: boolean;
+    requiresPsi: boolean;
+    burrowable: boolean;
+    isSpellcaster: boolean;
+    permanentCloak: boolean;
+    pickupItem: boolean;
+    ignoreSupplyCheck: boolean;
+    useMediumOverlays: boolean;
+    useLargeOverlays: boolean;
+    battleReactions: boolean;
+    fullAutoAttack: boolean;
+    invincible: boolean;
+    isMechanical: boolean;
+    producesUnits: boolean;
+    isZerg: boolean;
+    isTerran: boolean;
+    isProtoss: boolean;
+    constructor(data: UnitDATIncomingType);
 }
 
 //D:/dev/titan-reactor/src/common/types/utils/deep-partial.ts
@@ -493,8 +549,11 @@ interface FieldDefinition<T = unknown> {
 
 //D:/dev/titan-reactor/src/renderer/image/assets.ts
 
-/** @internal */
-declare type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
+/**
+ * @public
+ * Most game assets excepting sprites / images.
+ */
+export declare type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture;
     bwDat: BwDAT;
     wireframeIcons?: Blob[];
@@ -889,7 +948,6 @@ declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<Un
 
 //D:/dev/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
 
-/** @transient */
 /** @internal */
 declare class LegacyGRP {
     width: number;
@@ -976,6 +1034,11 @@ interface Component {
     snap: string;
     screen: string;
 }
+
+//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+
+/** @internal */
+declare type StateMessage = Partial<PluginStateMessage>;
 
 //D:/dev/titan-reactor/src/main/plugins/runtime.tsx
 
@@ -1097,12 +1160,6 @@ export declare class PlayerInfo {
     get armySupply(): number;
     get apm(): number;
 }
-
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
-
-
-/** @internal - inferred */
-export type StateMessage = Partial<PluginStateMessage>;
 
 //D:/dev/titan-reactor/src/main/plugins/runtime.tsx
 
@@ -1303,3 +1360,7 @@ export declare const proxyFetch: (url: string) => Promise<Response>;
  * @internal
  */
 declare const _rc: (pluginId: string, component: Component, JSXElement: React.FC<any>) => void;
+        declare global {
+            
+        }
+        
