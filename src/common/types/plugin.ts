@@ -5,6 +5,10 @@ import { FieldDefinition } from "./fields";
 
 export type PluginConfig = Record<string, FieldDefinition>;
 
+/**
+ * A package definition for a plugin.
+ * This is the same format as a package.json file with exception of the `permissions` property.
+ */
 export interface PluginPackage {
     name: string;
     id: string;
@@ -24,6 +28,9 @@ export interface PluginPackage {
     permissions?: string[];
 }
 
+/**
+ * A plugin's metadata based off it's package.json file and surrounding plugin files.
+ */
 export interface PluginMetaData extends PluginPackage {
     nativeSource?: string | null;
     path: string;
@@ -36,6 +43,9 @@ export interface PluginMetaData extends PluginPackage {
     apiVersion: string;
 }
 
+/**
+ * These are the injectable services that are available to plugins during a world session.
+ */
 export interface Injectables {
     /**
      * Reactive setting values that apply to the active session only.
@@ -48,6 +58,9 @@ export interface Injectables {
     events: TypeEmitterProxy<WorldEvents>;
 }
 
+/**
+ * A plugin that executes in the main process.
+ */
 export interface NativePlugin {
     /**
      * The id of the plugin.

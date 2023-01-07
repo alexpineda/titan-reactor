@@ -1,14 +1,15 @@
-type TypedArray =
-    | Int8Array
-    | Int16Array
-    | Int32Array
-    | Uint8Array
-    | Uint16Array
-    | Uint32Array;
 /**
  A template for representing game struct(s) (eg units, sprites, etc)
 */
-export class SimpleBufferView<K extends TypedArray> {
+export class SimpleBufferView<
+    K extends
+        | Int8Array
+        | Int16Array
+        | Int32Array
+        | Uint8Array
+        | Uint16Array
+        | Uint32Array
+> {
     viewSize: number;
 
     #viewOffset = 0;

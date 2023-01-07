@@ -6,9 +6,13 @@ import path from "path";
 import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
 
+/**
+ * @public
+ */
 export interface OpenBW extends OpenBWWasm {}
 
 /**
+ * @public
  * An interface layer between the OpenBW WASM module and the rest of the application.
  */
 export class OpenBW implements OpenBW {

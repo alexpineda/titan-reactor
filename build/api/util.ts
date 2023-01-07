@@ -158,7 +158,7 @@ function findChildrenOfKindById(needle: tsm.Node, haystack: tsm.Node) {
 }
 
 /**
- * Simplified node type module resolution.
+ * Simplified node type index file resolution.
  */
 const getFileFromModulePath = (project: tsm.Project, modulePath: string) => {
     let file = project.getSourceFile(`${modulePath}.ts`);
@@ -223,6 +223,8 @@ export const replaceTransientImports = (
                         }
                         return importedNode;
                     } else {
+                        //TODO if the transient import is external, eg zustand
+                        // we need to add the identifier to imports
                         diagnostics.importFileNotFound.add(literal.getLiteralValue());
                         return null;
                     }
@@ -232,6 +234,14 @@ export const replaceTransientImports = (
     ];
 };
 
+/**
+ * Resolves module path based on cwd similar to node. Respects aliases.
+ *
+ * @param baseModulePath Module identifier to be imported
+ * @param cwd File directory that is importing the module
+ * @param project Project
+ * @returns SourceFile | null
+ */
 export const resolveModule = (
     baseModulePath: string,
     cwd: string,
@@ -239,19 +249,19 @@ export const resolveModule = (
 ) => {
     let file: tsm.SourceFile | undefined;
 
-    const baseUrl = project.getCompilerOptions().baseUrl || "";
+    const projectUrl = project.getCompilerOptions().baseUrl || "";
     const paths = project.getCompilerOptions().paths || {};
 
-    const aliases = Object.keys(paths);
-    const noStarAliases = Object.keys(paths).map((alias) => alias.replace("*", ""));
+    const alias = Object.keys(paths).find((alias) =>
+        baseModulePath.startsWith(alias.replace("*", ""))
+    );
 
-    if (noStarAliases.some((alias) => baseModulePath.startsWith(alias))) {
-        const rootAlias =
-            aliases[
-                noStarAliases.findIndex((alias) => baseModulePath.startsWith(alias))
-            ];
-        for (const path of paths[rootAlias]) {
-            const modulePath = join(baseUrl, baseModulePath.replace(rootAlias, path));
+    if (alias) {
+        for (const path of paths[alias]) {
+            const modulePath = join(
+                projectUrl,
+                baseModulePath.replace(alias.replace("*", ""), path.replace("*", ""))
+            );
             file = getFileFromModulePath(project, modulePath);
             if (file) {
                 break;
@@ -377,32 +387,37 @@ export const outputNodeText = (
     opts: OutputNodeTextOptions
 ) => {
     const outputNode = getStatement(declNode);
-    if (tsm.Node.isJSDocable(outputNode) && tsm.Node.isExportable(outputNode)) {
-        if (
-            opts.defaultInternal &&
-            !hasJsDocTag(outputNode, "public") &&
-            !hasJsDocTag(outputNode, "internal")
-        ) {
-            outputNode.addJsDoc("@internal");
-        }
-
-        if (hasJsDocTag(outputNode, "internal")) {
-            outputNode.setIsExported(false);
-        }
-    }
 
     if (
         opts.wrapInGlobal &&
         opts.wrapInGlobal.includes(getNodeId(declNode)!.getText())
     ) {
+        if (
+            (declNode as tsm.ClassDeclaration).isAmbient &&
+            (declNode as tsm.ClassDeclaration).isAmbient()
+        ) {
+            (declNode as tsm.ClassDeclaration).setHasDeclareKeyword(false);
+        }
         if (isExportable(declNode)) {
-            declNode.setIsExported(false);
             result.global +=
                 `\n\n//${sourceFile.getFilePath()}\n` + outputNode.getFullText();
         } else {
             throw new Error("Cannot wrap in global if not exportable");
         }
     } else {
+        if (tsm.Node.isJSDocable(outputNode) && tsm.Node.isExportable(outputNode)) {
+            if (
+                opts.defaultInternal &&
+                !hasJsDocTag(outputNode, "public") &&
+                !hasJsDocTag(outputNode, "internal")
+            ) {
+                outputNode.addJsDoc("@internal");
+            }
+
+            if (hasJsDocTag(outputNode, "internal")) {
+                outputNode.setIsExported(false);
+            }
+        }
         result.content +=
             `\n\n//${sourceFile.getFilePath()}\n` + outputNode.getFullText();
     }

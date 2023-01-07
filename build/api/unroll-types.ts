@@ -90,6 +90,96 @@ export const unrollTypes = async ({
      */
     const nodeModuleDeclarationImports = new ImportNodeUtil();
 
+    // note: processed, not necessarily collected
+    const _alreadyTriedToCollectNode = new Set<tsm.Node>();
+
+    /**
+     * Recursively "collects" all definitions that are local to the project based off identifiers found in the source code (node).
+     *
+     * Goes through the source file and:
+     * 1. Iterates all node definitions of identifiers
+     * 2. If a definition node is external or in node modules simply add it to the diagnostics and skip it
+     * 3. If a definition node is in a declaration file, add it to nodeModuleDeclarationImports and diagnostics and skip it
+     * 4. If a definition node has already been processed, skip it
+     * 3. If a definition node is in the project, recursively call collect on it
+     *
+     * After the identifier definitions have been processed:
+     * 1. Generate all declaration files for each root node or fail
+     * 2. Get transient nodes from the declaration files and collect those as well
+     *
+     * @param parentNode tsm.Node
+     */
+    function _collect(parentNode: tsm.Node) {
+        const sourceFile = parentNode.getSourceFile();
+
+        parentNode.getDescendantsOfKind(tsm.SyntaxKind.Identifier).forEach((id) => {
+            if (isJsDocChild(id)) {
+                return;
+            }
+
+            let definitionNodes = getDefinitionNodes(id, inProject, true);
+
+            for (const defNode of definitionNodes) {
+                // minor optimization to reduce work in this loop
+                if (_alreadyTriedToCollectNode.has(defNode)) {
+                    continue;
+                }
+                _alreadyTriedToCollectNode.add(defNode);
+
+                if (defNode.getSourceFile().isFromExternalLibrary()) {
+                    result.diagnostics.external.add(id.getText());
+                    continue;
+                }
+                if (defNode.getSourceFile().isInNodeModules()) {
+                    // add node name to import list since it is external
+                    nodeModuleImports.registerImports(id, sourceFile);
+                    result.diagnostics.nodeModules.add(id.getText());
+                    continue;
+                }
+                if (defNode.getSourceFile().isDeclarationFile()) {
+                    nodeModuleDeclarationImports.registerImports(id, sourceFile);
+                    result.diagnostics.externalDeclarations.add(id.getText());
+                    continue;
+                }
+                _addToCollectedNodes(defNode);
+                _collect(defNode);
+            }
+
+            if (definitionNodes.length === 0) {
+                result.diagnostics.notFound.add(id.getText());
+            }
+        });
+
+        // we emit the declaration after collecting exportable nodes
+        // because we need to set them all to exported first!
+        const declarationFile = emitFileDeclaration(
+            inProject,
+            parentNode.getSourceFile(),
+            outProject
+        );
+
+        if (parentNode.getSourceFile().getFilePath().endsWith("input-composer.ts")) {
+            debugger;
+        }
+
+        if (declarationFile === undefined) {
+            console.error(parentNode.getSourceFile().getFilePath());
+            throw new Error("Could not emit file declaration");
+        }
+
+        const transient = replaceTransientImports(
+            declarationFile,
+            parentNode.getSourceFile(),
+            inProject,
+            result.diagnostics
+        );
+
+        for (const node of transient) {
+            _addToCollectedNodes(node);
+            _collect(node);
+        }
+    }
+
     /**
      * NOTE: This is a recursive function
      *
@@ -98,7 +188,7 @@ export const unrollTypes = async ({
      * 2. For each descendent of the declaration node, if it has an id and has been collected, output it.
      * 3. If it does not have a declaration and is a declaration itself, output it.
      */
-    const printNode = (_node: tsm.Node, srcDecl?: tsm.Node) => {
+    function printNode(_node: tsm.Node, srcDecl?: tsm.Node) {
         const outputNode = getStatement(_node);
 
         if (_printedNodeDeclarations.has(outputNode)) {
@@ -176,9 +266,9 @@ export const unrollTypes = async ({
                 _printedNodeDeclarations.add(outputNode);
             }
         }
-    };
+    }
 
-    const _addToCollectedNodes = (node: tsm.Node) => {
+    function _addToCollectedNodes(node: tsm.Node) {
         if (hasOwnIdentifier(node)) {
             const nodeId = getNodeId(node)!.getText();
             if (isExportable(node)) {
@@ -195,99 +285,7 @@ export const unrollTypes = async ({
                 }
             }
         }
-    };
-
-    // note: processed, not necessarily collected
-    const _alreadyTriedToCollectNode = new Set<tsm.Node>();
-
-    /**
-     * Recursively "collects" all definitions that are local to the project based off identifiers found in the source code (node).
-     *
-     * NOTE: this is a recursive function
-     *
-     * Goes through the source file and:
-     * 1. Iterates all node definitions of identifiers
-     * 2. If a definition node is external or in node modules simply add it to the diagnostics and skip it
-     * 3. If a definition node is in a declaration file, add it to nodeModuleDeclarationImports and diagnostics and skip it
-     * 4. If a definition node has already been processed, skip it
-     * 3. If a definition node is in the project, recursively call collect on it
-     *
-     * After the identifier definitions have been processed:
-     * 1. Generate all declaration files for each root node or fail
-     * 2. Get transient nodes from the declaration files and collect those as well
-     *
-     * @param parentNode tsm.Node
-     */
-    const _collect = (parentNode: tsm.Node) => {
-        // if (_alreadyTriedToCollectNode.has(parentNode)) {
-        //     return;
-        // }
-
-        const sourceFile = parentNode.getSourceFile();
-
-        parentNode.getDescendantsOfKind(tsm.SyntaxKind.Identifier).forEach((id) => {
-            if (isJsDocChild(id)) {
-                return;
-            }
-
-            let definitionNodes = getDefinitionNodes(id, inProject, true);
-
-            for (const defNode of definitionNodes) {
-                // minor optimization to reduce work in this loop
-                if (_alreadyTriedToCollectNode.has(defNode)) {
-                    continue;
-                }
-                _alreadyTriedToCollectNode.add(defNode);
-
-                if (defNode.getSourceFile().isFromExternalLibrary()) {
-                    result.diagnostics.external.add(id.getText());
-                    continue;
-                }
-                if (defNode.getSourceFile().isInNodeModules()) {
-                    // add node name to import list since it is external
-                    nodeModuleImports.registerImports(id, sourceFile);
-                    result.diagnostics.nodeModules.add(id.getText());
-                    continue;
-                }
-                if (defNode.getSourceFile().isDeclarationFile()) {
-                    nodeModuleDeclarationImports.registerImports(id, sourceFile);
-                    result.diagnostics.externalDeclarations.add(id.getText());
-                    continue;
-                }
-                _addToCollectedNodes(defNode);
-                _collect(defNode);
-            }
-
-            if (definitionNodes.length === 0) {
-                result.diagnostics.notFound.add(id.getText());
-            }
-        });
-
-        // we emit the declaration after collecting exportable nodes
-        // because we need to set them all to exported first!
-        const declarationFile = emitFileDeclaration(
-            inProject,
-            parentNode.getSourceFile(),
-            outProject
-        );
-
-        if (declarationFile === undefined) {
-            console.error(parentNode.getSourceFile().getFilePath());
-            throw new Error("Could not emit file declaration");
-        }
-
-        const transient = replaceTransientImports(
-            declarationFile,
-            parentNode.getSourceFile(),
-            inProject,
-            result.diagnostics
-        );
-
-        for (const node of transient) {
-            _addToCollectedNodes(node);
-            _collect(node);
-        }
-    };
+    }
 
     for (const file of inFiles) {
         let sourceFile: tsm.SourceFile;
