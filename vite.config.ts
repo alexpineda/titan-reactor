@@ -30,6 +30,16 @@ export const sharedViteConfig = ({ command }) => ({
     },
     optimizeDeps: {
         exclude: ["bw-casclib"],
+        esbuildOptions: {
+            target: "ES2020",
+            // Node.js global to browser globalThis
+            define: {
+                global: "globalThis",
+            },
+            supported: {
+                bigint: true,
+            },
+        },
     },
 });
 
