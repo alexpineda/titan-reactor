@@ -69,12 +69,12 @@ lockdown_();
     log.debug( `startup in ${performance.measure( "start" ).duration}ms` );
 } )();
 
-if ( process.env.NODE_ENV === "development" ) {
-    void import( "webgl-lint" );
+// if ( process.env.NODE_ENV === "development" ) {
+//     void import( "webgl-lint" );
 
-    void import( "spectorjs" ).then( ( module ) => {
-        const spector = new module.Spector();
-        spector.displayUI();
-        spector.spyCanvases();
-    } );
-}
+//     void import( "spectorjs" ).then( ( module ) => {
+//         const spector = new module.Spector();
+//         spector.displayUI();
+//         spector.spyCanvases();
+//     } );
+// }

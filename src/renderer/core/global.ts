@@ -181,20 +181,18 @@ ipcRenderer.on(
     }
 );
 
-if ( process.env.NODE_ENV !== "development" ) {
-    window.onerror = (
-        _: Event | string,
-        source?: string,
-        lineno?: number,
-        colno?: number,
-        error?: Error
-    ) => {
-        globalEvents.emit( "log-message", {
-            message: withErrorMessage( error, `${lineno!}:${colno!} - ${source!}` ),
-            level: "error",
-        } );
-    };
-}
+window.onerror = (
+    _: Event | string,
+    source?: string,
+    lineno?: number,
+    colno?: number,
+    error?: Error
+) => {
+    globalEvents.emit( "log-message", {
+        message: withErrorMessage( error, `${lineno!}:${colno!} - ${source!}` ),
+        level: "error",
+    } );
+};
 
 document.addEventListener(
     "visibilitychange",
