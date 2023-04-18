@@ -215,6 +215,7 @@ export const createOverlayComposer = (
         _insideMinimap = false;
 
     const _intersectMinimap = () => {
+        // @ts-expect-error
         rayCast.setFromCamera( inputs.mouse.move, post.overlayCamera );
 
         _mmIntersect.length = 0;

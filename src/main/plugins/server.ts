@@ -1,7 +1,7 @@
 import path, { normalize } from "path";
 import fs from "fs";
 import express from "express";
-import { transpile } from "../transpile";
+import { transpile } from "../typescript/transpile";
 import browserWindows from "../windows";
 import { LOG_MESSAGE, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
 import settings from "../settings/singleton";

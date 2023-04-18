@@ -48,6 +48,6 @@ export async function makeGameScene(
     return () => {
         janitor.dispose();
 
-        renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
+        renderComposer.getWebGLRenderer().useLegacyLights = true;
     };
 }

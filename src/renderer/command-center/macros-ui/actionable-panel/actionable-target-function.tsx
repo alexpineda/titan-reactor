@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Actionable, MacroDTO } from "common/types";
 import { useMacroStore } from "../use-macros-store";
-import { ScriptInline } from "../../script-inline";
+import { ScriptInline } from "../../editor/script-inline";
 import debounce from "lodash.debounce";
 
 const debouncedUpdateActionable = debounce(
@@ -17,10 +17,10 @@ export const ActionableTargetFunction = ( {
     macro: MacroDTO;
     action: Actionable;
 } ) => {
-    const [value, setValue] = useState( action.value );
+    const [ value, setValue ] = useState( action.value );
 
     return (
-        <p
+        <div
             style={{
                 display: "grid",
                 gridGap: "var(--size-1)",
@@ -32,6 +32,6 @@ export const ActionableTargetFunction = ( {
                     debouncedUpdateActionable( macro, { ...action, value: content } );
                 }}
             />
-        </p>
+        </div>
     );
 };

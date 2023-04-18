@@ -75,7 +75,10 @@ export const createPostProcessingComposer = (
                 postProcessingBundle.options3d.sunlightDirection[2]
             );
             scene.sunlight.intensity = postProcessingBundle.options3d.sunlightIntensity;
-            scene.sunlight.setColor( postProcessingBundle.options3d.sunlightColor );
+            // @Todo change to use setStyle api of Color
+            scene.sunlight.setColor(
+                postProcessingBundle.options3d.sunlightColor as HexColorString
+            );
             scene.sunlight.needsUpdate();
 
             terrain.envMapIntensity = postProcessingBundle.options3d.envMap;

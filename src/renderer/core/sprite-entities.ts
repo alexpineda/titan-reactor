@@ -14,7 +14,6 @@ export class SpriteEntities {
     constructor() {
         this.group.name = "sprites";
         this.group.matrixAutoUpdate = false;
-        // @ts-expect-error
         this.group.matrixWorldAutoUpdate = false;
     }
 
@@ -42,7 +41,6 @@ export class SpriteEntities {
             this.#spritesMap.set( spriteIndex, sprite );
             this.group.add( sprite );
             sprite.matrixAutoUpdate = false;
-            // @ts-expect-error
             sprite.matrixWorldAutoUpdate = false;
             sprite.userData.isNew = true;
         }

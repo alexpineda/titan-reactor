@@ -1,5 +1,5 @@
 {
-    "name": "@titan-reactor-runtime/host",
+    "name": "titan-reactor-runtime/host",
     "version": "2.0.0",
     "description": "",
     "types": "index.d.ts",

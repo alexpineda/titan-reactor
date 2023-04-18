@@ -26,7 +26,7 @@ const createNonZeroElevationsData = (
     for ( let x = 0; x < width; x++ ) {
         for ( let y = 0; y < height; y++ ) {
             const pos = y * width + x;
-            if ( [0, 2, 4].includes( nonZeroLayers[pos] ) ) {
+            if ( [ 0, 2, 4 ].includes( nonZeroLayers[pos] ) ) {
                 nonZeroLayers[pos] = 0;
             }
         }

@@ -1,6 +1,11 @@
-import { javascript } from "@codemirror/lang-javascript";
-import { basicSetup, EditorView } from "codemirror";
+// references:
+// https://github.com/folz/hiasynth/tree/main/packages/editor/Editor
+// https://codesandbox.io/s/typescript-lsp-c3mqx?file=/public/workers/tsserver.ts
+// https://codesandbox.io/s/github/danilowoz/sandpack-tsserver?file=/src/sandpack-components/CodeEditor.tsx
+
+import { EditorView } from "@codemirror/view";
 import { useEffect, useRef } from "react";
+import { setupExtensions } from "./setup-extensions";
 
 export const ScriptInline = ( {
     content,
@@ -14,13 +19,12 @@ export const ScriptInline = ( {
 
     useEffect( () => {
         if ( divRef.current ) {
-            const lang = javascript( { typescript: true } );
             codeMirror.current = new EditorView( {
-                extensions: [basicSetup, lang],
+                extensions: [ setupExtensions() ],
                 parent: divRef.current,
                 doc: content,
                 dispatch: function ( transaction ) {
-                    codeMirror.current!.update( [transaction] );
+                    codeMirror.current!.update( [ transaction ] );
                     if ( transaction.docChanged ) {
                         // eslint-disable-next-line @typescript-eslint/no-base-to-string
                         onChange( codeMirror.current!.state.doc.toString() );
@@ -28,7 +32,7 @@ export const ScriptInline = ( {
                 },
             } );
         }
-        () => {
+        return () => {
             codeMirror.current?.destroy();
         };
     }, [] );

@@ -23,8 +23,7 @@ export const GlobalSettings = () => {
             settings.enabledPlugins,
             renderComposer.getWebGLRenderer().capabilities.getMaxAnisotropy(),
             window.devicePixelRatio,
-            // @ts-expect-error
-            renderComposer.getWebGLRenderer().capabilities.maxSamples as number
+            renderComposer.getWebGLRenderer().capabilities.maxSamples
         )
     );
 

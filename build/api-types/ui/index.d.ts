@@ -488,6 +488,9 @@ declare type DeepPartial<T> = T extends object ? {
 
 //D:/dev/titan-reactor/src/common/types/plugin.ts
 
+/**
+ * A plugin's metadata based off it's package.json file and surrounding plugin files.
+ */
 /** @internal */
 interface PluginMetaData extends PluginPackage {
     nativeSource?: string | null;
@@ -503,6 +506,10 @@ interface PluginMetaData extends PluginPackage {
 
 //D:/dev/titan-reactor/src/common/types/plugin.ts
 
+/**
+ * A package definition for a plugin.
+ * This is the same format as a package.json file with exception of the `permissions` property.
+ */
 /** @internal */
 interface PluginPackage {
     name: string;

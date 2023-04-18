@@ -4,3 +4,4 @@ export * from "./dialogs";
 export * from "./log";
 export * from "./files";
 export * from "./settings";
+export * from "./editor";

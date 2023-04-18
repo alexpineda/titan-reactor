@@ -36,7 +36,7 @@ function expandAABB( skinnedMesh: SkinnedMesh, aabb: Box3 ) {
     const geometry = skinnedMesh.geometry;
 
     const index = geometry.index;
-    const position = geometry.attributes.position;
+    const position = geometry.attributes.position as BufferAttribute;
     const skinIndex = geometry.attributes.skinIndex as BufferAttribute;
     const skinWeigth = geometry.attributes.skinWeight as BufferAttribute;
 

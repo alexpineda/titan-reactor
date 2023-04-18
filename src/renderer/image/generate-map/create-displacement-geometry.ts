@@ -22,9 +22,9 @@ export const createDisplacementGeometry = (
     if ( !ctx ) {
         throw new Error( "Could not get context" );
     }
-    const pos = geom.getAttribute( "position" );
+    const pos = geom.getAttribute( "position" ) as BufferAttribute;
     const uvs = geom.getAttribute( "uv" ) as BufferAttribute;
-    const nor = geom.getAttribute( "normal" );
+    const nor = geom.getAttribute( "normal" ) as BufferAttribute;
     const p = new Vector3();
     const uv = new Vector2();
     const n = new Vector3();

@@ -19,13 +19,19 @@ export class FogOfWarEffect extends Effect {
             blendFunction: BlendFunction.ALPHA,
             uniforms: new Map( [
                 [ "fog", new Uniform( null ) ],
-                [ "fogResolution", new Uniform( new Vector2() ) ],
-                [ "viewInverse", new Uniform( new Matrix4() ) ],
-                [ "projectionInverse", new Uniform( new Matrix4() ) ],
-                [ "color", new Uniform( new Color( 0, 0, 0 ) ) ],
-                [ "fogUvTransform", new Uniform( new Vector4() ) ],
+                [ "fogResolution", new Uniform( null ) ],
+                [ "viewInverse", new Uniform( null ) ],
+                [ "projectionInverse", new Uniform( null ) ],
+                [ "color", new Uniform( null ) ],
+                [ "fogUvTransform", new Uniform( null ) ],
             ] ),
         } );
+
+        this.uniforms.set( "fogResolution", new Uniform( new Vector2() ) );
+        this.uniforms.set( "viewInverse", new Uniform( new Matrix4() ) );
+        this.uniforms.set( "projectionInverse", new Uniform( new Matrix4() ) );
+        this.uniforms.set( "color", new Uniform( new Color( 0, 0, 0 ) ) );
+        this.uniforms.set( "fogUvTransform", new Uniform( new Vector4() ) );
     }
 
     set opacity( value: number ) {

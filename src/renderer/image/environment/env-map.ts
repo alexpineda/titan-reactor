@@ -25,8 +25,9 @@ const createDataTextureFromResult = ( texData: RGBE | EXR, texture: DataTexture 
 
     texture.anisotropy = 1;
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    // @ts-expect-error
     if ( texData.format ) {
+        // eslint-disable-next-line
         texture.format = texData.format;
     }
 

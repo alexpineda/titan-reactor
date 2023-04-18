@@ -156,8 +156,7 @@ export class PostProcessingBundler {
     update() {
         renderComposer.composer.multisampling = Math.min(
             this.options.antialias,
-            // @ts-expect-error
-            renderComposer.getWebGLRenderer().capabilities.maxSamples as number
+            renderComposer.getWebGLRenderer().capabilities.maxSamples
         );
 
         this.#fogOfWarEffect.opacity = this.options.fogOfWar;

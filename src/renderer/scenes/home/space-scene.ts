@@ -120,7 +120,6 @@ let fireTexture: Texture;
 
 export const preloadIntro = async () => {
     if ( fireTexture === undefined ) {
-        //@ts-expect-error
         fireTexture = new EXRLoader().load( path.join( __static, "./FireBall03_8x8.exr" ) );
     }
 

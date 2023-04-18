@@ -117,7 +117,6 @@ export class Image3D extends Object3D implements ImageBase {
         this.setFrame( 0 );
 
         this.matrixAutoUpdate = false;
-        // @ts-expect-error
         this.matrixWorldAutoUpdate = false;
 
         this.name = "Image3D";

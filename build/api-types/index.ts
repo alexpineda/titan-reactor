@@ -11,13 +11,10 @@ const doThing = async () => {
         defaultInternal: true,
     });
     writeFile(
-        fn("./build/api/publish/titan-reactor-runtime/unrolled.json"),
+        fn("./build/api-types/ui/unrolled.json"),
         JSON.stringify(runtimeTypes.diagnostics, null, 4)
     );
-    writeFile(
-        fn("./build/api/publish/titan-reactor-runtime/index.d.ts"),
-        runtimeTypes.content
-    );
+    writeFile(fn("./build/api-types/ui/index.d.ts"), runtimeTypes.content);
 
     console.log("building plugin host types");
     const pluginHostTypes = await unrollTypes({
@@ -30,13 +27,10 @@ const doThing = async () => {
         wrapInGlobal: ["PluginBase", "SceneController"],
     });
     writeFile(
-        fn("./build/api/publish/titan-reactor-host/unrolled.json"),
+        fn("./build/api-types/host/unrolled.json"),
         JSON.stringify(pluginHostTypes.diagnostics, null, 4)
     );
-    writeFile(
-        fn("./build/api/publish/titan-reactor-host/index.d.ts"),
-        pluginHostTypes.content
-    );
+    writeFile(fn("./build/api-types/host/index.d.ts"), pluginHostTypes.content);
 };
 
 doThing();

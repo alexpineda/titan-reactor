@@ -6,10 +6,9 @@ import {
     ClampToEdgeWrapping,
     DataArrayTexture,
     FloatType,
-    LinearEncoding,
+    sRGBEncoding,
     NearestFilter,
     RGBAFormat,
-    TextureEncoding,
 } from "three";
 import { Janitor } from "three-janitor";
 import { parseDDS } from "@image/formats/parse-dds";
@@ -37,12 +36,12 @@ export const loadAnimAtlas = (
     const ddsBuf = getBufDds( buf, sprite.maps.diffuse );
     const diffuse = janitor.mop( createDDSTexture( parseDDS( ddsBuf ) ), "diffuse" );
 
-    const optionalLoad = ( layer: AnimDds | undefined, encoding?: TextureEncoding ) => {
+    const optionalLoad = ( layer: AnimDds | undefined ) => {
         if ( layer === undefined ) {
             return undefined;
         }
         const ddsBuf = getBufDds( buf, layer );
-        return janitor.mop( createDDSTexture( parseDDS( ddsBuf ), encoding ), "layer" );
+        return janitor.mop( createDDSTexture( parseDDS( ddsBuf ), sRGBEncoding ), "layer" );
     };
 
     const teammask = optionalLoad( sprite.maps.teamcolor );
@@ -55,9 +54,7 @@ export const loadAnimAtlas = (
     // const specular = await optionalLoad(sprite.maps.specular);
     // const aoDepth = await optionalLoad(sprite.maps.ao_depth);
     const emissive =
-        scale === UnitTileScale.HD
-            ? optionalLoad( sprite.maps.emissive, LinearEncoding )
-            : undefined;
+        scale === UnitTileScale.HD ? optionalLoad( sprite.maps.emissive ) : undefined;
 
     const frames = sprite.frames.map( ( frame ) => ( {
         x: frame.x / uvScale,

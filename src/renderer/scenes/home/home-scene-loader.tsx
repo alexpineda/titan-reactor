@@ -23,10 +23,10 @@ export async function homeSceneLoader(): Promise<SceneState> {
     return {
         id: "@home",
         beforeNext() {
-            renderComposer.getWebGLRenderer().physicallyCorrectLights = true;
+            renderComposer.getWebGLRenderer().useLegacyLights = false;
         },
         start: ( prevID?: SceneStateID ) => {
-            renderComposer.getWebGLRenderer().physicallyCorrectLights = false;
+            renderComposer.getWebGLRenderer().useLegacyLights = true;
             if ( prevID !== "@loading" ) {
                 swoosh.start();
             }

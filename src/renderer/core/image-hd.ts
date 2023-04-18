@@ -97,7 +97,6 @@ export class ImageHD
         this._zOff = 0;
 
         this.matrixAutoUpdate = false;
-        // @ts-expect-error
         this.matrixWorldAutoUpdate = false;
 
         this.name = "ImageHD";

@@ -1,6 +1,6 @@
 import { useProcessStore } from "@stores/process-store";
 import { useLayoutEffect, useRef } from "react";
-import { Color } from "three";
+import { Color, HexColorString } from "three";
 
 interface LoadBarProps {
     color: string;
@@ -30,7 +30,7 @@ export const LoadBar = ( { color, thickness, style }: LoadBarProps ) => {
         } );
     }, [] );
 
-    const c1 = new Color( color );
+    const c1 = new Color( color as HexColorString );
     const hsl = {
         h: 0,
         s: 0,

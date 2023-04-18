@@ -1,5 +1,6 @@
 import {
     ClampToEdgeWrapping,
+    CompressedPixelFormat,
     CompressedTexture,
     LinearFilter,
     sRGBEncoding,
@@ -13,14 +14,14 @@ export const createDDSTexture = ( texDatas: DDS, encoding = sRGBEncoding ) => {
     const texture = new CompressedTexture(
         texDatas.mipmaps,
         texDatas.width,
-        texDatas.height
+        texDatas.height,
+        texDatas.format as CompressedPixelFormat
     );
 
     if ( texDatas.mipmapCount === 1 ) {
         texture.minFilter = LinearFilter;
     }
 
-    texture.format = texDatas.format;
     texture.needsUpdate = true;
 
     texture.minFilter = LinearFilter;
