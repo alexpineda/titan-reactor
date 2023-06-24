@@ -4,6 +4,7 @@ import { useSceneStore } from "@stores/scene-store";
 import { useEffect } from "react";
 import { imbateamLogo } from "@image/assets/imbateam";
 import titanReactorLogo from "@image/assets/logo.png";
+import dmLogo from "@image/assets/dm.png";
 import { LoadBar } from "./load-bar";
 import "./styles.css";
 import { GlobalErrorState } from "../error-state";
@@ -79,7 +80,8 @@ export const PreHomeScene = () => {
             {!error && !initialInstall && (
                 //@ts-expect-error
                 <div style={styleCenterText}>
-                    <div>{imbateamLogo}</div>
+                    {/* <div>{imbateamLogo}</div> */}
+                    <img src={dmLogo} style={{ width: "200px" }} />
                     <LoadBar
                         color="#ffffff"
                         thickness={20}
