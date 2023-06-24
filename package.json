@@ -21,9 +21,6 @@
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
         "build-api-types": "ts-node -T .\\build\\api-types\\index.ts"
     },
-    "browserslist": [
-        "last 2 Chrome versions"
-    ],
     "repository": {
         "type": "git",
         "url": "git+https://github.com/imbateam-gg/titan-reactor.git"

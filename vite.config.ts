@@ -6,6 +6,7 @@ import react from "@vitejs/plugin-react";
 import pkg from "./package.json";
 import aliases from "./build/aliases";
 import path from "path";
+import tsConfig from "./tsconfig.json"
 
 rmSync("dist", { recursive: true, force: true }); // v14.14.0
 
@@ -31,8 +32,7 @@ export const sharedViteConfig = ({ command }) => ({
     optimizeDeps: {
         exclude: ["bw-casclib"],
         esbuildOptions: {
-            target: "esnext",
-            // Node.js global to browser globalThis
+            target: tsConfig.compilerOptions.target,
             define: {
                 global: "globalThis",
             },
@@ -47,8 +47,11 @@ export const sharedViteConfig = ({ command }) => ({
 export default defineConfig((env) => {
     return {
         ...sharedViteConfig(env),
+        
+        logLevel: "info",
         publicDir: "bundled",
         build: {
+            target: tsConfig.compilerOptions.target,
             rollupOptions: {
                 input: {
                     index: path.resolve(__dirname, "./index.html"),
@@ -57,6 +60,9 @@ export default defineConfig((env) => {
                 },
             },
             minify: false,
+        },
+        esbuild: {
+            target: tsConfig.compilerOptions.target,
         },
 
         worker: {

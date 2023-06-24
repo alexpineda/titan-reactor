@@ -53,7 +53,7 @@ Replay data is not shared or transmitted by Titan Reactor. Plugins may only acce
 
 [Code Architecture WIKI](https://github.com/imbateam-gg/titan-reactor/wiki/Code-Architecture)
 
-\_Using node 16, yarn classic, python 3.10.7 + VS (for node-gyp builds)
+\_Using node 16, yarn 1.22, python 3.10.7 + VS (for node-gyp builds)
 
 `git lfs install`
 

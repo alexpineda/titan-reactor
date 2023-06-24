@@ -4,6 +4,9 @@ import { GameViewPort } from "renderer/camera/game-viewport";
 import { Quaternion, Vector2, Vector3 } from "three";
 import { PluginBase } from "./plugin-base";
 
+/**
+ * @public
+ */
 export interface SceneController
     extends Omit<NativePlugin, "config">,
         GameTimeApi,
@@ -68,6 +71,10 @@ export interface SceneController
 const _va = new Vector3(),
     _vb = new Vector3(),
     _qa = new Quaternion();
+
+/**
+ * @public
+ */
 export class SceneController extends PluginBase implements SceneController {
     override isSceneController = true;
     viewports: GameViewPort[] = [];

@@ -102,10 +102,10 @@ export class PluginManager {
         }
 
         let pluginNative = null;
-        if ( await fileExists( path.join( folderPath, "plugin.ts" ) ) ) {
-            const tsSource = ( await tryLoadUtf8( path.join( folderPath, "plugin.ts" ) ) ) as
-                | string
-                | null;
+        const _pluginHostIndexFile = path.join( folderPath, "host", "index.ts" );
+        if ( await fileExists( _pluginHostIndexFile) ) {
+            const tsSource = ( await tryLoadUtf8( _pluginHostIndexFile ) ) as
+                | string;
             if ( tsSource ) {
                 try {
                     const result = transpile(
@@ -131,25 +131,15 @@ export class PluginManager {
                     return null;
                 }
             }
-        } else if ( await fileExists( path.join( folderPath, "plugin.js" ) ) ) {
-            pluginNative = ( await tryLoadUtf8( path.join( folderPath, "plugin.js" ) ) ) as
-                | string
-                | null;
-            if ( pluginNative === null ) {
-                log.error(
-                    `@load-plugins/load-plugin-packages: Plugin ${sanitizedFolderLabel} failed to load plugin.js`
-                );
-                return null;
-            }
         }
         const readme = ( await tryLoadUtf8( path.join( folderPath, "readme.md" ) ) ) as
             | string
             | null;
 
         let indexFile = "";
-        if ( await fileExists( path.join( folderPath, "index.jsx" ) ) ) {
+        if ( await fileExists( path.join( folderPath, "ui", "index.jsx" ) ) ) {
             indexFile = "index.jsx";
-        } else if ( await fileExists( path.join( folderPath, "index.tsx" ) ) ) {
+        } else if ( await fileExists( path.join( folderPath, "ui", "index.tsx" ) ) ) {
             indexFile = "index.tsx";
         }
 
@@ -162,6 +152,11 @@ export class PluginManager {
             } else {
                 delete config._visible;
             }
+        }
+
+        if (!indexFile && !pluginNative) {
+            log.error( `@load-plugins/load-plugin-package: Plugin ${sanitizedFolderLabel} has no host or ui plugin files` );
+            return null;
         }
 
         return {

@@ -31,12 +31,14 @@ export const unrollTypes = async ({
     compilerOptions,
     wrapInGlobal = [],
     defaultInternal = false,
+    prefix = ""
 }: {
     inFiles: string[];
     tsConfigFilePath?: string;
     compilerOptions?: tsm.ts.CompilerOptions;
     wrapInGlobal?: string[];
     defaultInternal?: boolean;
+    prefix?: string;
 }) => {
     let result = {
         content: "",
@@ -318,6 +320,7 @@ export const unrollTypes = async ({
 
     return {
         content: `
+        ${prefix}
         ${result.content}
         declare global {
             ${result.global}

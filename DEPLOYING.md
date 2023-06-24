@@ -8,7 +8,7 @@ Upload the release files to a github Release.
 
 # Building & Deploying API Types
 
-The types for the plugins and macros are separae packages located under `build/api-types`
+The types for the plugins and macros are separate packages located under `build/api-types`
 
 Run `yarn run build-api-types`
 

@@ -24,6 +24,7 @@ const doThing = async () => {
         compilerOptions: {
             allowJs: false,
         },
+        prefix: `/// <reference types="node" />`,
         wrapInGlobal: ["PluginBase", "SceneController"],
     });
     writeFile(

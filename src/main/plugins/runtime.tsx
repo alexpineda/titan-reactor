@@ -295,7 +295,7 @@ const _addPlugin = ( plugin: PluginMetaData ) => {
     const script = document.createElement( "script" );
     script.type = "module";
     script.async = true;
-    script.src = `${plugin.path}/${plugin.indexFile}`;
+    script.src = `${plugin.path}/ui/${plugin.indexFile}`;
     document.head.appendChild( script );
 
     _plugins[plugin.id] = {
