@@ -24,6 +24,7 @@ export interface PluginPackage {
     description?: string;
     repository?: string | { type?: string; url?: string };
     peerDependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
     config?: PluginConfig;
     permissions?: string[];
 }

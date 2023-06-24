@@ -2,7 +2,6 @@
 import { useProcessStore } from "@stores/process-store";
 import { useSceneStore } from "@stores/scene-store";
 import { useEffect } from "react";
-import { imbateamLogo } from "@image/assets/imbateam";
 import titanReactorLogo from "@image/assets/logo.png";
 import dmLogo from "@image/assets/dm.png";
 import { LoadBar } from "./load-bar";
@@ -46,18 +45,15 @@ export const PreHomeScene = () => {
     useEffect( () => {
         return useProcessStore.subscribe( ( store ) => {
             const b = ( 1 - store.getTotalProgress() ) * 0.2;
-            //@ts-expect-error
             document.body.style.backdropFilter = `blur(20px) grayscale(0.2) contrast(0.5) brightness(${b})`;
         } );
     }, [] );
 
     useEffect( () => {
-        //@ts-expect-error
         document.body.style.backdropFilter =
             "blur(20px) grayscale(0.2) contrast(0.5) brightness(0.2)";
         document.body.style.background = `url(${titanReactorLogo}) center center / cover`;
         return () => {
-            //@ts-expect-error
             document.body.style.backdropFilter = "";
             document.body.style.background = "";
         };

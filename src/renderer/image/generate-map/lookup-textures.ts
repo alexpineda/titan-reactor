@@ -9,10 +9,10 @@ import path from "path";
 import { TextureLoader } from "three";
 
 const _defaultOpts = {
-    encoding: THREE.LinearEncoding,
-    format: THREE.RGBAFormat,
-    textureDataType: THREE.UnsignedByteType,
-    flipY: true,
+    encoding: THREE.LinearEncoding as THREE.TextureEncoding,
+    format: THREE.RGBAFormat as THREE.PixelFormat | undefined,
+    textureDataType: THREE.UnsignedByteType as THREE.TextureDataType | undefined,
+    flipY: true as boolean,
 };
 type Overwrite<T, U> = Pick<T, Exclude<keyof T, keyof U>> & U;
 

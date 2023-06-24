@@ -54,7 +54,7 @@ export class MapEffect extends Effect {
 
             uniforms: new Map( [
                 ["texture", new Uniform( null )],
-                ["scale", new Uniform( 1.0 )],
+                ["scale", new Uniform( null )],
                 ["uvTransform", new Uniform( null )],
                 ["elevations", new Uniform( null )],
                 ["levels", new Uniform( null )],
@@ -80,6 +80,8 @@ export class MapEffect extends Effect {
         this.paletteIndices = paletteIndices;
         this.processWater = processWater;
         this.ignoreLevels = ignoreLevels;
+        
+        this.uniforms.set("scale", new Uniform(1));
     }
 
     get texture(): Texture | null {

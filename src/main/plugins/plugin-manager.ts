@@ -17,7 +17,7 @@ import { transpile } from "../typescript/transpile";
 import { DEFAULT_PLUGIN_PACKAGES } from "common/default-settings";
 import semver from "semver";
 import { arrayOverwriteMerge } from "@utils/object-utils";
-import { getAppAPIVersion, getPluginAPIVersion } from "common/utils/api-version";
+import { HostApiVersion, getPluginAPIVersion } from "common/utils/api-version";
 
 const loadUtf8 = async (
     filepath: string,
@@ -205,14 +205,14 @@ export class PluginManager {
                         plugin.name
                     } requires Titan Reactor API version ${
                         plugin.apiVersion
-                    } but the current version is ${getAppAPIVersion()}`
+                    } but the current version is ${HostApiVersion}`
                 );
             }
         }
     }
 
     #isIncompatible( apiVersion: string ) {
-        return semver.major( getAppAPIVersion() ) !== semver.major( apiVersion );
+        return semver.major( HostApiVersion ) !== semver.major( apiVersion );
     }
 
     async installDefaultPlugins( onNotify: () => void ) {

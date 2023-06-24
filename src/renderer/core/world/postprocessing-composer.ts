@@ -11,6 +11,7 @@ import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";
 import {
+    HexColorString,
     MathUtils,
     Object3D,
     OrthographicCamera,

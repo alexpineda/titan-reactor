@@ -8,7 +8,7 @@ import { createLevaPanel } from "./create-leva-panel";
 import { groupConfigByFolder } from "@utils/leva-utils";
 import { Schema } from "leva/plugin";
 import { VALID_PERMISSIONS } from "@plugins/permissions";
-import { getAppAPIVersion, getPluginAPIVersion } from "common/utils/api-version";
+import { HostApiVersion, getPluginAPIVersion } from "common/utils/api-version";
 
 const permissionDescriptions: Record<VALID_PERMISSIONS, string> = {
     "replay": "Allows the plugin to access the replay file entirely",
@@ -41,7 +41,6 @@ export const DetailSheet = ( {
         <li key={p}>{permissionDescriptions[p as VALID_PERMISSIONS]}</li>
     ) );
 
-    const titanReactorApiVersion = getAppAPIVersion();
     const pluginApiVersion = getPluginAPIVersion( pluginPackage );
 
     return (
@@ -53,11 +52,11 @@ export const DetailSheet = ( {
                 }}>
                 <Tab label="Info">
                     <div style={{ marginTop: "1rem" }}>
-                        {semver.major( titanReactorApiVersion ) <
+                        {semver.major( HostApiVersion ) <
                             semver.major( pluginApiVersion ) && (
                             <p>
                                 ⚠️ This plugin is out of date. Titan Reactor Plugin API
-                                is {titanReactorApiVersion} and this plugin API version
+                                is {HostApiVersion} and this plugin API version
                                 is {pluginApiVersion}
                             </p>
                         )}

@@ -1,4 +1,4 @@
-import { Camera, Intersection, Object3D, Raycaster, Vector2 } from "three";
+import { Camera, Intersection, Object3D, Raycaster } from "three";
 const _rayCaster = new Raycaster();
 const _intersections: Intersection[] = [];
 

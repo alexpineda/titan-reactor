@@ -1,4 +1,4 @@
-export default <T>( names: string[], obj: T ) => {
+export default <T extends object>( names: string[], obj: T ) => {
     const result: Partial<T> = {};
     for ( const name of names ) {
         if ( name in obj ) {

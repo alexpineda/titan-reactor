@@ -1,4 +1,4 @@
-import { BufferAttribute, PlaneGeometry, Vector2, Vector3 } from "three";
+import { BufferAttribute, InterleavedBufferAttribute, PlaneGeometry, Vector2, Vector3 } from "three";
 import simplifyGeometry from "./simplify-geometry";
 
 export const createDisplacementGeometryQuartile = (
@@ -30,9 +30,9 @@ export const createDisplacementGeometryQuartile = (
     const n = new Vector3();
 
     for ( let i = 0; i < pos.count; i++ ) {
-        p.fromBufferAttribute( pos, i );
+        p.fromBufferAttribute( pos as BufferAttribute | InterleavedBufferAttribute, i );
         uv.fromBufferAttribute( uvs, i );
-        n.fromBufferAttribute( nor, i );
+        n.fromBufferAttribute( nor as BufferAttribute | InterleavedBufferAttribute, i );
 
         const displacement = getDisplacement(
             canvas,
@@ -48,7 +48,7 @@ export const createDisplacementGeometryQuartile = (
             n,
             displacementBias
         );
-        pos.setXYZ( i, p.x, p.y, p.z );
+        (pos as BufferAttribute | InterleavedBufferAttribute).setXYZ( i, p.x, p.y, p.z );
     }
 
     pos.needsUpdate = true;

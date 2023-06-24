@@ -28,7 +28,7 @@ const createDataTextureFromResult = ( texData: RGBE | EXR, texture: DataTexture 
     // @ts-expect-error
     if ( texData.format ) {
         // eslint-disable-next-line
-        texture.format = texData.format;
+        texture.format = (texData as EXR).format;
     }
 
     texture.type = texData.type;
