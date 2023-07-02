@@ -12,8 +12,7 @@ import Surface from "../image/canvas/surface";
 import { ColorManagement } from "three/src/math/ColorManagement";
 import { globalEvents } from "../core/global-events";
 
-//@ts-expect-error
-ColorManagement.legacyMode = false;
+ColorManagement.enabled = true;
 
 // modify global shadow intensity
 ShaderChunk.shadowmap_pars_fragment = ShaderChunk.shadowmap_pars_fragment.replace(

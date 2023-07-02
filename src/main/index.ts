@@ -13,6 +13,7 @@ import { getBootupLogs } from "./log";
 import { GO_TO_START_PAGE, LOG_MESSAGE } from "common/ipc-handle-names";
 import { logService } from "./logger/singleton";
 import electronIsDev from "electron-is-dev";
+import { initACLs } from "./acl";
 
 const settingsPath = path.join( getUserDataPath(), "settings.json" );
 
@@ -65,16 +66,22 @@ const createConfigurationWindow = () => {
 if ( !gotTheLock ) {
     app.quit();
 } else {
+    start();
+}
+
+async function start(){
     const psbId = powerSaveBlocker.start( "prevent-display-sleep" );
 
     app.commandLine.appendSwitch( "enable-features", "SharedArrayBuffer" );
+    app.commandLine.appendSwitch( "enable-features", "WebXR" );
     app.commandLine.appendSwitch( "force_high_performance_gpu" );
-    app.commandLine.appendSwitch( "disable-xr-sandbox" );
+    // app.commandLine.appendSwitch( "disable-xr-sandbox" );
     app.commandLine.appendSwitch( "strict-origin-isolation" );
     app.commandLine.appendSwitch( "js-flags", "--expose-gc" );
     app.commandLine.appendSwitch( "disable-gpu-process-crash-limit" );
     app.commandLine.appendSwitch( "enable-logging=file" );
-    app.commandLine.appendSwitch( "--trace-warnings" );
+    app.commandLine.appendSwitch( "trace-warnings" );
+    // app.commandLine.appendSwitch( "no-sandbox" );
 
     app.disableDomainBlockingFor3DAPIs();
 
@@ -86,6 +93,8 @@ if ( !gotTheLock ) {
         uploadToServer: true,
     } );
     nativeTheme.themeSource = "light";
+
+    await initACLs();
 
     createAppMenu(
         () => createConfigurationWindow(),
@@ -113,27 +122,26 @@ if ( !gotTheLock ) {
         }
     } );
 
-    app.on( "ready", async () => {
-        await settings.init( settingsPath );
+    await app.whenReady();
+    await settings.init( settingsPath );
 
-        createMainWindow();
+    createMainWindow();
 
-        // on window ready send bootup logs
-        const _readyToShowLogs = () => {
-            for ( const log of getBootupLogs() ) {
-                browserWindows.main?.webContents.send(
-                    LOG_MESSAGE,
-                    log.message,
-                    log.level
-                );
-            }
-            browserWindows.main?.off( "ready-to-show", _readyToShowLogs );
-        };
-        browserWindows.main?.on( "ready-to-show", _readyToShowLogs );
-        browserWindows.main!.setFullScreen( true );
+    // on window ready send bootup logs
+    const _readyToShowLogs = () => {
+        for ( const log of getBootupLogs() ) {
+            browserWindows.main?.webContents.send(
+                LOG_MESSAGE,
+                log.message,
+                log.level
+            );
+        }
+        browserWindows.main?.off( "ready-to-show", _readyToShowLogs );
+    };
+    browserWindows.main?.on( "ready-to-show", _readyToShowLogs );
+    browserWindows.main!.setFullScreen( true );
 
-        pluginServer.listen( settings.get().plugins.serverPort, "localhost" );
-    } );
+    pluginServer.listen( settings.get().plugins.serverPort, "localhost" );
 
     app.on( "window-all-closed", () => {
         if ( process.platform !== "darwin" ) {

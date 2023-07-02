@@ -7,8 +7,8 @@ import {
 } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import {
-    // defaultHighlightStyle,
-    // syntaxHighlighting,
+    defaultHighlightStyle,
+    syntaxHighlighting,
     indentOnInput,
     bracketMatching,
     // foldGutter,
@@ -37,7 +37,7 @@ export const setupExtensions = () => [
     drawSelection(),
     EditorState.allowMultipleSelections.of( true ),
     indentOnInput(),
-    // defaultHighlightStyle,
+    syntaxHighlighting(defaultHighlightStyle),
     bracketMatching(),
     // closeBrackets(),
     rectangularSelection(),
@@ -56,7 +56,7 @@ export const setupExtensions = () => [
         // saveKeymap,
         // formatKeymap,
     ] ),
-    javascript( { typescript: true } ),
+    javascript(  ),
     // createLinter(),
     createAutocompletion(),
 ];

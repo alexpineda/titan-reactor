@@ -6,6 +6,9 @@ export type MatchingKeys<
 
 export type VoidKeys<Record> = MatchingKeys<Record, void>;
 
+/**
+ * @public
+ */
 export class TypeEmitter<T> {
     #listeners = new Map<
         keyof T,
@@ -39,6 +42,9 @@ export class TypeEmitter<T> {
     }
 }
 
+/**
+ * @public
+ */
 export class TypeEmitterProxy<T> {
     #host: TypeEmitter<T>;
     #disposers: ( () => void )[] = [];

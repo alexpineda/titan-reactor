@@ -4,7 +4,6 @@ import { Version } from "@process-replay/version";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 
-import fs from "fs";
 import Chk from "bw-chk";
 
 import { OpenBW } from "@openbw/openbw";
@@ -73,9 +72,9 @@ export const replaySceneLoader = async ( filepath: string ): Promise<SceneState>
 
         replayBuffer = writeReplay( replay.rawHeader, rawCmds, chk, replay.limits );
 
-        if ( process.env.NODE_ENV === "development" ) {
-            fs.writeFileSync( "D:\\last_replay.rep", replayBuffer );
-        }
+        // if ( process.env.NODE_ENV === "development" ) {
+        //     fs.writeFileSync( "D:\\last_replay.rep", replayBuffer );
+        // }
         replay = await parseReplay( replayBuffer );
     }
 

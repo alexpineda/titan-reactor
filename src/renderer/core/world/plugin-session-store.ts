@@ -12,6 +12,9 @@ import { PluginBase } from "@plugins/plugin-base";
 import { SourceOfTruth } from "@stores/source-of-truth";
 import { FieldDefinition } from "common/types";
 
+/**
+ * @public
+ */
 export type PluginVariables = Record<
     string,
     Record<string, MutationVariable | ( ( ...args: any[] ) => any )>

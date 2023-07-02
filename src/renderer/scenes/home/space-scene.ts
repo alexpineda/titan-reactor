@@ -14,6 +14,7 @@ import {
     ToneMappingEffect,
     VignetteEffect,
 } from "postprocessing";
+import { VRButton } from 'three/examples/jsm/webxr/VRButton';
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 import {
@@ -278,6 +279,7 @@ export async function createWraithScene() {
         ] ),
     } );
 
+    renderComposer.getWebGLRenderer().xr.enabled = true;
     renderComposer.getWebGLRenderer().compile( scene, camera.get() );
 
     renderComposer.render( 0 );
@@ -286,6 +288,8 @@ export async function createWraithScene() {
     janitor.mop( () => {
         renderComposer.getWebGLRenderer().setAnimationLoop( null );
     }, "renderLoop" );
+
+    document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
 
     return () => {
         janitor.dispose();

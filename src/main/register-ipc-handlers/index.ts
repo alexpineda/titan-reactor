@@ -5,3 +5,4 @@ import "./log";
 import "./settings";
 import "./plugins";
 import "./relay";
+import "./editor";

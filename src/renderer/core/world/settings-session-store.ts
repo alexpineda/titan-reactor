@@ -30,6 +30,9 @@ const isValidkey = ( key: string ) => {
     }
 };
 
+/**
+ * @public
+ */
 export type SessionVariables = {
     [K in keyof SessionSettingsData]: {
         [T in keyof SessionSettingsData[K]]: MutationVariable;

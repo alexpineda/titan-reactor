@@ -1,7 +1,6 @@
 import { SceneState, SceneStateID } from "../scene";
 import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
-import { renderComposer } from "@render/render-composer";
 import { Janitor } from "three-janitor";
 import { mixer } from "@core/global";
 import { root } from "@render/root";
@@ -22,11 +21,7 @@ export async function homeSceneLoader(): Promise<SceneState> {
 
     return {
         id: "@home",
-        beforeNext() {
-            renderComposer.getWebGLRenderer().useLegacyLights = false;
-        },
         start: ( prevID?: SceneStateID ) => {
-            renderComposer.getWebGLRenderer().useLegacyLights = true;
             if ( prevID !== "@loading" ) {
                 swoosh.start();
             }

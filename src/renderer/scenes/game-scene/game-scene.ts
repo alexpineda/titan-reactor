@@ -3,7 +3,6 @@ import { OpenBW } from "@openbw/openbw";
 
 import { BasePlayer } from "@core";
 import { getOpenBW } from "@openbw";
-import { renderComposer } from "@render";
 import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
@@ -47,7 +46,5 @@ export async function makeGameScene(
 
     return () => {
         janitor.dispose();
-
-        renderComposer.getWebGLRenderer().useLegacyLights = true;
     };
 }
