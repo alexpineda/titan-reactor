@@ -24,7 +24,7 @@ globalEvents.on( "command-center-save-settings", ( payload ) => {
     useSettingsStore.setState( payload );
 } );
 
-// deprecate?
+// TODO: deprecate?
 globalEvents.on( "unsafe-open-url", ( payload ) => {
     openUrl( payload );
 } );

@@ -9,9 +9,10 @@ import { log } from "@ipc/log";
 export async function homeSceneLoader(): Promise<SceneState> {
     const janitor = new Janitor( "home-scene-loader" );
     log.debug( "Loading home scene" );
-    janitor.mop( await createWraithScene() );
 
+    const wraithScene = janitor.mop(await createWraithScene());
     root.render( <Home surface={getSurface().canvas} /> );
+    setTimeout( () => wraithScene.resize(), 500);
 
     const swoosh = mixer.context.createBufferSource();
     swoosh.buffer = await mixer.loadAudioBuffer(

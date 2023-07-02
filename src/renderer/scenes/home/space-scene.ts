@@ -175,10 +175,6 @@ export async function createWraithScene() {
         passive: true,
     } );
 
-    setTimeout( () => {
-        _sceneResizeHandler();
-    }, 0 );
-
     const scene = new Scene();
     scene.name = "intro-scene";
     scene.background = gameStore().assets!.skyBox;
@@ -291,7 +287,8 @@ export async function createWraithScene() {
 
     document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
 
-    return () => {
-        janitor.dispose();
+    return {
+        dispose: () => janitor.dispose(),
+        resize: _sceneResizeHandler
     };
 }
