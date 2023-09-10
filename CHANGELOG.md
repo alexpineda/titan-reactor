@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## [0.6.9] - 2023-09-10
+
 ## Added
 
 -   Two more macros oriented around following / unfollowing units
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## Changed
 
 -   API namespace finalized to @titan-reactor-runtime/ui and @titan-reactor-runtime/native
+-   Plugin file structure has changed so that typescript types can be used
 
 ## [0.6.8] - 2022-12-21
 
@@ -305,7 +308,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Good support for HD2/HD terrain, sluggish first render time, on the todo list.
 -   Unit selection / unit boxing for the time being.
 
-[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.8...HEAD
+[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.9...HEAD
+[0.6.9]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.8...v0.6.9
 [0.6.8]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.7...v0.6.8
 [0.6.7]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.6...v0.6.7
 [0.6.6]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.5...v0.6.6

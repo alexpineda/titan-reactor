@@ -268,7 +268,7 @@ export const createPostProcessingComposer = (
                 v.shakeEnd();
             }
 
-            renderComposer.renderBuffer();
+            renderComposer.drawBuffer();
         },
     };
 };

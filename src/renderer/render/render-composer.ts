@@ -32,6 +32,7 @@ const createWebGLRenderer = () => {
     } );
     renderer.outputEncoding = sRGBEncoding;
     renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
+    renderer.xr.enabled = true;
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = VSMShadowMap;
@@ -109,23 +110,33 @@ export class TitanRenderComposer {
         this.setSize( surface.bufferWidth, surface.bufferHeight );
     }
 
+    /**
+     * Renders the scene to the screen. 
+     * If a viewport is provided, only that part of the screen will be rendered to.
+     */
     render( delta: number, viewport?: Vector4 ) {
         const renderer = this.getWebGLRenderer();
 
+        // If a viewport is provided, we need to enable the scissor test so that only that part of the screen is rendered to.
         if ( viewport ) {
             renderer.setScissorTest( true );
             renderer.setViewport( viewport );
             renderer.setScissor( viewport );
         }
 
+        // Render the scene using the post-processing pipeline.
         this.composer.render( delta );
 
+        // If a viewport is provided, we need to disable the scissor test so that the rest of the screen is rendered to as well.
         if ( viewport ) {
             renderer.setScissorTest( false );
         }
     }
 
-    renderBuffer() {
+    /**
+     * Copies the contents of the renderer to the target surface.
+     */
+    drawBuffer() {
         const renderer = this.getWebGLRenderer();
         const surface = this.#surfaceRef.deref();
 

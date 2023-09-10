@@ -256,7 +256,7 @@ const bootup = async () => {
             //@ts-expect-error
             renderPass.camera = cameras[i];
             renderComposer.render( delta, viewports[i] );
-            renderComposer.renderBuffer();
+            renderComposer.drawBuffer();
         }
         controls.update();
     };

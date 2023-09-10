@@ -10,8 +10,8 @@ export async function homeSceneLoader(): Promise<SceneState> {
     const janitor = new Janitor( "home-scene-loader" );
     log.debug( "Loading home scene" );
 
-    const wraithScene = janitor.mop(await createWraithScene());
     root.render( <Home surface={getSurface().canvas} /> );
+    const wraithScene = janitor.mop(await createWraithScene());
     setTimeout( () => wraithScene.resize(), 500);
 
     const swoosh = mixer.context.createBufferSource();

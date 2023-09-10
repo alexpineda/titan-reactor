@@ -41,7 +41,6 @@
         ],
         "appId": "imbateam.titan-reactor",
         "productName": "Titan Reactor",
-
         "mac": {
             "category": "An OpenBW Renderer"
         },
@@ -54,7 +53,8 @@
                 "from": "bundled",
                 "to": "bundled"
             }
-        ]
+        ],
+        "electronDist": "C:\\Users\\Game_Master\\Projects\\electron\\src\\out\\zip"
     },
     "debug": {
         "env": {
@@ -102,7 +102,7 @@
         "node-fetch": "3.2.10",
         "pacote": "^14.0.0",
         "pkware-wasm": "^1.0.0",
-        "postprocessing": "6.30.2",
+        "postprocessing": "6.32.2",
         "random": "^3.0.6",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
@@ -151,7 +151,7 @@
         "@typescript-eslint/parser": "^5.1.0",
         "@vitejs/plugin-react": "^2.1.0",
         "dotenv": "^16.0.3",
-        "electron": "^25.2.0",
+        "electron": "26.2.0",
         "electron-builder": "^23.3.3",
         "eslint": "^8.24.0",
         "eslint-config-prettier": "^8.5.0",

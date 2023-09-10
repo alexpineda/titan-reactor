@@ -14,7 +14,7 @@ import {
     ToneMappingEffect,
     VignetteEffect,
 } from "postprocessing";
-import { VRButton } from 'three/examples/jsm/webxr/VRButton';
+// import { VRButton } from 'three/examples/jsm/webxr/VRButton';
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 import {
@@ -45,11 +45,7 @@ CameraControls.install( { THREE: THREE } );
 
 const camera = createCamera();
 const introSurface = new Surface();
-const controls = new CameraControls( camera.get(), document.body );
-controls.maxPolarAngle = Infinity;
-controls.minPolarAngle = -Infinity;
-controls.maxAzimuthAngle = Infinity;
-controls.minAzimuthAngle = -Infinity;
+let _controls: CameraControls;
 
 const chromaticAberrationEffect = new ChromaticAberrationEffect();
 const glitchMax = new Vector2( 0.05, 0.08 );
@@ -76,15 +72,15 @@ const INTRO_LOOP = ( elapsed: number ) => {
     const delta = elapsed - _lastElapsed;
     _lastElapsed = elapsed;
 
-    controls.update( delta / 1000 );
+    _controls.update( delta / 1000 );
 
     const azimuth = THREE.MathUtils.euclideanModulo(
-        controls.azimuthAngle,
+        _controls.azimuthAngle,
         360 * THREE.MathUtils.DEG2RAD
     );
     const rear = azimuth < Math.PI ? azimuth / Math.PI : 2 - azimuth / Math.PI;
 
-    camera.update( delta, controls, azimuth, mouse );
+    camera.update( delta, _controls, azimuth, mouse );
 
     wraiths.update(
         delta,
@@ -107,7 +103,7 @@ const INTRO_LOOP = ( elapsed: number ) => {
         camera.cameraState === CameraState.RotateAroundWraiths ? rear : 0;
 
     renderComposer.render( delta );
-    renderComposer.renderBuffer();
+    renderComposer.drawBuffer();
 };
 
 const _sceneResizeHandler = () => {
@@ -148,14 +144,7 @@ const _mousemove = ( ev: MouseEvent ) => {
 
 export const getSurface = () => introSurface;
 
-// window._clap = () => {
-//     console.log("position", controls.getPosition());
-//     console.log("target", controls.getTarget());
-//     console.log("zoom", _zoom)
-// }
-
 let _noiseInstance: WraithNoise;
-
 let _runs = 0;
 
 export async function createWraithScene() {
@@ -167,6 +156,12 @@ export async function createWraithScene() {
 
     _noiseInstance = janitor.mop( createWraithNoise() );
     _noiseInstance.start();
+
+    _controls = janitor.mop(new CameraControls( camera.get(), document.body ));
+    _controls.maxPolarAngle = Infinity;
+    _controls.minPolarAngle = -Infinity;
+    _controls.maxAzimuthAngle = Infinity;
+    _controls.minAzimuthAngle = -Infinity;
 
     janitor.addEventListener( window, "resize", "resize", _sceneResizeHandler, {
         passive: true,
@@ -182,16 +177,12 @@ export async function createWraithScene() {
     wraiths.init();
     scene.add( janitor.mop( wraiths.object ) );
 
-    // janitor.mop(wraiths, "wraiths");
     janitor.mop( battleCruiser.particles.object );
     janitor.mop( wraiths.particles.object );
 
     scene.add( janitor.mop( distantStars() ) );
-
     scene.add( janitor.mop( battleCruiser.object ) );
-
     scene.add( janitor.mop( asteroids.object ) );
-
     scene.add( janitor.mop( battleLights.object ) );
 
     const playRemixInterval = setInterval( () => {
@@ -202,20 +193,14 @@ export async function createWraithScene() {
     const slight = new DirectionalLight( 0xffffff, 5 );
     scene.add( slight );
 
-    introSurface.setDimensions( window.innerWidth, window.innerHeight, devicePixelRatio );
-    renderComposer.targetSurface = introSurface;
+    _controls.setLookAt( -3.15, 1.1, -0.7, 0, 0, 0, false );
+    _controls.zoomTo( 1.75, false );
+    _controls.mouseButtons.left = 0;
+    _controls.mouseButtons.right = 0;
+    _controls.mouseButtons.middle = 0;
+    _controls.mouseButtons.wheel = 0;
 
-    camera.get().aspect = introSurface.width / introSurface.height;
-    camera.get().updateProjectionMatrix();
-
-    controls.setLookAt( -3.15, 1.1, -0.7, 0, 0, 0, false );
-    controls.zoomTo( 1.75, false );
-    controls.mouseButtons.left = 0;
-    controls.mouseButtons.right = 0;
-    controls.mouseButtons.middle = 0;
-    controls.mouseButtons.wheel = 0;
-
-    janitor.mop( camera.init( controls, battleCruiser.object ), "camera" );
+    janitor.mop( camera.init( _controls, battleCruiser.object ), "camera" );
 
     const renderPass = janitor.mop( new RenderPass( scene, camera.get() ) );
     const sunMaterial = new MeshBasicMaterial( {
@@ -275,17 +260,14 @@ export async function createWraithScene() {
         ] ),
     } );
 
-    renderComposer.getWebGLRenderer().xr.enabled = true;
-    renderComposer.getWebGLRenderer().compile( scene, camera.get() );
-
-    renderComposer.render( 0 );
-    renderComposer.renderBuffer();
     renderComposer.getWebGLRenderer().setAnimationLoop( INTRO_LOOP );
     janitor.mop( () => {
         renderComposer.getWebGLRenderer().setAnimationLoop( null );
     }, "renderLoop" );
 
-    document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
+    _sceneResizeHandler();
+
+    // document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
 
     return {
         dispose: () => janitor.dispose(),

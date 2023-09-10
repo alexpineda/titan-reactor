@@ -16,7 +16,6 @@ export function initACLs() {
             // Check working directory's existing ACLs against our list of ACL strings
             child_process.exec( `icacls ${execPath}`, null, ( _, output ) => {
                 const existing_acls = output.toString();
-                console.log( existing_acls)
                 const missing_acls = ACL_STRINGS.filter(
                     ( acl ) => !existing_acls.includes( acl )
                 );

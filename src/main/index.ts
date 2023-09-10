@@ -72,15 +72,12 @@ async function start(){
     const psbId = powerSaveBlocker.start( "prevent-display-sleep" );
 
     app.commandLine.appendSwitch( "enable-features", "SharedArrayBuffer" );
-    app.commandLine.appendSwitch( "enable-features", "WebXR" );
     app.commandLine.appendSwitch( "force_high_performance_gpu" );
-    // app.commandLine.appendSwitch( "disable-xr-sandbox" );
     app.commandLine.appendSwitch( "strict-origin-isolation" );
     app.commandLine.appendSwitch( "js-flags", "--expose-gc" );
     app.commandLine.appendSwitch( "disable-gpu-process-crash-limit" );
     app.commandLine.appendSwitch( "enable-logging=file" );
     app.commandLine.appendSwitch( "trace-warnings" );
-    // app.commandLine.appendSwitch( "no-sandbox" );
 
     app.disableDomainBlockingFor3DAPIs();
 
