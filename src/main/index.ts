@@ -35,7 +35,6 @@ const createMainWindow = () => {
         nodeIntegration: true,
         devTools: true,
         backgroundThrottling: false,
-        hideMenu: true,
         removeMenu: false,
         filepath: "index.html",
     } );
@@ -139,7 +138,6 @@ async function start(){
         browserWindows.main?.off( "ready-to-show", _readyToShowLogs );
     };
     browserWindows.main?.on( "ready-to-show", _readyToShowLogs );
-    browserWindows.main!.setFullScreen( true );
 
     pluginServer.listen( settings.get().plugins.serverPort, "localhost" );
 
