@@ -76,20 +76,20 @@ export default (
             ],
         },
         {
-            label: "&Go",
+            label: "&View",
             submenu: [
-                {
-                    label: "&Start Page",
-                    accelerator: "F12",
-                    click: function () {
-                        goToStartPage();
-                    },
-                },
                 {
                     label: "&Command Center",
                     accelerator: "F10",
                     click: function () {
                         onOpenPluginManager();
+                    },
+                },
+                {
+                    label: "&Start Page",
+                    accelerator: "F12",
+                    click: function () {
+                        goToStartPage();
                     },
                 },
                 { type: "separator" },

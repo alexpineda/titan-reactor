@@ -93,7 +93,7 @@ export class Players extends Array<Player> {
         return this.#visionFlags;
     }
 
-    setPlayerColors = ( colors: string[] ) => {
+    setPlayerColors = ( colors: readonly string[] ) => {
         const replay = useReplayAndMapStore.getState().replay;
         if ( replay ) {
             for ( let i = 0; i < this.length; i++ ) {

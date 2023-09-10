@@ -79,7 +79,7 @@ export interface NativePlugin {
 
     config: object | undefined;
 
-    init?: () => void;
+    init?(): void;
 
     /**
      * Unprocessed configuration data from the package.json.
