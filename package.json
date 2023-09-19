@@ -19,7 +19,9 @@
         "lint": "yarn eslint . && yarn prettier --check .",
         "clean-dev-win": "taskkill /f /im node.exe",
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
-        "build-api-types": "ts-node -T .\\build\\api-types\\index.ts"
+        "build-api-types": "ts-node -T .\\build\\api-types\\index.ts",
+        "build-docs": "@11ty/eleventy",
+        "prepare-dist": "npm login && echo \"hello\""
     },
     "repository": {
         "type": "git",
@@ -124,6 +126,7 @@
         "zustand": "4.1.1"
     },
     "devDependencies": {
+        "@11ty/eleventy": "^2.0.1",
         "@types/bl": "^5.0.2",
         "@types/concat-stream": "^2.0.0",
         "@types/d3-ease": "^3.0.0",
@@ -165,6 +168,7 @@
         "jest": "^29.0.3",
         "jest-environment-jsdom": "^29.0.3",
         "jest-extended": "^3.1.0",
+        "nunjucks": "^3.2.4",
         "prettier": "^2.7.1",
         "prettier-plugin-glsl": "^0.0.5",
         "reflect-metadata": "^0.1.13",

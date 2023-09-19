@@ -374,7 +374,7 @@ export class PluginManager {
                 if ( loadedPackage ) {
                     return loadedPackage;
                 } else {
-                    throw new Error( "Could not load plugin" );
+                    throw new Error( "Could not load plugin metadata" );
                 }
             } catch ( e ) {
                 log.error(
