@@ -18,11 +18,11 @@
     - [Deprecating Your Plugin](#deprecating-your-plugin)
     - [Publishing Your Plugin](#publishing-your-plugin)
 
-Plugin API Version is presently `2.0.0`
+ℹ️ Plugin API Version is presently `2.0.0`
 
-For API Type documentation visit [the Plugin API documentation](https://imbateam-gg.github.io/titan-reactor/).
+ℹ️ For API Type documentation visit [the Plugin API documentation](https://imbateam-gg.github.io/titan-reactor/).
 
-Checkout the [official plugins](https://github.com/imbateam-gg/titan-reactor-official-plugins) for several examples.
+ℹ️ Checkout the [official plugins](https://github.com/imbateam-gg/titan-reactor-official-plugins) for several examples.
 
 
 ## Overview
