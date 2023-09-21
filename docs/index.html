@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>API Documentation</title>
+</head>
+
+<body class="bg-gray-100 text-gray-900">
+
+    <header class="bg-blue-500 p-4 text-white">
+        <h1 class="text-xl">Titan Reactor - Plugins API Documentation</h1>
+    </header>
+
+    <main class="p-4">
+        <section class="flex flex-col gap-4">
+            <h1>ℹ️ For a thorough walkthrough, visit <a
+                    href="https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md"
+                    class="text-blue-500 hover:underline">CREATING_PLUGINS.md</a>.</h1>
+            <h1>ℹ️ For technical API Documentation, there are the two systems, the UI API which is React based and the
+                Host API which lives in the game loop and can interact with game data.</h1>
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- UI API Documentation -->
+                <div class="bg-white p-4 rounded shadow">
+                    <h2 class="text-2xl mb-2">UI API Documentation</h2>
+                    <p class="mb-4">Details about the UI API that allows you to create interactive HUDs and widgets.
+                    </p>
+                    <a href="ui" class="text-blue-500 hover:underline">Go to UI API Documentation</a>
+                </div>
+
+                <!-- Server API Documentation -->
+                <div class="bg-white p-4 rounded shadow">
+                    <h2 class="text-2xl mb-2">Host API Documentation</h2>
+                    <p class="mb-4">Details about the Host API to develop sophisticated functionalities for your plugins.
+                    </p>
+                    <a href="host" class="text-blue-500 hover:underline">Go to Host API Documentation</a>
+                </div>
+            </section>
+        </section>
+
+    </main>
+</body>
+
+</html>

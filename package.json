@@ -20,8 +20,9 @@
         "clean-dev-win": "taskkill /f /im node.exe",
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
         "build-api-types": "ts-node -T .\\build\\api-types\\index.ts",
-        "build-docs": "@11ty/eleventy",
-        "prepare-dist": "npm login && echo \"hello\""
+        "build-api-docs:host": "typedoc --out docs/host --tsconfig tsconfig.host-api.json build/api-types/host/index.d.ts",
+        "build-api-docs:ui": "typedoc --out docs/ui --tsconfig tsconfig.ui-api.json build/api-types/ui/index.d.ts",
+        "build-api-docs": "yarn build-api-docs:host && yarn build-api-docs:ui"
     },
     "repository": {
         "type": "git",
@@ -177,6 +178,7 @@
         "spectorjs": "^0.9.27",
         "ts-jest": "^29.0.1",
         "ts-node": "^10.9.1",
+        "typedoc": "^0.25.1",
         "vite": "^3.1.3",
         "vite-plugin-electron": "^0.9.3",
         "vite-plugin-esmodule": "^1.4.2",

@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [unreleased]
 
+## Added
+
+- Plugin API documentation in https://imbateam-gg.github.io/titan-reactor/
+
 ## [0.6.9] - 2023-09-10
 
 ## Added

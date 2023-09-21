@@ -1,0 +1,5 @@
+{
+    "extends": "./tsconfig.json",
+    "include": ["build/api-types/ui/index.d.ts"],
+     "exclude": ["./node_modules/**/*", "./generated/**/*", "./dist/**/*", "./release/**/*", "./bundled/**/*"]
+}
