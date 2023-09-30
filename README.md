@@ -15,7 +15,7 @@
   </a>
 </p>
 <p align="center">
-<a href="http://youtube.imbateam.gg" target="_blank">
+<a href="https://www.youtube.com/@imbateam" target="_blank">
 <img alt="YouTube Channel Subscribers" src="https://img.shields.io/youtube/channel/subscribers/UCj7TSQvBRYebRDIL0FW1MBQ?style=plastic" />
 </a>
 </p>
@@ -27,11 +27,9 @@
 
 <br/>
 
-### Roadmap
+### Website
 
--   [Priority Roadmap](https://lucky-equinox-32f.notion.site/Priority-Roadmap-ac07f27f9e44451d8b535a7e5e94db2b)
--   [Long Term Roadmap](https://lucky-equinox-32f.notion.site/Titan-Reactor-Roadmap-919e5145075a45b7b012b59fa6756d62)
--   [Changelog](https://github.com/imbateam-gg/titan-reactor/blob/dev/CHANGELOG.md)
+Visit the [Official Website](https://titanreactor.imbateam.com/) for Getting Started instructions, roadmaps and more.
 
 ### Requirements
 
@@ -43,7 +41,7 @@
 
 ### Developing Plugins
 
--   See the [CREATING_PLUGINS](https://github.com/imbateam-gg/titan-reactor/blob/dev/CREATING_PLUGINS.md) document.
+-   See the [CREATING_PLUGINS](https://github.com/imbateam-gg/titan-reactor/blob/dev/docs/CREATING_PLUGINS.md) document.
 
 ### Replay Data Privacy
 

@@ -3,13 +3,13 @@ ROADMAP
 
 | v0.7 | v0.8      | v0.9           | v1.0 |
 | ---- | --------- | -------------- | ---- |
-| VR   | 3D Models | Shield Battery |  Cleaned up / Stable    |
+| Browser & VR   | 3D Models & Animation Editor | Shield Battery |  Cleaned up / Stable    |
 
 ✅ Available Now
 ☑️ Partially Available
 🕓 Early Progress
 ☀️ Planned
-🔅  Idea Only - might not do
+🔅 Idea Only
 
 **Core Engine**
 
@@ -20,9 +20,9 @@ ROADMAP
     - ☑️ Water + Lava Effects
 - ✅ Macro System
 - ✅ Plugin System
-    - 🕓 Finalize Type System / API
 - ☀️ Real-Time Observing
 - ☑️ 3D Sprites
+  - Instancing
 - 🕓 Sandbox Mode
 
 **Standard Plugins**
