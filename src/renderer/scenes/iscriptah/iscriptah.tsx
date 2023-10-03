@@ -40,6 +40,7 @@ import { Image3D } from "@core/image-3d";
 import { ImageHD } from "@core/image-hd";
 import { IScriptState } from "./iscript-state";
 import { IScriptImage } from "./iscript-sprite";
+import { getDirection32 } from "@utils/camera-utils";
 
 const bootup = async () => {
     const settings = await settingsStore().load();
@@ -238,7 +239,15 @@ const bootup = async () => {
             incGameTick();
         }
 
-        updateDirection32( controls.target, cameras[0] );
+        const camera = cameras[0];
+
+        const dir = getDirection32( controls.target, camera.position );
+
+        if ( dir != camera.userData.direction ) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            camera.userData.prevDirection = camera.userData.direction;
+            camera.userData.direction = dir;
+        }
 
         for ( let i = 0; i < cameras.length; i++ ) {
             if ( _image ) {

@@ -1,6 +1,13 @@
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { World } from "./world";
 
+/**
+ * Mostly responsible for collecting recent commands into a bundle for consumption by plugins, limits to previous 5 seconds of game time.
+ * 
+ * @param world 
+ * @param commandsStream 
+ * @returns 
+ */
 export const createCommandsComposer = (
     world: World,
     commandsStream: CommandsStream

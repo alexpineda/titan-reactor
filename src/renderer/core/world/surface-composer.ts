@@ -8,6 +8,11 @@ import { World } from "./world";
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 export type SurfaceComposerApi = SurfaceComposer["api"];
 
+/**
+ * Creates the game canvases, listeners, and resizers.
+ * @param world 
+ * @returns 
+ */
 export const createSurfaceComposer = ( world: World ) => {
     const janitor = new Janitor( "SurfaceComposer" );
     const gameSurface = janitor.mop(
@@ -62,7 +67,6 @@ export const createSurfaceComposer = ( world: World ) => {
         }
     };
 
-    // some values we do not keep in the user facing reactive variables but will want to listen to
     janitor.mop(
         useSettingsStore.subscribe( ( settings ) => {
             if ( settings.data.graphics.pixelRatio !== gameSurface.pixelRatio ) {
@@ -79,8 +83,6 @@ export const createSurfaceComposer = ( world: World ) => {
     return {
         gameSurface,
         resize,
-        // api: borrow(gameSurface, { keys: ["togglePointerLock", "isPointerLockLost"]})
-
         api: ( ( surfaceRef: WeakRef<typeof gameSurface> ) => ( {
             togglePointerLock: ( val: boolean ) => {
                 const surface = surfaceRef.deref();

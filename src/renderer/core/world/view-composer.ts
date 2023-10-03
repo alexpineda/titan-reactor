@@ -31,6 +31,14 @@ const empty: GameViewPort[] = [];
 export type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
 export type ViewControllerComposerApi = ViewControllerComposer["api"];
 
+/**
+ * The Scene Controller plugin is responsible for managing the game viewports.
+ * This composer helps activate those plugins, as well as update the viewports and their orbiting camera controls.
+ * 
+ * @param world 
+ * @param param1 
+ * @returns 
+ */
 export const createViewControllerComposer = (
     world: World,
     { gameSurface }: SurfaceComposer
@@ -72,6 +80,9 @@ export const createViewControllerComposer = (
                 return;
             }
 
+            // TODO: Refactor this.
+            // The scene controller should have access to the audio position itself so it can update on update() call back.
+            // The scene controller may not even want to use the viewport1 position here, so this current solution is not great.
             sceneController.viewport.orbit.getTarget( _target );
             sceneController.viewport.orbit.getPosition( _position );
 
@@ -122,6 +133,15 @@ export const createViewControllerComposer = (
             return count;
         },
 
+        /**
+         * Activates a scene controller plugin. 
+         * Runs events on the previous scene controller if it exists.
+         * Resets all viewports.
+         * 
+         * @param newController 
+         * @param firstRunData 
+         * @returns 
+         */
         async activate(
             newController: SceneController | null | undefined,
             firstRunData?: any

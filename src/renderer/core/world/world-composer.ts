@@ -123,6 +123,9 @@ export const createWorldComposer = async (
 
     const simpleText = janitor.mop( new SimpleText(), "simple-text" );
 
+    /**
+     * The api that is passed to the plugins and macros.
+     */
     const gameTimeApi: GameTimeApi = mix(
         {
             map,
@@ -166,6 +169,13 @@ export const createWorldComposer = async (
             );
         },
 
+        /**
+         * Activate the world and start the game loop.
+         * 
+         * @param reloadPlugins
+         * @param sceneController 
+         * @param targetData 
+         */
         async activate(
             reloadPlugins: boolean,
             sceneController: string,

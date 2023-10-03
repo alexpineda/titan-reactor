@@ -21,6 +21,15 @@ import { SimpleBufferView } from "@buffer-view/simple-buffer-view";
 export type OpenBwComposer = ReturnType<typeof createOpenBWComposer>;
 export type OpenBwComposerApi = OpenBwComposer["api"];
 
+/**
+ * A lot of communication with OpenBW happens here.
+ * Most importantly generates sounds, creep, and game data from the current frame our client is on.
+ * 
+ * @param world 
+ * @param scene 
+ * @param viewInput 
+ * @returns 
+ */
 export const createOpenBWComposer = (
     world: World,
     scene: Pick<SceneComposer, "pxToWorld" | "terrainExtra">,

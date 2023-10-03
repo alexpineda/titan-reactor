@@ -38,6 +38,9 @@ export type OverlayComposerApi = OverlayComposer["api"];
 
 const _mmIntersect: Intersection[] = [];
 
+/**
+ * Manages the minimap, cursor, and selection display.
+ */
 export const createOverlayComposer = (
     world: World,
     {

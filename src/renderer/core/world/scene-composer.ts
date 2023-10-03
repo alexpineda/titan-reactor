@@ -145,6 +145,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         sprites.group.clear();
     } );
 
+    // passed to inputComposer for intersection testing
     const simpleIndex: Record<string, ImageBase[]> = {};
     for ( let i = -2; i < 2; i++ ) {
         for ( let j = -2; j < 2; j++ ) {

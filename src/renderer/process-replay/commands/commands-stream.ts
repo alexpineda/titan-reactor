@@ -9,6 +9,11 @@ export type Command = {
     id: number;
     data: Buffer;
 } & ( ReturnType<typeof bufToCommand> | ReturnType<typeof bufToSCRCommand> );
+
+
+/**
+ * A stream of game commands taken from the replay command buffer.
+ */
 class CommandsStream {
     #buffer?: Buffer;
     #stormPlayerToGamePlayer?: number[];
@@ -18,6 +23,17 @@ class CommandsStream {
         this.#stormPlayerToGamePlayer = stormPlayerToGamePlayer;
     }
 
+    /**
+     * Creates a copy of this CommandsStream.
+     * @returns {CommandsStream}
+     */
+    copy(): CommandsStream {
+        return new CommandsStream( this.#buffer, this.#stormPlayerToGamePlayer );
+    }
+
+    /**
+     * Generates commands from the buffer.
+     */
     *generate() {
         if ( !this.#buffer || !this.#stormPlayerToGamePlayer ) return;
 

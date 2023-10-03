@@ -6,13 +6,10 @@ import { ImageStruct } from "common/types";
 export const getDirection32 = ( target: Vector3, cameraPosition: Vector3 ) => {
     const adj = target.z - cameraPosition.z;
     const opp = target.x - cameraPosition.x;
-    const a = Math.atan2( opp, adj ) / Math.PI;
+    // const a = Math.atan2( opp, adj ) / Math.PI
+    const a = (Math.atan2( opp, adj ) / Math.PI) / 2 + 1;
+    return (Math.floor( a * 32 ) + 16) % 32;
 
-    if ( a < 0 ) {
-        return Math.floor( ( a + 2 ) * 16 + 16 );
-    } else {
-        return Math.floor( a * 16 + 16 );
-    }
 };
 
 export const POLAR_MAX = ( 10 * Math.PI ) / 64;

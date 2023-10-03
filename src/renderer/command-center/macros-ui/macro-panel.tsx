@@ -103,6 +103,7 @@ export const MacroPanel = ( {
                     alignItems: "center",
                     justifyContent: "start",
                     marginBottom: "var(--size-5)",
+                    flexWrap: "wrap"
                 }}>
                 <div>
                     <h4

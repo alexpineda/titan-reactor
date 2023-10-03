@@ -32,6 +32,9 @@ export interface ProcessStore {
 
 let _mostRecent: string = "";
 
+/**
+ * Loading processes store. Used to track progress of loading and displaying it to the user.
+ */
 export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
     processes: [],
     _createProcessWrapper: ( id: string, process: IncrementalProcess ) => ( {

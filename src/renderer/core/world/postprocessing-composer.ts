@@ -31,6 +31,9 @@ const ignoreCastShadow = [ 347, 349, 351 ];
 export type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
 export type PostProcessingComposerApi = PostProcessingComposer["api"];
 
+// TODO: Change to ViewPortsRenderer
+// Manages all our post processing options and ensures we render all our 2.5D stuff in the correct camera directions per viewport.
+// Renders each viewport.
 export const createPostProcessingComposer = (
     world: World,
     { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer,

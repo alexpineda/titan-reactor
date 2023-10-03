@@ -202,6 +202,7 @@ export class ImageHD
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         if ( this.atlas!.frames[frame] === undefined ) {
             if ( process.env.NODE_ENV !== "production" ) {
+                debugger;
                 throw new Error(
                     `Invalid frame ${frame}/${this.atlas!.frames.length} for atlas ${
                         this.atlas!.imageIndex
