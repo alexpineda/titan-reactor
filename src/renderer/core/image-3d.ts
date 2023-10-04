@@ -28,6 +28,9 @@ const _v1 = new Vector3();
 const sourceLookup = new Map<Object3D, Object3D>();
 const cloneLookup = new Map<Object3D, Object3D>();
 
+/**
+ * Starcraft image as a 3D object in GLB format with animations.
+ */
 export class Image3D extends Object3D implements ImageBase {
     isImageHd = false;
     isImage3d = true;

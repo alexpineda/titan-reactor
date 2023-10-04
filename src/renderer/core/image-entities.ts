@@ -10,6 +10,9 @@ import { IterableMap } from "@utils/data-structures/iteratible-map";
 import { Janitor } from "three-janitor";
 import { AnimAtlas } from "@image/atlas";
 
+/**
+ * A collection of all images in the game.
+ */
 export class ImageEntities {
     #freeImages = new IndexedObjectPool<ImageBase>();
     #freeImages3D = new IndexedObjectPool<ImageBase>();

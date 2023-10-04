@@ -2,6 +2,10 @@ import { GetTerrainY } from "@image/generate-map/get-terrain-y";
 import { GeometryOptions, TerrainQuartile } from "common/types";
 import { Group, Mesh, MeshStandardMaterial } from "three";
 
+/**
+ * A high level object representing the terrain.
+ * Contains a collection of terrain quartiles.
+ */
 export class Terrain extends Group {
     override children: TerrainQuartile[] = [];
     override userData: {

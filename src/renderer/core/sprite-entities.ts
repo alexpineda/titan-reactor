@@ -3,6 +3,7 @@ import { IterableMap } from "@utils/data-structures/iteratible-map";
 import { SpriteType } from "common/types";
 import { Group } from "three";
 
+// A collection of all sprites in the game.
 export class SpriteEntities {
     group = new Group();
 

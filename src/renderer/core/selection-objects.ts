@@ -9,6 +9,9 @@ import { Assets } from "@image/assets";
 import { SelectionCircle3D } from "./selection-circle-3d";
 import { isImage3d, isImageHd } from "@utils/image-utils";
 
+/**
+ * A selection wrapper that supports showing a selection circle for 2d or 3d image objects
+ */
 export class SelectionObject extends Group {
     #circle3d = new SelectionCircle3D();
     #circle2d = new SelectionCircleHD();
@@ -57,6 +60,9 @@ export class SelectionObject extends Group {
     }
 }
 
+/**
+ * Manages the selection up to 12 selection objects.
+ */
 export const createSelectionDisplayComposer = ( assets: Assets ) => {
     const objects = range( 0, 12 ).map( ( _ ) => new SelectionObject() );
 

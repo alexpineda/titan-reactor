@@ -27,7 +27,6 @@ interface Args<T extends object> {
  * @param options
  * @returns
  */
-//TODO: refactor this to be called DeepStore and extract the sourceOfTruth stuff
 export function createDeepStore<T extends Record<string, any>>( {
     initialState,
     validateMerge: validateMerge,

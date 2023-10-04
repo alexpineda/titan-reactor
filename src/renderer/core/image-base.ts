@@ -2,6 +2,9 @@ import { AnimAtlas } from "@image/atlas";
 import { UnitTileScale, ImageDAT } from "common/types";
 import type { Color, Object3D } from "three";
 
+/**
+ * Base structure for how starcraft image objects are represented in three.js
+ */
 export interface ImageBase extends Object3D {
     atlas?: AnimAtlas;
     isImageHd: boolean;

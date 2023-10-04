@@ -20,6 +20,10 @@ export interface SceneStore {
 
 let _loading = false;
 
+/**
+ * A store that manages the current scene.
+ * When a scene is loaded, the previous one gets disposed.
+ */
 export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
     state: null,
     error: null,
@@ -29,7 +33,7 @@ export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
         clearError = true
     ) => {
         if ( _loading ) {
-            log.warn( "Scene is already loading" );
+            throw new Error("Scene is already loading");
         }
         _loading = true;
 

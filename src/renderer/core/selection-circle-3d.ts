@@ -46,6 +46,10 @@ class SelectionMaterial extends ShaderMaterial {
         this.transparent = true;
     }
 }
+
+/**
+ * a selection circle for 3d images
+ */
 export class SelectionCircle3D extends Mesh<BufferGeometry, SelectionMaterial> {
     #spriteDat?: SpriteDAT;
 

@@ -17,6 +17,10 @@ import { log, logBoth, logClient } from "@ipc/log";
 import { waitForTruthy } from "@utils/wait-for";
 import { useGameStore } from "./stores";
 
+/**
+ * ENTRY POINT FOR TITAN REACTOR VIEWER APP
+ */
+
 performance.mark( "start" );
 
 globalEvents.on( "command-center-save-settings", ( payload ) => {

@@ -35,6 +35,9 @@ class SelectionCircleMaterial extends MeshBasicMaterial {
     }
 }
 
+/**
+ * A selection circle for 2d images
+ */
 export class SelectionCircleHD extends Mesh<BufferGeometry, SelectionCircleMaterial> {
     #spriteDat?: SpriteDAT;
 

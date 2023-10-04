@@ -31,6 +31,10 @@ interface DynamicUniforms {
         value: number;
     };
 }
+
+/**
+ * Custom material for starcraft images. Takes into account team color, warp in flash, and modifiers.
+ */
 export class Image3DMaterial extends MeshStandardMaterial {
     #dynamicUniforms: DynamicUniforms;
     isTeamSpriteMaterial = true;

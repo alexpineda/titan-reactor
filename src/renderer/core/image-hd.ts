@@ -50,6 +50,9 @@ function transformVertex( vertexPosition: Vector3, mvPosition: Vector3, scale: V
 
 const _uv = new Vector2();
 
+/**
+ * A threejs mesh for a starcraft image.
+ */
 export class ImageHD
     extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInstancedMaterial>
     implements ImageBase
