@@ -15,7 +15,7 @@ import {
     ToneMappingMode,
 } from "postprocessing";
 import { Camera, Object3D, PerspectiveCamera, Scene, Vector3 } from "three";
-import { renderComposer } from "./render-composer";
+import { TitanRenderComposer } from "./render-composer";
 
 export function isPostProcessing3D( obj: any ): obj is Settings["postprocessing3d"] {
     return obj !== undefined && "depthFocalLength" in obj;
@@ -153,7 +153,7 @@ export class PostProcessingBundler {
         this.#bloomPass.enabled = this.options.bloom > 0;
     }
 
-    update() {
+    update(renderComposer: TitanRenderComposer) {
         renderComposer.composer.multisampling = Math.min(
             this.options.antialias,
             renderComposer.getWebGLRenderer().capabilities.maxSamples

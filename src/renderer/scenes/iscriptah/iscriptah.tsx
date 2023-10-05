@@ -20,10 +20,9 @@ import "../pre-home-scene/styles.css";
 import App from "./components/app";
 import { Surface } from "@image/canvas/surface";
 import "common/utils/electron-file-loader";
-import { updateDirection32 } from "./camera";
 import { Janitor } from "three-janitor";
 import { RenderPass } from "postprocessing";
-import { renderComposer } from "@render/render-composer";
+import { TitanRenderComposer } from "@render/render-composer";
 import { root } from "@render/root";
 import { settingsStore } from "@stores/settings-store";
 import { initializeAssets, loadImageAtlasDirect } from "@image/assets";
@@ -52,7 +51,7 @@ const bootup = async () => {
     const surface = new Surface();
     surface.setDimensions( 300, 300, window.devicePixelRatio );
 
-    renderComposer.targetSurface = surface;
+    const renderComposer = new TitanRenderComposer(surface);
 
     const scene = new Scene();
     janitor.mop( scene, "scene" );

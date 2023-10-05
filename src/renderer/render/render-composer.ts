@@ -20,7 +20,7 @@ ShaderChunk.shadowmap_pars_fragment = ShaderChunk.shadowmap_pars_fragment.replac
     "return max( 0.3, shadow );"
 );
 
-const createWebGLRenderer = () => {
+export const createWebGLRenderer = () => {
     const renderer = new WebGLRenderer( {
         powerPreference: "high-performance",
         preserveDrawingBuffer: false,
@@ -42,6 +42,15 @@ const createWebGLRenderer = () => {
     return renderer;
 };
 
+export const getWebGLRenderer = async (fn: (renderer: WebGLRenderer) => any) => {
+    const renderer = createWebGLRenderer();
+    await fn(renderer);
+    renderer.dispose();
+}
+
+/**
+ * Manages rendering using post processing.
+ */
 export class TitanRenderComposer {
     #renderer?: WebGLRenderer;
     #surfaceRef = new WeakRef( new Surface() );
@@ -57,8 +66,11 @@ export class TitanRenderComposer {
         depthBuffer: true,
     } );
 
-    constructor() {
+    constructor(surface?: Surface) {
         this.getWebGLRenderer();
+        if (surface) {
+            this.targetSurface = surface;
+        }
     }
 
     // TODO don't get another renderer if context is lost

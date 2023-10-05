@@ -54,7 +54,7 @@ export const createPostProcessingComposer = (
         options: Settings["postprocessing"] | Settings["postprocessing3d"]
     ) => {
         postProcessingBundle.options = options;
-        postProcessingBundle.update();
+        postProcessingBundle.update(renderComposer);
 
         if ( postProcessingBundle.options3d ) {
             for ( const image of images ) {

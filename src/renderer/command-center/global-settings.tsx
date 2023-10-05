@@ -6,13 +6,18 @@ import {
     generateAppSettingsFromLevaFormat,
 } from "common/get-app-settings-leva-config";
 import { useControls, useCreateStore } from "leva";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { attachOnChangeAndGroupByFolder, groupConfigByKey } from "@utils/leva-utils";
-import { renderComposer } from "@render/render-composer";
+import { createWebGLRenderer } from "@render/render-composer";
 import deepMerge from "deepmerge";
 import { createLevaPanel } from "./create-leva-panel";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 import { Schema } from "leva/plugin";
+
+const renderer = createWebGLRenderer();
+const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
+const maxSamples = renderer.capabilities.maxSamples;
+renderer.dispose();
 
 /**
  * Global App Settings UI
@@ -24,9 +29,9 @@ export const GlobalSettings = () => {
         getAppSettingsInLevaFormat(
             settings.data,
             settings.enabledPlugins,
-            renderComposer.getWebGLRenderer().capabilities.getMaxAnisotropy(),
+            maxAnisotropy,
             window.devicePixelRatio,
-            renderComposer.getWebGLRenderer().capabilities.maxSamples
+            maxSamples
         )
     );
 
