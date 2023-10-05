@@ -35,7 +35,7 @@ globalEvents.on( "unsafe-open-url", ( payload ) => {
 
 globalEvents.on(
     "load-home-scene",
-    () => void sceneStore().execSceneLoader( homeSceneLoader )
+    () => void sceneStore().execSceneLoader( homeSceneLoader, "@home" )
 );
 
 globalEvents.on( "log-message", ( { message, level, server } ) =>
@@ -43,20 +43,32 @@ globalEvents.on( "log-message", ( { message, level, server } ) =>
 );
 
 globalEvents.on( "load-map-file", async ( map ) => {
-    await sceneStore().execSceneLoader( interstitialSceneLoader );
+    await sceneStore().execSceneLoader( interstitialSceneLoader, "@interstitial" );
 
     void sceneStore().execSceneLoader(
         () => mapSceneLoader( map ),
-        interstitialSceneLoader
+        "@map",
+        {
+            errorHandler: {
+                loader: interstitialSceneLoader,
+                id: "@interstitial",
+            },
+        }
     );
 } );
 
 globalEvents.on( "load-replay-file", async ( replay: string ) => {
-    await sceneStore().execSceneLoader( interstitialSceneLoader );
+    await sceneStore().execSceneLoader( interstitialSceneLoader, "@interstitial" );
 
     void sceneStore().execSceneLoader(
         () => replaySceneLoader( replay ),
-        interstitialSceneLoader
+        "@replay",
+        {
+            errorHandler: {
+                loader: interstitialSceneLoader,
+                id: "@interstitial",
+            },
+        }
     );
 } );
 
@@ -64,9 +76,9 @@ logCapabilities();
 lockdown_();
 
 ( async function bootup() {
-    await sceneStore().execSceneLoader( preHomeSceneLoader );
+    await sceneStore().execSceneLoader( preHomeSceneLoader, "@loading" );
 
-    await sceneStore().execSceneLoader( homeSceneLoader );
+    await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
 
     await waitForTruthy( () => useGameStore.getState().assets?.remaining === 0 );
 

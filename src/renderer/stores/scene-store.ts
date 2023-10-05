@@ -1,7 +1,7 @@
 import { log } from "@ipc/log";
 import { withErrorMessage } from "common/utils/with-error-message";
 import create from "zustand";
-import { SceneState } from "../scenes/scene";
+import { SceneState, SceneStateID } from "../scenes/scene";
 
 export type SceneLoader = ( prevData?: any ) => Promise<SceneState> | SceneState;
 
@@ -9,8 +9,8 @@ export interface SceneStore {
     state: SceneState | null;
     execSceneLoader: (
         loader: SceneLoader,
-        errorHandler?: SceneLoader,
-        dontClearError?: boolean
+        id: SceneStateID,
+        options?: ExecSceneOptions
     ) => Promise<void>;
     error: Error | null;
     setError: ( error: Error ) => void;
@@ -18,6 +18,16 @@ export interface SceneStore {
     reset(): void;
 }
 
+type ExecSceneOptions = {
+    errorHandler?: {
+        loader: SceneLoader;
+        id: SceneStateID;
+    }
+    clearError?: boolean;
+    ignoreSameScene?: boolean;
+}
+
+let _lastLoadId: string = "";
 let _loading = false;
 
 /**
@@ -29,11 +39,20 @@ export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
     error: null,
     execSceneLoader: async (
         loader: SceneLoader,
-        errorHandler?: SceneLoader,
-        clearError = true
+        id: SceneStateID,
+        _opts: ExecSceneOptions = {}
     ) => {
+        const { ignoreSameScene, clearError, errorHandler } = {
+            clearError: true,
+            ignoreSameScene: false,
+            ..._opts,
+        };
+
         if ( _loading ) {
             throw new Error("Scene is already loading");
+        }
+        if (_lastLoadId === id && !ignoreSameScene) {
+            return;
         }
         _loading = true;
 
@@ -69,7 +88,7 @@ export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
             if ( errorHandler ) {
                 get().reset();
                 setTimeout( () => {
-                    void get().execSceneLoader( errorHandler, undefined, false );
+                    void get().execSceneLoader( errorHandler.loader, errorHandler.id, { clearError: false} );
                 }, 0 );
             }
         }

@@ -14,19 +14,6 @@ import processStore from "@stores/process-store";
 
 let _lastErrorMessage = "";
 
-const makeErrorScene = ( errors: string[] ) => {
-    if ( errors.length ) {
-        const message = errors.join( ", " );
-        if ( message !== _lastErrorMessage ) {
-            log.error( message );
-            sceneStore().setError( new Error( message ) );
-            _lastErrorMessage = message;
-        }
-    } else {
-        sceneStore().clearError();
-    }
-};
-
 export async function preHomeSceneLoader(): Promise<SceneState> {
     processStore().create( "pre-home-scene", 7 );
     root.render( <PreHomeScene /> );
@@ -35,7 +22,20 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     const settings = await settingsStore().load();
 
     await waitForTruthy( () => {
-        makeErrorScene( settingsStore().errors );
+        // wait until there are no errors
+        const errors = settingsStore().errors;
+        if ( errors.length ) {
+            const message = errors.join( ", " );
+            // if there are errors, but the message is different from the last one
+            // log it and notify the scene store in order to display it
+            if ( message !== _lastErrorMessage ) {
+                log.error( message );
+                sceneStore().setError( new Error( message ) );
+                _lastErrorMessage = message;
+            }
+        } else {
+            sceneStore().clearError();
+        }
         return settingsStore().errors.length === 0;
     } );
 

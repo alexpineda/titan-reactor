@@ -1,4 +1,4 @@
-import { renderComposer } from "@render";
+import { TitanRenderComposer } from "@render";
 import { Surface } from "@image/canvas/surface";
 import { loadEnvironmentMap } from "@image/environment/env-map";
 import {
@@ -14,7 +14,7 @@ import {
     ToneMappingEffect,
     VignetteEffect,
 } from "postprocessing";
-// import { VRButton } from 'three/examples/jsm/webxr/VRButton';
+import { VRButton } from 'three/examples/jsm/webxr/VRButton';
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 import {
@@ -68,51 +68,6 @@ const asteroids = createAsteroids();
 const wraiths = createWraiths();
 const battleLights = createBattleLights();
 
-const INTRO_LOOP = ( elapsed: number ) => {
-    const delta = elapsed - _lastElapsed;
-    _lastElapsed = elapsed;
-
-    _controls.update( delta / 1000 );
-
-    const azimuth = THREE.MathUtils.euclideanModulo(
-        _controls.azimuthAngle,
-        360 * THREE.MathUtils.DEG2RAD
-    );
-    const rear = azimuth < Math.PI ? azimuth / Math.PI : 2 - azimuth / Math.PI;
-
-    camera.update( delta, _controls, azimuth, mouse );
-
-    wraiths.update(
-        delta,
-        camera.get(),
-        azimuth,
-        rear,
-        camera.cameraState === CameraState.RotateAroundWraiths
-    );
-    battleCruiser.update( delta, CAMERA_ROTATE_SPEED, camera.get() );
-    battleLights.update( camera.get(), delta, azimuth );
-
-    const g =
-        camera.cameraState === CameraState.UnderWraiths
-            ? MathUtils.smoothstep( Math.pow( rear, 2.5 ), 0.25, 1 )
-            : 0;
-    glitchEffect.minStrength = glitchMax.x * g;
-    glitchEffect.maxStrength = glitchMax.y * g;
-
-    _noiseInstance.value =
-        camera.cameraState === CameraState.RotateAroundWraiths ? rear : 0;
-
-    renderComposer.render( delta );
-    renderComposer.drawBuffer();
-};
-
-const _sceneResizeHandler = () => {
-    introSurface.setDimensions( window.innerWidth, window.innerHeight, devicePixelRatio );
-    renderComposer.targetSurface = introSurface;
-    camera.get().aspect = introSurface.width / introSurface.height;
-    camera.get().updateProjectionMatrix();
-};
-
 let fireTexture: Texture;
 
 export const preloadIntro = async () => {
@@ -153,6 +108,7 @@ export async function createWraithScene() {
     }
 
     const janitor = new Janitor( "intro" );
+    const renderComposer = new TitanRenderComposer( introSurface );
 
     _noiseInstance = janitor.mop( createWraithNoise() );
     _noiseInstance.start();
@@ -162,6 +118,13 @@ export async function createWraithScene() {
     _controls.minPolarAngle = -Infinity;
     _controls.maxAzimuthAngle = Infinity;
     _controls.minAzimuthAngle = -Infinity;
+
+    const _sceneResizeHandler = () => {
+        introSurface.setDimensions( window.innerWidth, window.innerHeight, devicePixelRatio );
+        renderComposer.targetSurface = introSurface;
+        camera.get().aspect = introSurface.width / introSurface.height;
+        camera.get().updateProjectionMatrix();
+    };
 
     janitor.addEventListener( window, "resize", "resize", _sceneResizeHandler, {
         passive: true,
@@ -260,14 +223,51 @@ export async function createWraithScene() {
         ] ),
     } );
 
-    renderComposer.getWebGLRenderer().setAnimationLoop( INTRO_LOOP );
+    renderComposer.getWebGLRenderer().setAnimationLoop( ( elapsed: number ) => {
+        const delta = elapsed - _lastElapsed;
+        _lastElapsed = elapsed;
+    
+        _controls.update( delta / 1000 );
+    
+        const azimuth = THREE.MathUtils.euclideanModulo(
+            _controls.azimuthAngle,
+            360 * THREE.MathUtils.DEG2RAD
+        );
+        const rear = azimuth < Math.PI ? azimuth / Math.PI : 2 - azimuth / Math.PI;
+    
+        camera.update( delta, _controls, azimuth, mouse );
+    
+        wraiths.update(
+            delta,
+            camera.get(),
+            azimuth,
+            rear,
+            camera.cameraState === CameraState.RotateAroundWraiths
+        );
+        battleCruiser.update( delta, CAMERA_ROTATE_SPEED, camera.get() );
+        battleLights.update( camera.get(), delta, azimuth );
+    
+        const g =
+            camera.cameraState === CameraState.UnderWraiths
+                ? MathUtils.smoothstep( Math.pow( rear, 2.5 ), 0.25, 1 )
+                : 0;
+        glitchEffect.minStrength = glitchMax.x * g;
+        glitchEffect.maxStrength = glitchMax.y * g;
+    
+        _noiseInstance.value =
+            camera.cameraState === CameraState.RotateAroundWraiths ? rear : 0;
+    
+        renderComposer.render( delta );
+        renderComposer.drawBuffer();
+    } );
+
     janitor.mop( () => {
-        renderComposer.getWebGLRenderer().setAnimationLoop( null );
+        renderComposer.dispose();
     }, "renderLoop" );
 
     _sceneResizeHandler();
 
-    // document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
+    document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
 
     return {
         dispose: () => janitor.dispose(),

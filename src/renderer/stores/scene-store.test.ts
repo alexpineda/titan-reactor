@@ -40,7 +40,7 @@ describe( "SceneStore", () => {
         const state = util.createSceneState();
         const loader = jest.fn( () => Promise.resolve( state ) );
 
-        await sceneStore().execSceneLoader( loader as SceneLoader );
+        await sceneStore().execSceneLoader( loader as SceneLoader, "@home" );
 
         expect(
             state.start.mock.invocationCallOrder[0]! >
@@ -54,7 +54,7 @@ describe( "SceneStore", () => {
         const state = util.createSceneState();
         const loader = jest.fn( () => state );
 
-        await sceneStore().execSceneLoader( loader as SceneLoader );
+        await sceneStore().execSceneLoader( loader as SceneLoader, "@home" );
 
         expect(
             state.start.mock.invocationCallOrder[0]! >
@@ -69,8 +69,8 @@ describe( "SceneStore", () => {
         const loader = jest.fn( () => oldState );
         const nextLoader = jest.fn( () => util.createSceneState() );
 
-        await sceneStore().execSceneLoader( loader as SceneLoader );
-        await sceneStore().execSceneLoader( nextLoader as SceneLoader );
+        await sceneStore().execSceneLoader( loader as SceneLoader, "@home" );
+        await sceneStore().execSceneLoader( nextLoader as SceneLoader, "@home" );
 
         expect(
             oldState.dispose.mock.invocationCallOrder[0]! <
@@ -83,7 +83,7 @@ describe( "SceneStore", () => {
         const loader = jest.fn( () => oldState );
         const nextLoader = jest.fn( () => util.createSceneState() );
 
-        await sceneStore().execSceneLoader( loader as SceneLoader );
+        await sceneStore().execSceneLoader( loader as SceneLoader, "@home" );
 
         const error = new Error( "test" );
 
@@ -91,7 +91,7 @@ describe( "SceneStore", () => {
 
         expect( sceneStore().error ).toBe( error );
 
-        await sceneStore().execSceneLoader( nextLoader as SceneLoader );
+        await sceneStore().execSceneLoader( nextLoader as SceneLoader, "@home" );
 
         expect( sceneStore().error ).toBe( null );
     } );
@@ -102,8 +102,8 @@ describe( "SceneStore", () => {
         const loader = jest.fn( () => oldState );
         const nextLoader = jest.fn( () => newState );
 
-        await sceneStore().execSceneLoader( loader as SceneLoader );
-        await sceneStore().execSceneLoader( nextLoader as SceneLoader );
+        await sceneStore().execSceneLoader( loader as SceneLoader, "@home" );
+        await sceneStore().execSceneLoader( nextLoader as SceneLoader, "@home" );
 
         expect(
             nextLoader.mock.invocationCallOrder[0]! <
@@ -122,8 +122,8 @@ describe( "SceneStore", () => {
         const loader = jest.fn( () => oldState );
         const nextLoader = jest.fn( () => newState );
 
-        await sceneStore().execSceneLoader( loader as SceneLoader );
-        await sceneStore().execSceneLoader( nextLoader as SceneLoader );
+        await sceneStore().execSceneLoader( loader as SceneLoader, "@home" );
+        await sceneStore().execSceneLoader( nextLoader as SceneLoader, "@home" );
 
         expect(
             nextLoader.mock.invocationCallOrder[0]! <
