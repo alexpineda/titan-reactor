@@ -29,7 +29,6 @@ export const createSurfaceComposer = ( world: World ) => {
         window.innerHeight,
         settingsStore().data.graphics.pixelRatio
     );
-    janitor.mop( document.body.appendChild( gameSurface.canvas ), "appendChild" );
 
     renderComposer.targetSurface = gameSurface;
 
@@ -80,9 +79,15 @@ export const createSurfaceComposer = ( world: World ) => {
         janitor.dispose();
     } );
 
+    gameSurface.hide();
+
     return {
         gameSurface,
         resize,
+        mount() {
+            janitor.mop( document.body.appendChild( gameSurface.canvas ), "appendChild" );
+            gameSurface.show();
+        },
         api: ( ( surfaceRef: WeakRef<typeof gameSurface> ) => ( {
             togglePointerLock: ( val: boolean ) => {
                 const surface = surfaceRef.deref();

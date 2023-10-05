@@ -4,13 +4,10 @@ import { createWraithScene, getSurface } from "./space-scene";
 import { Janitor } from "three-janitor";
 import { mixer } from "@core/global";
 import { root } from "@render/root";
-import { log } from "@ipc/log";
 
 export async function homeSceneLoader(): Promise<SceneState> {
     const janitor = new Janitor( "home-scene-loader" );
-    log.debug( "Loading home scene" );
-
-    root.render( <Home surface={getSurface().canvas} /> );
+    
     const wraithScene = janitor.mop(await createWraithScene());
     setTimeout( () => wraithScene.resize(), 500);
 
@@ -26,9 +23,20 @@ export async function homeSceneLoader(): Promise<SceneState> {
             if ( prevID !== "@loading" ) {
                 swoosh.start();
             }
+            root.render( <Home surface={getSurface().canvas} /> );
         },
-        dispose: () => {
-            janitor.dispose();
+        dispose: (newId) => {
+            if (newId !== "@replay" && newId !== "@map") {
+                janitor.dispose();
+                root.render( null );
+            }
         },
+        beforeNext(newId) {
+            if (newId === "@replay" || newId === "@map") {
+                janitor.dispose();
+                root.render( null );
+            }
+
+        }
     };
 }

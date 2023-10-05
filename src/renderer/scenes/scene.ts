@@ -8,7 +8,7 @@ export type SceneStateID =
 
 export interface SceneState {
     id: SceneStateID;
-    dispose: () => void;
+    dispose: (newId?: SceneStateID) => void;
     start: ( prevId?: SceneStateID ) => void;
-    beforeNext?: () => void;
+    beforeNext?: (newId?: SceneStateID) => void;
 }

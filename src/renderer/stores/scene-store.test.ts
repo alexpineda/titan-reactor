@@ -9,6 +9,7 @@ const util = {
         id: "@home",
         dispose: jest.fn(),
         start: jest.fn(),
+        beforeNext: jest.fn(),
         ...props,
     } ),
 };

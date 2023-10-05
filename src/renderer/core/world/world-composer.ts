@@ -214,9 +214,10 @@ export const createWorldComposer = async (
 
             gameLoopComposer.start();
 
-            surfaceComposer.gameSurface.show();
+            
         },
 
+        surfaceComposer,
         sceneComposer,
 
         dispose: () => {

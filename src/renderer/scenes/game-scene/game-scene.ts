@@ -43,8 +43,14 @@ export async function makeGameScene(
     } );
 
     processStore().clearAll();
+    
+    return {
+        async start() {
+            worldComposer.surfaceComposer.mount();
+        }, 
+        dispose() {
+            janitor.dispose();
+        }
+    }
 
-    return () => {
-        janitor.dispose();
-    };
 }

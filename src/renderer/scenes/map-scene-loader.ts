@@ -59,7 +59,7 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
         await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map );
     }
 
-    const disposeScene = await makeGameScene(
+    const scene = await makeGameScene(
         map,
         janitor,
         new CommandsStream(),
@@ -93,10 +93,11 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
         id: "@map",
         start: () => {
             music.playGame();
+            scene.start();
         },
         dispose: () => {
             music.stop();
-            disposeScene();
+            scene.dispose();
         },
     };
 };

@@ -1,4 +1,4 @@
-import create from "zustand/vanilla";
+import create from "zustand";
 import { log } from "@ipc/log";
 import { MathUtils } from "three";
 

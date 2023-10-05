@@ -43,7 +43,7 @@ globalEvents.on( "log-message", ( { message, level, server } ) =>
 );
 
 globalEvents.on( "load-map-file", async ( map ) => {
-    await sceneStore().execSceneLoader( interstitialSceneLoader, "@interstitial" );
+    await sceneStore().execSceneLoader( homeSceneLoader, "@home"  );
 
     void sceneStore().execSceneLoader(
         () => mapSceneLoader( map ),
@@ -58,7 +58,7 @@ globalEvents.on( "load-map-file", async ( map ) => {
 } );
 
 globalEvents.on( "load-replay-file", async ( replay: string ) => {
-    await sceneStore().execSceneLoader( interstitialSceneLoader, "@interstitial" );
+    await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
 
     void sceneStore().execSceneLoader(
         () => replaySceneLoader( replay ),

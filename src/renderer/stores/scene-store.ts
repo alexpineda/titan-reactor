@@ -64,7 +64,7 @@ export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
         let prevData: any = undefined;
         if ( oldState ) {
             try {
-                prevData = oldState.dispose();
+                prevData = oldState.dispose(id);
             } catch ( e ) {
                 log.error( withErrorMessage( e, "Error disposing old scene" ) );
             }
@@ -72,7 +72,7 @@ export const useSceneStore = create<SceneStore>( ( set, get ) => ( {
 
         try {
             const state = await loader( prevData );
-            oldState?.beforeNext && oldState.beforeNext();
+            oldState?.beforeNext && oldState.beforeNext(id);
             if ( window.gc ) {
                 window.gc();
             }

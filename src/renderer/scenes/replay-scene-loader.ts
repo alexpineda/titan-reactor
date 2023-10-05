@@ -122,7 +122,7 @@ export const replaySceneLoader = async ( filepath: string ): Promise<SceneState>
         await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map, replay );
     }
 
-    const disposeScene = await makeGameScene(
+    const scene = await makeGameScene(
         map,
         janitor,
         new CommandsStream( replay.rawCmds, replay.stormPlayerToGamePlayer ),
@@ -144,11 +144,13 @@ export const replaySceneLoader = async ( filepath: string ): Promise<SceneState>
     return {
         id: "@replay",
         start: () => {
+            scene.start();
             music.playGame();
+
         },
         dispose: () => {
             music.stop();
-            disposeScene();
+            scene.dispose();
         },
     };
 };
