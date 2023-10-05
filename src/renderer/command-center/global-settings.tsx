@@ -14,6 +14,9 @@ import { createLevaPanel } from "./create-leva-panel";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 import { Schema } from "leva/plugin";
 
+/**
+ * Global App Settings UI
+ */
 export const GlobalSettings = () => {
     const settings = useSettingsStore();
 

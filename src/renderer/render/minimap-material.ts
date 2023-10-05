@@ -31,6 +31,10 @@ export class MinimapMaterial extends ShaderMaterial {
         uResolution: { value: new Vector2() },
         uOpacity: { value: 1 },
         uSoftEdges: { value: 0 },
+        uCameraBoundsBL: { value: new Vector2() },
+        uCameraBoundsBR : { value: new Vector2() },
+        uCameraBoundsTL : { value: new Vector2() },
+        uCameraBoundsTR : { value: new Vector2() },
     };
 
     constructor( mapWidth: number, mapHeight: number, terrain: Texture ) {

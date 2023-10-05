@@ -7,6 +7,10 @@ const structuredClone =
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     globalThis.structuredClone ||
     ( ( x: object ) => JSON.parse( JSON.stringify( x ) ) as unknown );
+
+/**
+ * An object that emits the diff when it is updated.
+ */
 export class SourceOfTruth<T extends object> {
     #data: T;
     onUpdate: ( ( diff: DeepPartial<T> ) => void ) | undefined;

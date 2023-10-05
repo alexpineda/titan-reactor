@@ -82,6 +82,7 @@ export const createWorldComposer = async (
         surfaceComposer,
         inputsComposer,
         postProcessingComposer,
+        viewControllerComposer,
         assets
     );
 

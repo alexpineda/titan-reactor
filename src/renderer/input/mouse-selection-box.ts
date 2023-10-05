@@ -1,5 +1,8 @@
 import { Vector2 } from "three";
 
+/**
+ * The green unit selection box using a div.
+ */
 export class VisualSelectionBox {
     selectElement: HTMLSpanElement;
     #enabled = true;

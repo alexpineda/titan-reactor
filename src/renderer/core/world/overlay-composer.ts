@@ -23,6 +23,7 @@ import { Janitor } from "three-janitor";
 import { SurfaceComposer } from "./surface-composer";
 import { PostProcessingComposer } from "./postprocessing-composer";
 import { InputsComposer } from "./input-composer";
+import { ViewControllerComposer } from "./view-composer";
 
 export type OverlayComposer = {
     api: {
@@ -54,6 +55,7 @@ export const createOverlayComposer = (
     surfaces: SurfaceComposer,
     inputs: InputsComposer,
     post: PostProcessingComposer,
+    viewports: ViewControllerComposer,
     assets: Assets
 ): OverlayComposer => {
     const janitor = new Janitor( "OverlayComposer" );
@@ -280,6 +282,20 @@ export const createOverlayComposer = (
             }
 
             _minimapUv = _intersectMinimap();
+
+            const pv = viewports.primaryViewport!.projectedView;
+            minimapMaterial.uniforms.uCameraBoundsBL.value.setX(pv.bl[0] / mapWidth);
+            minimapMaterial.uniforms.uCameraBoundsBL.value.setY( 1 - pv.bl[1] / mapHeight);
+            minimapMaterial.uniforms.uCameraBoundsBR.value.setX(pv.br[0] / mapWidth);
+            minimapMaterial.uniforms.uCameraBoundsBR.value.setY( 1 - pv.br[1] / mapHeight);
+            minimapMaterial.uniforms.uCameraBoundsTL.value.setX(pv.tl[0] / mapWidth );
+            minimapMaterial.uniforms.uCameraBoundsTL.value.setY( 1 - pv.tl[1] / mapHeight);
+            minimapMaterial.uniforms.uCameraBoundsTR.value.setX(pv.tr[0] / mapWidth);
+            minimapMaterial.uniforms.uCameraBoundsTR.value.setY( 1 - pv.tr[1] / mapHeight);
+            // are there rules in ShaderMaterial that must be batch update or can we jsut update them one by one?
+            minimapMaterial.uniformsNeedUpdate = true;
+
+
         },
 
         onFrame( completedUpgrades: number[][] ) {

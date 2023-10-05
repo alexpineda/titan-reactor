@@ -27,6 +27,10 @@ const _getSelectionUnit =
         return null;
     };
 
+/**
+ * Hanndles user input including unit selection events ( which is then sent through the message bus for other handlers to use ).
+ */
+
 export const createInputComposer = (
     world: World,
     { images, scene, simpleIndex }: SceneComposer
@@ -123,7 +127,7 @@ export const createInputComposer = (
                 return unitSelectionBox.getHoveredUnit();
             },
             mouse: expose(
-                mouseInput,
+                new WeakRef(mouseInput),
                 [
                     "mouseScrollY",
                     "screenDrag",
@@ -133,8 +137,7 @@ export const createInputComposer = (
                     "clientX",
                     "clientY",
                     "clicked",
-                ],
-                { asValues: false }
+                ]
             ),
         },
     };

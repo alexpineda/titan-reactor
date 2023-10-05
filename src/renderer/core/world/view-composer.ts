@@ -194,6 +194,7 @@ export const createViewControllerComposer = (
             activating = false;
         },
 
+        // TODO: Why is this undefinable?
         get primaryViewport(): GameViewPort | undefined {
             return getViewports()[0];
         },

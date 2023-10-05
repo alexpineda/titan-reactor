@@ -8,12 +8,45 @@ uniform float fogOfWarOpacity;
 uniform float uOpacity;
 uniform float uSoftEdges;
 
+uniform vec2 uCameraBoundsBL;
+uniform vec2 uCameraBoundsTR;
+uniform vec2 uCameraBoundsBR;
+uniform vec2 uCameraBoundsTL;
+
 varying vec2 vUv;
 varying vec2 mapUv;
 varying vec2 mapAspect;
 varying vec2 bounds;
 
+// half vector
+const vec2 hv = vec2(0.5, -0.5);
+
+// Function to calculate the area of a triangle given three 2D points
+float triangleArea(vec2 A, vec2 B, vec2 C) {
+    return abs((A.x*(B.y - C.y) + B.x*(C.y - A.y) + C.x*(A.y - B.y)) / 2.0);
+}
+
+// Function to check if a point is inside a quadrilateral
+bool isPointInQuadrilateral(vec2 P, vec2 A, vec2 B, vec2 C, vec2 D) {
+    float quadArea = triangleArea(A, B, C) + triangleArea(C, D, A);
+    float areaSum = 0.0;
+    areaSum += triangleArea(P, A, B);
+    areaSum += triangleArea(P, B, C);
+    areaSum += triangleArea(P, C, D);
+    areaSum += triangleArea(P, D, A);
+    
+    return abs(quadArea - areaSum) < 0.001;
+}
+
+// Function to calculate the distance from point P to line segment AB
+float pointToLineDistance(vec2 A, vec2 B, vec2 P) {
+    vec2 PA = P - A, BA = B - A;
+    float h = clamp(dot(PA, BA) / dot(BA, BA), 0.0, 1.0);
+    return length(PA - h * BA);
+}
+
 void main() {
+    
     vec4 minimapTerrainColor = texture2D(terrainBitmap, mapUv);
     vec4 creepColor = texture2D(creepBitmap, mapUv);
     vec4 unitsColor = texture2D(unitsBitmap, mapUv);
@@ -51,6 +84,30 @@ void main() {
         uSoftEdges
     );
 
+
+
     gl_FragColor = result.rgba;
+
+    // // Check if the current pixel (mapUv) is within the camera bounds
+    // bool withinBounds = isPointInQuadrilateral(mapUv, uCameraBoundsBL + hv, uCameraBoundsBR + hv, uCameraBoundsTR + hv, uCameraBoundsTL + hv);
+    
+    // // If within bounds, overlay some color or modify existing color
+    // if (withinBounds) {
+    //     gl_FragColor = mix(gl_FragColor, vec4(0.0, 1.0, 0.0, 0.5), 0.1);  // Mix with red as an example
+    // }
+
+// Calculate the minimum distance from the current pixel to any of the edges
+    float minDist = min(
+        min(pointToLineDistance(uCameraBoundsBL + hv, uCameraBoundsBR + hv, mapUv), pointToLineDistance(uCameraBoundsBR + hv, uCameraBoundsTR + hv, mapUv)),
+        min(pointToLineDistance(uCameraBoundsTR + hv, uCameraBoundsTL + hv, mapUv), pointToLineDistance(uCameraBoundsTL + hv, uCameraBoundsBL + hv, mapUv))
+    );
+
+    // Threshold for edge thickness, you may need to adjust this
+    float threshold = 0.005;  // Adjust based on your coordinate system
+
+    // If within the edge thickness, color the pixel
+    if (minDist < threshold) {
+        gl_FragColor = mix(gl_FragColor, vec4(1.0, 1.0, 1.0, 0.5), 0.1);  // Mix with red as an example
+    }
 
 }

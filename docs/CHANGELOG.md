@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New website http://titanreactor.imbateam.com/
 - Plugin API documentation in https://imbateam-gg.github.io/titan-reactor/
 - Drag and drop files to load them
+- Minimap Box
 
 ## [0.6.9] - 2023-09-10
 
