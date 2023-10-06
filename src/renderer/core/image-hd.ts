@@ -281,7 +281,7 @@ export class ImageHD
 
         if ( distance < raycaster.near || distance > raycaster.far ) return;
 
-        Triangle.getUV( _intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, _uv );
+        Triangle.getInterpolation( _intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, _uv );
 
         const x = _uv.x - 0.5;
         const y = _uv.y - 0.5;

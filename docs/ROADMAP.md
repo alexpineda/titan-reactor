@@ -106,6 +106,8 @@ ROADMAP
 - resetting values after running scripts
 - Macros (copy, copy action)
 - Export / tweak terrain
+- Story maker plugin
+- Youtube music plugin
 
 https://github.com/mrdoob/three.js/pull/23321/files
 

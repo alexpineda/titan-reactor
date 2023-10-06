@@ -97,7 +97,7 @@ class SelectionBarMaterial extends MeshBasicMaterial {
                 "#include <map_fragment>",
                 `
             vec3 gray = vec3(0.4);
-            float ty = 1. - vUv.y;
+            float ty = 1. - vMapUv.y;
 
             vec2 shieldsPos = vec2(0., barHeight) * hasShields;
             vec2 hpPos = shieldsPos + vec2(0.33 * hasShields,  mix(barHeight, 0.33, hasShields));
@@ -109,20 +109,20 @@ class SelectionBarMaterial extends MeshBasicMaterial {
 
             vec3 hpC1 = mix(bwRedColor, bwYellowColor, step(1./3., hp));
             hpC1 = mix(hpC1, bwGreenColor, step(2./3., hp));
-            hpC1 =  mix(hpC1, gray, step(hp, vUv.x));
+            hpC1 =  mix(hpC1, gray, step(hp, vMapUv.x));
 
             vec2 borderModifier =  vec2(1., clamp(abs(ty - hpPos.x) / barHeight * abs(ty - hpPos.y)  / barHeight, 0., 1.));
-            hpC1 = borderize(hpC1, hpC1 * 0.3, vUv * borderModifier);
+            hpC1 = borderize(hpC1, hpC1 * 0.3, vMapUv * borderModifier);
             
             vec4 hpC = vec4(hpC1, 1.);
 
             borderModifier = vec2(1., clamp(abs(ty - shieldsPos.x) / barHeight * abs(ty - shieldsPos.y)  / barHeight, 0., 1.));
-            vec3 shield1C = mix(shieldsColor, gray, step(shields, vUv.x));
-            vec4 shieldC =  vec4(borderize(shield1C, shield1C * 0.3, vUv * borderModifier), 1.)  * hasShields;
+            vec3 shield1C = mix(shieldsColor, gray, step(shields, vMapUv.x));
+            vec4 shieldC =  vec4(borderize(shield1C, shield1C * 0.3, vMapUv * borderModifier), 1.)  * hasShields;
 
             borderModifier = vec2(1., clamp(abs(ty - energyPos.x) / barHeight * abs(ty - energyPos.y)  / barHeight, 0., 1.));
-            vec3 energyC1 = mix(energyColor, gray, step(energy, vUv.x));
-            vec4 energyC =  vec4(borderize(energyC1, energyC1 * 0.3, vUv * borderModifier), 1.) * hasEnergy;
+            vec3 energyC1 = mix(energyColor, gray, step(energy, vMapUv.x));
+            vec4 energyC =  vec4(borderize(energyC1, energyC1 * 0.3, vMapUv * borderModifier), 1.) * hasEnergy;
 
             diffuseColor = shieldC * drawShield + hpC * drawHp + energyC * drawEnergy;
 

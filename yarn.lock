@@ -1855,10 +1855,10 @@
   resolved "https://registry.yarnpkg.com/@types/stats.js/-/stats.js-0.17.0.tgz#0ed81d48e03b590c24da85540c1d952077a9fe20"
   integrity sha512-9w+a7bR8PeB0dCT/HBULU2fMqf6BAzvKbxFboYhmDtDkKPiyXYbjoe2auwsXlEFI7CFNMF1dCv3dFH5Poy9R1w==
 
-"@types/three@^0.150.1":
-  version "0.150.1"
-  resolved "https://registry.yarnpkg.com/@types/three/-/three-0.150.1.tgz#32a594ac0d8452d37ad3abbb22a9496878ac6c77"
-  integrity sha512-ZXS1M3brsfAAbTeeUEt0defPi98yWQuEyPBnvjEYY1dCEYfJnFaww0mYgRpJ9JVfmtwRxqISpVcv/g/0lMl1DQ==
+"@types/three@0.151.0":
+  version "0.151.0"
+  resolved "https://registry.yarnpkg.com/@types/three/-/three-0.151.0.tgz#ed2f5a9f6716a80ab284435aad056641b98ec695"
+  integrity sha512-hwOyN4szaikHsNzqbYLBfGvXi+TA/1TIKvK3ujJi+cQXzYzE5ZymzlDnOA6/cTSozY1juPFE3u5agToVQKb9TQ==
   dependencies:
     "@types/stats.js" "*"
     "@types/webxr" "*"
@@ -8653,10 +8653,10 @@ three-mesh-bvh@^0.5.10:
   resolved "https://registry.yarnpkg.com/three-mesh-bvh/-/three-mesh-bvh-0.5.23.tgz#08e5b629144b48b11acbd433519680e457d398ed"
   integrity sha512-nyk+MskdyDgECqkxdv57UjazqqhrMi+Al9PxJN6yFtx1CTW4r0eCQ27FtyYKY5gCIWhxjtNfWYDPVy8lzx6LkA==
 
-three@0.150.0:
-  version "0.150.0"
-  resolved "https://registry.yarnpkg.com/three/-/three-0.150.0.tgz#38a324c3976e07799671d06d99f01b02a2fe65c6"
-  integrity sha512-12oqqBZom9fb5HtX3rD8qPVnamojuiN5Os7r0x8s3HQ+WHRwnEyzl2XU3aEKocsDkG++rkE9+HWzx77O59NXtw==
+three@0.151.0:
+  version "0.151.0"
+  resolved "https://registry.yarnpkg.com/three/-/three-0.151.0.tgz#05b21fe1d97448916942b31658865b6adc666b48"
+  integrity sha512-ZvjJbNhZ/t0L8I36tc1I1ZP9j1q42ANE9WTlR+P3lZfOzlSfNa5VfR1rZRHNyjn/ZPP4kU7xGI1v8QSJOpxE4w==
 
 threejs-shader-materials@MasatoMakino/threejs-shader-materials:
   version "0.5.0"

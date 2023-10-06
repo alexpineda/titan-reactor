@@ -188,7 +188,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         if ( this.teamMask ) {
             mapFragments.push( [
                 `
-        float maskValue = texture2D( teamMask, vUv ).r;
+        float maskValue = texture2D( teamMask, vMapUv ).r;
         diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * uTeamColor, maskValue), diffuseColor.a);
         `,
                 `uniform sampler2D teamMask;
@@ -203,7 +203,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
         } else if ( this.modifier === drawFunctions.warpFlash ) {
             mapFragments.push( [
                 `
-        vec2 warpUv = vUv * 0.2 + vec2(0.2 * mod(modifierData.x, 5.), 0.2 * floor(modifierData.x / 5.));
+        vec2 warpUv = vMapUv * 0.2 + vec2(0.2 * mod(modifierData.x, 5.), 0.2 * floor(modifierData.x / 5.));
         vec4 warp = texture2D( warpInFlashTexture, warpUv );
         diffuseColor = vec4(warp.rgb, diffuseColor.a);
       `,
@@ -226,7 +226,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
 
         mapFragments.push( [
             `
-            // diffuseColor = mix( diffuseColor, vec4(1.), 1. -  step(0.1, vUv.x) * step(0.1, vUv.y) * step(vUv.x, 0.9) * step(vUv.y, 0.9) );
+            // diffuseColor = mix( diffuseColor, vec4(1.), 1. -  step(0.1, vMapUv.x) * step(0.1, vMapUv.y) * step(vMapUv.x, 0.9) * step(vMapUv.y, 0.9) );
         `,
             `
     uniform float modifier;
@@ -262,7 +262,7 @@ export class ImageHDMaterial extends MeshBasicMaterial {
                 vec4 posUv = texture(uvPosTex, fUv);
 
                 transformed = vec3(posUv.x, posUv.y, transformed.z);
-                vUv = vec2(posUv.z, posUv.w);
+                vMapUv = vec2(posUv.z, posUv.w);
             `,
         } );
 

@@ -147,7 +147,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         if ( this.teamMask ) {
             mapFragments.push( [
                 `
-                float maskValue = texture2D( teamMask, vUv ).r;
+                float maskValue = texture2D( teamMask, vMapUv ).r;
                 diffuseColor = vec4(mix(diffuseColor.rgb, diffuseColor.rgb * vTeamColor, maskValue), diffuseColor.a);
                 `,
                 "uniform sampler2D teamMask;",
@@ -164,7 +164,7 @@ export class ImageHDInstancedMaterial extends MeshBasicMaterial {
         mapFragments.push( [
             `
         // // warp1
-        // vec2 warpUv = vUv * 0.2 + vec2(0.2 * mod(modifierData1, 5.), 0.2 * floor(modifierData1 / 5.));
+        // vec2 warpUv = vMapUv * 0.2 + vec2(0.2 * mod(modifierData1, 5.), 0.2 * floor(modifierData1 / 5.));
         // vec4 warp = texture2D( warpInFlashTexture, warpUv );
         // diffuseColor = vec4(mix(diffuseColor.rgb, warp.rgb, vModifierType.x), diffuseColor.a);
 

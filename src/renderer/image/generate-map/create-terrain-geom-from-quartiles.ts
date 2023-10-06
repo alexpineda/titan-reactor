@@ -138,41 +138,43 @@ export const createTerrainGeometryFromQuartiles = (
                 let fs = shader.fragmentShader;
 
                 fs = fs.replace( "#include <map_fragment>", hdMapFrag );
-                fs = fs.replace(
-                    "#include <roughnessmap_fragment>",
-                    ShaderChunk.roughnessmap_fragment.replace( "vUv", "qUv" )
-                );
-                fs = fs.replace(
-                    "#include <normal_fragment_begin>",
-                    `
+                // fs = fs.replace(
+                //     "#include <roughnessmap_fragment>",
+                //     ShaderChunk.roughnessmap_fragment.replace( "vRoughnessMapUv", "qUv" )
+                // );
+                // fs = fs.replace(
+                //     "#include <normal_fragment_begin>",
+                //     `
 
-                    #include <normal_fragment_begin>
+                //     #include <normal_fragment_begin>
 
-                    #ifdef USE_WATER_MASK
+                //     #ifdef USE_WATER_MASK
 
-	                // normal = mix(normal, normalize(vec3(waterNormal.x, 1.0, waterNormal.z)) * 2.0 - 1.0, destWaterMask);
+	            //     // normal = mix(normal, normalize(vec3(waterNormal.x, 1.0, waterNormal.z)) * 2.0 - 1.0, destWaterMask);
 
-                    #endif
+                //     #endif
                 
-                `
-                );
+                // `
+                // );
 
                 shader.fragmentShader = [ hdHeaderFrag, fs ].join( "\n" );
 
                 let vs = shader.vertexShader;
 
+                //TODO: Replace qUv with map transformations?
                 vs = vs.replace(
                     "#include <uv_vertex>",
                     `
 
                     ${ShaderChunk.uv_vertex}
 
-                    qUv = vUv * quartileSize.xy + vec2(quartileSize.z, (1. - quartileSize.y) - quartileSize.w);`
+                    qUv = vMapUv * quartileSize.xy + vec2(quartileSize.z, (1. - quartileSize.y) - quartileSize.w);`
                 );
 
+                //TODO: Replace qUv with map transformations?
                 vs = vs.replace(
                     "#include <displacementmap_vertex>",
-                    ShaderChunk.displacementmap_vertex.replace( "vUv", "qUv" )
+                    ShaderChunk.displacementmap_vertex.replace( "vDisplacementMapUv", "qUv" )
                 );
 
                 vs = vs.replace(
