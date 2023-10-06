@@ -8,7 +8,7 @@ import {
     OrthographicCamera,
     PlaneGeometry,
     Scene,
-    sRGBEncoding,
+    SRGBColorSpace,
     Vector3,
     WebGLRenderer,
     WebGLRenderTarget,
@@ -91,7 +91,6 @@ export const ddsToCreepEdgesTexture = (
 
     const rt = new WebGLRenderTarget( renderWidth, renderHeight, {
         anisotropy: renderer.capabilities.getMaxAnisotropy(),
-        encoding: sRGBEncoding,
         generateMipmaps: true,
         depthBuffer: false,
         minFilter: NearestFilter,
@@ -99,6 +98,7 @@ export const ddsToCreepEdgesTexture = (
     } );
     renderer.setRenderTarget( rt );
     renderer.setSize( renderWidth, renderHeight );
+    rt.texture.colorSpace = SRGBColorSpace;
 
     const scene = new Scene();
     scene.name = "creep-edges-ortho-scene";
@@ -109,7 +109,7 @@ export const ddsToCreepEdgesTexture = (
         const y = 0;
         const grp = creepGrp[i];
         const texture = createDDSTexture( parseDDS( grp.dds ) );
-        texture.encoding = sRGBEncoding;
+        texture.colorSpace = SRGBColorSpace;
 
         const mesh = new Mesh(
             plane,
@@ -133,7 +133,7 @@ export const ddsToCreepEdgesTexture = (
     renderer.setRenderTarget( null );
 
     const texture = rt.texture;
-    texture.encoding = sRGBEncoding;
+    texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     texture.minFilter = NearestFilter;
     texture.magFilter = NearestFilter;

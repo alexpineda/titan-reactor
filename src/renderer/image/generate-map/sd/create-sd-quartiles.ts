@@ -1,5 +1,5 @@
 import { WrappedQuartileTextures } from "common/types";
-import { DataTexture, RGBAFormat, sRGBEncoding, UnsignedByteType } from "three";
+import { DataTexture, RGBAFormat,  SRGBColorSpace,  UnsignedByteType } from "three";
 import range from "common/utils/range";
 
 /**
@@ -44,7 +44,7 @@ export const createSdQuartiles = (
                     UnsignedByteType
                 );
                 t.flipY = true;
-                t.encoding = sRGBEncoding;
+                t.colorSpace = SRGBColorSpace;
                 t.needsUpdate = true;
                 return t;
             } )

@@ -5,13 +5,13 @@ import {
     Vector3,
     PlaneGeometry,
     Mesh,
-    sRGBEncoding,
     WebGLRenderer,
     Texture,
     WebGLRenderTarget,
     NearestFilter,
     DoubleSide,
     CompressedTexture,
+    SRGBColorSpace,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures, UnitTileScale } from "common/types";
@@ -95,10 +95,11 @@ export const createHdQuartiles = (
                 anisotropy: renderer.capabilities.getMaxAnisotropy(),
                 minFilter: NearestFilter,
                 magFilter: NearestFilter,
-                encoding: sRGBEncoding,
                 depthBuffer: false,
                 generateMipmaps: true,
             } );
+            rt.texture.colorSpace = SRGBColorSpace;
+
             renderTargets.push( rt );
             renderer.setRenderTarget( rt );
             quartileScene.scale.set( 1, 1, -1 );
@@ -130,7 +131,7 @@ export const createHdQuartiles = (
                         if ( !hdCache.has( tile ) ) {
                             hdCache.set( tile, texture );
                         }
-                        texture.encoding = sRGBEncoding;
+                        texture.colorSpace = SRGBColorSpace;
 
                         mat.map = texture;
                         mesh.name = "hd-tile";
@@ -164,7 +165,7 @@ export const createHdQuartiles = (
             }
 
             mapQuartiles[qx][qy] = rt.texture;
-            mapQuartiles[qx][qy].encoding = sRGBEncoding;
+            mapQuartiles[qx][qy].colorSpace = SRGBColorSpace;
 
             waterMaskQuartiles[qx][qy] = waterRT.texture;
 

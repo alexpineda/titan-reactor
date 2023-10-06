@@ -9,7 +9,7 @@ import path from "path";
 import { TextureLoader } from "three";
 
 const _defaultOpts = {
-    encoding: THREE.LinearEncoding as THREE.TextureEncoding,
+    colorSpace: THREE.LinearSRGBColorSpace as THREE.ColorSpace,
     format: THREE.RGBAFormat as THREE.PixelFormat | undefined,
     textureDataType: THREE.UnsignedByteType as THREE.TextureDataType | undefined,
     flipY: true as boolean,
@@ -58,7 +58,7 @@ const createDataTexture = (
     );
     tex.flipY = opts.flipY;
     tex.needsUpdate = true;
-    tex.encoding = opts.encoding;
+    tex.colorSpace = opts.colorSpace;
     if ( opts.internalFormat ) {
         tex.internalFormat = opts.internalFormat;
     }
@@ -91,7 +91,7 @@ export const createLookupTextures = async (
     const janitor = new Janitor( "MapDataTextures" );
 
     const mapDiffuseTex = createDataTexture( lookupBitmaps.diffuse, w32, h32, {
-        encoding: THREE.sRGBEncoding,
+        colorSpace: THREE.SRGBColorSpace,
     } );
 
     const occlussionRoughnessMetallicTex = createDataTexture(
@@ -149,7 +149,7 @@ export const createLookupTextures = async (
         new Float32Array( td.palette.length ).fill( 0 ).map( ( _, i ) => td.palette[i] / 255 ),
         td.palette.length / 4,
         1,
-        { textureDataType: THREE.FloatType, flipY: false, encoding: THREE.sRGBEncoding }
+        { textureDataType: THREE.FloatType, flipY: false, colorSpace: THREE.SRGBColorSpace }
     );
 
     const effectsTextures = {

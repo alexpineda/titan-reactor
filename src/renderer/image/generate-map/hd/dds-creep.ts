@@ -7,11 +7,11 @@ import {
     Vector3,
     PlaneGeometry,
     Mesh,
-    sRGBEncoding,
     WebGLRenderer,
     NearestFilter,
     WebGLRenderTarget,
     LinearEncoding,
+    SRGBColorSpace,
 } from "three";
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { createDDSTexture, parseDDS } from "@image/formats";
@@ -61,7 +61,7 @@ export const ddsToCreepTexture = (
         const y = 0;
         // get the 13 creep tiles in the 2nd tile group including a first empty tile
         const texture = createDDSTexture( parseDDS( tiles[tilegroupU16[36 + i]] ) );
-        texture.encoding = sRGBEncoding;
+        texture.colorSpace = SRGBColorSpace;
 
         const mat = new MeshBasicMaterial( {
             map: texture,
@@ -76,7 +76,7 @@ export const ddsToCreepTexture = (
 
     renderer.render( scene, ortho );
     const texture = rt.texture;
-    texture.encoding = sRGBEncoding;
+    texture.colorSpace = SRGBColorSpace;
     texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     texture.flipY = true;
     texture.minFilter = NearestFilter;

@@ -3,7 +3,7 @@ import {
     DataTexture,
     NearestFilter,
     RGBAFormat,
-    sRGBEncoding,
+    SRGBColorSpace,
     UnsignedByteType,
 } from "three";
 import { TilesetData } from "../get-tileset-buffers";
@@ -79,7 +79,7 @@ export const grpToCreepTexture = ( {
         UnsignedByteType
     );
     texture.flipY = true;
-    texture.encoding = sRGBEncoding;
+    texture.colorSpace = SRGBColorSpace;
     texture.needsUpdate = true;
     texture.minFilter = NearestFilter;
     texture.magFilter = NearestFilter;

@@ -1,5 +1,5 @@
 import { Grp } from "..";
-import { ClampToEdgeWrapping, DataTexture, LinearFilter, sRGBEncoding } from "three";
+import { ClampToEdgeWrapping, DataTexture, LinearFilter, SRGBColorSpace  } from "three";
 import { ImageDAT } from "common/types";
 
 import { drawFunctions } from "common/enums/draw-functions";
@@ -139,7 +139,7 @@ export class LegacyGRP {
         this.texture.magFilter = LinearFilter;
         this.texture.wrapT = ClampToEdgeWrapping;
         this.texture.wrapS = ClampToEdgeWrapping;
-        this.texture.encoding = sRGBEncoding;
+        this.texture.colorSpace = SRGBColorSpace;
         this.texture.needsUpdate = true;
 
         if ( maskOut ) {

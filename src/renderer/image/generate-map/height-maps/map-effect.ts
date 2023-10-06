@@ -1,4 +1,4 @@
-import { LinearEncoding, Matrix3, sRGBEncoding, Uniform, Texture } from "three";
+import { LinearEncoding, Matrix3, Uniform, Texture, SRGBColorSpace, SRGBToLinear, LinearSRGBColorSpace } from "three";
 import { ColorChannel, BlendFunction, Effect } from "postprocessing";
 import fragmentShader from "./map-effect.frag.glsl?raw";
 
@@ -93,16 +93,17 @@ export class MapEffect extends Effect {
 
         if ( currentTexture !== value ) {
             const previousEncoding =
-                currentTexture !== null ? currentTexture.encoding : null;
+                currentTexture !== null ? currentTexture.colorSpace : null;
             this.uniforms.get( "texture" )!.value = value;
 
+            //TODO: verify if we still need this change
             if ( value !== null ) {
-                switch ( value.encoding ) {
-                    case sRGBEncoding:
+                switch ( value.colorSpace ) {
+                    case SRGBColorSpace:
                         this.defines.set( "texelToLinear(texel)", "texel" );
                         break;
 
-                    case LinearEncoding:
+                    case LinearSRGBColorSpace:
                         this.defines.set( "texelToLinear(texel)", "texel" );
                         break;
 
@@ -111,7 +112,7 @@ export class MapEffect extends Effect {
                         break;
                 }
 
-                if ( previousEncoding !== value.encoding ) {
+                if ( previousEncoding !== value.colorSpace ) {
                     this.setChanged();
                 }
             }

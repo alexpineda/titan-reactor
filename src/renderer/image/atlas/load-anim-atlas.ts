@@ -6,14 +6,13 @@ import {
     ClampToEdgeWrapping,
     DataArrayTexture,
     FloatType,
-    sRGBEncoding,
     NearestFilter,
     RGBAFormat,
+    SRGBColorSpace,
 } from "three";
 import { Janitor } from "three-janitor";
 import { parseDDS } from "@image/formats/parse-dds";
 import { calculateFrame } from "@utils/image-utils";
-import { renderComposer } from "@render/render-composer";
 
 const getBufDds = ( buf: Buffer, { ddsOffset, size }: AnimDds ) =>
     buf.slice( ddsOffset, ddsOffset + size );
@@ -41,7 +40,7 @@ export const loadAnimAtlas = (
             return undefined;
         }
         const ddsBuf = getBufDds( buf, layer );
-        return janitor.mop( createDDSTexture( parseDDS( ddsBuf ), sRGBEncoding ), "layer" );
+        return janitor.mop( createDDSTexture( parseDDS( ddsBuf ), SRGBColorSpace ), "layer" );
     };
 
     const teammask = optionalLoad( sprite.maps.teamcolor );
@@ -153,7 +152,7 @@ export const loadAnimAtlas = (
     uvPosDataTex.wrapS = uvPosDataTex.wrapT = ClampToEdgeWrapping;
     uvPosDataTex.needsUpdate = true;
 
-    renderComposer.getWebGLRenderer().initTexture( uvPosDataTex );
+    // renderComposer.getWebGLRenderer().initTexture( uvPosDataTex );
 
     return {
         isHD: scale === UnitTileScale.HD,

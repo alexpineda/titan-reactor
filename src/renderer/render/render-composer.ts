@@ -1,8 +1,8 @@
 import {
     HalfFloatType,
-    LinearEncoding,
+    LinearSRGBColorSpace,
     ShaderChunk,
-    sRGBEncoding,
+    SRGBColorSpace,
     Vector4,
     VSMShadowMap,
     WebGLRenderer,
@@ -30,7 +30,7 @@ export const createWebGLRenderer = () => {
         alpha: false,
         precision: "highp",
     } );
-    renderer.outputEncoding = sRGBEncoding;
+    renderer.outputColorSpace = SRGBColorSpace;
     renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
     renderer.xr.enabled = true;
 
@@ -186,12 +186,12 @@ export class TitanRenderComposer {
     // for rendering atlases ahead of time like terrain textures, icons, etc.
     preprocessStart() {
         this.getWebGLRenderer().autoClear = false;
-        this.getWebGLRenderer().outputEncoding = LinearEncoding;
+        this.getWebGLRenderer().outputColorSpace = LinearSRGBColorSpace;
     }
 
     preprocessEnd() {
         this.getWebGLRenderer().autoClear = false;
-        this.getWebGLRenderer().outputEncoding = sRGBEncoding;
+        this.getWebGLRenderer().outputColorSpace = SRGBColorSpace;
     }
 }
 

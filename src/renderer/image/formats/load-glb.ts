@@ -5,7 +5,7 @@ import {
     Mesh,
     MeshStandardMaterial,
     Object3D,
-    sRGBEncoding,
+    SRGBColorSpace,
     Texture,
 } from "three";
 
@@ -45,8 +45,8 @@ export function loadGlb(
                         o.castShadow = true;
                         o.receiveShadow = true;
                         if ( ( o.material as MeshStandardMaterial ).map ) {
-                            ( o.material as MeshStandardMaterial ).map!.encoding =
-                                sRGBEncoding;
+                            ( o.material as MeshStandardMaterial ).map!.colorSpace =
+                                SRGBColorSpace;
                         }
                         if ( envMap ) {
                             ( o.material as MeshStandardMaterial ).envMap = envMap;

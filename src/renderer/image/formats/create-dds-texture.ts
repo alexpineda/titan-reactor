@@ -3,12 +3,12 @@ import {
     CompressedPixelFormat,
     CompressedTexture,
     LinearFilter,
-    sRGBEncoding,
+    SRGBColorSpace,
 } from "three";
 
 import { DDS } from "./parse-dds";
 
-export const createDDSTexture = ( texDatas: DDS, encoding = sRGBEncoding ) => {
+export const createDDSTexture = ( texDatas: DDS, colorSpace = SRGBColorSpace ) => {
     //ported from https://github.com/mrdoob/three.js/blob/45b0103e4dd9904b341d05ed991113f2f9edcc70/src/loaders/CompressedTextureLoader.js
 
     const texture = new CompressedTexture(
@@ -28,7 +28,7 @@ export const createDDSTexture = ( texDatas: DDS, encoding = sRGBEncoding ) => {
     texture.magFilter = LinearFilter;
     texture.wrapT = ClampToEdgeWrapping;
     texture.wrapS = ClampToEdgeWrapping;
-    texture.encoding = encoding;
+    texture.colorSpace = colorSpace;
     texture.flipY = false;
     return texture;
 };

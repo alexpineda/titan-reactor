@@ -1,4 +1,4 @@
-import { CanvasTexture, sRGBEncoding } from "three";
+import { CanvasTexture, SRGBColorSpace } from "three";
 
 import { rgbToCanvas } from ".";
 
@@ -10,6 +10,6 @@ export const imageToCanvasTexture = (
 ) => {
     const canvas = rgbToCanvas( { data, width, height }, format );
     const texture = new CanvasTexture( canvas );
-    texture.encoding = sRGBEncoding;
+    texture.colorSpace = SRGBColorSpace;
     return texture;
 };
