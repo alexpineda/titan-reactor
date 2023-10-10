@@ -6,7 +6,6 @@ import { ImageEntities } from "@core/image-entities";
 import { ImageHD } from "@core/image-hd";
 import {
     applyModelEffectsToImage3d,
-    applyRenderModeToImageHD,
     applyRenderModeToSprite,
     overlayEffectsMainImage,
 } from "@core/model-effects";
@@ -172,59 +171,58 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
     const _images: ImageBase[] = [];
 
     const buildSprite = (
-        spriteData: SpritesBufferView,
+        spriteStruct: SpritesBufferView,
         delta: number,
         renderMode3D: boolean,
-        direction: number
     ) => {
-        const unit = sprites.getUnit( spriteData.index );
-        const sprite = sprites.getOrCreate( spriteData.index, spriteData.typeId );
+        const unit = sprites.getUnit( spriteStruct.index );
+        const sprite = sprites.getOrCreate( spriteStruct.index, spriteStruct.typeId );
 
-        const dat = assets.bwDat.sprites[spriteData.typeId];
+        const dat = assets.bwDat.sprites[spriteStruct.typeId];
 
         // doodads and resources are always visible
         // show units as fog is lifting from or lowering to explored
         // show if a building has been explored
         sprite.visible =
-            !spriteIsHidden( spriteData ) &&
-            ( spriteData.owner === 11 ||
+            !spriteIsHidden( spriteStruct ) &&
+            ( spriteStruct.owner === 11 ||
                 imageIsDoodad( dat.image ) ||
                 world.fogOfWar.isSomewhatVisible(
-                    floor32( spriteData.x ),
-                    floor32( spriteData.y )
+                    floor32( spriteStruct.x ),
+                    floor32( spriteStruct.y )
                 ) );
 
-        sprite.renderOrder = renderMode3D ? 0 : spriteSortOrder( spriteData );
+        sprite.renderOrder = renderMode3D ? 0 : spriteSortOrder( spriteStruct );
 
-        _spriteY = spriteData.extYValue + spriteData.extFlyOffset * 1;
+        _spriteY = spriteStruct.extYValue + spriteStruct.extFlyOffset * 1;
         _spriteY = _spriteY * terrain.geomOptions.maxTerrainHeight + 0.1;
 
         if ( sprite.userData.isNew || unit === undefined || !unitIsFlying( unit ) ) {
             sprite.position.set(
-                pxToWorld.x( spriteData.x ),
+                pxToWorld.x( spriteStruct.x ),
                 _spriteY,
-                pxToWorld.y( spriteData.y )
+                pxToWorld.y( spriteStruct.y )
             );
             sprite.userData.isNew = false;
         } else {
             _spriteY = MathUtils.damp( sprite.position.y, _spriteY, 0.001, delta );
             sprite.position.set(
-                pxToWorld.x( spriteData.x ),
+                pxToWorld.x( spriteStruct.x ),
                 _spriteY,
-                pxToWorld.y( spriteData.y )
+                pxToWorld.y( spriteStruct.y )
             );
         }
 
         // const groundY = terrain.getTerrainY(sprite.position.x, sprite.position.y);
 
+        _images.length = 0;
         overlayEffectsMainImage.image = null;
 
-        _images.length = 0;
 
-        for ( const imgAddr of spriteData.images.reverse() ) {
-            const imageData = world.openBW.structs.image.get( imgAddr );
+        for ( const imgAddr of spriteStruct.images.reverse() ) {
+            const imageStruct = world.openBW.structs.image.get( imgAddr );
 
-            const image = images.getOrCreate( imageData.index, imageData.typeId );
+            const image = images.getOrCreate( imageStruct.index, imageStruct.typeId );
             if ( !image ) {
                 continue;
             }
@@ -234,30 +232,30 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 image.dat.drawFunction !== drawFunctions.rleShadow;
             image.visible =
                 sprite.visible &&
-                !imageIsHidden( imageData as ImageStruct ) &&
+                !imageIsHidden( imageStruct as ImageStruct ) &&
                 shadowVisible;
-            image.userData.imageAddress = imageData._address;
+            image.userData.imageAddress = imageStruct._address;
 
             if ( !image.visible ) continue;
 
             //TODO: optimize depending on imageNeedsRedraw
 
-            image.setTeamColor( world.players.get(spriteData.owner)?.color ?? white );
+            image.setTeamColor( world.players.get(spriteStruct.owner)?.color ?? white );
             image.setModifiers(
-                imageData.modifier,
-                imageData.modifierData1,
-                imageData.modifierData2
+                imageStruct.modifier,
+                imageStruct.modifierData1,
+                imageStruct.modifierData2
             );
             image.position.set( 0, 0, 0 );
 
             //overlay offsets typically
             if (
                 image instanceof ImageHD &&
-                imageData.typeId !== imageTypes.bunkerOverlay
+                imageStruct.typeId !== imageTypes.bunkerOverlay
             ) {
-                image.position.x = imageData.x / 32;
+                image.position.x = imageStruct.x / 32;
                 // flying building or drone, don't use 2d offset
-                image.position.y = imageIsFrozen( imageData ) ? 0 : -imageData.y / 32;
+                image.position.y = imageIsFrozen( imageStruct ) ? 0 : -imageStruct.y / 32;
             }
 
             image.renderOrder = _images.length;
@@ -274,7 +272,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 }
             }
 
-            if ( imageData.index === spriteData.mainImageIndex ) {
+            if ( imageStruct.index === spriteStruct.mainImageIndex ) {
                 simpleIndex[
                     `${Math.floor(
                         ( sprite.position.x / world.map.size[0] ) * 4
@@ -283,28 +281,26 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
                 sprite.userData.mainImage = image;
 
+                if ( unit ) {
+                    images.setUnit( image, unit );
+                }
+
                 if ( isImage3d( image ) ) {
                     overlayEffectsMainImage.image = image;
                 }
 
-                if ( unit ) {
-                    images.setUnit( image, unit );
-                }
             }
 
-            if ( isImageHd( image ) ) {
-                applyRenderModeToImageHD( imageData, image, renderMode3D, direction );
-            } else if ( isImage3d( image ) ) {
-                applyModelEffectsToImage3d( imageData, image, unit );
-            } else {
-                throw new Error( "unknown image type" );
+            if (isImage3d( image ) ) {
+                applyModelEffectsToImage3d( imageStruct, image, images.getUnit(image ) );
             }
+
 
             _images.push( image );
         }
 
         applyRenderModeToSprite(
-            spriteData.typeId,
+            spriteStruct.typeId,
             sprite,
             terrain.getTerrainY( sprite.position.x, sprite.position.z )
         );
@@ -357,8 +353,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         2000
     );
 
-    const _alreadyCalculated = new Set<number>(),
-        _cameraWorldDirection = new Vector3();
+    const _alreadyCalculated = new Set<number>();
 
         
     const pxToWorldInverse = makePxToWorld( ...world.map.size, terrain.getTerrainY, true );
@@ -381,7 +376,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             delta: number,
             elapsed: number,
             viewport: GameViewPort | boolean,
-            direction?: number
         ) {
             preloader.update( elapsed );
 
@@ -434,19 +428,14 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             // support precompile w/out viewport
             if ( typeof viewport === "boolean" ) {
                 for ( const sprite of world.openBW.iterators.sprites ) {
-                    buildSprite( sprite, delta, viewport, direction! );
+                    buildSprite( sprite, delta, viewport  );
                 }
             } else {
-                viewport.camera.getWorldDirection( _cameraWorldDirection );
-
-                viewport.updateDirection32();
-
                 for ( const sprite of world.openBW.iterators.sprites ) {
                     buildSprite(
                         sprite,
                         delta,
                         viewport.renderMode3D,
-                        viewport.camera.userData.direction
                     );
                 }
             }

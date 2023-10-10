@@ -60,25 +60,25 @@ let _frameInfo: { frame: number; flipped: boolean } = { frame: 0, flipped: false
 let _needsUpdateFrame = false;
 
 export const applyRenderModeToImageHD = (
-    imageData: ImageBufferView,
+    imageStruct: ImageBufferView,
     image: ImageHD,
     renderMode3D: boolean,
     direction: number
 ) => {
-    imageTypeId = gameStore().assets!.refId( imageData.typeId );
+    imageTypeId = gameStore().assets!.refId( imageStruct.typeId );
 
     image.material.depthTest = renderMode3D;
     image.material.depthWrite = false;
 
     //TODO: don't set directional on firebat flame (421) if eminating from bunker (see: bwgame.h:12513)
     if (
-        imageHasDirectionalFrames( imageData ) &&
-        imageData.typeId !== imageTypes.bunkerOverlay
+        imageHasDirectionalFrames( imageStruct ) &&
+        imageStruct.typeId !== imageTypes.bunkerOverlay
     ) {
-        _frameInfo = applyCameraDirectionToImageFrame( direction, imageData );
+        _frameInfo = applyCameraDirectionToImageFrame( direction, imageStruct );
     } else {
-        _frameInfo.frame = imageData.frameIndex;
-        _frameInfo.flipped = imageIsFlipped( imageData );
+        _frameInfo.frame = imageStruct.frameIndex;
+        _frameInfo.flipped = imageIsFlipped( imageStruct );
     }
 
     if ( renderMode3D && modelSetModifiers.images[imageTypeId] ) {
@@ -98,7 +98,7 @@ export const applyRenderModeToImageHD = (
     image.setFrame( _frameInfo.frame, _frameInfo.flipped );
 
     if ( renderMode3D ) {
-        applyOverlayEffectsToImageHD( imageData );
+        applyOverlayEffectsToImageHD( imageStruct );
     }
 };
 

@@ -291,6 +291,8 @@ export class GameViewPort {
     }
 
     update( targetDamping: number, delta: number ) {
+
+        this.updateDirection32();
         this.orbit.dampingFactor = MathUtils.damp(
             this.orbit.dampingFactor,
             targetDamping,

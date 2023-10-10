@@ -1,7 +1,4 @@
-import { ImageBufferView } from "@buffer-view/images-buffer-view";
-import { SpritesBufferViewIterator } from "@buffer-view/sprites-buffer-view-iterator";
 import { Image3D } from "@core/image-3d";
-import { ImageHD } from "@core/image-hd";
 import { applyRenderModeToImageHD } from "@core/model-effects";
 import { PostProcessingBundler } from "@render/postprocessing-bundler";
 import { renderComposer } from "@render/render-composer";
@@ -21,7 +18,7 @@ import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
 import { ViewControllerComposer } from "@core/world/view-composer";
 import { World } from "./world";
-import { isMesh } from "@utils/image-utils";
+import { isImageHd, isMesh } from "@utils/image-utils";
 
 //tank base, minerals
 const ignoreRecieveShadow = [ 250, 253, 347, 349, 351 ];
@@ -165,8 +162,6 @@ export const createPostProcessingComposer = (
     };
 
     const _target = new Vector3();
-    const spritesIterator = new SpritesBufferViewIterator( world.openBW );
-    const imageBufferView = new ImageBufferView( world.openBW );
 
     world.events.on( "settings-changed", ( { settings, rhs } ) => {
         if ( viewports.primaryRenderMode3D && rhs.postprocessing3d ) {
@@ -189,7 +184,7 @@ export const createPostProcessingComposer = (
             renderComposer.composer.setMainScene( scene );
             renderComposer.composer.setMainCamera( camera );
 
-            sceneComposer.onFrame( 0, 0, false, 0 );
+            sceneComposer.onFrame( 0, 0, false );
 
             renderComposer.render( 0 );
         },
@@ -218,7 +213,7 @@ export const createPostProcessingComposer = (
 
             for ( const v of viewports.viewports ) {
                 if (!v.enabled) continue;
-                
+
                 v.update( world.settings.getState().input.dampingFactor, delta );
 
                 if ( v === viewports.primaryViewport ) {
@@ -228,36 +223,37 @@ export const createPostProcessingComposer = (
                         v.needsUpdate = false;
                     }
                     postProcessingBundle.updateDofTarget( _target );
-                } else {
-                    // iterate all images again and update image frames according to different view camera
-                    //TODO: iterate over image objects and add image address to get buffer view
+                } 
 
-                    v.updateDirection32();
+                // iterate all images again and update image frames according to different view camera
+                for ( const spriteStruct of world.openBW.iterators.sprites ) {
+                    const object = sprites.get( spriteStruct.index );
 
-                    for ( const spriteBuffer of spritesIterator ) {
-                        const object = sprites.get( spriteBuffer.index );
+                    if ( !object || !object.visible ) continue;
 
-                        if ( !object || !object.visible ) continue;
+                    object.renderOrder = v.renderMode3D
+                        ? 0
+                        : spriteSortOrder( spriteStruct );
 
-                        object.renderOrder = v.renderMode3D
-                            ? 0
-                            : spriteSortOrder( spriteBuffer );
 
-                        for ( const imgAddr of spriteBuffer.images.reverse() ) {
-                            const imageBuffer = imageBufferView.get( imgAddr );
-                            const image = images.get( imageBuffer.index );
+                    for ( const imgAddr of spriteStruct.images.reverse() ) {
+                        const imageStruct = world.openBW.structs.image.get( imgAddr );
+                        //TODO: why would image not exist here?
+                        const image = images.get( imageStruct.index );
 
-                            if ( image instanceof ImageHD ) {
-                                applyRenderModeToImageHD(
-                                    imageBuffer,
-                                    image,
-                                    v.renderMode3D,
-                                    v.camera.userData.direction
-                                );
-                            }
+                        if ( image && isImageHd( image ) ) {
+                            //todo: remove the necessity for imageStruct by copying it into image
+                            applyRenderModeToImageHD( imageStruct, image, v.renderMode3D, v.camera.userData.direction );
                         }
+
                     }
                 }
+
+                // for (const image of images) {
+                //     if ( image && isImageHd( image ) ) {
+                //         applyRenderModeToImageHD( imageStruct, image, v.renderMode3D, v.camera.userData.direction );
+                //     }
+                // }
 
                 v.shakeStart(
                     elapsed,

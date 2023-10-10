@@ -239,8 +239,6 @@ export const createWorldComposer = async (
          * @returns
          */
         update( delta: number, elapsed: number ) {
-            if ( !viewControllerComposer.primaryViewport ) return;
-
             if ( frameResetRequested ) {
                 events.emit( "frame-reset", world.openBW.getCurrentReplayFrame() );
                 frameResetRequested = false;

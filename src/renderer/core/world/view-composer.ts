@@ -183,8 +183,7 @@ export const createViewControllerComposer = (
         /**
          * Primary viewport is necessary because audio will require a camera position, and depth of field will only apply in one viewport for performance.
          */
-        // TODO: Why is this undefinable?
-        get primaryViewport(): GameViewPort | undefined {
+        get primaryViewport(): GameViewPort  {
             return viewports[0];
         },
 
