@@ -7,7 +7,7 @@ import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
 import { UnitsBufferViewIterator, destroyedUnitsIterator, killedUnitIterator } from "@buffer-view/units-buffer-view";
 import { SpritesBufferViewIterator, deletedSpritesIterator } from "@buffer-view/sprites-buffer-view-iterator";
-import { deletedImageIterator } from "@buffer-view/images-buffer-view";
+import { ImageBufferView, deletedImageIterator } from "@buffer-view/images-buffer-view";
 
 /**
  * @public
@@ -27,6 +27,14 @@ class OpenBWIterators {
         this.deletedSpritesThisFrame = deletedSpritesIterator.bind( null, openbw );
         this.deletedImagesThisFrame = deletedImageIterator.bind( null, openbw );
         this.sprites = new SpritesBufferViewIterator( openbw );
+    }
+}
+
+class OpenBWStructViews {
+    image: ImageBufferView;
+    
+    constructor( openbw: OpenBW ) {
+        this.image = new ImageBufferView( openbw );
     }
 }
 
@@ -52,6 +60,7 @@ export class OpenBW implements OpenBW {
     unitGenerationSize = 3;
 
     iterators!: OpenBWIterators;
+    structs!: OpenBWStructViews;
 
     /**
      * Load the WASM module and initialize the OpenBW instance.
@@ -151,6 +160,7 @@ export class OpenBW implements OpenBW {
         try {
             this.#wasm.callMain();
             this.iterators = new OpenBWIterators( this );
+            this.structs = new OpenBWStructViews( this );
 
             this.running = true;
         } catch ( e ) {

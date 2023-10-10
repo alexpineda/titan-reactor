@@ -261,7 +261,7 @@ export const createWorldComposer = async (
                 sceneComposer.onFrame(
                     delta,
                     elapsed,
-                    viewControllerComposer.primaryViewport
+                    viewControllerComposer.primaryViewport!
                 );
 
                 overlayComposer.onFrame( openBwComposer.completedUpgrades );

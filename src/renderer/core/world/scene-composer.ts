@@ -1,6 +1,5 @@
-import { ImageBufferView } from "@buffer-view/images-buffer-view";
-import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
-import {
+import type { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
+import type {
     UnitsBufferView,
 } from "@buffer-view/units-buffer-view";
 import { ImageEntities } from "@core/image-entities";
@@ -64,9 +63,8 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
     );
 
     const pxToWorld = makePxToWorld( ...world.map.size, terrain.getTerrainY );
+    const pxToWorldFlat = makePxToWorld( ...world.map.size, () => 0);
 
-
-    //TODO: move these to player objects
     const startLocations = world.map.units
         .filter( ( u ) => u.unitId === unitTypes.startLocation )
         .map( ( u ) => {
@@ -170,8 +168,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
     let unit: Unit | undefined;
 
-    const imageBufferView = new ImageBufferView( world.openBW );
-
     let _spriteY = 0;
     const _images: ImageBase[] = [];
 
@@ -226,7 +222,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         _images.length = 0;
 
         for ( const imgAddr of spriteData.images.reverse() ) {
-            const imageData = imageBufferView.get( imgAddr );
+            const imageData = world.openBW.structs.image.get( imgAddr );
 
             const image = images.getOrCreate( imageData.index, imageData.typeId );
             if ( !image ) {
@@ -379,6 +375,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         terrainExtra,
         pxToWorld,
         pxToWorldInverse,
+        pxToWorldFlat,
         startLocations,
         onFrame(
             delta: number,
@@ -458,13 +455,16 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             images.dispose();
         },
         api: ( (   _world: Borrowed<World> ) => ( {
-            getPlayers: () => _world.players!,
+            get players() {
+                return _world.players!;
+            },
             //TODO: deprecate by using world event
             toggleFogOfWarByPlayerId( playerId: number ) {
                 _world.players!.togglePlayerVision( playerId );
                 _world.fogOfWar!.forceInstantUpdate = true;
             },
             pxToWorld,
+            pxToWorldFlat,
             get units() : IterableMap<number, Unit> {
                 return units.units
             },

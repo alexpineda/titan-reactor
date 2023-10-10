@@ -8,6 +8,7 @@ import { GameViewPort } from "../../camera/game-viewport";
 import { World } from "./world";
 import { SceneController } from "@plugins/scene-controller";
 import { easeInCubic } from "@utils/function-utils";
+import range from "common/utils/range";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {
@@ -26,8 +27,6 @@ const bulletStrength = {
     [DamageType.Normal]: [ 0.25, 2 ],
 };
 
-const empty: GameViewPort[] = [];
-
 export type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
 export type ViewControllerComposerApi = ViewControllerComposer["api"];
 
@@ -45,8 +44,19 @@ export const createViewControllerComposer = (
 ) => {
     let activating = false;
 
+    const viewports: GameViewPort[] = []
+
+    const createViewports = () => range( 0, 4 ).map( i => {
+        const gvp = new GameViewPort( gameSurface, i === 0 );
+        gvp.reset();
+        gvp.width = gameSurface.bufferWidth;
+        gvp.height = gameSurface.bufferHeight;
+        gvp.aspect = gameSurface.aspect;
+        return gvp;
+    } );
+
+
     let sceneController: SceneController | null = null;
-    const getViewports = () => sceneController?.viewports ?? empty;
 
     const _target = new Vector3();
     const _position = new Vector3();
@@ -55,7 +65,7 @@ export const createViewControllerComposer = (
     const janitor = new Janitor( "ViewInputComposer" );
 
     world.events.on( "resize", ( surface ) => {
-        for ( const viewport of getViewports() ) {
+        for ( const viewport of viewports ) {
             viewport.width = surface.bufferWidth;
             viewport.height = surface.bufferHeight;
             viewport.aspect = surface.aspect;
@@ -69,11 +79,12 @@ export const createViewControllerComposer = (
     return {
         api: {
             get viewport() {
-                return getViewports()[0];
+                return viewports[0];
             },
             get secondViewport() {
-                return getViewports()[1];
+                return viewports[1];
             },
+            viewports,
         },
         update( delta: number ) {
             if ( !sceneController ) {
@@ -96,8 +107,8 @@ export const createViewControllerComposer = (
                 delta
             );
 
-            for ( const viewport of this.activeViewports() ) {
-                if ( !viewport.freezeCamera ) {
+            for ( const viewport of viewports ) {
+                if ( viewport.enabled && !viewport.freezeCamera ) {
                     viewport.orbit.update( delta / 1000 );
                     viewport.projectedView.update(
                         viewport.camera,
@@ -108,29 +119,11 @@ export const createViewControllerComposer = (
         },
 
         get viewports() {
-            return getViewports();
+            return viewports;
         },
 
         deactivate() {
             sceneController = null;
-        },
-
-        *activeViewports() {
-            for ( const viewport of getViewports() ) {
-                if ( viewport.enabled ) {
-                    yield viewport;
-                }
-            }
-        },
-
-        get numActiveViewports() {
-            let count = 0;
-            for ( const viewport of getViewports() ) {
-                if ( viewport.enabled ) {
-                    count++;
-                }
-            }
-            return count;
         },
 
         /**
@@ -171,20 +164,13 @@ export const createViewControllerComposer = (
 
             sceneController = null;
             gameSurface.togglePointerLock( false );
-
-            if ( newController.viewports.length === 0 ) {
-                newController.viewports = [
-                    new GameViewPort( gameSurface, true ),
-                    new GameViewPort( gameSurface, false ),
-                ];
+            
+            for (const viewport of viewports) {
+                viewport.dispose();
             }
 
-            for ( const viewport of newController.viewports ) {
-                viewport.reset();
-                viewport.width = gameSurface.bufferWidth;
-                viewport.height = gameSurface.bufferHeight;
-                viewport.aspect = gameSurface.aspect;
-            }
+            viewports.length = 0;
+            viewports.push(...createViewports());
 
             await newController.onEnterScene( prevData );
             sceneController = newController;
@@ -194,9 +180,12 @@ export const createViewControllerComposer = (
             activating = false;
         },
 
+        /**
+         * Primary viewport is necessary because audio will require a camera position, and depth of field will only apply in one viewport for performance.
+         */
         // TODO: Why is this undefinable?
         get primaryViewport(): GameViewPort | undefined {
-            return getViewports()[0];
+            return viewports[0];
         },
 
         set aspect( val: number ) {
@@ -225,7 +214,7 @@ export const createViewControllerComposer = (
         },
 
         generatePrevData() {
-            return this.viewports.length ? getViewports()[0].generatePrevData() : null;
+            return this.viewports.length ? viewports[0].generatePrevData() : null;
         },
 
         doShakeCalculation(
@@ -248,8 +237,8 @@ export const createViewControllerComposer = (
                     damageType === DamageType.Independent
                 )
             ) {
-                for ( const v of this.activeViewports() ) {
-                    if ( !v.cameraShake.enabled ) {
+                for ( const v of viewports ) {
+                    if ( !v.enabled || !v.cameraShake.enabled ) {
                         continue;
                     }
                     const distance = v.camera.position.distanceTo( spritePos );

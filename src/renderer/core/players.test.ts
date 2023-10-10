@@ -16,7 +16,6 @@ describe( "Players", () => {
         ];
         const players = new Players( fixture );
 
-        expect( players.originalColors ).toEqual( [ "red" ] );
         expect( players.originalNames ).toEqual( [ { id: 3, name: "Foo" } ] );
         expect( players.get( 3 ) ).toBe( players[0] );
         expect( players.get( 3 )!.name ).toBe( "Foo" );
@@ -63,7 +62,7 @@ describe( "Players", () => {
             },
         } );
 
-        players.setPlayerColors( [ "#0000ff" ] );
+        players.setColors( [ "#0000ff" ] );
         expect( players[0].color.getHexString() ).toBe( "0000ff" );
         expect( replayMapStore.useReplayAndMapStore.setState ).toHaveBeenCalledWith( {
             replay: {
@@ -98,7 +97,7 @@ describe( "Players", () => {
             },
         } );
 
-        players.setPlayerNames( [
+        players.setNames( [
             {
                 id: 0,
                 name: "Bar",

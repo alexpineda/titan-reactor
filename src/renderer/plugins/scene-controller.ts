@@ -1,6 +1,5 @@
 import { GameTimeApi } from "@core/world/game-time-api";
 import { Injectables, NativePlugin } from "common/types";
-import { GameViewPort } from "renderer/camera/game-viewport";
 import { Quaternion, Vector2, Vector3 } from "three";
 import { PluginBase } from "./plugin-base";
 
@@ -77,13 +76,6 @@ const _va = new Vector3(),
  */
 export class SceneController extends PluginBase implements SceneController {
     override isSceneController = true;
-    viewports: GameViewPort[] = [];
-    override get viewport() {
-        return this.viewports[0];
-    }
-    override get secondViewport() {
-        return this.viewports[1];
-    }
 
     override onEnterScene( prevData: unknown ) {
         return Promise.resolve( prevData );

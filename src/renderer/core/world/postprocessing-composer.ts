@@ -216,7 +216,9 @@ export const createPostProcessingComposer = (
             viewports.primaryViewport!.orbit.getTarget( _target );
             _target.setY( terrain.getTerrainY( _target.x, _target.z ) );
 
-            for ( const v of viewports.activeViewports() ) {
+            for ( const v of viewports.viewports ) {
+                if (!v.enabled) continue;
+                
                 v.update( world.settings.getState().input.dampingFactor, delta );
 
                 if ( v === viewports.primaryViewport ) {

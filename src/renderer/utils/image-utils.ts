@@ -127,3 +127,21 @@ export const calculateFrame = (
     pos.setY( 2, py1 );
     pos.setY( 3, py1 );
 };
+
+export default {
+    imageIsShadow,
+    imageIsFlipped,
+    imageIsHidden,
+    imageIsFrozen,
+    imageNeedsRedraw,
+    imageHasDirectionalFrames,
+    imageIsClickable,
+    imageIsDoodad,
+    isGltfAtlas,
+    getImageLoOffset,
+    isInstancedImageHd,
+    isImageHd,
+    isImage3d,
+    isMesh,
+    calculateFrame,
+}

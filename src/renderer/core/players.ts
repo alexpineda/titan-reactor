@@ -20,7 +20,7 @@ export type PlayerName = Pick<BasePlayer, "id" | "name">;
 
 export class Players extends Array<Player> {
     #playersById: Record<number, Player> = {};
-    originalColors: readonly string[];
+    #originalColors: readonly string[];
     originalNames: readonly PlayerName[];
 
     #visionFlags = 0;
@@ -28,7 +28,7 @@ export class Players extends Array<Player> {
     constructor( players: BasePlayer[] ) {
         super();
 
-        this.originalColors = Object.freeze( players.map( ( player ) => player.color ) );
+        this.#originalColors = Object.freeze( players.map( ( player ) => player.color ) );
         this.originalNames = Object.freeze(
             players.map( ( player ) =>
                 Object.freeze( {
@@ -94,7 +94,7 @@ export class Players extends Array<Player> {
         return this.#visionFlags;
     }
 
-    setPlayerColors = ( colors: readonly string[] ) => {
+    setColors = ( colors: readonly string[] ) => {
         const replay = useReplayAndMapStore.getState().replay;
         if ( replay ) {
             for ( let i = 0; i < this.length; i++ ) {
@@ -105,7 +105,11 @@ export class Players extends Array<Player> {
         }
     };
 
-    setPlayerNames( players: PlayerName[] ) {
+    resetColors() {
+        this.setColors( this.#originalColors );
+    }
+
+    setNames( players: PlayerName[] ) {
         const replay = useReplayAndMapStore.getState().replay;
 
         if ( replay ) {

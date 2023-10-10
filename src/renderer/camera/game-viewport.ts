@@ -1,5 +1,4 @@
 import { Surface } from "@image/canvas";
-import { log } from "@ipc/log";
 import { getDirection32 } from "@utils/camera-utils";
 import CameraControls from "camera-controls";
 import {
@@ -46,7 +45,6 @@ export class GameViewPort {
     #bottom?: number | null;
     #center?: Vector2 | null;
     #surface: Surface;
-    readonly #isPrimary: boolean;
 
     constrainToAspect = true;
     #renderMode3D = false;
@@ -72,14 +70,10 @@ export class GameViewPort {
     }
 
     set enabled( val: boolean ) {
-        if ( !val && this.#isPrimary ) {
-            log.warn( "Cannot disable primary viewport" );
-            return;
-        }
         this.#enabled = val;
     }
 
-    constructor( surface: Surface, isPrimaryViewport: boolean ) {
+    constructor( surface: Surface, enabled = false ) {
         this.#surface = surface;
         this.camera = new PerspectiveCamera(
             15,
@@ -92,8 +86,7 @@ export class GameViewPort {
 
         this.orbit = new CameraControls( this.camera, this.#surface.canvas );
 
-        this.#isPrimary = isPrimaryViewport;
-        this.enabled = isPrimaryViewport;
+        this.enabled = enabled;
         this.reset( true );
     }
 

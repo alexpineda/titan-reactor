@@ -88,7 +88,11 @@ export class ImageBufferView implements ImageStruct {
         } while ( header !== this._address ); // intrusive list
     }
 
-    copy( any: Partial<ImageStruct> ) {
+    copy() {
+        return new ImageBufferView( this.#bw ).get(this._address);
+    }
+
+    copyTo( any: Partial<ImageStruct> ) {
         any.flags = this.flags;
         any.frameIndex = this.frameIndex;
         any.frameIndexBase = this.frameIndexBase;
