@@ -122,10 +122,11 @@ export const replaySceneLoader = async ( filepath: string ): Promise<SceneState>
         await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map, replay );
     }
 
+    const commands = new CommandsStream( replay.rawCmds, replay.stormPlayerToGamePlayer );
     const scene = await makeGameScene(
         map,
         janitor,
-        new CommandsStream( replay.rawCmds, replay.stormPlayerToGamePlayer ),
+        commands,
         ( openBW: OpenBW ) => {
             openBW.setUnitLimits( replay.limits.units );
             openBW.loadReplay( replayBuffer );
@@ -138,6 +139,7 @@ export const replaySceneLoader = async ( filepath: string ): Promise<SceneState>
             } ) );
         }
     );
+
 
     document.title = `Titan Reactor - ${gameTitle}`;
 

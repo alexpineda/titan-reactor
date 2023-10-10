@@ -1,13 +1,14 @@
 
+        /// <reference types="node" />
         import Chk from "bw-chk"
 import CameraControls from "camera-controls"
-import { Vector2, DataTexture, PerspectiveCamera, OrthographicCamera, Texture, Matrix4, Color, Vector4, CompressedTexture, BufferAttribute, DataArrayTexture, CubeTexture, Object3D, Mesh, BufferGeometry, MeshBasicMaterial, SpriteMaterialParameters, Shader, MeshStandardMaterial, SkinnedMesh, AnimationClip, AudioContext, Vector3, Quaternion, AnimationMixer, Box3, Sphere, Raycaster, Intersection, Group, Scene, DirectionalLight, Camera } from "three";
+import { Vector2, Color, Vector3, DataTexture, PerspectiveCamera, OrthographicCamera, Texture, Matrix4, Vector4, CompressedTexture, BufferAttribute, DataArrayTexture, CubeTexture, Object3D, Mesh, BufferGeometry, MeshBasicMaterial, SpriteMaterialParameters, Shader, MeshStandardMaterial, SkinnedMesh, AnimationClip, AudioContext, Quaternion, AnimationMixer, Box3, Sphere, Raycaster, Intersection, Group, Scene, Camera } from "three";
 import { Effect } from "postprocessing";
 import { Janitor } from "three-janitor";
 
 
 
-//D:/dev/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /**
  * A plugin that executes in the main process.
@@ -27,7 +28,7 @@ interface NativePlugin {
      */
     isSceneController: boolean;
     config: object | undefined;
-    init?: () => void;
+    init?(): void;
     /**
      * Unprocessed configuration data from the package.json.
      * @internal
@@ -87,7 +88,7 @@ interface NativePlugin {
     onExitScene?(currentData: any): any;
 }
 
-//D:/dev/titan-reactor/src/common/types/fields.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
 
 /** @internal */
 interface FieldDefinition<T = unknown> {
@@ -105,7 +106,7 @@ interface FieldDefinition<T = unknown> {
     options?: string[] | Record<string, string>;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/world/game-time-api.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-time-api.ts
 
 /**
  * @public
@@ -113,6 +114,7 @@ interface FieldDefinition<T = unknown> {
  */
 export interface GameTimeApi extends OverlayComposerApi, InputsComposerApi, SceneComposerApi, SurfaceComposerApi, PostProcessingComposerApi, ViewControllerComposerApi, OpenBwComposerApi {
     map: Chk;
+    getCommands: () => CommandsStream;
     assets: Assets;
     exitScene(): void;
     sandboxApi: ReturnType<typeof createSandboxApi>;
@@ -120,12 +122,12 @@ export interface GameTimeApi extends OverlayComposerApi, InputsComposerApi, Scen
     simpleMessage(message: string): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/world/overlay-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/overlay-composer.ts
 
 /** @internal */
 declare type OverlayComposerApi = OverlayComposer["api"];
 
-//D:/dev/titan-reactor/src/renderer/core/world/overlay-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/overlay-composer.ts
 
 /** @internal */
 declare type OverlayComposer = {
@@ -139,18 +141,21 @@ declare type OverlayComposer = {
     onFrame(completedUpgrades: number[][]): void;
 };
 
-//D:/dev/titan-reactor/src/renderer/core/world/input-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/input-composer.ts
 
 /** @internal */
 declare type InputsComposerApi = InputsComposer["api"];
 
-//D:/dev/titan-reactor/src/renderer/core/world/input-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/input-composer.ts
 
 /** @internal */
 declare type InputsComposer = ReturnType<typeof createInputComposer>;
 
-//D:/dev/titan-reactor/src/renderer/core/world/input-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/input-composer.ts
 
+/**
+ * Hanndles user input including unit selection events ( which is then sent through the message bus for other handlers to use ).
+ */
 /** @internal */
 declare const createInputComposer: (world: World, { images, scene, simpleIndex }: SceneComposer) => {
     readonly mouse: MouseInput;
@@ -172,12 +177,12 @@ declare const createInputComposer: (world: World, { images, scene, simpleIndex }
     };
 };
 
-//D:/dev/titan-reactor/src/renderer/core/world/world.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/world.ts
 
 /** @internal */
 interface World {
     map: Chk;
-    players: BasePlayer[];
+    players: Players;
     commands: CommandsStream;
     fogOfWar: FogOfWar;
     fogOfWarEffect: FogOfWarEffect;
@@ -188,7 +193,40 @@ interface World {
     reset(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/players.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/players.ts
+
+/** @internal */
+declare class Players extends Array<Player> {
+    #private;
+    originalColors: readonly string[];
+    originalNames: readonly PlayerName[];
+    constructor(players: BasePlayer[]);
+    get(id: number): Player | undefined;
+    static get [Symbol.species](): ArrayConstructor;
+    togglePlayerVision(id: number): void;
+    getVisionFlag(): number;
+    setPlayerColors: (colors: readonly string[]) => void;
+    setPlayerNames(players: PlayerName[]): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/player.ts
+
+/** @internal */
+interface Player {
+    id: number;
+    name: string;
+    race: string;
+    color: Color;
+    vision: boolean;
+    startLocation?: Vector3;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/players.ts
+
+/** @internal */
+declare type PlayerName = Pick<BasePlayer, "id" | "name">;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/players.ts
 
 /**
  * @public
@@ -200,12 +238,23 @@ export interface BasePlayer {
     race: string;
 }
 
-//D:/dev/titan-reactor/src/renderer/process-replay/commands/commands-stream.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/commands/commands-stream.ts
 
+/**
+ * A stream of game commands taken from the replay command buffer.
+ */
 /** @internal */
 declare class CommandsStream {
     #private;
     constructor(buffer?: Buffer, stormPlayerToGamePlayer?: number[]);
+    /**
+     * Creates a copy of this CommandsStream.
+     * @returns {CommandsStream}
+     */
+    copy(): CommandsStream;
+    /**
+     * Generates commands from the buffer.
+     */
     generate(): Generator<number | {
         x: number;
         y: number;
@@ -1331,7 +1380,7 @@ declare class CommandsStream {
     }, void, unknown>;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/fogofwar/fog-of-war.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/fogofwar/fog-of-war.ts
 
 /** @internal */
 declare class FogOfWar {
@@ -1349,7 +1398,7 @@ declare class FogOfWar {
     isSomewhatExplored(x: number, y: number): boolean;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/fogofwar/fog-of-war-effect.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/fogofwar/fog-of-war-effect.ts
 
 /** @internal */
 declare class FogOfWarEffect extends Effect {
@@ -1371,7 +1420,7 @@ declare class FogOfWarEffect extends Effect {
     set fogUvTransform(value: Vector4);
 }
 
-//D:/dev/titan-reactor/src/renderer/openbw/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
 
 /**
  * @public
@@ -1379,7 +1428,7 @@ declare class FogOfWarEffect extends Effect {
 export interface OpenBW extends OpenBWWasm {
 }
 
-//D:/dev/titan-reactor/src/common/types/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/openbw.ts
 
 /** @internal */
 interface OpenBWWasm extends EmscriptenPreamble {
@@ -1424,7 +1473,7 @@ interface OpenBWWasm extends EmscriptenPreamble {
     setupCallbacks: (callbacks: Callbacks) => void;
 }
 
-//D:/dev/titan-reactor/src/common/types/emscripten.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/emscripten.ts
 
 /** @internal */
 interface EmscriptenPreamble extends EmscriptenHeap {
@@ -1450,7 +1499,7 @@ interface EmscriptenPreamble extends EmscriptenHeap {
     stackTrace(): string;
 }
 
-//D:/dev/titan-reactor/src/common/types/emscripten.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/emscripten.ts
 
 /** @internal */
 interface EmscriptenHeap {
@@ -1465,11 +1514,11 @@ interface EmscriptenHeap {
     ALLOC_NORMAL: number;
 }
 
-//D:/dev/titan-reactor/src/common/types/emscripten.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/emscripten.ts
 /** @internal */
 declare type SetGetType = "i8" | "i16" | "i32" | "i64" | "float" | "double" | "i8*" | "i16*" | "i32*" | "i64*" | "float*" | "double*" | "*";
 
-//D:/dev/titan-reactor/src/common/types/structs/sound-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/sound-struct.ts
 /** @internal */
 interface SoundStruct {
     typeId: number;
@@ -1480,7 +1529,7 @@ interface SoundStruct {
     pan?: number;
 }
 
-//D:/dev/titan-reactor/src/common/types/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/openbw.ts
 
 /** @internal */
 declare type Callbacks = {
@@ -1493,7 +1542,7 @@ declare type Callbacks = {
     js_file_index?: (ptr: number) => number;
 };
 
-//D:/dev/titan-reactor/src/renderer/openbw/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
 
 /**
  * @public
@@ -1577,7 +1626,7 @@ export declare class OpenBW implements OpenBW {
     getIScriptProgramDataAddress(): number;
 }
 
-//D:/dev/titan-reactor/src/renderer/openbw/openbw-filelist.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw-filelist.ts
 
 /** @internal */
 declare class OpenBWFileList {
@@ -1592,17 +1641,17 @@ declare class OpenBWFileList {
     clear(): void;
 }
 
-//D:/dev/titan-reactor/src/common/types/file.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/file.ts
 /// <reference types="node" />
 /** @internal */
 declare type ReadFile = (filename: string) => Promise<Buffer>;
 
-//D:/dev/titan-reactor/src/renderer/core/world/settings-session-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
 
 /** @internal */
 declare type SettingsSessionStore = ReturnType<typeof createSettingsSessionStore>;
 
-//D:/dev/titan-reactor/src/renderer/core/world/settings-session-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
 
 /**
  * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
@@ -1808,10 +1857,12 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
     }>;
 };
 
-//D:/dev/titan-reactor/src/renderer/utils/type-emitter.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
 
-/** @internal */
-declare class TypeEmitter<T> {
+/**
+ * @public
+ */
+export declare class TypeEmitter<T> {
     #private;
     on<K extends keyof T>(s: K, listener: (v: T[K]) => void): () => void;
     off<K extends keyof T>(s: K, listener: (v: T[K]) => void): void;
@@ -1819,7 +1870,7 @@ declare class TypeEmitter<T> {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/world/world-events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/world-events.ts
 
 /** @internal */
 interface WorldEvents {
@@ -1865,7 +1916,7 @@ interface WorldEvents {
     "mouse-click": MouseEventDTO;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/unit.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
 
 /**
  * @public
@@ -1879,7 +1930,7 @@ export interface Unit extends UnitStruct {
     };
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/unit-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/unit-struct.ts
 
 /** @internal */
 interface UnitStruct extends FlingyStruct {
@@ -1904,7 +1955,7 @@ interface UnitStruct extends FlingyStruct {
     subunitId: number | null;
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/flingy-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/flingy-struct.ts
 
 /** @internal */
 interface FlingyStruct extends ThingyStruct {
@@ -1920,7 +1971,7 @@ interface FlingyStruct extends ThingyStruct {
     movementFlags: number;
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/thingy-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/thingy-struct.ts
 /** @internal */
 interface ThingyStruct {
     hp: number;
@@ -1930,7 +1981,7 @@ interface ThingyStruct {
     spriteIndex: number;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/world/scene-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/scene-composer.ts
 
 /** @internal */
 declare const createSceneComposer: (world: World, assets: Assets) => Promise<{
@@ -1956,43 +2007,23 @@ declare const createSceneComposer: (world: World, assets: Assets) => Promise<{
     pxToWorld: PxToWorld;
     pxToWorldInverse: PxToWorld;
     startLocations: Vector3[];
-    playerStartLocations: Vector3[];
-    players: Players;
-    getPlayerColor: (playerId: number) => Color;
     onFrame(delta: number, elapsed: number, viewport: GameViewPort | boolean, direction?: number): void;
     resetImageCache(): void;
     api: {
-        pxToWorld: PxToWorld;
-        scene: BaseScene;
-        followedUnits: Readonly<{
-            clear(): void;
-            hasUnits(): boolean;
-            getUnits(): Unit[];
-            setUnits(units: Unit[]): void;
-            getCentralPosition(): Vector3 | null | undefined;
-        }>;
-        selectedUnits: Readonly<{
-            clear(): void;
-            hasUnits(): boolean;
-            getUnits(): Unit[];
-            setUnits(units: Unit[]): void;
-        }>;
-        setPlayerColors(colors: string[]): void;
-        getPlayerColor: (id: number) => Color;
-        getOriginalColors(): readonly string[];
-        setPlayerNames(players: PlayerName[]): void;
-        getOriginalNames(): readonly PlayerName[];
-        getPlayers: () => {
-            id: number;
-            name: string;
-            color: string;
-            race: string;
-        }[];
+        getPlayers: () => Players;
         toggleFogOfWarByPlayerId(playerId: number): void;
+        pxToWorld: PxToWorld;
+        readonly units: IterableMap<number, Unit>;
+        simpleIndex: Record<string, ImageBase[]>;
+        scene: BaseScene;
+        followedUnits: IterableSet<Unit>;
+        startLocations: Vector3[];
+        getFollowedUnitsCenterPosition: () => Vector3 | undefined;
+        selectedUnits: IterableSet<Unit>;
     };
 }>;
 
-//D:/dev/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
 
 /**
  * @public
@@ -2004,7 +2035,7 @@ export declare type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     wireframeIcons?: Blob[];
 } & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
 
-//D:/dev/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
 
 /** @internal */
 declare const initializeAssets: (directories: {
@@ -2120,7 +2151,7 @@ declare const initializeAssets: (directories: {
     }[];
 }>;
 
-//D:/dev/titan-reactor/src/common/types/image.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/image.ts
 
 /** @internal */
 declare enum UnitTileScale {
@@ -2129,7 +2160,7 @@ declare enum UnitTileScale {
     HD = 4
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/bw-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/bw-dat.ts
 
 /**
  * @public
@@ -2148,7 +2179,7 @@ export interface BwDAT {
     grps: GrpSprite[];
 }
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 interface IScriptDATType {
@@ -2156,7 +2187,7 @@ interface IScriptDATType {
     animations: Record<number, IScriptAnimation>;
 }
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 interface IScriptProgram {
@@ -2166,17 +2197,17 @@ interface IScriptProgram {
     offsets: number[];
 }
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 declare type IScriptAnimation = IScriptOperations[];
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 declare type IScriptOperations = [string, number[]];
 
-//D:/dev/titan-reactor/src/common/bwdat/sounds-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sounds-dat.ts
 
 /**
  * @public
@@ -2189,7 +2220,7 @@ export interface SoundDAT {
     minVolume: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/tech-data-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/tech-data-dat.ts
 
 /**
  * @public
@@ -2207,7 +2238,7 @@ export interface TechDataDAT {
     researched: number;
 }
 
-//D:/dev/titan-reactor/src/common/enums/upgrades.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/enums/upgrades.ts
 /** @internal */
 declare enum upgrades {
     terranInfantryArmor = 0,
@@ -2267,7 +2298,7 @@ declare enum upgrades {
     charonBooster = 54
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/upgrades-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/upgrades-dat.ts
 
 /**
  * @public
@@ -2286,7 +2317,7 @@ export interface UpgradeDAT {
     race: number;
 }
 
-//D:/dev/titan-reactor/src/common/enums/orders.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/enums/orders.ts
 /** @internal */
 declare enum orders {
     die = 0,
@@ -2481,7 +2512,7 @@ declare enum orders {
     none = 189
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/orders-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/orders-dat.ts
 
 /**
  * @public
@@ -2490,7 +2521,7 @@ export interface OrderDAT {
     name: string;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/units-dat.ts
 
 /**
  * @public
@@ -2498,7 +2529,7 @@ export interface OrderDAT {
 export interface UnitDAT extends UnitDATIncomingType {
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/units-dat.ts
 
 /**
  * @public
@@ -2554,7 +2585,7 @@ export interface UnitDATIncomingType {
     starEditAvailabilityFlags: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/units-dat.ts
 
 /**
  * @public
@@ -2601,7 +2632,7 @@ export declare class UnitDAT implements UnitDAT {
     constructor(data: UnitDATIncomingType);
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/images-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/images-dat.ts
 
 /**
  * @public
@@ -2626,14 +2657,14 @@ export interface ImageDAT {
     liftOffDustOverlay: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/parse-lo.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/parse-lo.ts
 /// <reference types="node" />
 /**
  * @public
  */
 export declare type LoDAT = number[][][];
 
-//D:/dev/titan-reactor/src/common/bwdat/sprites-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sprites-dat.ts
 
 /**
  * @public
@@ -2651,7 +2682,7 @@ export interface SpriteDAT {
     selectionCircleOffset: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/weapons-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/weapons-dat.ts
 
 /**
  * @public
@@ -2681,7 +2712,7 @@ export interface WeaponDAT {
     upwardOffset: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/flingy-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/flingy-dat.ts
 
 /**
  * @public
@@ -2694,7 +2725,7 @@ export interface FlingyDAT {
     turnRadius: number;
 }
 
-//D:/dev/titan-reactor/src/common/types/anim-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 
 /** @internal */
 declare type GrpSprite = {
@@ -2705,7 +2736,7 @@ declare type GrpSprite = {
     maxFramew: number;
 };
 
-//D:/dev/titan-reactor/src/common/types/anim-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 /// <reference types="node" />
 /** @internal */
 declare type AnimFrame = {
@@ -2717,12 +2748,12 @@ declare type AnimFrame = {
     yoff: number;
 };
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
 
 /** @internal */
 declare type AnimAtlas = ReturnType<typeof loadAnimAtlas>;
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
 
 /** @internal */
 declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<UnitTileScale, "SD">) => {
@@ -2757,7 +2788,7 @@ declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<Un
     dispose(): void;
 };
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
 
 /** @internal */
 declare class LegacyGRP {
@@ -2784,7 +2815,7 @@ declare class LegacyGRP {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
 
 /** @internal */
 declare type Palettes = Uint8Array[] & {
@@ -2792,7 +2823,7 @@ declare type Palettes = Uint8Array[] & {
     light?: Buffer;
 };
 
-//D:/dev/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
 
 /** @internal */
 declare const generateUIIcons: (readFile: ReadFile) => Promise<{
@@ -2820,8 +2851,11 @@ declare const generateUIIcons: (readFile: ReadFile) => Promise<{
     };
 }>;
 
-//D:/dev/titan-reactor/src/renderer/core/image-entities.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-entities.ts
 
+/**
+ * A collection of all images in the game.
+ */
 /** @internal */
 declare class ImageEntities {
     #private;
@@ -2839,8 +2873,11 @@ declare class ImageEntities {
     getUnit(image: ImageBase): Unit | undefined;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/image-base.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-base.ts
 
+/**
+ * Base structure for how starcraft image objects are represented in three.js
+ */
 /** @internal */
 interface ImageBase extends Object3D {
     atlas?: AnimAtlas;
@@ -2858,13 +2895,16 @@ interface ImageBase extends Object3D {
     readonly unitTileScale: UnitTileScale;
 }
 
-//D:/dev/titan-reactor/src/renderer/utils/image-utils.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/image-utils.ts
 
 /** @internal */
 declare const isImageHd: (image: Object3D) => image is ImageHD;
 
-//D:/dev/titan-reactor/src/renderer/core/image-hd.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-hd.ts
 
+/**
+ * A threejs mesh for a starcraft image.
+ */
 /** @internal */
 declare class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInstancedMaterial> implements ImageBase {
     #private;
@@ -2900,7 +2940,7 @@ declare class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInst
     raycast(raycaster: Raycaster, intersects: Intersection[]): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/image-hd-material.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-hd-material.ts
 
 /** @internal */
 declare class ImageHDMaterial extends MeshBasicMaterial {
@@ -2927,7 +2967,7 @@ declare class ImageHDMaterial extends MeshBasicMaterial {
     customProgramCacheKey(): string;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/image-hd-instanced-material.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-hd-instanced-material.ts
 
 /** @internal */
 declare class ImageHDInstancedMaterial extends MeshBasicMaterial {
@@ -2949,13 +2989,16 @@ declare class ImageHDInstancedMaterial extends MeshBasicMaterial {
     customProgramCacheKey(): string;
 }
 
-//D:/dev/titan-reactor/src/renderer/utils/image-utils.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/image-utils.ts
 
 /** @internal */
 declare const isImage3d: (image: Object3D) => image is Image3D;
 
-//D:/dev/titan-reactor/src/renderer/core/image-3d.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-3d.ts
 
+/**
+ * Starcraft image as a 3D object in GLB format with animations.
+ */
 /** @internal */
 declare class Image3D extends Object3D implements ImageBase {
     #private;
@@ -2990,10 +3033,10 @@ declare class Image3D extends Object3D implements ImageBase {
     get frame(): number;
     get frameSet(): number;
     get isLooseFrame(): boolean;
-    static clone(source: Object3D): Object3D<import("three").Event>;
+    static clone(source: Object3D): Object3D<import("three").Object3DEventMap>;
 }
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/load-glb-atlas.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-glb-atlas.ts
 
 /** @internal */
 interface GltfAtlas extends AnimAtlas {
@@ -3004,12 +3047,16 @@ interface GltfAtlas extends AnimAtlas {
     fixedFrames: number[];
 }
 
-//D:/dev/titan-reactor/src/renderer/core/global.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/global.ts
 
+/**
+ * INTERCEPTS IPC MESSAGES AND PUSHES THEM INTO THE GLOBAL EVENT BUS. WE DO THIS TO KEEP THINGS CLEAN.
+ * ALSO CREATES GLOBAL SOUND MIXER AND MUSIC PLAYER
+ */
 /** @internal */
 declare const mixer: MainMixer;
 
-//D:/dev/titan-reactor/src/renderer/audio/main-mixer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/audio/main-mixer.ts
 
 /** @internal */
 declare class MainMixer {
@@ -3041,12 +3088,12 @@ declare class MainMixer {
     smoothStop(gain: GainNode, delta?: number, decay?: number): void;
 }
 
-//D:/dev/titan-reactor/src/common/types/settings.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
 
 /** @internal */
 declare type Settings = SettingsV6;
 
-//D:/dev/titan-reactor/src/common/types/settings.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
 
 /** @internal */
 interface SettingsV6 {
@@ -3140,12 +3187,12 @@ interface SettingsV6 {
     macros: MacrosDTO;
 }
 
-//D:/dev/titan-reactor/src/common/logging.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/logging.ts
 
 /** @internal */
 declare type LogLevel = "info" | "warn" | "error" | "debug";
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 interface MacrosDTO {
@@ -3153,7 +3200,7 @@ interface MacrosDTO {
     macros: MacroDTO[];
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 interface MacroDTO {
@@ -3168,7 +3215,7 @@ interface MacroDTO {
     error?: string;
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 interface MacroTriggerDTO {
@@ -3176,7 +3223,7 @@ interface MacroTriggerDTO {
     value?: unknown;
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 declare enum TriggerType {
@@ -3185,7 +3232,7 @@ declare enum TriggerType {
     WorldEvent = "WorldEvent"
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 interface MacroAction<T extends TargetType = TargetType> {
@@ -3198,12 +3245,12 @@ interface MacroAction<T extends TargetType = TargetType> {
     group?: number;
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 declare type TargetType = ":app" | ":plugin" | ":function" | ":macro";
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 interface MacroActionConfigurationError {
@@ -3212,7 +3259,7 @@ interface MacroActionConfigurationError {
     message: string;
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 declare enum MacroActionConfigurationErrorType {
@@ -3227,12 +3274,12 @@ declare enum MacroActionConfigurationErrorType {
     InvalidAction = "InvalidAction"
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 declare type TargetedPath<T extends TargetType = TargetType> = [T, ...string[]];
 
-//D:/dev/titan-reactor/src/common/types/fields.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
 /** @internal */
 declare enum Operator {
     SetToDefault = "SetToDefault",
@@ -3247,7 +3294,7 @@ declare enum Operator {
     Execute = "Execute"
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 declare enum MacroActionSequence {
@@ -3256,7 +3303,7 @@ declare enum MacroActionSequence {
     SingleRandom = "SingleRandom"
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 interface MacroCondition<T extends TargetType = TargetType> {
@@ -3268,7 +3315,7 @@ interface MacroCondition<T extends TargetType = TargetType> {
     comparator: ConditionComparator;
 }
 
-//D:/dev/titan-reactor/src/common/types/macros.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
 
 /** @internal */
 declare enum ConditionComparator {
@@ -3281,8 +3328,11 @@ declare enum ConditionComparator {
     Execute = "Execute"
 }
 
-//D:/dev/titan-reactor/src/renderer/core/image-3d-material.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-3d-material.ts
 
+/**
+ * Custom material for starcraft images. Takes into account team color, warp in flash, and modifiers.
+ */
 /** @internal */
 declare class Image3DMaterial extends MeshStandardMaterial {
     #private;
@@ -3301,12 +3351,12 @@ declare class Image3DMaterial extends MeshStandardMaterial {
     customProgramCacheKey(): string;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/sprite-entities.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/sprite-entities.ts
 
 /** @internal */
 declare class SpriteEntities {
     #private;
-    group: Group;
+    group: Group<import("three").Object3DEventMap>;
     constructor();
     get isEmpty(): boolean;
     [Symbol.iterator](): IterableIterator<SpriteType>;
@@ -3318,7 +3368,7 @@ declare class SpriteEntities {
     setUnit(spriteIndex: number, unit: Unit): void;
 }
 
-//D:/dev/titan-reactor/src/common/types/image.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/image.ts
 
 /** @internal */
 interface SpriteType extends Group {
@@ -3329,7 +3379,7 @@ interface SpriteType extends Group {
     };
 }
 
-//D:/dev/titan-reactor/src/renderer/core/unit-entities.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit-entities.ts
 
 /** @internal */
 declare class UnitEntities {
@@ -3344,9 +3394,12 @@ declare class UnitEntities {
     clear(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/utils/data-structures/iteratible-map.ts
-/** @internal */
-declare class IterableMap<T, R> {
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/iteratible-map.ts
+/**
+ * A map that also keeps track of insertion order
+ * @public
+ */
+export declare class IterableMap<T, R> {
     #private;
     get _dangerousArray(): R[];
     get(key: T): R | undefined;
@@ -3358,7 +3411,7 @@ declare class IterableMap<T, R> {
     get length(): number;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
 
 /**
  * Maps to openbw unit_t
@@ -3393,7 +3446,7 @@ declare class UnitsBufferView extends FlingyBufferView implements UnitStruct {
     copy(bufferView?: UnitsBufferView): UnitsBufferView;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/flingy-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/flingy-buffer-view.ts
 
 /** @internal */
 declare class FlingyBufferView extends ThingyBufferView implements FlingyStruct {
@@ -3411,7 +3464,7 @@ declare class FlingyBufferView extends ThingyBufferView implements FlingyStruct 
     copyTo(dest: Partial<FlingyStruct>): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/thingy-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/thingy-buffer-view.ts
 
 /**
  * Maps to openbw thingy_t
@@ -3431,7 +3484,7 @@ declare class ThingyBufferView implements ThingyStruct {
     copyTo(dest: Partial<ThingyStruct>): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/sprites-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view.ts
 
 /**
  * Maps to openbw sprite_t starting from index address
@@ -3455,7 +3508,7 @@ declare class SpritesBufferView implements SpriteStruct {
     get extFlyOffset(): number;
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/sprite-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/sprite-struct.ts
 /** @internal */
 interface SpriteStruct {
     index: number;
@@ -3468,7 +3521,7 @@ interface SpriteStruct {
     mainImageIndex: number;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/intrusive-list.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/intrusive-list.ts
 /**
  * Represents an openbw intrusive_list
  */
@@ -3484,7 +3537,7 @@ declare class IntrusiveList {
     reverse(): Generator<number, void, unknown>;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/images-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/images-buffer-view.ts
 
 /** @internal */
 declare class ImageBufferView implements ImageStruct {
@@ -3510,7 +3563,7 @@ declare class ImageBufferView implements ImageStruct {
     copy(any: Partial<ImageStruct>): Partial<ImageStruct>;
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/image-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/image-struct.ts
 /** @internal */
 interface ImageStruct {
     index: number;
@@ -3526,7 +3579,7 @@ interface ImageStruct {
     modifierData2: number;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/iscript-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/iscript-buffer-view.ts
 
 /** @internal */
 declare class IScriptBufferView implements IScriptStateStruct {
@@ -3545,7 +3598,7 @@ declare class IScriptBufferView implements IScriptStateStruct {
     get wait(): number;
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/iscript-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/iscript-struct.ts
 /** @internal */
 interface IScriptStateStruct {
     programCounter: number;
@@ -3554,7 +3607,7 @@ interface IScriptStateStruct {
     wait: number;
 }
 
-//D:/dev/titan-reactor/src/renderer/utils/data-structures/iterable-set.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/iterable-set.ts
 /** @internal */
 declare class IterableSet<T> {
     #private;
@@ -3571,7 +3624,7 @@ declare class IterableSet<T> {
     [Symbol.iterator](): IterableIterator<T>;
 }
 
-//D:/dev/titan-reactor/src/renderer/render/base-scene.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/base-scene.ts
 
 /**
  * @public
@@ -3589,28 +3642,32 @@ export declare class BaseScene extends Scene {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/render/sunlight.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/sunlight.ts
 
 /** @internal */
 declare class Sunlight {
     #private;
     shadowIntensity: number;
     constructor(mapWidth: number, mapHeight: number);
-    get children(): (Object3D<import("three").Event> | DirectionalLight)[];
+    get children(): Object3D<import("three").Object3DEventMap>[];
     set enabled(val: boolean);
     set intensity(value: number);
-    get target(): Object3D<import("three").Event>;
+    get target(): Object3D<import("three").Object3DEventMap>;
     setPosition(...args: Parameters<Vector3["set"]>): void;
     getPosition(): Vector3;
-    setColor(...args: Parameters<Color["set"]>): void;
+    setColor(...args: Parameters<Color["setStyle"]>): void;
     needsUpdate(): void;
     set shadowQuality(quality: number);
     get shadowQuality(): number;
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/terrain.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/terrain.ts
 
+/**
+ * A high level object representing the terrain.
+ * Contains a collection of terrain quartiles.
+ */
 /** @internal */
 declare class Terrain extends Group {
     #private;
@@ -3630,7 +3687,7 @@ declare class Terrain extends Group {
     setTerrainQuality(highDefinition: boolean, anisotropy: number): void;
 }
 
-//D:/dev/titan-reactor/src/common/types/terrain.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/terrain.ts
 
 /** @internal */
 interface TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial | MeshBasicMaterial> {
@@ -3642,7 +3699,7 @@ interface TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial | Me
     };
 }
 
-//D:/dev/titan-reactor/src/renderer/image/generate-map/get-terrain-y.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-map/get-terrain-y.ts
 /** @internal */
 declare const getTerrainY: (image: {
     width: number;
@@ -3650,12 +3707,12 @@ declare const getTerrainY: (image: {
     data: Uint8ClampedArray;
 }, scale: number, mapWidth: number, mapHeight: number, offset?: number) => (worldX: number, worldY: number) => number;
 
-//D:/dev/titan-reactor/src/renderer/image/generate-map/get-terrain-y.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-map/get-terrain-y.ts
 
 /** @internal */
 declare type GetTerrainY = ReturnType<typeof getTerrainY>;
 
-//D:/dev/titan-reactor/src/common/types/terrain.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/terrain.ts
 
 /** @internal */
 declare type GeometryOptions = {
@@ -3683,7 +3740,7 @@ declare type GeometryOptions = {
     firstBlurPassKernelSize: number;
 };
 
-//D:/dev/titan-reactor/src/renderer/core/creep/creep.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/creep/creep.ts
 
 /** @internal */
 declare class Creep {
@@ -3700,7 +3757,7 @@ declare class Creep {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/buffer-view/simple-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/simple-buffer-view.ts
 /**
  A template for representing game struct(s) (eg units, sprites, etc)
 */
@@ -3716,7 +3773,7 @@ declare class SimpleBufferView<K extends Int8Array | Int16Array | Int32Array | U
     shallowCopy(): K;
 }
 
-//D:/dev/titan-reactor/src/common/utils/conversions.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/utils/conversions.ts
 
 /** @internal */
 interface PxToWorld {
@@ -3726,49 +3783,7 @@ interface PxToWorld {
     xyz: (x: number, y: number, out: Vector3) => Vector3;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/players.ts
-
-/** @internal */
-declare class Players extends Array<Player> {
-    #private;
-    originalColors: readonly string[];
-    originalNames: readonly PlayerName[];
-    constructor(players: BasePlayer[]);
-    get(id: number): Player | undefined;
-    static get [Symbol.species](): ArrayConstructor;
-    togglePlayerVision(id: number): void;
-    getVisionFlag(): number;
-    setPlayerColors: (colors: string[]) => void;
-    setPlayerNames(players: PlayerName[]): void;
-}
-
-//D:/dev/titan-reactor/src/common/types/player.ts
-
-/** @internal */
-interface Player {
-    id: number;
-    name: string;
-    race: string;
-    color: Color;
-    vision: boolean;
-    startLocation?: StartLocation;
-}
-
-//D:/dev/titan-reactor/src/common/types/chk.ts
-/** @internal */
-declare type StartLocation = {
-    player: number;
-    unitId: number;
-    x: number;
-    y: number;
-};
-
-//D:/dev/titan-reactor/src/renderer/core/players.ts
-
-/** @internal */
-declare type PlayerName = Pick<BasePlayer, "id" | "name">;
-
-//D:/dev/titan-reactor/src/renderer/camera/game-viewport.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/game-viewport.ts
 
 /**
  * @public
@@ -3826,7 +3841,7 @@ export declare class GameViewPort {
     updateDirection32(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/camera/game-viewport.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/game-viewport.ts
 
 /** @internal */
 declare type DirectionalCamera = (PerspectiveCamera | OrthographicCamera) & {
@@ -3836,7 +3851,7 @@ declare type DirectionalCamera = (PerspectiveCamera | OrthographicCamera) & {
     };
 };
 
-//D:/dev/titan-reactor/src/renderer/camera/projected-camera-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/projected-camera-view.ts
 
 /**
  * World position for the four corners of our view
@@ -3861,7 +3876,7 @@ declare class ProjectedCameraView {
     update(camera: Camera, target: Vector3): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/camera/camera-shake.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/camera-shake.ts
 
 /** @internal */
 declare class CameraShake {
@@ -3881,7 +3896,7 @@ declare class CameraShake {
     restore(camera: Camera): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/image/canvas/surface.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/canvas/surface.ts
 /** @internal */
 declare class Surface {
     #private;
@@ -3899,18 +3914,18 @@ declare class Surface {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/common/types/settings.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
 
 /** @internal */
 declare type SessionSettingsData = Pick<Settings, "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d" | "session">;
 
-//D:/dev/titan-reactor/src/common/types/utils/deep-partial.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/utils/deep-partial.ts
 /** @internal */
 declare type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
 
-//D:/dev/titan-reactor/src/renderer/render/game-surface.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/game-surface.ts
 
 /** @internal */
 declare class GameSurface extends Surface {
@@ -3932,7 +3947,7 @@ declare class GameSurface extends Surface {
     hide(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/render/minimap-dimensions.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/minimap-dimensions.ts
 /** @internal */
 interface MinimapDimensions {
     matrix: number[];
@@ -3940,7 +3955,7 @@ interface MinimapDimensions {
     minimapHeight: number;
 }
 
-//D:/dev/titan-reactor/src/renderer/input/mouse-input.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/mouse-input.ts
 
 /** @internal */
 declare type MouseEventDTO = {
@@ -3950,21 +3965,23 @@ declare type MouseEventDTO = {
     button: number;
 };
 
-//D:/dev/titan-reactor/src/renderer/core/world/settings-session-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
 
-/** @internal */
-declare type SessionVariables = {
+/**
+ * @public
+ */
+export declare type SessionVariables = {
     [K in keyof SessionSettingsData]: {
         [T in keyof SessionSettingsData[K]]: MutationVariable;
     };
 };
 
-//D:/dev/titan-reactor/src/renderer/stores/operatable-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/operatable-store.ts
 
 /** @internal */
 declare type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
 
-//D:/dev/titan-reactor/src/renderer/stores/operatable-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/operatable-store.ts
 
 /** @internal */
 declare const createMutationVariable: (operate: (operation: Operation) => void, getValue: (path: string[]) => unknown) => (path: string[]) => ((value?: unknown) => unknown) & {
@@ -4004,7 +4021,7 @@ declare const createMutationVariable: (operate: (operation: Operation) => void, 
     toggle: () => void;
 };
 
-//D:/dev/titan-reactor/src/common/types/fields.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
 
 /** @internal */
 interface Operation {
@@ -4013,8 +4030,11 @@ interface Operation {
     value?: any;
 }
 
-//D:/dev/titan-reactor/src/renderer/stores/source-of-truth.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/source-of-truth.ts
 
+/**
+ * An object that emits the diff when it is updated.
+ */
 /** @internal */
 declare class SourceOfTruth<T extends object> {
     #private;
@@ -4025,12 +4045,12 @@ declare class SourceOfTruth<T extends object> {
     clone(): T;
 }
 
-//D:/dev/titan-reactor/src/renderer/core/world/scene-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/scene-composer.ts
 
 /** @internal */
 declare type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 
-//D:/dev/titan-reactor/src/renderer/input/mouse-input.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/mouse-input.ts
 
 /** @internal */
 declare class MouseInput {
@@ -4051,7 +4071,7 @@ declare class MouseInput {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/input/arrow-key-input.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/arrow-key-input.ts
 
 /** @internal */
 declare class ArrowKeyInput {
@@ -4061,7 +4081,7 @@ declare class ArrowKeyInput {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/input/create-unit-selection.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/create-unit-selection.ts
 
 /** @internal */
 declare enum UnitSelectionStatus {
@@ -4070,13 +4090,21 @@ declare enum UnitSelectionStatus {
     Hovering = 2
 }
 
-//D:/dev/titan-reactor/src/renderer/core/world/view-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-composer.ts
 
 /** @internal */
 declare type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
 
-//D:/dev/titan-reactor/src/renderer/core/world/view-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-composer.ts
 
+/**
+ * The Scene Controller plugin is responsible for managing the game viewports.
+ * This composer helps activate those plugins, as well as update the viewports and their orbiting camera controls.
+ *
+ * @param world
+ * @param param1
+ * @returns
+ */
 /** @internal */
 declare const createViewControllerComposer: (world: World, { gameSurface }: SurfaceComposer) => {
     api: {
@@ -4088,6 +4116,15 @@ declare const createViewControllerComposer: (world: World, { gameSurface }: Surf
     deactivate(): void;
     activeViewports(): Generator<GameViewPort, void, unknown>;
     readonly numActiveViewports: number;
+    /**
+     * Activates a scene controller plugin.
+     * Runs events on the previous scene controller if it exists.
+     * Resets all viewports.
+     *
+     * @param newController
+     * @param firstRunData
+     * @returns
+     */
     activate(newController: SceneController | null | undefined, firstRunData?: any): Promise<void>;
     readonly primaryViewport: GameViewPort | undefined;
     aspect: number;
@@ -4102,24 +4139,30 @@ declare const createViewControllerComposer: (world: World, { gameSurface }: Surf
     doShakeCalculation(explosionType: Explosion, damageType: DamageType, spritePos: Vector3): void;
 };
 
-//D:/dev/titan-reactor/src/renderer/core/world/surface-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/surface-composer.ts
 
 /** @internal */
 declare type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
-//D:/dev/titan-reactor/src/renderer/core/world/surface-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/surface-composer.ts
 
+/**
+ * Creates the game canvases, listeners, and resizers.
+ * @param world
+ * @returns
+ */
 /** @internal */
 declare const createSurfaceComposer: (world: World) => {
     gameSurface: GameSurface;
     resize: (immediate?: boolean) => void;
+    mount(): void;
     api: {
         togglePointerLock: (val: boolean) => void;
         isPointerLockLost(): boolean;
     };
 };
 
-//D:/dev/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /**
  * These are the injectable services that are available to plugins during a world session.
@@ -4136,17 +4179,19 @@ interface Injectables {
     events: TypeEmitterProxy<WorldEvents>;
 }
 
-//D:/dev/titan-reactor/src/renderer/utils/type-emitter.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
 
-/** @internal */
-declare class TypeEmitterProxy<T> {
+/**
+ * @public
+ */
+export declare class TypeEmitterProxy<T> {
     #private;
     constructor(host: TypeEmitter<T>);
     on<K extends keyof T>(s: K, listener: (v: T[K]) => void): () => void;
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /**
  * A package definition for a plugin.
@@ -4169,16 +4214,17 @@ interface PluginPackage {
         url?: string;
     };
     peerDependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
     config?: PluginConfig;
     permissions?: string[];
 }
 
-//D:/dev/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /** @internal */
 declare type PluginConfig = Record<string, FieldDefinition>;
 
-//D:/dev/titan-reactor/src/common/enums/explosions.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/enums/explosions.ts
 /** @internal */
 declare enum Explosion {
     None = 0,
@@ -4208,7 +4254,7 @@ declare enum Explosion {
     SplashAir = 24
 }
 
-//D:/dev/titan-reactor/src/common/enums/damages-types.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/enums/damages-types.ts
 /** @internal */
 declare enum DamageType {
     Independent = 0,
@@ -4218,27 +4264,27 @@ declare enum DamageType {
     IgnoreArmor = 4
 }
 
-//D:/dev/titan-reactor/src/renderer/core/world/scene-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/scene-composer.ts
 
 /** @internal */
 declare type SceneComposerApi = SceneComposer["api"];
 
-//D:/dev/titan-reactor/src/renderer/core/world/surface-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/surface-composer.ts
 
 /** @internal */
 declare type SurfaceComposerApi = SurfaceComposer["api"];
 
-//D:/dev/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
 
 /** @internal */
 declare type PostProcessingComposerApi = PostProcessingComposer["api"];
 
-//D:/dev/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
 
 /** @internal */
 declare type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
 
-//D:/dev/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
 
 /** @internal */
 declare const createPostProcessingComposer: (world: World, { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer, viewports: ViewControllerComposer, assets: Assets) => {
@@ -4252,23 +4298,32 @@ declare const createPostProcessingComposer: (world: World, { scene, images, spri
     render(delta: number, elapsed: number): void;
 };
 
-//D:/dev/titan-reactor/src/renderer/core/world/view-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-composer.ts
 
 /** @internal */
 declare type ViewControllerComposerApi = ViewControllerComposer["api"];
 
-//D:/dev/titan-reactor/src/renderer/core/world/openbw-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/openbw-composer.ts
 
 /** @internal */
 declare type OpenBwComposerApi = OpenBwComposer["api"];
 
-//D:/dev/titan-reactor/src/renderer/core/world/openbw-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/openbw-composer.ts
 
 /** @internal */
 declare type OpenBwComposer = ReturnType<typeof createOpenBWComposer>;
 
-//D:/dev/titan-reactor/src/renderer/core/world/openbw-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/openbw-composer.ts
 
+/**
+ * A lot of communication with OpenBW happens here.
+ * Most importantly generates sounds, creep, and game data from the current frame our client is on.
+ *
+ * @param world
+ * @param scene
+ * @param viewInput
+ * @returns
+ */
 /** @internal */
 declare const createOpenBWComposer: (world: World, scene: Pick<SceneComposer, "pxToWorld" | "terrainExtra">, viewInput: ViewControllerComposer) => {
     completedUpgrades: number[][];
@@ -4297,7 +4352,7 @@ declare const createOpenBWComposer: (world: World, scene: Pick<SceneComposer, "p
     };
 };
 
-//D:/dev/titan-reactor/src/renderer/openbw/sandbox-api.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/sandbox-api.ts
 
 /**
  * @public
@@ -4318,13 +4373,16 @@ export declare const createSandboxApi: (_world: World, pxToWorldInverse: PxToWor
         declare global {
             
 
-//D:/dev/titan-reactor/src/renderer/plugins/plugin-base.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-base.ts
 
 export interface PluginBase extends NativePlugin, GameTimeApi, Injectables {
 }
 
-//D:/dev/titan-reactor/src/renderer/plugins/scene-controller.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/scene-controller.ts
 
+/**
+ * @public
+ */
 export interface SceneController extends Omit<NativePlugin, "config">, GameTimeApi, Injectables {
     /**
      * Updates every frame with the current mouse data.
@@ -4365,8 +4423,11 @@ export interface SceneController extends Omit<NativePlugin, "config">, GameTimeA
     onMinimapDragUpdate?(pos: Vector2, isDragStart: boolean, mouseButton?: number): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/plugins/scene-controller.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/scene-controller.ts
 
+/**
+ * @public
+ */
 export class SceneController extends PluginBase implements SceneController {
     isSceneController: boolean;
     viewports: GameViewPort[];
@@ -4376,7 +4437,7 @@ export class SceneController extends PluginBase implements SceneController {
     onUpdateAudioMixerOrientation(): Quaternion;
 }
 
-//D:/dev/titan-reactor/src/renderer/plugins/plugin-base.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-base.ts
 
 export class PluginBase {
     #private;

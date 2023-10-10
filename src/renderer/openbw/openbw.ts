@@ -5,11 +5,36 @@ import { readFileSync } from "fs";
 import path from "path";
 import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
+import { UnitsBufferViewIterator, destroyedUnitsIterator, killedUnitIterator } from "@buffer-view/units-buffer-view";
+import { SpritesBufferViewIterator, deletedSpritesIterator } from "@buffer-view/sprites-buffer-view-iterator";
+import { deletedImageIterator } from "@buffer-view/images-buffer-view";
 
 /**
  * @public
  */
-export interface OpenBW extends OpenBWWasm {}
+class OpenBWIterators {
+    destroyedUnitsThisFrame: () => ReturnType<typeof destroyedUnitsIterator>;
+    killedUnitsThisFrame: () =>   ReturnType<typeof killedUnitIterator>;
+    units: UnitsBufferViewIterator;
+    deletedSpritesThisFrame:() =>  ReturnType<typeof deletedSpritesIterator>;
+    deletedImagesThisFrame:() =>   ReturnType<typeof deletedImageIterator>;
+    sprites: SpritesBufferViewIterator;
+
+    constructor( openbw: OpenBW ) {
+        this.destroyedUnitsThisFrame = destroyedUnitsIterator.bind( null, openbw );
+        this.killedUnitsThisFrame = killedUnitIterator.bind( null, openbw );
+        this.units = new UnitsBufferViewIterator( openbw );
+        this.deletedSpritesThisFrame = deletedSpritesIterator.bind( null, openbw );
+        this.deletedImagesThisFrame = deletedImageIterator.bind( null, openbw );
+        this.sprites = new SpritesBufferViewIterator( openbw );
+    }
+}
+
+/**
+ * @public
+ */
+export interface OpenBW extends OpenBWWasm {
+}
 
 /**
  * @public
@@ -25,6 +50,8 @@ export class OpenBW implements OpenBW {
     #timer = new Timer();
 
     unitGenerationSize = 3;
+
+    iterators!: OpenBWIterators;
 
     /**
      * Load the WASM module and initialize the OpenBW instance.
@@ -123,6 +150,8 @@ export class OpenBW implements OpenBW {
         await this.files.loadBuffers( readFile );
         try {
             this.#wasm.callMain();
+            this.iterators = new OpenBWIterators( this );
+
             this.running = true;
         } catch ( e ) {
             this.#withOpenBWError( e );
@@ -291,4 +320,6 @@ export class OpenBW implements OpenBW {
     getIScriptProgramDataAddress() {
         return this.#wasm._get_buffer( 12 );
     }
+
+    
 }

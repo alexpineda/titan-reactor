@@ -97,7 +97,6 @@ export class ImageHDInstanced extends ImageHD {
         this.aModifierData.needsUpdate = true;
     }
 
-    //TODO: move to gpu texture lookup
     override setFrame( frame: number, flip: boolean ) {
         this.frame = frame;
         this.flip = flip;
@@ -165,6 +164,7 @@ export class ImageHDInstanced extends ImageHD {
     override updateMatrixWorld() {}
 
     dispose() {
-        this.dispatchEvent( { type: "dispose" } );
+        // todo: figure out what happened here
+        // this.dispatchEvent( { type: "dispose" } );
     }
 }

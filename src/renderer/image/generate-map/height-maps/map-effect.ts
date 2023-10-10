@@ -1,4 +1,4 @@
-import { LinearEncoding, Matrix3, Uniform, Texture, SRGBColorSpace, SRGBToLinear, LinearSRGBColorSpace } from "three";
+import { Matrix3, Uniform, Texture, SRGBColorSpace, LinearSRGBColorSpace } from "three";
 import { ColorChannel, BlendFunction, Effect } from "postprocessing";
 import fragmentShader from "./map-effect.frag.glsl?raw";
 

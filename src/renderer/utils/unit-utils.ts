@@ -7,10 +7,16 @@ import { IterableSet } from "./data-structures/iterable-set";
 import { PxToWorld } from "common/utils/conversions";
 import { Vector3 } from "three";
 
+/**
+ * @public
+ */
 export const unitIsCompleted = ( unit: UnitStruct ) => {
     return unit.statusFlags & UnitFlags.Completed;
 };
 
+/**
+ * @public
+ */
 export const canSelectUnit = ( unit: Unit | undefined ) => {
     if ( !unit ) return null;
 
@@ -38,9 +44,15 @@ const _canOnlySelectOne = [
     unitTypes.lurkerEgg,
 ];
 
+/**
+ * @public
+ */
 export const canOnlySelectOne = ( unit: UnitStruct ) =>
     _canOnlySelectOne.includes( unit.typeId );
 
+/**
+ * @public
+ */
 export const unitIsCloaked = ( unit: UnitStruct ) => {
     return (
         ( ( unit.statusFlags & UnitFlags.Cloaked ) != 0 ||
@@ -50,16 +62,25 @@ export const unitIsCloaked = ( unit: UnitStruct ) => {
     );
 };
 
+/**
+ * @public
+ */
 export const unitIsFlying = ( unit: { statusFlags: number } ) => {
     return Boolean( unit.statusFlags & UnitFlags.Flying );
 };
 
+/**
+ * @public
+ */
 export const getAngle = ( direction: number ) => {
     direction -= 64;
     if ( direction < 0 ) direction += 256;
     return -( ( direction * Math.PI ) / 128.0 ) + Math.PI / 2.0;
 };
 
+/**
+ * @public
+ */
 export const unitIsAttacking = (
     u: UnitsBufferView,
     mainSprite: SpritesBufferView,
@@ -80,6 +101,9 @@ export const unitIsAttacking = (
 };
 
 // ported from BWAPI
+/**
+ * @public
+ */
 export const getMaxUnitEnergy = ( unitType: UnitDAT, completedUpgrades: number[] ) => {
     if ( !unitType.isSpellcaster ) return 0;
     let energy = unitType.isHero ? 250 : 200;
@@ -114,6 +138,9 @@ export const getMaxUnitEnergy = ( unitType: UnitDAT, completedUpgrades: number[]
     return energy;
 };
 
+/**
+ * @public
+ */
 export class PlayerInfo {
     #structSize = 7;
     playerId: number;
@@ -156,7 +183,9 @@ export class PlayerInfo {
 }
 
 const _followedUnitsPosition = new Vector3();
-
+/**
+ * @public
+ */
 export const calculateFollowedUnitsTarget = debounce(
     ( set: IterableSet<Unit>, pxToGameUnit: PxToWorld ) => {
         const units = set._dangerousArray;

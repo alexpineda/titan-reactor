@@ -9,7 +9,7 @@ import { SimpleText } from "@render/simple-text";
 import { createSandboxApi } from "@openbw/sandbox-api";
 import { createSceneComposer } from "./scene-composer";
 import { createPostProcessingComposer } from "./postprocessing-composer";
-import { BasePlayer } from "../players";
+import { BasePlayer, Players } from "../players";
 import { FogOfWar, FogOfWarEffect } from "../fogofwar";
 import { createSurfaceComposer } from "./surface-composer";
 import { createOpenBWComposer } from "./openbw-composer";
@@ -26,12 +26,14 @@ import { WorldEvents } from "./world-events";
 import { createInputComposer } from "./input-composer";
 import { settingsStore } from "@stores/settings-store";
 import { globalEvents } from "@core/global-events";
+import { Vector3 } from "three";
 
 export const createWorldComposer = async (
     openBW: OpenBW,
     assets: Assets,
     map: Chk,
-    players: BasePlayer[],
+    //todo: rename to Map Player
+    basePlayers: BasePlayer[],
     commands: CommandsStream
 ) => {
     const janitor = new Janitor( "WorldComposer" );
@@ -44,7 +46,7 @@ export const createWorldComposer = async (
     const world: World = {
         openBW,
         map,
-        players,
+        players: new Players( basePlayers ),
         commands,
         fogOfWar,
         fogOfWarEffect,
@@ -130,6 +132,9 @@ export const createWorldComposer = async (
     const gameTimeApi: GameTimeApi = mix(
         {
             map,
+            getCommands () {
+                return commands.copy();
+            },
             assets,
             exitScene() {
                 setTimeout( () => {
@@ -286,5 +291,10 @@ export const createWorldComposer = async (
 
             apiSession.native.hook_onRender( delta, elapsed );
         },
+
+        getBestStartLocation() {
+            const playerWithStartLocation = world.players.find(p => p.startLocation);
+            return playerWithStartLocation ? playerWithStartLocation.startLocation : sceneComposer.startLocations[0] ?? new Vector3();
+        }
     };
 };

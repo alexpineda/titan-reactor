@@ -11,7 +11,6 @@ import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";
 import {
-    HexColorString,
     MathUtils,
     Object3D,
     OrthographicCamera,
@@ -79,9 +78,8 @@ export const createPostProcessingComposer = (
                 postProcessingBundle.options3d.sunlightDirection[2]
             );
             scene.sunlight.intensity = postProcessingBundle.options3d.sunlightIntensity;
-            // @Todo change to use setStyle api of Color
             scene.sunlight.setColor(
-                postProcessingBundle.options3d.sunlightColor as HexColorString
+                postProcessingBundle.options3d.sunlightColor 
             );
             scene.sunlight.needsUpdate();
 

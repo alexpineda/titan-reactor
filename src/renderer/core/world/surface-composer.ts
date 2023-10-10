@@ -89,18 +89,8 @@ export const createSurfaceComposer = ( world: World ) => {
             gameSurface.show();
         },
         api: ( ( surfaceRef: WeakRef<typeof gameSurface> ) => ( {
-            togglePointerLock: ( val: boolean ) => {
-                const surface = surfaceRef.deref();
-                if ( surface ) {
-                    surface.togglePointerLock( val );
-                }
-            },
-            isPointerLockLost() {
-                const surface = surfaceRef.deref();
-                if ( surface ) {
-                    return surface.isPointerLockLost();
-                }
-                return false;
+            get surface() {
+                return surfaceRef.deref();
             },
         } ) )( new WeakRef( gameSurface ) ),
     };

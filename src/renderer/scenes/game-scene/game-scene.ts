@@ -12,45 +12,46 @@ import readCascFile from "common/casclib";
 import processStore from "@stores/process-store";
 
 export async function makeGameScene(
-    map: Chk,
-    janitor: Janitor,
-    commandsStream: CommandsStream,
-    onOpenBWReady: ( openBW: OpenBW ) => BasePlayer[]
+  map: Chk,
+  janitor: Janitor,
+  commandsStream: CommandsStream,
+  onOpenBWReady: (openBW: OpenBW) => BasePlayer[],
 ) {
-    const openBW = await getOpenBW();
+  const openBW = await getOpenBW();
 
-    await openBW.start( readCascFile );
+  await openBW.start(readCascFile);
 
-    const basePlayers = onOpenBWReady( openBW );
+  const basePlayers = onOpenBWReady(openBW);
 
-    const worldComposer = janitor.mop(
-        await createWorldComposer(
-            openBW,
-            gameStore().assets!,
-            map,
-            basePlayers,
-            commandsStream
-        ),
-        "worldComposer"
-    );
+  const worldComposer = janitor.mop(
+    await createWorldComposer(
+      openBW,
+      gameStore().assets!,
+      map,
+      basePlayers,
+      commandsStream,
+    ),
+    "worldComposer",
+  );
 
-    worldComposer.init();
+  worldComposer.init();
 
-    await worldComposer.activate( false, settingsStore().data.input.sceneController, {
-        target:
-            worldComposer.sceneComposer.playerStartLocations[0] ??
-            worldComposer.sceneComposer.startLocations[0],
-    } );
+  await worldComposer.activate(
+    false,
+    settingsStore().data.input.sceneController,
+    {
+      target: worldComposer.getBestStartLocation(),
+    },
+  );
 
-    processStore().clearAll();
-    
-    return {
-        async start() {
-            worldComposer.surfaceComposer.mount();
-        }, 
-        dispose() {
-            janitor.dispose();
-        }
-    }
+  processStore().clearAll();
 
+  return {
+    async start() {
+      worldComposer.surfaceComposer.mount();
+    },
+    dispose() {
+      janitor.dispose();
+    },
+  };
 }

@@ -8,6 +8,7 @@ import { SurfaceComposerApi } from "./surface-composer";
 import { PostProcessingComposerApi } from "./postprocessing-composer";
 import { ViewControllerComposerApi } from "./view-composer";
 import { OpenBwComposerApi } from "./openbw-composer";
+import CommandsStream from "@process-replay/commands/commands-stream";
 
 /**
  * @public
@@ -23,6 +24,7 @@ export interface GameTimeApi
         OpenBwComposerApi {
     // & world composer api
     map: Chk;
+    getCommands: () => CommandsStream;
     assets: Assets;
     exitScene(): void;
     sandboxApi: ReturnType<typeof createSandboxApi>;

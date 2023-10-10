@@ -1,3 +1,7 @@
+/**
+ * A map that also keeps track of insertion order
+ * @public
+ */
 export class IterableMap<T, R> {
     #map = new Map<T, R>();
     #copy: R[] = [];

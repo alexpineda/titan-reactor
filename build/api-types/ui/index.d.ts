@@ -1,16 +1,17 @@
 
+        
         import Chk from "bw-chk"
 import React from "react"
 import { CompressedTexture, BufferAttribute, DataArrayTexture, CubeTexture, DataTexture, Texture } from "three";
 
 
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /** @internal */
 declare function chunk(arr: Int32Array, n: number): Int32Array[];
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @internal
@@ -41,7 +42,7 @@ declare function convertIcons({ cmdIcons, gameIcons, raceInsetIcons, wireframeIc
     };
 };
 
-//D:/dev/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
 
 /** @internal */
 interface SystemReadyMessage {
@@ -51,7 +52,7 @@ interface SystemReadyMessage {
     enums: any;
 }
 
-//D:/dev/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
 
 /**
  * @resolve
@@ -75,12 +76,12 @@ interface PluginStateMessage {
     [UI_STATE_EVENT_UNITS_SELECTED]: DumpedUnit[] | DeepPartial<Unit>[];
 }
 
-//D:/dev/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_DIMENSIONS_CHANGED = "dimensions";
 
-//D:/dev/titan-reactor/src/renderer/render/minimap-dimensions.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/minimap-dimensions.ts
 /** @internal */
 interface MinimapDimensions {
     matrix: number[];
@@ -88,21 +89,21 @@ interface MinimapDimensions {
     minimapHeight: number;
 }
 
-//D:/dev/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_SCREEN_CHANGED = "screen";
 
-//D:/dev/titan-reactor/src/renderer/scenes/scene.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/scenes/scene.ts
 /** @internal */
 declare type SceneStateID = "@home" | "@loading" | "@replay" | "@map" | "@iscriptah" | "@interstitial";
 
-//D:/dev/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_WORLD_CHANGED = "world";
 
-//D:/dev/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
 
 /** @internal */
 declare const worldPartial: (world: ReplayAndMapStore) => {
@@ -163,7 +164,7 @@ declare const worldPartial: (world: ReplayAndMapStore) => {
     } | undefined;
 };
 
-//D:/dev/titan-reactor/src/renderer/stores/replay-and-map-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/replay-and-map-store.ts
 
 /** @internal */
 interface ReplayAndMapStore {
@@ -175,7 +176,7 @@ interface ReplayAndMapStore {
     reset: () => void;
 }
 
-//D:/dev/titan-reactor/src/renderer/process-replay/parse-replay.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
 
 /**
  * @public
@@ -183,7 +184,7 @@ interface ReplayAndMapStore {
  */
 export declare type Replay = Awaited<ReturnType<typeof parseReplay>>;
 
-//D:/dev/titan-reactor/src/renderer/process-replay/parse-replay.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
 /// <reference types="node" />
 /** @internal */
 declare const parseReplay: (buf: Buffer) => Promise<{
@@ -250,7 +251,7 @@ declare const parseReplay: (buf: Buffer) => Promise<{
     stormPlayerToGamePlayer: number[];
 }>;
 
-//D:/dev/titan-reactor/src/renderer/process-replay/parse-replay-header.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay-header.ts
 /// <reference types="node" />
 /** @internal */
 interface ReplayPlayer {
@@ -264,22 +265,22 @@ interface ReplayPlayer {
     isActive: boolean;
 }
 
-//D:/dev/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_ON_FRAME = "frame";
 
-//D:/dev/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_PRODUCTION = "production";
 
-//D:/dev/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_UNITS_SELECTED = "units";
 
-//D:/dev/titan-reactor/src/renderer/core/unit.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
 
 /**
  * @public
@@ -304,7 +305,7 @@ export interface DumpedUnit extends Partial<Unit> {
     buildQueue?: number[];
 }
 
-//D:/dev/titan-reactor/src/renderer/core/unit.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
 
 /**
  * @public
@@ -318,7 +319,7 @@ export interface Unit extends UnitStruct {
     };
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/unit-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/unit-struct.ts
 
 /** @internal */
 interface UnitStruct extends FlingyStruct {
@@ -343,7 +344,7 @@ interface UnitStruct extends FlingyStruct {
     subunitId: number | null;
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/flingy-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/flingy-struct.ts
 
 /** @internal */
 interface FlingyStruct extends ThingyStruct {
@@ -359,7 +360,7 @@ interface FlingyStruct extends ThingyStruct {
     movementFlags: number;
 }
 
-//D:/dev/titan-reactor/src/common/types/structs/thingy-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/thingy-struct.ts
 /** @internal */
 interface ThingyStruct {
     hp: number;
@@ -369,7 +370,7 @@ interface ThingyStruct {
     spriteIndex: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/units-dat.ts
 
 /**
  * @public
@@ -377,7 +378,7 @@ interface ThingyStruct {
 export interface UnitDAT extends UnitDATIncomingType {
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/units-dat.ts
 
 /**
  * @public
@@ -433,7 +434,7 @@ export interface UnitDATIncomingType {
     starEditAvailabilityFlags: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/units-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/units-dat.ts
 
 /**
  * @public
@@ -480,13 +481,13 @@ export declare class UnitDAT implements UnitDAT {
     constructor(data: UnitDATIncomingType);
 }
 
-//D:/dev/titan-reactor/src/common/types/utils/deep-partial.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/utils/deep-partial.ts
 /** @internal */
 declare type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
 
-//D:/dev/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /**
  * A plugin's metadata based off it's package.json file and surrounding plugin files.
@@ -504,7 +505,7 @@ interface PluginMetaData extends PluginPackage {
     apiVersion: string;
 }
 
-//D:/dev/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /**
  * A package definition for a plugin.
@@ -527,16 +528,17 @@ interface PluginPackage {
         url?: string;
     };
     peerDependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
     config?: PluginConfig;
     permissions?: string[];
 }
 
-//D:/dev/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /** @internal */
 declare type PluginConfig = Record<string, FieldDefinition>;
 
-//D:/dev/titan-reactor/src/common/types/fields.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
 
 /** @internal */
 interface FieldDefinition<T = unknown> {
@@ -554,7 +556,7 @@ interface FieldDefinition<T = unknown> {
     options?: string[] | Record<string, string>;
 }
 
-//D:/dev/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
 
 /**
  * @public
@@ -566,7 +568,7 @@ export declare type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     wireframeIcons?: Blob[];
 } & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
 
-//D:/dev/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
 
 /** @internal */
 declare const initializeAssets: (directories: {
@@ -682,7 +684,7 @@ declare const initializeAssets: (directories: {
     }[];
 }>;
 
-//D:/dev/titan-reactor/src/common/types/image.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/image.ts
 
 /** @internal */
 declare enum UnitTileScale {
@@ -691,7 +693,7 @@ declare enum UnitTileScale {
     HD = 4
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/bw-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/bw-dat.ts
 
 /**
  * @public
@@ -710,7 +712,7 @@ export interface BwDAT {
     grps: GrpSprite[];
 }
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 interface IScriptDATType {
@@ -718,7 +720,7 @@ interface IScriptDATType {
     animations: Record<number, IScriptAnimation>;
 }
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 interface IScriptProgram {
@@ -728,17 +730,17 @@ interface IScriptProgram {
     offsets: number[];
 }
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 declare type IScriptAnimation = IScriptOperations[];
 
-//D:/dev/titan-reactor/src/common/types/iscript.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
 declare type IScriptOperations = [string, number[]];
 
-//D:/dev/titan-reactor/src/common/bwdat/sounds-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sounds-dat.ts
 
 /**
  * @public
@@ -751,7 +753,7 @@ export interface SoundDAT {
     minVolume: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/tech-data-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/tech-data-dat.ts
 
 /**
  * @public
@@ -769,7 +771,7 @@ export interface TechDataDAT {
     researched: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/upgrades-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/upgrades-dat.ts
 
 /**
  * @public
@@ -788,7 +790,7 @@ export interface UpgradeDAT {
     race: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/orders-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/orders-dat.ts
 
 /**
  * @public
@@ -797,7 +799,7 @@ export interface OrderDAT {
     name: string;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/images-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/images-dat.ts
 
 /**
  * @public
@@ -822,14 +824,14 @@ export interface ImageDAT {
     liftOffDustOverlay: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/parse-lo.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/parse-lo.ts
 /// <reference types="node" />
 /**
  * @public
  */
 export declare type LoDAT = number[][][];
 
-//D:/dev/titan-reactor/src/common/bwdat/sprites-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sprites-dat.ts
 
 /**
  * @public
@@ -847,7 +849,7 @@ export interface SpriteDAT {
     selectionCircleOffset: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/weapons-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/weapons-dat.ts
 
 /**
  * @public
@@ -877,7 +879,7 @@ export interface WeaponDAT {
     upwardOffset: number;
 }
 
-//D:/dev/titan-reactor/src/common/bwdat/flingy-dat.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/flingy-dat.ts
 
 /**
  * @public
@@ -890,7 +892,7 @@ export interface FlingyDAT {
     turnRadius: number;
 }
 
-//D:/dev/titan-reactor/src/common/types/anim-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 
 /** @internal */
 declare type GrpSprite = {
@@ -901,7 +903,7 @@ declare type GrpSprite = {
     maxFramew: number;
 };
 
-//D:/dev/titan-reactor/src/common/types/anim-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 /// <reference types="node" />
 /** @internal */
 declare type AnimFrame = {
@@ -913,12 +915,12 @@ declare type AnimFrame = {
     yoff: number;
 };
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
 
 /** @internal */
 declare type AnimAtlas = ReturnType<typeof loadAnimAtlas>;
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
 
 /** @internal */
 declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<UnitTileScale, "SD">) => {
@@ -953,7 +955,7 @@ declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<Un
     dispose(): void;
 };
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
 
 /** @internal */
 declare class LegacyGRP {
@@ -980,7 +982,7 @@ declare class LegacyGRP {
     dispose(): void;
 }
 
-//D:/dev/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
 
 /** @internal */
 declare type Palettes = Uint8Array[] & {
@@ -988,7 +990,7 @@ declare type Palettes = Uint8Array[] & {
     light?: Buffer;
 };
 
-//D:/dev/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
 
 /** @internal */
 declare const generateUIIcons: (readFile: ReadFile) => Promise<{
@@ -1016,12 +1018,12 @@ declare const generateUIIcons: (readFile: ReadFile) => Promise<{
     };
 }>;
 
-//D:/dev/titan-reactor/src/common/types/file.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/file.ts
 /// <reference types="node" />
 /** @internal */
 declare type ReadFile = (filename: string) => Promise<Buffer>;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1029,7 +1031,7 @@ declare type ReadFile = (filename: string) => Promise<Buffer>;
  */
 export declare const enums: any;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /** @internal */
 interface Component {
@@ -1042,12 +1044,12 @@ interface Component {
     screen: string;
 }
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /** @internal */
 declare type StateMessage = Partial<PluginStateMessage>;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1055,7 +1057,7 @@ declare type StateMessage = Partial<PluginStateMessage>;
  */
 export declare const useLocale: () => string | undefined;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1109,7 +1111,7 @@ export declare const useReplay: () => {
     };
 } | undefined;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1124,7 +1126,7 @@ export declare const useMap: () => {
     tilesetName: string;
 } | undefined;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1132,7 +1134,7 @@ export declare const useMap: () => {
  */
 export declare const useFrame: () => number | undefined;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1140,7 +1142,7 @@ export declare const useFrame: () => number | undefined;
  */
 export declare const usePlayers: () => ReplayPlayer[];
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1148,7 +1150,7 @@ export declare const usePlayers: () => ReplayPlayer[];
  */
 export declare const usePlayerFrame: () => (id: number) => PlayerInfo;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1168,7 +1170,7 @@ export declare class PlayerInfo {
     get apm(): number;
 }
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1176,7 +1178,7 @@ export declare class PlayerInfo {
  */
 export declare const usePlayer: () => (playerId: number) => ReplayPlayer | undefined;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1245,7 +1247,7 @@ export declare const useSelectedUnits: () => {
     spriteIndex?: number | undefined;
 }[];
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1253,7 +1255,7 @@ export declare const useSelectedUnits: () => {
  */
 export declare const getUnitIcon: (unit: DumpedUnit) => any;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1279,7 +1281,7 @@ export declare const useProduction: () => (((playerId: number) => ({
     isResearch: boolean;
 }[]))[];
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1287,14 +1289,14 @@ export declare const useProduction: () => (((playerId: number) => ({
  */
 export declare const getFriendlyTime: (frame: number) => string;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
  */
 export declare const openUrl: (url: string) => void;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1302,7 +1304,7 @@ export declare const openUrl: (url: string) => void;
  */
 export declare type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat"> & ReturnType<typeof convertIcons>;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1310,7 +1312,7 @@ export declare type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat"> 
  */
 export declare const assets: RuntimeAssets;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1322,7 +1324,7 @@ export declare const RollingNumber: ({ value, upSpeed, downSpeed, ...props }: {
     downSpeed: number | undefined;
 }) => JSX.Element;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1330,7 +1332,7 @@ export declare const RollingNumber: ({ value, upSpeed, downSpeed, ...props }: {
  */
 export declare const useMessage: (cb?: ((event: any) => void) | undefined, deps?: unknown[]) => void;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1338,7 +1340,7 @@ export declare const useMessage: (cb?: ((event: any) => void) | undefined, deps?
  */
 export declare const useSendMessage: () => (message: unknown) => void;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1346,7 +1348,7 @@ export declare const useSendMessage: () => (message: unknown) => void;
  */
 export declare const usePluginConfig: () => object;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
@@ -1354,14 +1356,14 @@ export declare const usePluginConfig: () => object;
  */
 export declare const useStyleSheet: (content: string, deps?: never[]) => void;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @public
  */
 export declare const proxyFetch: (url: string) => Promise<Response>;
 
-//D:/dev/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
 
 /**
  * @internal

@@ -1,5 +1,4 @@
-import { Color } from "three";
-import { StartLocation } from "./chk";
+import { Color, Vector3 } from "three";
 
 export interface Player {
     id: number;
@@ -7,5 +6,5 @@ export interface Player {
     race: string;
     color: Color;
     vision: boolean;
-    startLocation?: StartLocation;
+    startLocation?: Vector3;
 }

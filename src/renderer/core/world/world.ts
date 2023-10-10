@@ -4,13 +4,13 @@ import { TypeEmitter } from "@utils/type-emitter";
 import Chk from "bw-chk";
 import { OpenBW } from "@openbw/openbw";
 
-import { BasePlayer, FogOfWar, FogOfWarEffect } from "..";
+import { FogOfWar, FogOfWarEffect, Players } from "..";
 import { SettingsSessionStore } from "./settings-session-store";
 import { WorldEvents } from "./world-events";
 
 export interface World {
     map: Chk;
-    players: BasePlayer[];
+    players: Players;
     commands: CommandsStream;
     fogOfWar: FogOfWar;
     fogOfWarEffect: FogOfWarEffect;

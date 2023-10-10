@@ -1,14 +1,7 @@
-import { deletedImageIterator, ImageBufferView } from "@buffer-view/images-buffer-view";
+import { ImageBufferView } from "@buffer-view/images-buffer-view";
 import { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
 import {
-    deletedSpritesIterator,
-    SpritesBufferViewIterator,
-} from "@buffer-view/sprites-buffer-view-iterator";
-import {
-    destroyedUnitsIterator,
-    killedUnitIterator,
     UnitsBufferView,
-    UnitsBufferViewIterator,
 } from "@buffer-view/units-buffer-view";
 import { ImageEntities } from "@core/image-entities";
 import { ImageHD } from "@core/image-hd";
@@ -18,7 +11,6 @@ import {
     applyRenderModeToSprite,
     overlayEffectsMainImage,
 } from "@core/model-effects";
-import { Players } from "@core/players";
 import { SpriteEntities } from "@core/sprite-entities";
 import { UnitEntities } from "@core/unit-entities";
 import { terrainComposer } from "@image/generate-map/terrain-composer";
@@ -39,7 +31,6 @@ import { ImageStruct, UnitTileScale } from "common/types";
 import { Assets } from "@image/assets";
 import { floor32, makePxToWorld } from "common/utils/conversions";
 import { Color, MathUtils, Vector3 } from "three";
-import { createPlayersGameTimeApi } from "./players-api";
 import { World } from "./world";
 import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/data-structures/iterable-set";
@@ -51,6 +42,7 @@ import { ImageHDMaterial } from "@core/image-hd-material";
 import { calculateImagesFromTechTreeUnits } from "@utils/preload-map-units-and-sprites";
 import { TimeSliceJob } from "@utils/time-slice-job";
 import { GameViewPort } from "../../camera/game-viewport";
+import { IterableMap } from "@utils/data-structures/iteratible-map";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 export type SceneComposerApi = SceneComposer["api"];
@@ -73,21 +65,20 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
     const pxToWorld = makePxToWorld( ...world.map.size, terrain.getTerrainY );
 
-    const players = new Players( world.players );
 
+    //TODO: move these to player objects
     const startLocations = world.map.units
         .filter( ( u ) => u.unitId === unitTypes.startLocation )
-        .map( ( location ) => pxToWorld.xyz( location.x, location.y, new Vector3() ) );
+        .map( ( u ) => {
+            const location = pxToWorld.xyz( u.x, u.y, new Vector3() );
 
-    const playerStartLocations = world.map.units
-        .filter(
-            ( u ) =>
-                u.unitId === unitTypes.startLocation &&
-                world.players.find( ( p ) => p.id === u.player )
-        )
-        .map( ( location ) => pxToWorld.xyz( location.x, location.y, new Vector3() ) );
+            const player = world.players.find( ( p ) => p.id === u.player );
+            if ( player ) {
+                player.startLocation = (new Vector3).copy( location );
+            }
 
-    const getPlayerColor = ( playerId: number ) => players.get( playerId )?.color ?? white;
+            return location
+        })   
 
     const _world = borrow( world );
 
@@ -153,8 +144,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         }
     }
 
-    const unitsBufferViewIterator = new UnitsBufferViewIterator( world.openBW );
-
     const buildUnit = ( unitData: UnitsBufferView ) => {
         const unit = units.getOrCreate( unitData );
 
@@ -181,7 +170,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
     let unit: Unit | undefined;
 
-    const spritesIterator = new SpritesBufferViewIterator( world.openBW );
     const imageBufferView = new ImageBufferView( world.openBW );
 
     let _spriteY = 0;
@@ -258,7 +246,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
             //TODO: optimize depending on imageNeedsRedraw
 
-            image.setTeamColor( getPlayerColor( spriteData.owner ) );
+            image.setTeamColor( world.players.get(spriteData.owner)?.color ?? white );
             image.setModifiers(
                 imageData.modifier,
                 imageData.modifierData1,
@@ -376,6 +364,9 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
     const _alreadyCalculated = new Set<number>(),
         _cameraWorldDirection = new Vector3();
 
+        
+    const pxToWorldInverse = makePxToWorld( ...world.map.size, terrain.getTerrainY, true );
+
     return {
         images,
         sprites,
@@ -387,11 +378,8 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         terrain,
         terrainExtra,
         pxToWorld,
-        pxToWorldInverse: makePxToWorld( ...world.map.size, terrain.getTerrainY, true ),
+        pxToWorldInverse,
         startLocations,
-        playerStartLocations,
-        players,
-        getPlayerColor,
         onFrame(
             delta: number,
             elapsed: number,
@@ -408,11 +396,11 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 preloader.addWork( work );
             }
 
-            world.fogOfWar.onFrame( players.getVisionFlag() );
+            world.fogOfWar.onFrame( world.players.getVisionFlag() );
 
             terrain.userData.update( delta );
 
-            for ( const unitId of killedUnitIterator( world.openBW ) ) {
+            for ( const unitId of world.openBW.iterators.killedUnitsThisFrame() ) {
                 unit = units.get( unitId );
                 if ( unit ) {
                     units.free( unit );
@@ -420,7 +408,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 }
             }
 
-            for ( const unitId of destroyedUnitsIterator( world.openBW ) ) {
+            for ( const unitId of world.openBW.iterators.destroyedUnitsThisFrame() ) {
                 unit = units.get( unitId );
                 if ( unit ) {
                     units.free( unit );
@@ -428,15 +416,15 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 }
             }
 
-            for ( const unit of unitsBufferViewIterator ) {
+            for ( const unit of world.openBW.iterators.units ) {
                 buildUnit( unit );
             }
 
-            for ( const spriteIndex of deletedSpritesIterator( world.openBW ) ) {
+            for ( const spriteIndex of world.openBW.iterators.deletedSpritesThisFrame()) {
                 sprites.free( spriteIndex );
             }
 
-            for ( const imageIndex of deletedImageIterator( world.openBW ) ) {
+            for ( const imageIndex of  world.openBW.iterators.deletedImagesThisFrame()) {
                 images.free( imageIndex );
             }
 
@@ -448,7 +436,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
             // support precompile w/out viewport
             if ( typeof viewport === "boolean" ) {
-                for ( const sprite of spritesIterator ) {
+                for ( const sprite of world.openBW.iterators.sprites ) {
                     buildSprite( sprite, delta, viewport, direction! );
                 }
             } else {
@@ -456,7 +444,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
                 viewport.updateDirection32();
 
-                for ( const sprite of spritesIterator ) {
+                for ( const sprite of world.openBW.iterators.sprites ) {
                     buildSprite(
                         sprite,
                         delta,
@@ -469,44 +457,25 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         resetImageCache() {
             images.dispose();
         },
-        api: ( ( _players: WeakRef<typeof players>, _world: Borrowed<World> ) => ( {
-            ...createPlayersGameTimeApi( _players, _world ),
+        api: ( (   _world: Borrowed<World> ) => ( {
+            getPlayers: () => _world.players!,
+            //TODO: deprecate by using world event
+            toggleFogOfWarByPlayerId( playerId: number ) {
+                _world.players!.togglePlayerVision( playerId );
+                _world.fogOfWar!.forceInstantUpdate = true;
+            },
             pxToWorld,
+            get units() : IterableMap<number, Unit> {
+                return units.units
+            },
+            simpleIndex,
             scene,
-            followedUnits: Object.freeze( {
-                clear() {
-                    followedUnits.clear();
-                },
-                hasUnits() {
-                    return followedUnits.size > 0;
-                },
-                getUnits() {
-                    return followedUnits.copyAsArray();
-                },
-                setUnits( units: Unit[] ) {
-                    followedUnits.set( units );
-                },
-                getCentralPosition() {
-                    if ( followedUnits.size === 0 ) {
-                        return null;
-                    }
-                    return calculateFollowedUnitsTarget( followedUnits, pxToWorld );
-                },
-            } ),
-            selectedUnits: Object.freeze( {
-                clear() {
-                    selectedUnits.clear();
-                },
-                hasUnits() {
-                    return selectedUnits.size > 0;
-                },
-                getUnits() {
-                    return selectedUnits.copyAsArray();
-                },
-                setUnits( units: Unit[] ) {
-                    selectedUnits.set( units );
-                },
-            } ),
-        } ) )( new WeakRef( players ), borrow( world ) ),
+            followedUnits,
+            startLocations,
+            //TODO: extend followedunits instead
+            getFollowedUnitsCenterPosition: () => calculateFollowedUnitsTarget( followedUnits, pxToWorld ),
+            selectedUnits,
+            
+        } ) )( borrow( world ) ),
     };
 };

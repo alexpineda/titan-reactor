@@ -182,32 +182,40 @@ export const createOpenBWComposer = (
             _playSound: WeakRef<typeof gtapi_playSound>,
             _getCurrentFrame: WeakRef<typeof gtapi_getCurrentFrame>
         ) => ( {
-            getCurrentFrame() {
+            openBW: {
+                get iterators() {
+                    return b_world.openBW.deref()!.iterators;
+                },
+                get mapTiles() {
+                    return _tiles;
+                },
+                skipForward: skipHandler( b_world.openBW, 1, b_world.reset ),
+                skipBackward: skipHandler( b_world.openBW, -1, b_world.reset ),
+                speedUp: () => speedHandler( SpeedDirection.Up, b_world.openBW ),
+                speedDown: () => speedHandler( SpeedDirection.Down, b_world.openBW ),
+                togglePause: ( setPaused?: boolean ) => {
+                    const openBW = b_world.openBW.deref()!;
+                    openBW.setPaused( setPaused ?? !openBW.isPaused() );
+                    return openBW.isPaused();
+                },
+                get gameSpeed() {
+                    const openBW = b_world.openBW.deref()!;
+                    return openBW.getGameSpeed();
+                },
+                setGameSpeed( value: number ) {
+                    const openBW = b_world.openBW.deref()!;
+                    openBW.setGameSpeed(
+                        MathUtils.clamp( value, REPLAY_MIN_SPEED, REPLAY_MAX_SPEED )
+                    );
+                },
+                gotoFrame: ( frame: number ) => {
+                    const openBW = b_world.openBW.deref()!;
+                    openBW.setCurrentReplayFrame( frame );
+                    b_world.reset.deref()!();
+                },
+            },
+            get frame() {
                 return _getCurrentFrame.deref()!();
-            },
-            skipForward: skipHandler( b_world.openBW, 1, b_world.reset ),
-            skipBackward: skipHandler( b_world.openBW, -1, b_world.reset ),
-            speedUp: () => speedHandler( SpeedDirection.Up, b_world.openBW ),
-            speedDown: () => speedHandler( SpeedDirection.Down, b_world.openBW ),
-            togglePause: ( setPaused?: boolean ) => {
-                const openBW = b_world.openBW.deref()!;
-                openBW.setPaused( setPaused ?? !openBW.isPaused() );
-                return openBW.isPaused();
-            },
-            get gameSpeed() {
-                const openBW = b_world.openBW.deref()!;
-                return openBW.getGameSpeed();
-            },
-            setGameSpeed( value: number ) {
-                const openBW = b_world.openBW.deref()!;
-                openBW.setGameSpeed(
-                    MathUtils.clamp( value, REPLAY_MIN_SPEED, REPLAY_MAX_SPEED )
-                );
-            },
-            gotoFrame: ( frame: number ) => {
-                const openBW = b_world.openBW.deref()!;
-                openBW.setCurrentReplayFrame( frame );
-                b_world.reset.deref()!();
             },
             playSound( ...args: Parameters<typeof gtapi_playSound> ) {
                 _playSound.deref()!( ...args );

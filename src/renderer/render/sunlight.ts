@@ -58,8 +58,8 @@ export class Sunlight {
         return this.#light.position.clone();
     }
 
-    setColor( ...args: Parameters<Color["set"]> ) {
-        this.#light.color.set( ...args );
+    setColor( ...args: Parameters<Color["setStyle"]> ) {
+        this.#light.color.setStyle( ...args );
     }
 
     needsUpdate() {

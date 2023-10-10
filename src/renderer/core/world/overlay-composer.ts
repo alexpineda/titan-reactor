@@ -3,6 +3,7 @@ import { BasicOverlayMaterial, MinimapMaterial } from "@render/minimap-material"
 import { unitTypes } from "common/enums";
 import { Assets } from "@image/assets";
 import {
+    Color,
     Intersection,
     Matrix3,
     Matrix4,
@@ -39,6 +40,8 @@ export type OverlayComposerApi = OverlayComposer["api"];
 
 const _mmIntersect: Intersection[] = [];
 
+const white = new Color( 0xffffff );
+
 /**
  * Manages the minimap, cursor, and selection display.
  */
@@ -46,7 +49,6 @@ export const createOverlayComposer = (
     world: World,
     {
         terrainExtra,
-        getPlayerColor,
         units,
         sprites,
         selectedUnits,
@@ -317,7 +319,7 @@ export const createOverlayComposer = (
                         unit,
                         assets.bwDat.units[unit.typeId],
                         world.fogOfWar,
-                        getPlayerColor
+                        ( playerId: number ) => world.players!.get(playerId)?.color ?? white 
                     );
                 }
             }

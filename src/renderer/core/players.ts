@@ -1,6 +1,6 @@
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { Player } from "common/types";
-import { Color } from "three";
+import { Color  } from "three";
 
 const makeColor = ( color: string ) => new Color().setStyle( color );
 const makeColors = ( players: Pick<BasePlayer, "color">[] ) =>
@@ -47,6 +47,7 @@ export class Players extends Array<Player> {
                 id: player.id,
                 name: player.name,
                 race: player.race,
+                startLocation: undefined,
                 _vision: true,
                 get vision() {
                     return this._vision;
