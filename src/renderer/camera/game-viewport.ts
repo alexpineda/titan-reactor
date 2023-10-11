@@ -12,6 +12,8 @@ import CameraShake from "./camera-shake";
 import { ProjectedCameraView } from "./projected-camera-view";
 import { Sizeable } from "./sizeable";
 
+const _target = new Vector3();
+
 /**
  * @public
  * A "view" into the game. Every viewport contains it's own camera, dimensions, and additional properties.
@@ -34,7 +36,6 @@ export class GameViewPort extends Sizeable {
 
     constrainToAspect = true;
     #renderMode3D = false;
-    freezeCamera = false;
 
     needsUpdate = true;
     rotateSprites = false;
@@ -121,7 +122,7 @@ export class GameViewPort extends Sizeable {
             this.shakeCalculation.needsUpdate = false;
             this.shakeCalculation.strength.setScalar( 0 );
         }
-        if ( !this.freezeCamera ) this.cameraShake.update( elapsed, this.camera );
+        this.cameraShake.update( elapsed, this.camera );
     }
 
     shakeEnd() {
@@ -134,11 +135,18 @@ export class GameViewPort extends Sizeable {
         this.#direction32 = this.rotateSprites
             ? getDirection32( this.projectedView.center, this.camera.position )
             : 0;
+
         this.orbit.dampingFactor = MathUtils.damp(
             this.orbit.dampingFactor,
             targetDamping,
             0.0001,
             delta
+        );
+        this.orbit.update( delta / 1000 );
+        
+        this.projectedView.update(
+            this.camera,
+            this.orbit.getTarget( _target )
         );
     }
 

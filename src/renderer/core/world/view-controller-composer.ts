@@ -99,16 +99,7 @@ export const createViewControllerComposer = (
                 sceneController.onUpdateAudioMixerOrientation(),
                 delta
             );
-
-            for ( const viewport of viewports ) {
-                if ( viewport.enabled && !viewport.freezeCamera ) {
-                    viewport.orbit.update( delta / 1000 );
-                    viewport.projectedView.update(
-                        viewport.camera,
-                        viewport.orbit.getTarget( _target )
-                    );
-                }
-            }
+            
         },
 
         get viewports() {
