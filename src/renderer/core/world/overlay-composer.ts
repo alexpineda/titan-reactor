@@ -24,7 +24,7 @@ import { Janitor } from "three-janitor";
 import { SurfaceComposer } from "./surface-composer";
 import { PostProcessingComposer } from "./postprocessing-composer";
 import { InputsComposer } from "./input-composer";
-import { ViewControllerComposer } from "./view-composer";
+import { ViewControllerComposer } from "./view-controller-composer";
 
 export type OverlayComposer = {
     api: {

@@ -3,7 +3,7 @@ import { SurfaceComposer } from "@core/world/surface-composer";
 import { log } from "@ipc/log";
 import { Janitor } from "three-janitor";
 import { DamageType, Explosion } from "common/enums";
-import { Vector3 } from "three";
+import { PerspectiveCamera, Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
 import { World } from "./world";
 import { SceneController } from "@plugins/scene-controller";
@@ -46,15 +46,7 @@ export const createViewControllerComposer = (
 
     const viewports: GameViewPort[] = []
 
-    const createViewports = () => range( 0, 4 ).map( i => {
-        const gvp = new GameViewPort( gameSurface, i === 0 );
-        gvp.reset();
-        gvp.width = gameSurface.bufferWidth;
-        gvp.height = gameSurface.bufferHeight;
-        gvp.aspect = gameSurface.aspect;
-        return gvp;
-    } );
-
+    const createViewports = () => range( 0, 4 ).map( i => new GameViewPort( gameSurface, i === 0 ) );
 
     let sceneController: SceneController | null = null;
 
@@ -64,11 +56,12 @@ export const createViewControllerComposer = (
 
     const janitor = new Janitor( "ViewInputComposer" );
 
-    world.events.on( "resize", ( surface ) => {
+    world.events.on( "resize", ( ) => {
         for ( const viewport of viewports ) {
-            viewport.width = surface.bufferWidth;
-            viewport.height = surface.bufferHeight;
-            viewport.aspect = surface.aspect;
+            if ( viewport.camera instanceof PerspectiveCamera ) {
+                viewport.camera.aspect = viewport.aspect;
+            }
+            viewport.camera.updateProjectionMatrix();
         }
     } );
 

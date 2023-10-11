@@ -17,7 +17,7 @@ import { createOverlayComposer } from "./overlay-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import { createCommandsComposer } from "./commands-composer";
 import { createGameLoopComposer } from "./game-loop-composer";
-import { createViewControllerComposer } from "./view-composer";
+import { createViewControllerComposer } from "./view-controller-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World } from "./world";
 import { mix } from "@utils/object-utils";
@@ -259,7 +259,7 @@ export const createWorldComposer = async (
                 sceneComposer.onFrame(
                     delta,
                     elapsed,
-                    viewControllerComposer.primaryViewport!
+                    viewControllerComposer.primaryViewport!.renderMode3D
                 );
 
                 overlayComposer.onFrame( openBwComposer.completedUpgrades );

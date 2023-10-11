@@ -6,7 +6,7 @@ import { InputsComposerApi } from "./input-composer";
 import { SceneComposerApi } from "./scene-composer";
 import { SurfaceComposerApi } from "./surface-composer";
 import { PostProcessingComposerApi } from "./postprocessing-composer";
-import { ViewControllerComposerApi } from "./view-composer";
+import { ViewControllerComposerApi } from "./view-controller-composer";
 import { OpenBwComposerApi } from "./openbw-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
 

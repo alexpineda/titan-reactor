@@ -39,7 +39,6 @@ import { ImageBase } from "..";
 import { ImageHDMaterial } from "@core/image-hd-material";
 import { calculateImagesFromTechTreeUnits } from "@utils/preload-map-units-and-sprites";
 import { TimeSliceJob } from "@utils/time-slice-job";
-import { GameViewPort } from "../../camera/game-viewport";
 import { IterableMap } from "@utils/data-structures/iteratible-map";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
@@ -375,7 +374,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         onFrame(
             delta: number,
             elapsed: number,
-            viewport: GameViewPort | boolean,
+            renderMode3D: boolean,
         ) {
             preloader.update( elapsed );
 
@@ -426,18 +425,13 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             }
 
             // support precompile w/out viewport
-            if ( typeof viewport === "boolean" ) {
-                for ( const sprite of world.openBW.iterators.sprites ) {
-                    buildSprite( sprite, delta, viewport  );
-                }
-            } else {
-                for ( const sprite of world.openBW.iterators.sprites ) {
-                    buildSprite(
-                        sprite,
-                        delta,
-                        viewport.renderMode3D,
-                    );
-                }
+
+            for ( const sprite of world.openBW.iterators.sprites ) {
+                buildSprite(
+                    sprite,
+                    delta,
+                    renderMode3D,
+                );
             }
         },
         resetImageCache() {

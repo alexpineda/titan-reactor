@@ -16,7 +16,7 @@ import {
 } from "three";
 import { SceneComposer } from "./scene-composer";
 import shallow from "zustand/shallow";
-import { ViewControllerComposer } from "@core/world/view-composer";
+import { ViewControllerComposer } from "@core/world/view-controller-composer";
 import { World } from "./world";
 import { isImageHd, isMesh } from "@utils/image-utils";
 

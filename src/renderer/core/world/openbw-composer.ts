@@ -11,7 +11,7 @@ import { floor32 } from "common/utils/conversions";
 import { SceneComposer } from "./scene-composer";
 import { MathUtils } from "three";
 import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
-import { ViewControllerComposer } from "@core/world/view-composer";
+import { ViewControllerComposer } from "@core/world/view-controller-composer";
 import { World } from "./world";
 import { mixer } from "@core/global";
 import { Timer } from "@utils/timer";

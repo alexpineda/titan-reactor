@@ -9,7 +9,7 @@ import { Object3D } from "three";
 import { Unit } from "@core/unit";
 import { isImage3d, isImageHd } from "@utils/image-utils";
 import { canSelectUnit } from "@utils/unit-utils";
-import { ViewControllerComposer } from "./view-composer";
+import { ViewControllerComposer } from "./view-controller-composer";
 import { OverlayComposer } from "./overlay-composer";
 
 export type InputsComposer = ReturnType<typeof createInputComposer>;
