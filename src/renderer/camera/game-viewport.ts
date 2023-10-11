@@ -12,10 +12,6 @@ import CameraShake from "./camera-shake";
 import { ProjectedCameraView } from "./projected-camera-view";
 import { Sizeable } from "./sizeable";
 
-type DirectionalCamera = ( PerspectiveCamera | OrthographicCamera ) & {
-    userData: { direction: number; prevDirection: number };
-};
-
 /**
  * @public
  * A "view" into the game. Every viewport contains it's own camera, dimensions, and additional properties.
@@ -23,7 +19,7 @@ type DirectionalCamera = ( PerspectiveCamera | OrthographicCamera ) & {
 export class GameViewPort extends Sizeable {
     #enabled = false;
     name = "GameViewPort";
-    camera: DirectionalCamera;
+    camera: PerspectiveCamera | OrthographicCamera;
     projectedView = new ProjectedCameraView();
     orbit!: CameraControls;
     viewport = new Vector4( 0, 0, 300, 200 );
@@ -43,6 +39,7 @@ export class GameViewPort extends Sizeable {
     needsUpdate = true;
     rotateSprites = false;
     audioType: "stereo" | "3d" | null = "stereo";
+    #direction32 = 0;
 
     set renderMode3D( val: boolean ) {
         if ( val !== this.#renderMode3D ) {
@@ -71,9 +68,7 @@ export class GameViewPort extends Sizeable {
             surface.aspect,
             0.1,
             500
-        ) as DirectionalCamera;
-        this.camera.userData.direction = 0;
-        this.camera.userData.prevDirection = -1;
+        );
 
         this.enabled = enabled;
         this.#bindOrbitControls();
@@ -92,7 +87,7 @@ export class GameViewPort extends Sizeable {
             value
                 ? new OrthographicCamera()
                 : new PerspectiveCamera( 15, this.#surface.aspect, 0.1, 500 )
-        ) as DirectionalCamera;
+        );
         this.constrainToAspect = !value;
         this.orbit.dispose();
         this.#bindOrbitControls();
@@ -136,7 +131,9 @@ export class GameViewPort extends Sizeable {
     update( targetDamping: number, delta: number ) {
 
         this.viewport.copy(this.getActualSize());
-        this.updateDirection32();
+        this.#direction32 = this.rotateSprites
+            ? getDirection32( this.projectedView.center, this.camera.position )
+            : 0;
         this.orbit.dampingFactor = MathUtils.damp(
             this.orbit.dampingFactor,
             targetDamping,
@@ -145,13 +142,7 @@ export class GameViewPort extends Sizeable {
         );
     }
 
-    updateDirection32() {
-        const dir = this.rotateSprites
-            ? getDirection32( this.projectedView.center, this.camera.position )
-            : 0;
-        if ( dir != this.camera.userData.direction ) {
-            this.camera.userData.prevDirection = this.camera.userData.direction;
-            this.camera.userData.direction = dir;
-        }
+    get direction32() {
+        return this.#direction32;
     }
 }

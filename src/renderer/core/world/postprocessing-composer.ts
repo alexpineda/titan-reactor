@@ -243,7 +243,7 @@ export const createPostProcessingComposer = (
 
                         if ( image && isImageHd( image ) ) {
                             //todo: remove the necessity for imageStruct by copying it into image
-                            applyRenderModeToImageHD( imageStruct, image, v.renderMode3D, v.camera.userData.direction );
+                            applyRenderModeToImageHD( imageStruct, image, v.renderMode3D, v.direction32 );
                         }
 
                     }
@@ -251,7 +251,7 @@ export const createPostProcessingComposer = (
 
                 // for (const image of images) {
                 //     if ( image && isImageHd( image ) ) {
-                //         applyRenderModeToImageHD( imageStruct, image, v.renderMode3D, v.camera.userData.direction );
+                //         applyRenderModeToImageHD( imageStruct, image, v.renderMode3D, v.direction32 );
                 //     }
                 // }
 
