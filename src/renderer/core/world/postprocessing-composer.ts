@@ -197,6 +197,7 @@ export const createPostProcessingComposer = (
         startTransition( fn: () => void ) {
             _startTransition( fn );
         },
+
         get overlayScene() {
             return postProcessingBundle.overlayScene;
         },
@@ -225,6 +226,10 @@ export const createPostProcessingComposer = (
                     postProcessingBundle.updateDofTarget( _target );
                 } 
 
+                //todo; make this bettta?
+                postProcessingBundle.overlayScene.getObjectByName("minimap")!.visible = v === viewports.primaryViewport;
+                postProcessingBundle.overlayScene.getObjectByName("cursor")!.visible = v === viewports.primaryViewport;
+
                 // iterate all images again and update image frames according to different view camera
                 for ( const spriteStruct of world.openBW.iterators.sprites ) {
                     const object = sprites.get( spriteStruct.index );
@@ -248,12 +253,6 @@ export const createPostProcessingComposer = (
 
                     }
                 }
-
-                // for (const image of images) {
-                //     if ( image && isImageHd( image ) ) {
-                //         applyRenderModeToImageHD( imageStruct, image, v.renderMode3D, v.direction32 );
-                //     }
-                // }
 
                 v.shakeStart(
                     elapsed,

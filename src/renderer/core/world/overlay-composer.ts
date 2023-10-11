@@ -82,6 +82,7 @@ export const createOverlayComposer = (
     const cursorMaterial = new CursorMaterial( assets );
     const cursorGraphics = new Mesh( new PlaneGeometry( 1, 1 ), cursorMaterial );
 
+    cursorGraphics.name = "cursor";
     cursorGraphics.frustumCulled = false;
     cursorGraphics.matrixAutoUpdate = false;
     cursorGraphics.renderOrder = 1000;
@@ -92,6 +93,7 @@ export const createOverlayComposer = (
     );
 
     const minimap = new Mesh( new PlaneGeometry( 1, 1 ), minimapMaterial );
+    minimap.name = "minimap";
     minimap.frustumCulled = false;
     minimap.renderOrder = 1;
     minimap.matrixAutoUpdate = false;
