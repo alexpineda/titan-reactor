@@ -7,18 +7,8 @@ import ErrorBoundary from "./error-boundary";
 import { createLevaPanel } from "./create-leva-panel";
 import { groupConfigByFolder } from "@utils/leva-utils";
 import { Schema } from "leva/plugin";
-import { VALID_PERMISSIONS } from "@plugins/permissions";
 import { HostApiVersion, getPluginAPIVersion } from "common/utils/api-version";
 
-const permissionDescriptions: Record<VALID_PERMISSIONS, string> = {
-    "replay": "Allows the plugin to access the replay file entirely",
-    "replay.commands":
-        "Allows the plugin to access the replay commands like select units, move and attack.",
-    "system":
-        "Allows the plugin to access your entire system (file system, libraries, etc.).",
-    "sandbox":
-        "Allows the plugin to create units, destroy units, and order units around.",
-};
 
 let _globalLastTab = 0;
 
@@ -36,10 +26,6 @@ export const DetailSheet = ( {
         // eslint-disable-next-line react-hooks/rules-of-hooks
         useControls( folder, data as unknown as Schema, { store } );
     }
-
-    const permissions = ( pluginPackage.permissions ?? [] ).map( ( p ) => (
-        <li key={p}>{permissionDescriptions[p as VALID_PERMISSIONS]}</li>
-    ) );
 
     const pluginApiVersion = getPluginAPIVersion( pluginPackage );
 
@@ -68,12 +54,7 @@ export const DetailSheet = ( {
                                 ✅ This is an official plugin.
                             </div>
                         )}
-                        {!!permissions.length && (
-                            <div style={{ marginTop: "1rem" }}>
-                                ⚠️ This plugin has special permissions:{" "}
-                                <ul>{permissions}</ul>
-                            </div>
-                        )}
+  
                         <p>
                             <span style={{ fontWeight: "bold" }}>Version:</span>{" "}
                             {pluginPackage.version}

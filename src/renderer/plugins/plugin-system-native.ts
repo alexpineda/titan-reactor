@@ -6,7 +6,6 @@ import {
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
-import { PERMISSION_REPLAY_COMMANDS, VALID_PERMISSIONS } from "./permissions";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
 import { mix } from "@utils/object-utils";
@@ -28,7 +27,6 @@ export class PluginSystemNative {
     #janitor = new Janitor( "PluginSystemNative" );
     #sceneController?: SceneController;
 
-    #permissions = new Map<string, Record<string, boolean>>();
     #sendCustomUIMessage: ( pluginId: string, message: any ) => void;
     #compartments = new WeakMap<PluginBase, { globalThis: object }>();
 
@@ -87,22 +85,6 @@ export class PluginSystemNative {
             }
 
             plugin.isSceneController = pluginPackage.isSceneController;
-
-            const permissions = ( pluginPackage.permissions ?? [] ).reduce(
-                ( acc: Record<string, boolean>, permission ) => {
-                    if ( ( VALID_PERMISSIONS as readonly string[] ).includes( permission ) ) {
-                        acc[permission] = true;
-                    } else {
-                        log.warn(
-                            `Invalid permission ${permission} for plugin ${pluginPackage.name}`
-                        );
-                    }
-                    return acc;
-                },
-                {}
-            );
-
-            this.#permissions.set( pluginPackage.id, permissions );
 
             plugin.sendUIMessage = throttle(
                 ( message: any ) => {
@@ -282,11 +264,7 @@ export class PluginSystemNative {
     #hook_onFrame( frame: number, commands: any[] ) {
         for ( const plugin of this.#plugins ) {
             if ( plugin.onFrame && this.isRegularPluginOrActiveSceneController( plugin ) ) {
-                if ( this.#permissions.get( plugin.id )?.[PERMISSION_REPLAY_COMMANDS] ) {
-                    plugin.onFrame( frame, commands );
-                } else {
-                    plugin.onFrame( frame );
-                }
+                plugin.onFrame( frame, commands );
             }
         }
     }

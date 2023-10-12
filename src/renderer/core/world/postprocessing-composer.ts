@@ -33,7 +33,7 @@ export type PostProcessingComposerApi = PostProcessingComposer["api"];
 export const createPostProcessingComposer = (
     world: World,
     { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer,
-    viewports: ViewControllerComposer,
+    viewportsComposer: ViewControllerComposer,
     assets: Assets
 ) => {
     const janitor = new Janitor( "PostProcessingComposer" );
@@ -164,11 +164,11 @@ export const createPostProcessingComposer = (
     const _target = new Vector3();
 
     world.events.on( "settings-changed", ( { settings, rhs } ) => {
-        if ( viewports.primaryRenderMode3D && rhs.postprocessing3d ) {
+        if ( viewportsComposer.primaryRenderMode3D && rhs.postprocessing3d ) {
             if ( !shallow( postProcessingBundle.options, settings.postprocessing3d ) ) {
                 updatePostProcessingOptions( settings.postprocessing3d );
             }
-        } else if ( !viewports.primaryRenderMode3D && rhs.postprocessing ) {
+        } else if ( !viewportsComposer.primaryRenderMode3D && rhs.postprocessing ) {
             if ( !shallow( postProcessingBundle.options, settings.postprocessing ) ) {
                 updatePostProcessingOptions( settings.postprocessing );
             }
@@ -190,8 +190,8 @@ export const createPostProcessingComposer = (
         },
         api: {
             changeRenderMode( renderMode3D?: boolean ) {
-                const newRenderMode = renderMode3D ?? !viewports.primaryRenderMode3D;
-                _startTransition( () => viewports.changeRenderMode( newRenderMode ) );
+                const newRenderMode = renderMode3D ?? !viewportsComposer.primaryRenderMode3D;
+                _startTransition( () => viewportsComposer.changeRenderMode( newRenderMode ) );
             },
         },
         startTransition( fn: () => void ) {
@@ -209,15 +209,15 @@ export const createPostProcessingComposer = (
         render( delta: number, elapsed: number ) {
             _updateTransition( delta );
 
-            viewports.primaryViewport!.orbit.getTarget( _target );
+            viewportsComposer.primaryViewport!.orbit.getTarget( _target );
             _target.setY( terrain.getTerrainY( _target.x, _target.z ) );
 
-            for ( const v of viewports.viewports ) {
+            for ( const v of viewportsComposer.viewports ) {
                 if (!v.enabled) continue;
 
                 v.update( world.settings.getState().input.dampingFactor, delta );
 
-                if ( v === viewports.primaryViewport ) {
+                if ( v === viewportsComposer.primaryViewport ) {
                     if ( v.needsUpdate ) {
                         _changeRenderMode( v.renderMode3D );
                         // world.reset!();
@@ -227,8 +227,8 @@ export const createPostProcessingComposer = (
                 } 
 
                 //todo; make this bettta?
-                postProcessingBundle.overlayScene.getObjectByName("minimap")!.visible = v === viewports.primaryViewport;
-                postProcessingBundle.overlayScene.getObjectByName("cursor")!.visible = v === viewports.primaryViewport;
+                postProcessingBundle.overlayScene.getObjectByName("minimap")!.visible = v === viewportsComposer.primaryViewport;
+                postProcessingBundle.overlayScene.getObjectByName("cursor")!.visible = v === viewportsComposer.primaryViewport;
 
                 // iterate all images again and update image frames according to different view camera
                 for ( const spriteStruct of world.openBW.iterators.sprites ) {

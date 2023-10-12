@@ -1,14 +1,15 @@
-import { GameTimeApi } from "@core/world/game-time-api";
-import { log } from "@ipc/log";
-import { savePluginsConfig } from "@ipc/plugins";
-import { normalizePluginConfiguration } from "@utils/function-utils";
-import {
+import type { GameTimeApi } from "@core/world/game-time-api";
+import type {
     FieldDefinition,
     Injectables,
     NativePlugin,
     PluginConfig,
     PluginPackage,
 } from "common/types";
+
+import { log } from "@ipc/log";
+import { savePluginsConfig } from "@ipc/plugins";
+import { normalizePluginConfiguration } from "@utils/function-utils";
 
 const structuredClone =
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
