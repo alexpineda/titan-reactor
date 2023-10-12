@@ -99,7 +99,7 @@ export const defaultSettingsV6: SettingsV6 = {
     },
     plugins: {
         serverPort: 8080,
-        enabled: DEFAULT_PLUGIN_PACKAGES,
+        activated: DEFAULT_PLUGIN_PACKAGES,
     },
     macros: {
         revision: 0,

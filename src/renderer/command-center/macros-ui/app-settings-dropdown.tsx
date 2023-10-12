@@ -19,7 +19,7 @@ export const SessionSettingsDropDown = ( {
     const settings = settingsStore();
     const config = getSessionSettingsInLevaFormat(
         settings.data,
-        settings.enabledPlugins
+        settings.activatedPlugins
     );
 
     return (

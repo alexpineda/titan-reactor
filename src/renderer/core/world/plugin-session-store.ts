@@ -60,6 +60,7 @@ export const createPluginSessionStore = (
 
             return true;
         },
+        // updates the plugin session store and notifies the plugin hooks that the session configuration changed
         onUpdate: ( _, __, path, value ) => {
             // merged from source of truth
             if ( path === undefined ) {
@@ -100,7 +101,7 @@ export const createPluginSessionStore = (
 
         // callables
         (
-            settingsStore().enabledPlugins.find( ( p ) => p.id === plugin.id )
+            settingsStore().activatedPlugins.find( ( p ) => p.id === plugin.id )
                 ?.externMethods ?? []
         ).map( ( method ) => {
             lSet( acc, [ plugin.name, method ], ( ...args: any[] ) =>

@@ -334,14 +334,14 @@ export class PluginSystemUI {
         this.#iframe.contentWindow?.postMessage( message, "*", transfer );
     }
 
-    disablePlugin( id: string ) {
+    deactivatePlugin( id: string ) {
         this.sendMessage( {
             type: UI_SYSTEM_PLUGIN_DISABLED,
             payload: id,
         } );
     }
 
-    enablePlugins( plugins: PluginMetaData[] ) {
+    activatePlugins( plugins: PluginMetaData[] ) {
         this.sendMessage( {
             type: UI_SYSTEM_PLUGINS_ENABLED,
             payload: plugins,

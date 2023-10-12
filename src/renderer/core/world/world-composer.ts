@@ -283,11 +283,11 @@ export const createWorldComposer = async (
         },
 
         onRender: ( delta: number, elapsed: number ) => {
-            apiSession.native.hook_onBeforeRender( delta, elapsed );
+            // world.events.emit( "render:before");
 
             postProcessingComposer.render( delta, elapsed );
 
-            apiSession.native.hook_onRender( delta, elapsed );
+            // world.events.emit( "render");
         },
     };
 };

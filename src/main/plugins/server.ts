@@ -132,7 +132,7 @@ app.get( "*", async function ( req, res ) {
 
         let content = result.outputText;
         let plugin;
-        for ( const _plugin of settings.enabledPlugins ) {
+        for ( const _plugin of settings.activatedPlugins ) {
             if (
                 filepath.startsWith(
                     path.normalize(

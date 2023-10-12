@@ -27,7 +27,7 @@ export const createPluginSession = async (
 
     const events = janitor.mop( new TypeEmitterProxy( _events ) );
 
-    const pluginPackages = settingsStore().enabledPlugins;
+    const pluginPackages = settingsStore().activatedPlugins;
     const uiPlugins = janitor.mop(
         new PluginSystemUI( openBW, pluginPackages ),
         "uiPlugins"
@@ -81,19 +81,19 @@ export const createPluginSession = async (
     );
 
     janitor.mop(
-        globalEvents.on( "command-center-plugin-disabled", ( pluginId ) => {
-            nativePlugins.disposePlugin( pluginId );
-            uiPlugins.disablePlugin( pluginId );
+        globalEvents.on( "command-center-plugin-deactivated", ( pluginId ) => {
+            nativePlugins.deactivatePlugin( pluginId );
+            uiPlugins.deactivatePlugin( pluginId );
         } ),
-        "command-center-plugin-disabled"
+        "command-center-plugin-deactivated"
     );
 
     janitor.mop(
-        globalEvents.on( "command-center-plugins-enabled", ( plugins ) => {
-            uiPlugins.enablePlugins( plugins );
-            nativePlugins.enableAdditionalPlugins( plugins, createCompartment );
+        globalEvents.on( "command-center-plugins-activated", ( plugins ) => {
+            uiPlugins.activatePlugins( plugins );
+            nativePlugins.activateAdditionalPlugins( plugins, createCompartment );
         } ),
-        "command-center-plugins-enabled"
+        "command-center-plugins-activated"
     );
 
     janitor.mop(

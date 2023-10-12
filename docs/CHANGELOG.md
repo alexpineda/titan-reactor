@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drag and drop files to load them
 - Minimap Box
 
+## Removed
+
+- Plugin permission system
+
+
 ## [0.6.9] - 2023-09-10
 
 ## Added

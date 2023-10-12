@@ -217,8 +217,8 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         const [ , pluginName ] = action.path;
 
         const plugin =
-            settings.enabledPlugins.find( ( p ) => p.name === pluginName ) ??
-            settings.enabledPlugins[0];
+            settings.activatedPlugins.find( ( p ) => p.name === pluginName ) ??
+            settings.activatedPlugins[0];
 
         if ( !plugin ) {
             action.error = {

@@ -143,7 +143,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             sanitizeActionable( action, {
-                enabledPlugins: [],
+                activatedPlugins: [],
             } as unknown as SettingsAndPluginsMeta );
 
             expect( action.error ).toBeDefined();
@@ -156,7 +156,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             sanitizeActionable( action, {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: [],
@@ -174,7 +174,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             sanitizeActionable( action, {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: [],
@@ -195,7 +195,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             sanitizeActionable( action, {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: ["baz"],
@@ -217,7 +217,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             sanitizeActionable( action, {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: [],
@@ -238,7 +238,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             sanitizeActionable( action, {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: ["externMethodFoo"],
@@ -259,7 +259,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             sanitizeActionable( action, {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: [],
@@ -280,7 +280,7 @@ describe( "sanitizeActionable", () => {
             } );
 
             const settings = {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: [],
@@ -311,7 +311,7 @@ describe( "sanitizeActionable", () => {
             fieldUtilities.getPluginFieldDefinition = jest.fn().mockReturnValue( true );
 
             const settings = {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "test-plugin",
                         externMethods: [],

@@ -7,7 +7,7 @@ import {
     TargetedPath,
 } from "common/types";
 
-export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "enabledPlugins">;
+export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "activatedPlugins">;
 
 export const getAvailableOperationsForTypeOfField = ( valueType: TypeOfField ) => {
     if ( valueType === "boolean" ) {
@@ -51,7 +51,7 @@ export const getAppFieldDefinition = (
 ) => {
     const field = getAppSettingsPropertyInLevaFormat(
         settings.data,
-        settings.enabledPlugins,
+        settings.activatedPlugins,
         path.slice( 1 )
     );
 
@@ -66,7 +66,7 @@ export const getPluginFieldDefinition = (
     settings: SettingsAndPluginsMeta,
     path: TargetedPath<":plugin">
 ) => {
-    const plugin = settings.enabledPlugins.find( ( p ) => p.name === path[1] );
+    const plugin = settings.activatedPlugins.find( ( p ) => p.name === path[1] );
 
     if ( plugin === undefined ) {
         return null;

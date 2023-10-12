@@ -28,7 +28,7 @@ export const GlobalSettings = () => {
     const [ state, setState ] = useState(
         getAppSettingsInLevaFormat(
             settings.data,
-            settings.enabledPlugins,
+            settings.activatedPlugins,
             maxAnisotropy,
             window.devicePixelRatio,
             maxSamples

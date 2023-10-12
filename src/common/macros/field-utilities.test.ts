@@ -57,7 +57,7 @@ describe( "getPluginFieldDefinition", () => {
     it( "should return null if there is no plugin", () => {
         const result = getPluginFieldDefinition(
             {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "foo",
                     },
@@ -72,7 +72,7 @@ describe( "getPluginFieldDefinition", () => {
     it( "should return null if there is no field definition", () => {
         const result = getPluginFieldDefinition(
             {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "foo",
                     },
@@ -89,7 +89,7 @@ describe( "getPluginFieldDefinition", () => {
 
         const result = getPluginFieldDefinition(
             {
-                enabledPlugins: [
+                activatedPlugins: [
                     {
                         name: "foo",
                         config: {

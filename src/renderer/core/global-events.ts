@@ -7,8 +7,8 @@ export interface GlobalEvents {
     "webglcontextrestored": undefined;
     "command-center-save-settings": SettingsMeta;
     "command-center-plugin-config-changed": { pluginId: string; config: PluginConfig };
-    "command-center-plugins-enabled": PluginMetaData[];
-    "command-center-plugin-disabled": string;
+    "command-center-plugins-activated": PluginMetaData[];
+    "command-center-plugin-deactivated": string;
     "unsafe-open-url": string;
     "load-home-scene": undefined;
     "load-replay-file": string;

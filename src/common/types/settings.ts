@@ -106,7 +106,7 @@ export interface SettingsV6 {
     plugins: {
         serverPort: number;
         developmentDirectory?: string;
-        enabled: string[];
+        activated: string[];
     };
     postprocessing: {
         anisotropy: number;
@@ -143,8 +143,8 @@ export interface SettingsMeta {
     data: Settings;
     errors: string[];
     phrases: Record<string, string>;
-    enabledPlugins: PluginMetaData[];
-    disabledPlugins: PluginMetaData[];
+    activatedPlugins: PluginMetaData[];
+    deactivatedPlugins: PluginMetaData[];
     initialInstall: boolean;
     /**
      * Whether the starcraft directory is a CASC storage or direct filesystem

@@ -74,9 +74,9 @@ interface Plugin {
 
 const CommandCenter = () => {
     const settings = useSettingsStore();
-    const { enabledPlugins, disabledPlugins } = settings;
+    const { activatedPlugins: activatedPlugins, deactivatedPlugins: deactivatedPlugins } = settings;
     const [ plugin, setSelectedPluginPackage ] = useState<Plugin>( {
-        local: enabledPlugins[0] ?? disabledPlugins[0],
+        local: activatedPlugins[0] ?? deactivatedPlugins[0],
     } );
 
     const [ remotePackages, setRemotePackages ] = useState<RemotePackage[]>( [] );
@@ -127,13 +127,13 @@ const CommandCenter = () => {
     const nonInstalledRemotePackages = remotePackages
         .filter(
             ( p ) =>
-                !enabledPlugins.find(
+                !activatedPlugins.find(
                     ( installedPlugin ) => installedPlugin.name === p.name
                 )
         )
         .filter(
             ( p ) =>
-                !disabledPlugins.find(
+                !deactivatedPlugins.find(
                     ( installedPlugin ) => installedPlugin.name === p.name
                 )
         )
@@ -178,9 +178,9 @@ const CommandCenter = () => {
 
     const {
         tryDeletePlugin,
-        tryDisablePlugin,
-        tryEnablePlugin,
-        tryInstallPlugin,
+        tryDeactivatePlugin: tryDisablePlugin,
+        tryActivatePlugin: tryEnablePlugin,
+        tryDownloadPlugin,
         tryUpdatePlugin,
     } = localPluginRepository(
         setSelectedPluginPackage,
@@ -232,7 +232,7 @@ const CommandCenter = () => {
                                                 display: "flex",
                                                 flexDirection: "column",
                                             }}>
-                                            {enabledPlugins
+                                            {activatedPlugins
                                                 .sort()
                                                 .map( ( plugin ) =>
                                                     localPluginButton( plugin, false )
@@ -247,7 +247,7 @@ const CommandCenter = () => {
                                                 }}>
                                                 Disabled Plugins
                                             </p>
-                                            {disabledPlugins.map( ( plugin ) =>
+                                            {deactivatedPlugins.map( ( plugin ) =>
                                                 localPluginButton( plugin, true )
                                             )}
                                         </div>
@@ -293,13 +293,13 @@ const CommandCenter = () => {
                                         />
                                         <button
                                             onClick={() =>
-                                                tryInstallPlugin( plugin.remote!.name )
+                                                tryDownloadPlugin( plugin.remote!.name )
                                             }>
-                                            Install Plugin
+                                            Download Plugin
                                         </button>
                                     </>
                                 )}
-                                {plugin.local && enabledPlugins.includes( plugin.local ) && (
+                                {plugin.local && activatedPlugins.includes( plugin.local ) && (
                                     <>
                                         {!isDeprecated( plugin.local ) && (
                                             <DetailSheet
@@ -346,7 +346,7 @@ const CommandCenter = () => {
                                     </>
                                 )}
                                 {plugin.local &&
-                                    disabledPlugins.includes( plugin.local ) && (
+                                    deactivatedPlugins.includes( plugin.local ) && (
                                         <>
                                             <button
                                                 onClick={() =>

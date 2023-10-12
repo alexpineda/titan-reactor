@@ -23,6 +23,7 @@ import {
     ON_PLUGINS_INITIAL_INSTALL_ERROR,
 } from "common/ipc-handle-names";
 import { setStorageIsCasc, setStoragePath } from "common/casclib";
+import uniq from "common/utils/uniq";
 
 const supportedLanguages = [ "en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU" ];
 
@@ -57,16 +58,16 @@ export class Settings {
     #filepath = "";
     readonly plugins = new PluginManager();
 
-    get enabledPlugins() {
+    get activatedPlugins() {
         return this.plugins
             .getCompatiblePlugins()
-            .filter( ( p ) => this.#settings.plugins.enabled.includes( p.name ) );
+            .filter( ( p ) => this.#settings.plugins.activated.includes( p.name ) );
     }
 
-    get disabledPlugins() {
+    get deactivatedPlugins() {
         return this.plugins
             .getAllPlugins()
-            .filter( ( p ) => !this.#settings.plugins.enabled.includes( p.name ) );
+            .filter( ( p ) => !this.#settings.plugins.activated.includes( p.name ) );
     }
 
     /**
@@ -107,15 +108,15 @@ export class Settings {
         return this.#settings;
     }
 
-    async disablePlugins( pluginIds: string[] ) {
-        const plugins = this.enabledPlugins.filter( ( p ) => pluginIds.includes( p.id ) );
+    async deactivePlugins( pluginIds: string[] ) {
+        const plugins = this.activatedPlugins.filter( ( p ) => pluginIds.includes( p.id ) );
         const pluginNames = plugins.map( ( p ) => p.name );
 
         if ( plugins.length ) {
             await this.save( {
                 plugins: {
                     ...this.#settings.plugins,
-                    enabled: this.#settings.plugins.enabled.filter(
+                    activated: this.#settings.plugins.activated.filter(
                         ( p ) => !pluginNames.includes( p )
                     ),
                 },
@@ -132,17 +133,17 @@ export class Settings {
         ] );
     }
 
-    async enablePlugins( pluginIds: string[] ) {
-        const plugins = this.disabledPlugins.filter( ( p ) => pluginIds.includes( p.id ) );
+    async activatePlugins( pluginIds: string[] ) {
+        const plugins = this.deactivatedPlugins.filter( ( p ) => pluginIds.includes( p.id ) );
 
         if ( plugins.length ) {
             await this.save( {
                 plugins: {
                     ...this.#settings.plugins,
-                    enabled: [
-                        ...this.#settings.plugins.enabled,
+                    activated: uniq([
+                        ...this.#settings.plugins.activated,
                         ...plugins.map( ( p ) => p.name ),
-                    ],
+                    ]),
                 },
             } );
 
@@ -195,7 +196,7 @@ export class Settings {
             this.#settings.macros,
             {
                 data: this.#settings,
-                enabledPlugins: this.enabledPlugins,
+                activatedPlugins: this.activatedPlugins,
             },
             logService
         );
@@ -205,8 +206,8 @@ export class Settings {
             errors,
             isCascStorage: await this.isCascStorage(),
             initialInstall: false,
-            enabledPlugins: this.enabledPlugins,
-            disabledPlugins: this.disabledPlugins,
+            activatedPlugins: this.activatedPlugins,
+            deactivatedPlugins: this.deactivatedPlugins,
             phrases: {
                 ...phrases["en-US"],
                 ...phrases[this.#settings.language as keyof typeof phrases],
@@ -221,12 +222,12 @@ export class Settings {
      */
     async save( settings: Partial<SettingsType> = {} ) {
         this.#settings = Object.assign( {}, this.#settings, settings );
-        this.#settings.plugins.enabled = [ ...new Set( this.#settings.plugins.enabled ) ];
+        this.#settings.plugins.activated = [ ...new Set( this.#settings.plugins.activated ) ];
         this.#settings.macros = sanitizeMacros(
             this.#settings.macros,
             {
                 data: this.#settings,
-                enabledPlugins: this.enabledPlugins,
+                activatedPlugins: this.activatedPlugins,
             },
             logService
         );

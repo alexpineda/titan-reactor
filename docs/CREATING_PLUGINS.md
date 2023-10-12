@@ -296,26 +296,6 @@ export default class Plugin extends PluginBase {
 
 > Your messages may be throttled due to them needing to be serialized and sent via `window.postMessage` to the iframe container. It is recommended you reduce how much you send messages across to the bare minimum.
 
-## Special Permissions
-
-There are certain features that require you to request special permissions. The user will be able to see your special permissions before enabling your plugin.
-
-> Typical things requiring permission are saving user settings or reading complete replay data.
-
-In order to activate a permission, place it in your config.json like so:
-
-```json
-    "config": {
-        ...,
-        "permissions": [
-                "replay.commands"
-        ],
-        ...
-    }
-```
-
-**replay.commands**
-Enables access to replay commands in the _onFrame()_ hook.
 
 ## Additional Information
 

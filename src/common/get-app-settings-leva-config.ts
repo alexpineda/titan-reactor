@@ -19,7 +19,7 @@ export const generateAppSettingsFromLevaFormat = (
 
 export const getAppSettingsPropertyInLevaFormat = (
     settings: SettingsMeta["data"],
-    plugins: SettingsMeta["enabledPlugins"],
+    plugins: SettingsMeta["activatedPlugins"],
     fields: string[]
 ): FieldDefinition | undefined => {
     if ( [ ":app", ":plugin", ":function", ":macro" ].includes( fields[0] ) ) {
@@ -32,7 +32,7 @@ export const getAppSettingsPropertyInLevaFormat = (
 
 export const getAppSettingsInLevaFormat = (
     settings: SettingsMeta["data"],
-    plugins: SettingsMeta["enabledPlugins"],
+    plugins: SettingsMeta["activatedPlugins"],
     maxAnisotropy = 2,
     maxPixelRatio = 1,
     maxAntiAlias = 1
@@ -45,7 +45,7 @@ export const getAppSettingsInLevaFormat = (
 
 export const getSessionSettingsPropertyInLevaFormat = (
     settings: SessionSettingsData,
-    plugins: SettingsMeta["enabledPlugins"],
+    plugins: SettingsMeta["activatedPlugins"],
     fields: string[]
 ): FieldDefinition | undefined => {
     if ( [ ":app", ":plugin", ":function", ":macro" ].includes( fields[0] ) ) {
@@ -58,7 +58,7 @@ export const getSessionSettingsPropertyInLevaFormat = (
 
 export const getSessionSettingsInLevaFormat = (
     settings: SessionSettingsData,
-    plugins: SettingsMeta["enabledPlugins"],
+    plugins: SettingsMeta["activatedPlugins"],
     maxAnisotropy = 2,
     maxAntiAlias = 1
 ) => ( {

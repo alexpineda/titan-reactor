@@ -38,7 +38,7 @@ export const MacrosPanel = () => {
                             <MacroPanel
                                 key={selectedMacroId}
                                 macro={macros.find( ( m ) => m.id === selectedMacroId )!}
-                                pluginsMetadata={settings.enabledPlugins}
+                                pluginsMetadata={settings.activatedPlugins}
                             />
                         )}
                     </main>

@@ -1,10 +1,10 @@
 import { UI_SYSTEM_OPEN_URL } from "@plugins/events";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import {
-    DISABLE_PLUGIN,
+    DEACTIVATE_PLUGIN,
     GO_TO_START_PAGE,
     LOG_MESSAGE,
-    ON_PLUGINS_ENABLED,
+    ON_PLUGINS_ACTIVATED,
     ON_PLUGINS_INITIAL_INSTALL,
     ON_PLUGINS_INITIAL_INSTALL_ERROR,
     OPEN_ISCRIPTAH,
@@ -151,14 +151,12 @@ ipcRenderer.on(
     }
 );
 
-// Plugin Enabled
-ipcRenderer.on( ON_PLUGINS_ENABLED, ( _, plugins: PluginMetaData[] ) =>
-    globalEvents.emit( "command-center-plugins-enabled", plugins )
+ipcRenderer.on( ON_PLUGINS_ACTIVATED, ( _, plugins: PluginMetaData[] ) =>
+    globalEvents.emit( "command-center-plugins-activated", plugins )
 );
 
-// Plugin Disabled
-ipcRenderer.on( DISABLE_PLUGIN, ( _, pluginId: string ) =>
-    globalEvents.emit( "command-center-plugin-disabled", pluginId )
+ipcRenderer.on( DEACTIVATE_PLUGIN, ( _, pluginId: string ) =>
+    globalEvents.emit( "command-center-plugin-deactivated", pluginId )
 );
 
 // Plugin Initial Install Error

@@ -19,7 +19,7 @@ jest.mock( "@stores/settings-store", () => ( {
 jest.mock( "three-janitor" );
 
 const initialState = {
-    enabledPlugins: [],
+    activatedPlugins: [],
 };
 const createBaseStore = () =>
     jest.fn( () => JSON.parse( JSON.stringify( initialState ) ) as unknown );
@@ -146,7 +146,7 @@ describe( "PluginSessionStore", () => {
     it( "should validate that field definition exists", () => {
         const { expectedDefaultState, plugins, pluginPackage } = createBasePlugin();
 
-        const plugin = plugins.getById( pluginPackage.id! )!;
+        const plugin = plugins.getByName( pluginPackage.name! )!;
         jest.spyOn( plugin, "getFieldDefinition" ).mockReturnValue( undefined );
 
         const session = createPluginSessionStore(

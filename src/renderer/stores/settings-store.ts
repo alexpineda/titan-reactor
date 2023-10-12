@@ -16,8 +16,8 @@ export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
     phrases: {},
     isCascStorage: false,
     errors: [],
-    enabledPlugins: [],
-    disabledPlugins: [],
+    activatedPlugins: [],
+    deactivatedPlugins: [],
     pluginsMetadata: [],
     initialInstall: false,
     set: ( settings ) => {

@@ -1,11 +1,11 @@
 import { ipcMain } from "electron";
 import {
     DELETE_PLUGIN,
-    DISABLE_PLUGIN,
-    ENABLE_PLUGINS,
-    INSTALL_PLUGIN,
+    DEACTIVATE_PLUGIN,
+    ACTIVATE_PLUGINS,
+    DOWNLOAD_PLUGIN as DOWNLOAD_PLUGIN,
     LOAD_REMOTE_PLUGIN_METADATA,
-    ON_PLUGINS_ENABLED,
+    ON_PLUGINS_ACTIVATED,
     RELOAD_PLUGINS,
     UPDATE_PLUGIN_CONFIG,
 } from "common/ipc-handle-names";
@@ -20,25 +20,25 @@ ipcMain.handle(
     }
 );
 
-ipcMain.handle( DISABLE_PLUGIN, async ( _, pluginId: string ) => {
-    const pluginNames = await settings.disablePlugins( [ pluginId ] );
+ipcMain.handle( DEACTIVATE_PLUGIN, async ( _, pluginId: string ) => {
+    const pluginNames = await settings.deactivePlugins( [ pluginId ] );
 
     if ( pluginNames ) {
-        browserWindows.main?.webContents.send( DISABLE_PLUGIN, pluginId );
+        browserWindows.main?.webContents.send( DEACTIVATE_PLUGIN, pluginId );
         return true;
     }
     return false;
 } );
 
 ipcMain.handle( DELETE_PLUGIN, ( _, pluginId: string ) => {
-    return settings.plugins.uninstallPlugin( pluginId );
+    return settings.plugins.deletePlugin( pluginId );
 } );
 
-ipcMain.handle( ENABLE_PLUGINS, async ( _, pluginIds: string[] ) => {
-    const plugins = await settings.enablePlugins( pluginIds );
+ipcMain.handle( ACTIVATE_PLUGINS, async ( _, pluginIds: string[] ) => {
+    const plugins = await settings.activatePlugins( pluginIds );
 
     if ( plugins ) {
-        browserWindows.main?.webContents.send( ON_PLUGINS_ENABLED, plugins );
+        browserWindows.main?.webContents.send( ON_PLUGINS_ACTIVATED, plugins );
 
         return true;
     }
@@ -46,8 +46,8 @@ ipcMain.handle( ENABLE_PLUGINS, async ( _, pluginIds: string[] ) => {
     return false;
 } );
 
-ipcMain.handle( INSTALL_PLUGIN, async ( _, repository: string ) => {
-    return await settings.plugins.installPlugin( repository, () => {
+ipcMain.handle( DOWNLOAD_PLUGIN, async ( _, repository: string ) => {
+    return await settings.plugins.downloadPlugin( repository, () => {
         browserWindows.main?.webContents.send( RELOAD_PLUGINS );
     } );
 } );

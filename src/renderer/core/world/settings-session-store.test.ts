@@ -18,7 +18,7 @@ jest.mock( "@stores/settings-store", () => ( {
 jest.mock( "three-janitor" );
 
 const initialState = {
-    enabledPlugins: [],
+    activatedPlugins: [],
     data: {
         session: {},
         audio: {

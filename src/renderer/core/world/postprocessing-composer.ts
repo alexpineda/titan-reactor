@@ -8,7 +8,6 @@ import { spriteSortOrder } from "@utils/sprite-utils";
 import { Settings } from "common/types";
 import { Assets } from "@image/assets";
 import {
-    MathUtils,
     Object3D,
     OrthographicCamera,
     PerspectiveCamera,
@@ -19,6 +18,7 @@ import shallow from "zustand/shallow";
 import { ViewControllerComposer } from "@core/world/view-controller-composer";
 import { World } from "./world";
 import { isImageHd, isMesh } from "@utils/image-utils";
+import { createTransition } from "./transition";
 
 //tank base, minerals
 const ignoreRecieveShadow = [ 250, 253, 347, 349, 351 ];
@@ -109,45 +109,18 @@ export const createPostProcessingComposer = (
         }
     } );
 
-    const _transition = {
-        enabled: false,
-        executed: false,
-        progress: 0,
-        onComplete: () => {},
-    };
-
-    const _startTransition = ( fn: () => void ) => {
-        if ( _transition.enabled ) {
-            return;
-        }
-        _transition.progress = 0;
-        _transition.onComplete = fn;
-        _transition.enabled = true;
-        _transition.executed = false;
-
-        postProcessingBundle.enablePixelation( true );
-        postProcessingBundle.setPixelation( 0 );
-    };
-
-    const _updateTransition = ( delta: number ) => {
-        if ( !_transition.enabled ) {
-            return;
-        }
-        _transition.progress += 0.005 * Math.min( delta, 16 );
-        postProcessingBundle.setPixelation(
-            MathUtils.pingpong( _transition.progress ) * 8
-        );
-
-        if ( _transition.progress > 2 ) {
-            _transition.enabled = false;
+    const transition = createTransition(
+        () => {
+            postProcessingBundle.enablePixelation( true );
+            postProcessingBundle.setPixelation( 0 );
+        },
+        ( progress ) => {
+            postProcessingBundle.setPixelation( progress * 16 );
+        },
+        () => {
             postProcessingBundle.enablePixelation( false );
-        } else if ( _transition.progress > 1 ) {
-            if ( !_transition.executed ) {
-                _transition.onComplete();
-                _transition.executed = true;
-            }
         }
-    };
+    );
 
     const _changeRenderMode = ( renderMode3D: boolean ) => {
         const postprocessing = renderMode3D
@@ -191,11 +164,11 @@ export const createPostProcessingComposer = (
         api: {
             changeRenderMode( renderMode3D?: boolean ) {
                 const newRenderMode = renderMode3D ?? !viewportsComposer.primaryRenderMode3D;
-                _startTransition( () => viewportsComposer.changeRenderMode( newRenderMode ) );
+                transition.start( () => viewportsComposer.changeRenderMode( newRenderMode ) );
             },
         },
         startTransition( fn: () => void ) {
-            _startTransition( fn );
+            transition.start( fn );
         },
 
         get overlayScene() {
@@ -207,7 +180,7 @@ export const createPostProcessingComposer = (
         },
 
         render( delta: number, elapsed: number ) {
-            _updateTransition( delta );
+            transition.update( delta );
 
             viewportsComposer.primaryViewport!.orbit.getTarget( _target );
             _target.setY( terrain.getTerrainY( _target.x, _target.z ) );

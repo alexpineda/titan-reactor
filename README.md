@@ -43,10 +43,6 @@ Visit the [Official Website](https://titanreactor.imbateam.com/) for Getting Sta
 
 -   See the [CREATING_PLUGINS](https://github.com/imbateam-gg/titan-reactor/blob/dev/docs/CREATING_PLUGINS.md) document.
 
-### Replay Data Privacy
-
-Replay data is not shared or transmitted by Titan Reactor. Plugins may only access your replay data by granting explicit permission.
-
 ### Development Installation
 
 [Code Architecture WIKI](https://github.com/imbateam-gg/titan-reactor/wiki/Code-Architecture)

@@ -44,7 +44,7 @@ export class PluginSystemNative {
         return this.#plugins.reduce.bind( this.#plugins );
     }
 
-    loadPlugin(
+    activatePlugin(
         pluginPackage: PluginMetaData,
         createCompartment: ( env: unknown ) => {
             globalThis: {
@@ -115,7 +115,7 @@ export class PluginSystemNative {
         createCompartment: ( env: any ) => any
     ) {
         this.#plugins = pluginPackages
-            .map( ( p ) => this.loadPlugin( p, createCompartment ) )
+            .map( ( p ) => this.activatePlugin( p, createCompartment ) )
             .filter( Boolean ) as PluginBase[];
         this.#sendCustomUIMessage = msg;
 
@@ -157,10 +157,6 @@ export class PluginSystemNative {
         this.#sceneController = plugin;
     }
 
-    getById( id: string ) {
-        return this.#plugins.find( ( p ) => p.id === id );
-    }
-
     getByName( name: string ) {
         return this.#plugins.find( ( p ) => p.name === name );
     }
@@ -181,7 +177,7 @@ export class PluginSystemNative {
         this.#plugins = [];
     }
 
-    disposePlugin( id: string ) {
+    deactivatePlugin( id: string ) {
         const plugin = this.#plugins.find( ( p ) => p.id === id );
         if ( plugin ) {
             try {
@@ -223,44 +219,6 @@ export class PluginSystemNative {
         }
     }
 
-    #hook_onBeforeRender( delta: number, elapsed: number ) {
-        for ( const plugin of this.#plugins ) {
-            plugin.onBeforeRender &&
-                this.isRegularPluginOrActiveSceneController( plugin ) &&
-                plugin.onBeforeRender( delta, elapsed );
-        }
-    }
-
-    hook_onBeforeRender( delta: number, elapsed: number ) {
-        if ( this.useTryCatchOnHooks ) {
-            try {
-                this.#hook_onBeforeRender( delta, elapsed );
-            } catch ( e ) {
-                log.error( withErrorMessage( e, "@plugin-system-native: onBeforeRender" ) );
-            }
-        } else {
-            this.#hook_onBeforeRender( delta, elapsed );
-        }
-    }
-
-    #hook_onRender( delta: number, elapsed: number ) {
-        for ( const plugin of this.#plugins ) {
-            plugin.onRender && plugin.onRender( delta, elapsed );
-        }
-    }
-
-    hook_onRender( delta: number, elapsed: number ) {
-        if ( this.useTryCatchOnHooks ) {
-            try {
-                this.#hook_onRender( delta, elapsed );
-            } catch ( e ) {
-                log.error( withErrorMessage( e, "@plugin-system-native: onRender" ) );
-            }
-        } else {
-            this.#hook_onRender( delta, elapsed );
-        }
-    }
-
     #hook_onFrame( frame: number, commands: any[] ) {
         for ( const plugin of this.#plugins ) {
             if ( plugin.onFrame && this.isRegularPluginOrActiveSceneController( plugin ) ) {
@@ -281,12 +239,12 @@ export class PluginSystemNative {
         }
     }
 
-    enableAdditionalPlugins(
+    activateAdditionalPlugins(
         pluginPackages: PluginMetaData[],
         createCompartment: ( env: any ) => any
     ) {
         const additionalPlugins = pluginPackages
-            .map( ( p ) => this.loadPlugin( p, createCompartment ) )
+            .map( ( p ) => this.activatePlugin( p, createCompartment ) )
             .filter( Boolean );
 
         this.#plugins = [ ...this.#plugins, ...additionalPlugins ] as PluginBase[];

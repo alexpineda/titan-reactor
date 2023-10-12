@@ -217,7 +217,7 @@ export class PluginManager {
 
     async installDefaultPlugins( onNotify: () => void ) {
         for ( const defaultPackage of DEFAULT_PLUGIN_PACKAGES ) {
-            const plugin = await this.installPlugin( defaultPackage );
+            const plugin = await this.downloadPlugin( defaultPackage );
             onNotify();
             if ( plugin ) {
                 this.#pluginPackages.push( plugin );
@@ -229,8 +229,8 @@ export class PluginManager {
         }
     }
 
-    async installPlugin( repository: string, onUpdated?: () => void ) {
-        log.info( `@load-plugins/install-plugin: Installing plugin ${repository}` );
+    async downloadPlugin( repository: string, onUpdated?: () => void ) {
+        log.info( `@load-plugins/download-plugin: Downloading plugin ${repository}` );
 
         try {
             const manifest = await pacote.manifest( repository );
@@ -249,7 +249,7 @@ export class PluginManager {
                     const pluginToUpdate = this.#pluginPackages.find(
                         ( p ) => p.name === loadedPackage.name
                     );
-                    // we are not only installing but also updating this package
+                    // we are not only downloading but also updating this package
                     if ( pluginToUpdate ) {
                         const oldConfig = pluginToUpdate.config;
                         this.#pluginPackages.splice(
@@ -272,7 +272,7 @@ export class PluginManager {
                 log.error(
                     withErrorMessage(
                         e,
-                        "@load-plugins/install-plugin: Error loading plugins"
+                        "@load-plugins/download-plugin: Error loading plugins"
                     )
                 );
             }
@@ -280,7 +280,7 @@ export class PluginManager {
             log.error(
                 withErrorMessage(
                     e,
-                    `@load-plugins/install-plugin: Error loading plugin ${repository}`
+                    `@load-plugins/download-plugin: Error loading plugin ${repository}`
                 )
             );
         }
@@ -288,14 +288,14 @@ export class PluginManager {
         return null;
     }
 
-    uninstallPlugin( pluginId: string ) {
+    deletePlugin( pluginId: string ) {
         const plugin = this.#pluginPackages.find( ( p ) => p.id === pluginId );
         if ( !plugin ) {
-            log.error( `@load-plugins/uninstall: Plugin ${pluginId} not found` );
+            log.error( `@load-plugins/undelete: Plugin ${pluginId} not found` );
             return;
         }
 
-        log.info( `@load-plugins/uninstall: Uninstalling plugin ${plugin.name}` );
+        log.info( `@load-plugins/undelete: Deleting plugin ${plugin.name}` );
 
         const delPath = path.join( this.#pluginDirectory, plugin.path );
         try {
@@ -305,7 +305,7 @@ export class PluginManager {
             );
         } catch {
             log.error(
-                `@load-plugins/uninstall: Failed to delete plugin ${plugin.name} on folder ${delPath}`
+                `@load-plugins/delete: Failed to delete plugin ${plugin.name} on folder ${delPath}`
             );
             return false;
         }

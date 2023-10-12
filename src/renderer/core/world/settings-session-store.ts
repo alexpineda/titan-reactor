@@ -69,7 +69,7 @@ export const createSettingsSessionStore = ( events: TypeEmitter<WorldEvents> ) =
         ( path, state ) =>
             getSessionSettingsPropertyInLevaFormat(
                 state,
-                settingsStore().enabledPlugins,
+                settingsStore().activatedPlugins,
                 path
             )
     );
@@ -84,7 +84,7 @@ export const createSettingsSessionStore = ( events: TypeEmitter<WorldEvents> ) =
 
     const sessionSettingsConfig = getSessionSettingsInLevaFormat(
         settingsStore().data,
-        settingsStore().enabledPlugins
+        settingsStore().activatedPlugins
     );
 
     const vars = Object.keys( sessionSettingsConfig ).reduce( ( acc, key ) => {
