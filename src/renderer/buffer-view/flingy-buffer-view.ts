@@ -1,5 +1,6 @@
 import { FlingyStruct } from "common/types";
 import { ThingyBufferView } from "./thingy-buffer-view";
+import { FP8 } from "./fixed-point";
 
 function fractional_part( raw_value: number, fractional_bits: number ) {
     return raw_value & ( ( 1 << fractional_bits ) - 1 );
@@ -54,10 +55,12 @@ export class FlingyBufferView extends ThingyBufferView implements FlingyStruct {
         return this._bw.HEAP32[this._addr32 + 17];
     }
 
-    override copyTo( dest: Partial<FlingyStruct> ) {
-        super.copyTo( dest );
-        dest.direction = this.direction;
-        dest.x = this.x;
-        dest.y = this.y;
+    //xy_fp8 exact_position;
+    // fp8 flingy_top_speed;
+    // fp8 current_speed;
+
+    get currentSpeed() {
+        return FP8(this._bw.HEAPU32[this._addr32 + 21]);
     }
+
 }

@@ -1,7 +1,6 @@
 import { OpenBW } from "@openbw/openbw";
 import { ThingyStruct } from "common/types/structs/thingy-struct";
 import { FP8 } from "./fixed-point";
-import { SpritesBufferView } from "./sprites-buffer-view";
 
 /**
  * Maps to openbw thingy_t
@@ -10,7 +9,6 @@ export class ThingyBufferView implements ThingyStruct {
     protected _address = 0;
     protected _addr32 = 0;
     protected _addr8 = 0;
-    protected _sprite?: SpritesBufferView;
 
     _bw: OpenBW;
 
@@ -39,8 +37,8 @@ export class ThingyBufferView implements ThingyStruct {
         return this._bw.HEAPU32[( spriteAddr >> 2 ) + 2];
     }
 
-    copyTo( dest: Partial<ThingyStruct> ) {
-        dest.hp = this.hp;
-        dest.spriteIndex = this.spriteIndex;
+    get spriteAddr() {
+        return this._bw.HEAPU32[this._addr32 + 1];
     }
+
 }

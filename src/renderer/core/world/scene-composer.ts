@@ -23,12 +23,12 @@ import {
 } from "@utils/image-utils";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
-import { calculateFollowedUnitsTarget, unitIsFlying } from "@utils/unit-utils";
+import { calculateFollowedUnitsTarget, unitIsCompleted, unitIsFlying } from "@utils/unit-utils";
 import { drawFunctions, imageTypes, unitTypes } from "common/enums";
-import { ImageStruct, UnitTileScale } from "common/types";
+import { ImageStruct, UnitStruct, UnitTileScale } from "common/types";
 import { Assets } from "@image/assets";
 import { floor32, makePxToWorld } from "common/utils/conversions";
-import { Color, MathUtils, Vector3 } from "three";
+import { Color, MathUtils, Vector2, Vector3 } from "three";
 import { World } from "./world";
 import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/data-structures/iterable-set";
@@ -40,6 +40,7 @@ import { ImageHDMaterial } from "@core/image-hd-material";
 import { calculateImagesFromTechTreeUnits } from "@utils/preload-map-units-and-sprites";
 import { TimeSliceJob } from "@utils/time-slice-job";
 import { IterableMap } from "@utils/data-structures/iteratible-map";
+import { SimpleQuadtree } from "@utils/data-structures/simple-quadtree";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 export type SceneComposerApi = SceneComposer["api"];
@@ -75,6 +76,9 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
             return location
         })   
+
+    const playerWithStartLocation = world.players.find(p => p.startLocation);
+    const initialStartLocation = playerWithStartLocation ? playerWithStartLocation.startLocation : startLocations[0] ?? new Vector3();
 
     const _world = borrow( world );
 
@@ -133,23 +137,24 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
     } );
 
     // passed to inputComposer for intersection testing
-    const simpleIndex: Record<string, ImageBase[]> = {};
-    for ( let i = -2; i < 2; i++ ) {
-        for ( let j = -2; j < 2; j++ ) {
-            simpleIndex[`${i}${j}`] = [];
-        }
-    }
+    const mapScale = new Vector2(world.map.size[0], world.map.size[1]);
+    const worldOffset = new Vector2().copy(mapScale).divideScalar(2)
+    const imageQuadtree =new SimpleQuadtree<ImageBase>(4, mapScale, worldOffset);
 
-    const buildUnit = ( unitData: UnitsBufferView ) => {
-        const unit = units.getOrCreate( unitData );
+    const unitQuadtree = new SimpleQuadtree<UnitStruct>(8, mapScale, worldOffset);
 
-        sprites.setUnit( unitData.spriteIndex, unit );
+    const _unitPos = new Vector3();
+
+    const buildUnit = ( unitStruct: UnitsBufferView ) => {
+        const unit = units.getOrCreate( unitStruct );
+
+        sprites.setUnit( unitStruct.spriteIndex, unit );
 
         //if receiving damage, blink 3 times, hold blink 3 frames
         if (
             !unit.extras.recievingDamage &&
-            ( unit.hp > unitData.hp || unit.shields > unitData.shields ) &&
-            unit.typeId === unitData.typeId // ignore morphs
+            ( unit.hp > unitStruct.hp || unit.shields > unitStruct.shields ) &&
+            unit.typeId === unitStruct.typeId // ignore morphs
         ) {
             unit.extras.recievingDamage = 0b000111000111000111;
         } else if ( unit.extras.recievingDamage ) {
@@ -157,11 +162,24 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         }
 
         // unit morph
-        if ( unit.typeId !== unitData.typeId ) {
-            unit.extras.dat = assets.bwDat.units[unitData.typeId];
+        if ( unit.typeId !== unitStruct.typeId ) {
+            unit.extras.dat = assets.bwDat.units[unitStruct.typeId];
         }
 
-        unitData.copyTo( unit );
+        const isCompleted = unitIsCompleted( unit ) && !unitIsCompleted( unitStruct );
+        
+        // copy last so we can diff above
+        unitStruct.copyTo( unit );
+
+        pxToWorld.xyz( unitStruct.x, unitStruct.y, _unitPos );
+        unitQuadtree.add( _unitPos.x, _unitPos.z, unit)
+
+
+        if ( isCompleted ) {
+            world.events.emit( "unit-completed", unit );
+        }
+
+
     };
 
     let unit: Unit | undefined;
@@ -272,11 +290,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             }
 
             if ( imageStruct.index === spriteStruct.mainImageIndex ) {
-                simpleIndex[
-                    `${Math.floor(
-                        ( sprite.position.x / world.map.size[0] ) * 4
-                    )}${Math.floor( ( sprite.position.z / world.map.size[1] ) * 4 )}`
-                ].push( image );
+                imageQuadtree.add( sprite.position.x, sprite.position.z, image );
 
                 sprite.userData.mainImage = image;
 
@@ -361,7 +375,8 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         images,
         sprites,
         units,
-        simpleIndex,
+        imageQuadrants: imageQuadtree,
+        unitQuadrants: unitQuadtree,
         selectedUnits,
         followedUnits,
         scene,
@@ -406,6 +421,8 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 }
             }
 
+            unitQuadtree.clear();
+
             for ( const unit of world.openBW.iterators.units ) {
                 buildUnit( unit );
             }
@@ -418,11 +435,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 images.free( imageIndex );
             }
 
-            for ( let i = -2; i < 2; i++ ) {
-                for ( let j = -2; j < 2; j++ ) {
-                    simpleIndex[`${i}${j}`].length = 0;
-                }
-            }
+            imageQuadtree.clear();
 
             // support precompile w/out viewport
 
@@ -451,10 +464,12 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             get units() : IterableMap<number, Unit> {
                 return units.units
             },
-            simpleIndex,
+            imageQuadtree,
+            unitQuadtree,
             scene,
             followedUnits,
             startLocations,
+            initialStartLocation,
             //TODO: extend followedunits instead
             getFollowedUnitsCenterPosition: () => calculateFollowedUnitsTarget( followedUnits, pxToWorld ),
             selectedUnits,

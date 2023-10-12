@@ -8,6 +8,7 @@ import BaseScene from "@render/base-scene";
 import { ImageBase } from "@core/image-base";
 import { ProjectedCameraView } from "../camera/projected-camera-view";
 import { InputsComposer } from "@core/world/input-composer";
+import { SimpleQuadtree } from "@utils/data-structures/simple-quadtree";
 
 const MIN_DRAG_SIZE = 0.01;
 
@@ -30,7 +31,7 @@ export const createUnitSelectionBox = (
     world: World,
     mouse: InputsComposer["mouse"],
     scene: BaseScene,
-    simpleIndex: Record<string, ImageBase[]>,
+    imageQuadtree: SimpleQuadtree<ImageBase>,
     onGetUnit: ( objects: Object3D ) => Unit | null
 ) => {
     const selectionBox = new SelectionBox( new PerspectiveCamera(), scene );
@@ -77,12 +78,7 @@ export const createUnitSelectionBox = (
             ); /// RaycastHelper.intersectObject(scene.terrain, true, selectionBox.camera, mouse.move);
 
             if ( intersection ) {
-                const images =
-                    simpleIndex[
-                        `${Math.floor(
-                            ( intersection.x / scene.mapWidth ) * 4
-                        )}${Math.floor( ( intersection.z / scene.mapHeight ) * 4 )}`
-                    ];
+                const images = imageQuadtree.getNearby(intersection.x, intersection.z);
 
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 if ( images && images.length ) {

@@ -312,6 +312,7 @@ export interface DumpedUnit extends Partial<Unit> {
  * A unit (and its state) in the game.
  */
 export interface Unit extends UnitStruct {
+    isAttacking: boolean;
     extras: {
         recievingDamage: number;
         selected?: boolean;
@@ -351,6 +352,7 @@ interface FlingyStruct extends ThingyStruct {
     x: number;
     y: number;
     direction: number;
+    currentSpeed: number;
     moveTargetX: number;
     moveTargetY: number;
     nextMovementWaypointX: number;
@@ -368,6 +370,7 @@ interface ThingyStruct {
      * @internal
      */
     spriteIndex: number;
+    spriteAddr: number;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/units-dat.ts
@@ -1188,6 +1191,7 @@ export declare const useSelectedUnits: () => {
     extras: {
         dat: UnitDAT;
     };
+    isAttacking?: boolean | undefined;
     id?: number | undefined;
     typeId?: number | undefined;
     owner?: number | undefined;
@@ -1222,6 +1226,7 @@ export declare const useSelectedUnits: () => {
         x?: number | undefined;
         y?: number | undefined;
         direction?: number | undefined;
+        currentSpeed?: number | undefined;
         moveTargetX?: number | undefined;
         moveTargetY?: number | undefined;
         nextMovementWaypointX?: number | undefined;
@@ -1231,11 +1236,13 @@ export declare const useSelectedUnits: () => {
         movementFlags?: number | undefined;
         hp?: number | undefined;
         spriteIndex?: number | undefined;
+        spriteAddr?: number | undefined;
     } | null | undefined;
     subunitId?: number | null | undefined;
     x?: number | undefined;
     y?: number | undefined;
     direction?: number | undefined;
+    currentSpeed?: number | undefined;
     moveTargetX?: number | undefined;
     moveTargetY?: number | undefined;
     nextMovementWaypointX?: number | undefined;
@@ -1245,6 +1252,7 @@ export declare const useSelectedUnits: () => {
     movementFlags?: number | undefined;
     hp?: number | undefined;
     spriteIndex?: number | undefined;
+    spriteAddr?: number | undefined;
 }[];
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx

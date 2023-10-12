@@ -112,7 +112,7 @@ interface FieldDefinition<T = unknown> {
  * @public
  * The exposed api available to macros and plugins.
  */
-export interface GameTimeApi extends OverlayComposerApi, InputsComposerApi, SceneComposerApi, SurfaceComposerApi, PostProcessingComposerApi, ViewControllerComposerApi, OpenBwComposerApi {
+export interface GameTimeApi extends OverlayComposerApi, InputsComposerApi, SceneComposerApi, SurfaceComposerApi, PostProcessingComposerApi, ViewControllerComposerApi, OpenBwComposerApi, GameLoopComposerApi {
     map: Chk;
     getCommands: () => CommandsStream;
     assets: Assets;
@@ -157,7 +157,7 @@ declare type InputsComposer = ReturnType<typeof createInputComposer>;
  * Hanndles user input including unit selection events ( which is then sent through the message bus for other handlers to use ).
  */
 /** @internal */
-declare const createInputComposer: (world: World, { images, scene, simpleIndex }: SceneComposer) => {
+declare const createInputComposer: (world: World, { images, scene, imageQuadrants }: SceneComposer) => {
     readonly mouse: MouseInput;
     readonly keyboard: ArrowKeyInput;
     readonly unitSelectionBox: {
@@ -198,15 +198,15 @@ interface World {
 /** @internal */
 declare class Players extends Array<Player> {
     #private;
-    originalColors: readonly string[];
     originalNames: readonly PlayerName[];
     constructor(players: BasePlayer[]);
     get(id: number): Player | undefined;
     static get [Symbol.species](): ArrayConstructor;
     togglePlayerVision(id: number): void;
     getVisionFlag(): number;
-    setPlayerColors: (colors: readonly string[]) => void;
-    setPlayerNames(players: PlayerName[]): void;
+    setColors: (colors: readonly string[]) => void;
+    resetColors(): void;
+    setNames(players: PlayerName[]): void;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/player.ts
@@ -1553,6 +1553,8 @@ export declare class OpenBW implements OpenBW {
     running: boolean;
     files?: OpenBWFileList;
     unitGenerationSize: number;
+    iterators: OpenBWIterators;
+    structs: OpenBWStructViews;
     /**
      * Load the WASM module and initialize the OpenBW instance.
      */
@@ -1641,334 +1643,113 @@ declare class OpenBWFileList {
     clear(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/file.ts
-/// <reference types="node" />
-/** @internal */
-declare type ReadFile = (filename: string) => Promise<Buffer>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
-
-/** @internal */
-declare type SettingsSessionStore = ReturnType<typeof createSettingsSessionStore>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
-
-/**
- * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
- */
-/** @internal */
-declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => {
-    vars: SessionVariables;
-    dispose: () => void;
-    getState: () => {
-        session: {
-            type: "replay" | "live" | "map";
-            sandbox: boolean;
-            audioListenerDistance: number;
-        };
-        audio: {
-            global: number;
-            music: number;
-            sound: number;
-            playIntroSounds: boolean;
-        };
-        input: {
-            sceneController: string;
-            dampingFactor: number;
-            movementSpeed: number;
-            rotateSpeed: number;
-            cameraShakeStrength: number;
-            zoomLevels: [number, number, number];
-            unitSelection: boolean;
-            cursorVisible: boolean;
-        };
-        minimap: {
-            mode: "2d" | "3d";
-            position: [number, number];
-            rotation: [number, number, number];
-            scale: number;
-            enabled: boolean;
-            opacity: number;
-            softEdges: boolean;
-            interactive: boolean;
-            drawCamera: boolean;
-        };
-        postprocessing: {
-            anisotropy: number;
-            antialias: number;
-            bloom: number;
-            brightness: number;
-            contrast: number;
-            fogOfWar: number;
-        };
-        postprocessing3d: {
-            anisotropy: number;
-            antialias: number;
-            toneMapping: number;
-            bloom: number;
-            brightness: number;
-            contrast: number;
-            depthFocalLength: number;
-            depthBokehScale: number;
-            depthBlurQuality: number;
-            depthFocalRange: number;
-            fogOfWar: number;
-            envMap: number;
-            sunlightDirection: [number, number, number];
-            sunlightColor: string;
-            sunlightIntensity: number;
-            shadowQuality: number;
-        };
-    };
-    setValue: (path: string[], value: unknown) => void;
-    getValue: (path: string[]) => unknown;
-    merge: (rhs: {
-        session?: {
-            type?: "replay" | "live" | "map" | undefined;
-            sandbox?: boolean | undefined;
-            audioListenerDistance?: number | undefined;
-        } | undefined;
-        audio?: {
-            global?: number | undefined;
-            music?: number | undefined;
-            sound?: number | undefined;
-            playIntroSounds?: boolean | undefined;
-        } | undefined;
-        input?: {
-            sceneController?: string | undefined;
-            dampingFactor?: number | undefined;
-            movementSpeed?: number | undefined;
-            rotateSpeed?: number | undefined;
-            cameraShakeStrength?: number | undefined;
-            zoomLevels?: [(number | undefined)?, (number | undefined)?, (number | undefined)?] | undefined;
-            unitSelection?: boolean | undefined;
-            cursorVisible?: boolean | undefined;
-        } | undefined;
-        minimap?: {
-            mode?: "2d" | "3d" | undefined;
-            position?: [(number | undefined)?, (number | undefined)?] | undefined;
-            rotation?: [(number | undefined)?, (number | undefined)?, (number | undefined)?] | undefined;
-            scale?: number | undefined;
-            enabled?: boolean | undefined;
-            opacity?: number | undefined;
-            softEdges?: boolean | undefined;
-            interactive?: boolean | undefined;
-            drawCamera?: boolean | undefined;
-        } | undefined;
-        postprocessing?: {
-            anisotropy?: number | undefined;
-            antialias?: number | undefined;
-            bloom?: number | undefined;
-            brightness?: number | undefined;
-            contrast?: number | undefined;
-            fogOfWar?: number | undefined;
-        } | undefined;
-        postprocessing3d?: {
-            anisotropy?: number | undefined;
-            antialias?: number | undefined;
-            toneMapping?: number | undefined;
-            bloom?: number | undefined;
-            brightness?: number | undefined;
-            contrast?: number | undefined;
-            depthFocalLength?: number | undefined;
-            depthBokehScale?: number | undefined;
-            depthBlurQuality?: number | undefined;
-            depthFocalRange?: number | undefined;
-            fogOfWar?: number | undefined;
-            envMap?: number | undefined;
-            sunlightDirection?: [(number | undefined)?, (number | undefined)?, (number | undefined)?] | undefined;
-            sunlightColor?: string | undefined;
-            sunlightIntensity?: number | undefined;
-            shadowQuality?: number | undefined;
-        } | undefined;
-    }) => void;
-    operate: (action: Operation, transformPath?: ((path: string[]) => string[]) | undefined) => void;
-    createVariable: (path: string[]) => ((value?: unknown) => unknown) & {
-        set: (value: any) => void;
-        get: () => unknown;
-        inc: () => void;
-        incCycle: () => void;
-        dec: () => void;
-        decCycle: () => void;
-        min: () => void;
-        max: () => void;
-        reset: () => void;
-        toggle: () => void;
-    };
-    sourceOfTruth: SourceOfTruth<{
-        session: {
-            type: "replay" | "live" | "map";
-            sandbox: boolean;
-            audioListenerDistance: number;
-        };
-        audio: {
-            global: number;
-            music: number;
-            sound: number;
-            playIntroSounds: boolean;
-        };
-        input: {
-            sceneController: string;
-            dampingFactor: number;
-            movementSpeed: number;
-            rotateSpeed: number;
-            cameraShakeStrength: number;
-            zoomLevels: [number, number, number];
-            unitSelection: boolean;
-            cursorVisible: boolean;
-        };
-        minimap: {
-            mode: "2d" | "3d";
-            position: [number, number];
-            rotation: [number, number, number];
-            scale: number;
-            enabled: boolean;
-            opacity: number;
-            softEdges: boolean;
-            interactive: boolean;
-            drawCamera: boolean;
-        };
-        postprocessing: {
-            anisotropy: number;
-            antialias: number;
-            bloom: number;
-            brightness: number;
-            contrast: number;
-            fogOfWar: number;
-        };
-        postprocessing3d: {
-            anisotropy: number;
-            antialias: number;
-            toneMapping: number;
-            bloom: number;
-            brightness: number;
-            contrast: number;
-            depthFocalLength: number;
-            depthBokehScale: number;
-            depthBlurQuality: number;
-            depthFocalRange: number;
-            fogOfWar: number;
-            envMap: number;
-            sunlightDirection: [number, number, number];
-            sunlightColor: string;
-            sunlightIntensity: number;
-            shadowQuality: number;
-        };
-    }>;
-};
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
 
 /**
  * @public
  */
-export declare class TypeEmitter<T> {
+declare class OpenBWIterators {
+    destroyedUnitsThisFrame: () => ReturnType<typeof destroyedUnitsIterator>;
+    killedUnitsThisFrame: () => ReturnType<typeof killedUnitIterator>;
+    units: UnitsBufferViewIterator;
+    deletedSpritesThisFrame: () => ReturnType<typeof deletedSpritesIterator>;
+    deletedImagesThisFrame: () => ReturnType<typeof deletedImageIterator>;
+    sprites: SpritesBufferViewIterator;
+    constructor(openbw: OpenBW);
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+
+/** @internal */
+declare function destroyedUnitsIterator(openBW: OpenBW): Generator<number, void, unknown>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+
+/** @internal */
+declare function killedUnitIterator(openBW: OpenBW): Generator<number, void, unknown>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+
+/** @internal */
+declare class UnitsBufferViewIterator {
     #private;
-    on<K extends keyof T>(s: K, listener: (v: T[K]) => void): () => void;
-    off<K extends keyof T>(s: K, listener: (v: T[K]) => void): void;
-    emit(s: keyof T, v?: T[keyof T]): undefined | false;
-    dispose(): void;
+    constructor(openBW: OpenBW);
+    [Symbol.iterator](): Generator<UnitsBufferView, void, unknown>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/world-events.ts
-
-/** @internal */
-interface WorldEvents {
-    "unit-created": Unit;
-    "unit-killed": Unit;
-    "unit-destroyed": Unit;
-    "followed-units-changed": Unit[];
-    "selected-units-changed": Unit[];
-    "completed-upgrade": {
-        owner: number;
-        typeId: number;
-        level: number;
-    };
-    "completed-tech": {
-        owner: number;
-        typeId: number;
-    };
-    "frame-reset": number;
-    "minimap-enter": undefined;
-    "minimap-leave": undefined;
-    "image-destroyed": ImageBase;
-    "image-updated": ImageBase;
-    "image-created": ImageBase;
-    "units-cleared": undefined;
-    "settings-changed": {
-        settings: SessionSettingsData;
-        rhs: DeepPartial<SessionSettingsData>;
-    };
-    "plugin-configuration-changed": {
-        settings: SessionSettingsData;
-        rhs: DeepPartial<SessionSettingsData>;
-    };
-    "resize": GameSurface;
-    "box-selection-start": undefined;
-    "box-selection-move": undefined;
-    "box-selection-end": Unit[];
-    "box-selection-enabled": boolean;
-    "scene-controller-exit": string;
-    "scene-controller-enter": string;
-    "world-start": undefined;
-    "world-end": undefined;
-    "dispose": undefined;
-    "mouse-click": MouseEventDTO;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
 
 /**
- * @public
- * A unit (and its state) in the game.
+ * Maps to openbw unit_t
  */
-export interface Unit extends UnitStruct {
-    extras: {
-        recievingDamage: number;
-        selected?: boolean;
-        dat: UnitDAT;
-    };
+/** @internal */
+declare class UnitsBufferView extends FlingyBufferView implements UnitStruct {
+    #private;
+    getSprite(): SpritesBufferView | undefined;
+    readonly resourceAmount = 0;
+    get id(): number;
+    get owner(): number;
+    get order(): number | null;
+    get groundWeaponCooldown(): number;
+    get airWeaponCooldown(): number;
+    get spellCooldown(): number;
+    get orderTargetAddr(): number;
+    get orderTargetX(): number;
+    get orderTargetY(): number;
+    get orderTargetUnit(): number;
+    get shields(): number;
+    get typeId(): number;
+    get typeFlags(): number;
+    get subunit(): UnitsBufferView | null;
+    get parentUnit(): UnitsBufferView | null;
+    get subunitId(): number | null;
+    get kills(): number;
+    get energy(): number;
+    get generation(): number;
+    get remainingBuildTime(): number;
+    get loadedUnitIds(): Uint32Array;
+    get statusFlags(): number;
+    get currentBuildUnit(): UnitStruct | null;
+    isAttacking(): boolean;
+    copyTo(dest: Partial<Unit>): void;
+    copy(bufferView?: UnitsBufferView): UnitsBufferView;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/unit-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/flingy-buffer-view.ts
 
 /** @internal */
-interface UnitStruct extends FlingyStruct {
-    id: number;
-    typeId: number;
-    owner: number;
-    energy: number;
-    shields: number;
-    statusFlags: number;
-    remainingBuildTime: number;
-    resourceAmount: number;
-    order: number | null;
-    kills: number;
-    orderTargetAddr: number;
-    orderTargetX: number;
-    orderTargetY: number;
-    orderTargetUnit: number;
-    /**
-     * @internal
-     */
-    subunit: UnitStruct | null;
-    subunitId: number | null;
+declare class FlingyBufferView extends ThingyBufferView implements FlingyStruct {
+    get index(): number;
+    get moveTargetX(): number;
+    get moveTargetY(): number;
+    get nextMovementWaypointX(): number;
+    get nextMovementWaypointY(): number;
+    get nextTargetWaypointX(): number;
+    get nextTargetWaypointY(): number;
+    get movementFlags(): number;
+    get direction(): number;
+    get x(): number;
+    get y(): number;
+    get currentSpeed(): number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/flingy-struct.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/thingy-buffer-view.ts
 
+/**
+ * Maps to openbw thingy_t
+ */
 /** @internal */
-interface FlingyStruct extends ThingyStruct {
-    x: number;
-    y: number;
-    direction: number;
-    moveTargetX: number;
-    moveTargetY: number;
-    nextMovementWaypointX: number;
-    nextMovementWaypointY: number;
-    nextTargetWaypointX: number;
-    nextTargetWaypointY: number;
-    movementFlags: number;
+declare class ThingyBufferView implements ThingyStruct {
+    protected _address: number;
+    protected _addr32: number;
+    protected _addr8: number;
+    _bw: OpenBW;
+    get address(): number;
+    get(address: number): this;
+    constructor(bw: OpenBW);
+    get hp(): number;
+    get spriteIndex(): number;
+    get spriteAddr(): number;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/thingy-struct.ts
@@ -1979,6 +1760,7 @@ interface ThingyStruct {
      * @internal
      */
     spriteIndex: number;
+    spriteAddr: number;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/scene-composer.ts
@@ -1988,7 +1770,8 @@ declare const createSceneComposer: (world: World, assets: Assets) => Promise<{
     images: ImageEntities;
     sprites: SpriteEntities;
     units: UnitEntities;
-    simpleIndex: Record<string, ImageBase[]>;
+    imageQuadrants: SimpleQuadtree<ImageBase>;
+    unitQuadrants: SimpleQuadtree<UnitStruct>;
     selectedUnits: IterableSet<Unit>;
     followedUnits: IterableSet<Unit>;
     scene: BaseScene;
@@ -2006,18 +1789,22 @@ declare const createSceneComposer: (world: World, assets: Assets) => Promise<{
     };
     pxToWorld: PxToWorld;
     pxToWorldInverse: PxToWorld;
+    pxToWorldFlat: PxToWorld;
     startLocations: Vector3[];
-    onFrame(delta: number, elapsed: number, viewport: GameViewPort | boolean, direction?: number): void;
+    onFrame(delta: number, elapsed: number, renderMode3D: boolean): void;
     resetImageCache(): void;
     api: {
-        getPlayers: () => Players;
+        readonly players: Players;
         toggleFogOfWarByPlayerId(playerId: number): void;
         pxToWorld: PxToWorld;
+        pxToWorldFlat: PxToWorld;
         readonly units: IterableMap<number, Unit>;
-        simpleIndex: Record<string, ImageBase[]>;
+        imageQuadtree: SimpleQuadtree<ImageBase>;
+        unitQuadtree: SimpleQuadtree<UnitStruct>;
         scene: BaseScene;
         followedUnits: IterableSet<Unit>;
         startLocations: Vector3[];
+        initialStartLocation: Vector3 | undefined;
         getFollowedUnitsCenterPosition: () => Vector3 | undefined;
         selectedUnits: IterableSet<Unit>;
     };
@@ -2851,6 +2638,11 @@ declare const generateUIIcons: (readFile: ReadFile) => Promise<{
     };
 }>;
 
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/file.ts
+/// <reference types="node" />
+/** @internal */
+declare type ReadFile = (filename: string) => Promise<Buffer>;
+
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-entities.ts
 
 /**
@@ -3351,6 +3143,63 @@ declare class Image3DMaterial extends MeshStandardMaterial {
     customProgramCacheKey(): string;
 }
 
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
+
+/**
+ * @public
+ * A unit (and its state) in the game.
+ */
+export interface Unit extends UnitStruct {
+    isAttacking: boolean;
+    extras: {
+        recievingDamage: number;
+        selected?: boolean;
+        dat: UnitDAT;
+    };
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/unit-struct.ts
+
+/** @internal */
+interface UnitStruct extends FlingyStruct {
+    id: number;
+    typeId: number;
+    owner: number;
+    energy: number;
+    shields: number;
+    statusFlags: number;
+    remainingBuildTime: number;
+    resourceAmount: number;
+    order: number | null;
+    kills: number;
+    orderTargetAddr: number;
+    orderTargetX: number;
+    orderTargetY: number;
+    orderTargetUnit: number;
+    /**
+     * @internal
+     */
+    subunit: UnitStruct | null;
+    subunitId: number | null;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/flingy-struct.ts
+
+/** @internal */
+interface FlingyStruct extends ThingyStruct {
+    x: number;
+    y: number;
+    direction: number;
+    currentSpeed: number;
+    moveTargetX: number;
+    moveTargetY: number;
+    nextMovementWaypointX: number;
+    nextMovementWaypointY: number;
+    nextTargetWaypointX: number;
+    nextTargetWaypointY: number;
+    movementFlags: number;
+}
+
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/sprite-entities.ts
 
 /** @internal */
@@ -3389,7 +3238,7 @@ declare class UnitEntities {
     externalOnClearUnits?(): void;
     [Symbol.iterator](): IterableIterator<Unit>;
     get(unitId: number): Unit | undefined;
-    getOrCreate(unitData: UnitsBufferView): Unit;
+    getOrCreate(unitStruct: UnitsBufferView): Unit;
     free(unit: Unit): void;
     clear(): void;
 }
@@ -3411,200 +3260,16 @@ export declare class IterableMap<T, R> {
     get length(): number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/simple-quadtree.ts
 
-/**
- * Maps to openbw unit_t
- */
 /** @internal */
-declare class UnitsBufferView extends FlingyBufferView implements UnitStruct {
+declare class SimpleQuadtree<T> {
     #private;
-    readonly resourceAmount = 0;
-    get id(): number;
-    get owner(): number;
-    get order(): number | null;
-    get groundWeaponCooldown(): number;
-    get airWeaponCooldown(): number;
-    get spellCooldown(): number;
-    get orderTargetAddr(): number;
-    get orderTargetX(): number;
-    get orderTargetY(): number;
-    get orderTargetUnit(): number;
-    get shields(): number;
-    get typeId(): number;
-    get typeFlags(): number;
-    get subunit(): UnitStruct | null;
-    get parentUnit(): UnitStruct | null;
-    get subunitId(): number | null;
-    get kills(): number;
-    get energy(): number;
-    get generation(): number;
-    get remainingBuildTime(): number;
-    get statusFlags(): number;
-    get currentBuildUnit(): UnitStruct | null;
-    copyTo(dest: Partial<Unit>): void;
-    copy(bufferView?: UnitsBufferView): UnitsBufferView;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/flingy-buffer-view.ts
-
-/** @internal */
-declare class FlingyBufferView extends ThingyBufferView implements FlingyStruct {
-    get index(): number;
-    get moveTargetX(): number;
-    get moveTargetY(): number;
-    get nextMovementWaypointX(): number;
-    get nextMovementWaypointY(): number;
-    get nextTargetWaypointX(): number;
-    get nextTargetWaypointY(): number;
-    get movementFlags(): number;
-    get direction(): number;
-    get x(): number;
-    get y(): number;
-    copyTo(dest: Partial<FlingyStruct>): void;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/thingy-buffer-view.ts
-
-/**
- * Maps to openbw thingy_t
- */
-/** @internal */
-declare class ThingyBufferView implements ThingyStruct {
-    protected _address: number;
-    protected _addr32: number;
-    protected _addr8: number;
-    protected _sprite?: SpritesBufferView;
-    _bw: OpenBW;
-    get address(): number;
-    get(address: number): this;
-    constructor(bw: OpenBW);
-    get hp(): number;
-    get spriteIndex(): number;
-    copyTo(dest: Partial<ThingyStruct>): void;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view.ts
-
-/**
- * Maps to openbw sprite_t starting from index address
- */
-/** @internal */
-declare class SpritesBufferView implements SpriteStruct {
-    #private;
-    readonly images: IntrusiveList;
-    get(address: number): this;
-    constructor(bw: OpenBW);
-    get index(): number;
-    get typeId(): number;
-    get owner(): number;
-    get elevation(): number;
-    get flags(): number;
-    get x(): number;
-    get y(): number;
-    get mainImage(): ImageBufferView;
-    get mainImageIndex(): number;
-    get extYValue(): number;
-    get extFlyOffset(): number;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/sprite-struct.ts
-/** @internal */
-interface SpriteStruct {
-    index: number;
-    owner: number;
-    typeId: number;
-    elevation: number;
-    flags: number;
-    x: number;
-    y: number;
-    mainImageIndex: number;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/intrusive-list.ts
-/**
- * Represents an openbw intrusive_list
- */
-/** @internal */
-declare class IntrusiveList {
-    #private;
-    private _heapU32;
-    private _pairOffset;
-    private _current;
-    addr: number;
-    constructor(heap: Uint32Array, addr?: number, pairOffset?: number);
-    [Symbol.iterator](): Generator<number, void, unknown>;
-    reverse(): Generator<number, void, unknown>;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/images-buffer-view.ts
-
-/** @internal */
-declare class ImageBufferView implements ImageStruct {
-    #private;
-    get(address: number): this;
-    get _address(): number;
-    set _address(val: number);
-    constructor(bw: OpenBW);
-    get index(): number;
-    get typeId(): number;
-    get modifier(): number;
-    get modifierData1(): number;
-    get modifierData2(): number;
-    get frameIndex(): number;
-    get frameIndexBase(): number;
-    get frameIndexOffset(): number;
-    get flags(): number;
-    get x(): number;
-    get y(): number;
-    get iscript(): IScriptBufferView;
-    get nextNode(): number;
-    [Symbol.iterator](): Generator<this, void, unknown>;
-    copy(any: Partial<ImageStruct>): Partial<ImageStruct>;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/image-struct.ts
-/** @internal */
-interface ImageStruct {
-    index: number;
-    typeId: number;
-    flags: number;
-    frameIndex: number;
-    frameIndexOffset: number;
-    frameIndexBase: number;
-    x: number;
-    y: number;
-    modifier: number;
-    modifierData1: number;
-    modifierData2: number;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/iscript-buffer-view.ts
-
-/** @internal */
-declare class IScriptBufferView implements IScriptStateStruct {
-    #private;
-    _bw: OpenBW;
-    _debug: number;
-    get(address: number): this;
-    constructor(bw: OpenBW);
-    private get _index32();
-    get programAddress(): number | null;
-    get typeId(): number | null;
-    get programCounter(): number;
-    get opCounter(): number;
-    get returnAddress(): number;
-    get animation(): number;
-    get wait(): number;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/iscript-struct.ts
-/** @internal */
-interface IScriptStateStruct {
-    programCounter: number;
-    returnAddress: number;
-    animation: number;
-    wait: number;
+    get size(): number;
+    constructor(size: number, scale?: Vector2, offset?: Vector2);
+    add(x: number, y: number, item: T): void;
+    getNearby(x: number, y: number, radius?: number): T[];
+    clear(): void;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/iterable-set.ts
@@ -3783,135 +3448,427 @@ interface PxToWorld {
     xyz: (x: number, y: number, out: Vector3) => Vector3;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/game-viewport.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view.ts
+
+/**
+ * Maps to openbw sprite_t starting from index address
+ */
+/** @internal */
+declare class SpritesBufferView implements SpriteStruct {
+    #private;
+    readonly images: IntrusiveList;
+    get(address: number): this;
+    constructor(bw: OpenBW);
+    get index(): number;
+    get typeId(): number;
+    get owner(): number;
+    get elevation(): number;
+    get flags(): number;
+    get x(): number;
+    get y(): number;
+    get mainImage(): ImageBufferView;
+    get mainImageIndex(): number;
+    get extYValue(): number;
+    get extFlyOffset(): number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/sprite-struct.ts
+/** @internal */
+interface SpriteStruct {
+    index: number;
+    owner: number;
+    typeId: number;
+    elevation: number;
+    flags: number;
+    x: number;
+    y: number;
+    mainImageIndex: number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/intrusive-list.ts
+/**
+ * Represents an openbw intrusive_list
+ */
+/** @internal */
+declare class IntrusiveList {
+    #private;
+    private _heapU32;
+    private _pairOffset;
+    private _current;
+    addr: number;
+    constructor(heap: Uint32Array, addr?: number, pairOffset?: number);
+    [Symbol.iterator](): Generator<number, void, unknown>;
+    reverse(): Generator<number, void, unknown>;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/images-buffer-view.ts
+
+/** @internal */
+declare class ImageBufferView implements ImageStruct {
+    #private;
+    get(address: number): this;
+    get _address(): number;
+    set _address(val: number);
+    constructor(bw: OpenBW);
+    get index(): number;
+    get typeId(): number;
+    get modifier(): number;
+    get modifierData1(): number;
+    get modifierData2(): number;
+    get frameIndex(): number;
+    get frameIndexBase(): number;
+    get frameIndexOffset(): number;
+    get flags(): number;
+    get x(): number;
+    get y(): number;
+    get iscript(): IScriptBufferView;
+    get nextNode(): number;
+    [Symbol.iterator](): Generator<this, void, unknown>;
+    copy(): ImageBufferView;
+    copyTo(any: Partial<ImageStruct>): Partial<ImageStruct>;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/image-struct.ts
+/** @internal */
+interface ImageStruct {
+    index: number;
+    typeId: number;
+    flags: number;
+    frameIndex: number;
+    frameIndexOffset: number;
+    frameIndexBase: number;
+    x: number;
+    y: number;
+    modifier: number;
+    modifierData1: number;
+    modifierData2: number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/iscript-buffer-view.ts
+
+/** @internal */
+declare class IScriptBufferView implements IScriptStateStruct {
+    #private;
+    _bw: OpenBW;
+    _debug: number;
+    get(address: number): this;
+    constructor(bw: OpenBW);
+    private get _index32();
+    get programAddress(): number | null;
+    get typeId(): number | null;
+    get programCounter(): number;
+    get opCounter(): number;
+    get returnAddress(): number;
+    get animation(): number;
+    get wait(): number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/iscript-struct.ts
+/** @internal */
+interface IScriptStateStruct {
+    programCounter: number;
+    returnAddress: number;
+    animation: number;
+    wait: number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view-iterator.ts
+
+/** @internal */
+declare function deletedSpritesIterator(openBW: OpenBW): Generator<number, void, unknown>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/images-buffer-view.ts
+
+/** @internal */
+declare function deletedImageIterator(openBW: OpenBW): Generator<number, void, unknown>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view-iterator.ts
+
+/** @internal */
+declare class SpritesBufferViewIterator {
+    #private;
+    constructor(openBW: OpenBW);
+    [Symbol.iterator](): Generator<SpritesBufferView, void, unknown>;
+    getSprite(addr: number): SpritesBufferView;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
+
+/** @internal */
+declare class OpenBWStructViews {
+    image: ImageBufferView;
+    constructor(openbw: OpenBW);
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
+
+/** @internal */
+declare type SettingsSessionStore = ReturnType<typeof createSettingsSessionStore>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
+
+/**
+ * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
+ */
+/** @internal */
+declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => {
+    vars: SessionVariables;
+    dispose: () => void;
+    getState: () => {
+        session: {
+            type: "replay" | "live" | "map";
+            sandbox: boolean;
+            audioListenerDistance: number;
+        };
+        audio: {
+            global: number;
+            music: number;
+            sound: number;
+            playIntroSounds: boolean;
+        };
+        input: {
+            sceneController: string;
+            dampingFactor: number;
+            movementSpeed: number;
+            rotateSpeed: number;
+            cameraShakeStrength: number;
+            zoomLevels: [number, number, number];
+            unitSelection: boolean;
+            cursorVisible: boolean;
+        };
+        minimap: {
+            mode: "2d" | "3d";
+            position: [number, number];
+            rotation: [number, number, number];
+            scale: number;
+            enabled: boolean;
+            opacity: number;
+            softEdges: boolean;
+            interactive: boolean;
+            drawCamera: boolean;
+        };
+        postprocessing: {
+            anisotropy: number;
+            antialias: number;
+            bloom: number;
+            brightness: number;
+            contrast: number;
+            fogOfWar: number;
+        };
+        postprocessing3d: {
+            anisotropy: number;
+            antialias: number;
+            toneMapping: number;
+            bloom: number;
+            brightness: number;
+            contrast: number;
+            depthFocalLength: number;
+            depthBokehScale: number;
+            depthBlurQuality: number;
+            depthFocalRange: number;
+            fogOfWar: number;
+            envMap: number;
+            sunlightDirection: [number, number, number];
+            sunlightColor: string;
+            sunlightIntensity: number;
+            shadowQuality: number;
+        };
+    };
+    setValue: (path: string[], value: unknown) => void;
+    getValue: (path: string[]) => unknown;
+    merge: (rhs: {
+        session?: {
+            type?: "replay" | "live" | "map" | undefined;
+            sandbox?: boolean | undefined;
+            audioListenerDistance?: number | undefined;
+        } | undefined;
+        audio?: {
+            global?: number | undefined;
+            music?: number | undefined;
+            sound?: number | undefined;
+            playIntroSounds?: boolean | undefined;
+        } | undefined;
+        input?: {
+            sceneController?: string | undefined;
+            dampingFactor?: number | undefined;
+            movementSpeed?: number | undefined;
+            rotateSpeed?: number | undefined;
+            cameraShakeStrength?: number | undefined;
+            zoomLevels?: [(number | undefined)?, (number | undefined)?, (number | undefined)?] | undefined;
+            unitSelection?: boolean | undefined;
+            cursorVisible?: boolean | undefined;
+        } | undefined;
+        minimap?: {
+            mode?: "2d" | "3d" | undefined;
+            position?: [(number | undefined)?, (number | undefined)?] | undefined;
+            rotation?: [(number | undefined)?, (number | undefined)?, (number | undefined)?] | undefined;
+            scale?: number | undefined;
+            enabled?: boolean | undefined;
+            opacity?: number | undefined;
+            softEdges?: boolean | undefined;
+            interactive?: boolean | undefined;
+            drawCamera?: boolean | undefined;
+        } | undefined;
+        postprocessing?: {
+            anisotropy?: number | undefined;
+            antialias?: number | undefined;
+            bloom?: number | undefined;
+            brightness?: number | undefined;
+            contrast?: number | undefined;
+            fogOfWar?: number | undefined;
+        } | undefined;
+        postprocessing3d?: {
+            anisotropy?: number | undefined;
+            antialias?: number | undefined;
+            toneMapping?: number | undefined;
+            bloom?: number | undefined;
+            brightness?: number | undefined;
+            contrast?: number | undefined;
+            depthFocalLength?: number | undefined;
+            depthBokehScale?: number | undefined;
+            depthBlurQuality?: number | undefined;
+            depthFocalRange?: number | undefined;
+            fogOfWar?: number | undefined;
+            envMap?: number | undefined;
+            sunlightDirection?: [(number | undefined)?, (number | undefined)?, (number | undefined)?] | undefined;
+            sunlightColor?: string | undefined;
+            sunlightIntensity?: number | undefined;
+            shadowQuality?: number | undefined;
+        } | undefined;
+    }) => void;
+    operate: (action: Operation, transformPath?: ((path: string[]) => string[]) | undefined) => void;
+    createVariable: (path: string[]) => ((value?: unknown) => unknown) & {
+        set: (value: any) => void;
+        get: () => unknown;
+        inc: () => void;
+        incCycle: () => void;
+        dec: () => void;
+        decCycle: () => void;
+        min: () => void;
+        max: () => void;
+        reset: () => void;
+        toggle: () => void;
+    };
+    sourceOfTruth: SourceOfTruth<{
+        session: {
+            type: "replay" | "live" | "map";
+            sandbox: boolean;
+            audioListenerDistance: number;
+        };
+        audio: {
+            global: number;
+            music: number;
+            sound: number;
+            playIntroSounds: boolean;
+        };
+        input: {
+            sceneController: string;
+            dampingFactor: number;
+            movementSpeed: number;
+            rotateSpeed: number;
+            cameraShakeStrength: number;
+            zoomLevels: [number, number, number];
+            unitSelection: boolean;
+            cursorVisible: boolean;
+        };
+        minimap: {
+            mode: "2d" | "3d";
+            position: [number, number];
+            rotation: [number, number, number];
+            scale: number;
+            enabled: boolean;
+            opacity: number;
+            softEdges: boolean;
+            interactive: boolean;
+            drawCamera: boolean;
+        };
+        postprocessing: {
+            anisotropy: number;
+            antialias: number;
+            bloom: number;
+            brightness: number;
+            contrast: number;
+            fogOfWar: number;
+        };
+        postprocessing3d: {
+            anisotropy: number;
+            antialias: number;
+            toneMapping: number;
+            bloom: number;
+            brightness: number;
+            contrast: number;
+            depthFocalLength: number;
+            depthBokehScale: number;
+            depthBlurQuality: number;
+            depthFocalRange: number;
+            fogOfWar: number;
+            envMap: number;
+            sunlightDirection: [number, number, number];
+            sunlightColor: string;
+            sunlightIntensity: number;
+            shadowQuality: number;
+        };
+    }>;
+};
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
 
 /**
  * @public
- * A "view" into the game. Every viewport contains it's own camera, dimensions, and additional properties.
  */
-export declare class GameViewPort {
+export declare class TypeEmitter<T> {
     #private;
-    camera: DirectionalCamera;
-    projectedView: ProjectedCameraView;
-    orbit: CameraControls;
-    viewport: Vector4;
-    cameraShake: CameraShake;
-    shakeCalculation: {
-        frequency: Vector3;
-        duration: Vector3;
-        strength: Vector3;
-        needsUpdate: boolean;
-    };
-    constrainToAspect: boolean;
-    freezeCamera: boolean;
-    needsUpdate: boolean;
-    rotateSprites: boolean;
-    audioType: "stereo" | "3d" | null;
-    set renderMode3D(val: boolean);
-    get renderMode3D(): boolean;
-    get enabled(): boolean;
-    set enabled(val: boolean);
-    constructor(surface: Surface, isPrimaryViewport: boolean);
-    reset(firstRun?: boolean): CameraControls;
-    set orthographic(value: boolean);
-    set center(val: Vector2 | undefined | null);
-    get center(): Vector2 | undefined | null;
-    get height(): number;
-    set height(val: number);
-    set width(val: number);
-    get width(): number;
-    get left(): number | undefined | null;
-    set left(val: number | undefined | null);
-    set right(val: number | undefined | null);
-    get right(): number | undefined | null;
-    get top(): number | undefined | null;
-    set top(val: number | undefined | null);
-    set bottom(val: number | undefined | null);
-    get bottom(): number | undefined | null;
-    get aspect(): number;
-    set aspect(aspect: number);
+    on<K extends keyof T>(s: K, listener: (v: T[K]) => void): () => void;
+    off<K extends keyof T>(s: K, listener: (v: T[K]) => void): void;
+    emit(s: keyof T, v?: T[keyof T]): undefined | false;
     dispose(): void;
-    generatePrevData(): {
-        target: Vector3;
-        position: Vector3;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/world-events.ts
+
+/** @internal */
+interface WorldEvents {
+    "unit-completed": Unit;
+    "unit-created": Unit;
+    "unit-killed": Unit;
+    "unit-destroyed": Unit;
+    "followed-units-changed": Unit[];
+    "selected-units-changed": Unit[];
+    "completed-upgrade": {
+        owner: number;
+        typeId: number;
+        level: number;
     };
-    shakeStart(elapsed: number, strength: number): void;
-    shakeEnd(): void;
-    update(targetDamping: number, delta: number): void;
-    updateDirection32(): void;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/game-viewport.ts
-
-/** @internal */
-declare type DirectionalCamera = (PerspectiveCamera | OrthographicCamera) & {
-    userData: {
-        direction: number;
-        prevDirection: number;
+    "completed-tech": {
+        owner: number;
+        typeId: number;
     };
-};
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/projected-camera-view.ts
-
-/**
- * World position for the four corners of our view
- */
-/** @internal */
-declare class ProjectedCameraView {
-    left: number;
-    top: number;
-    right: number;
-    bottom: number;
-    width: number;
-    height: number;
-    bl: [number, number];
-    tr: [number, number];
-    br: [number, number];
-    tl: [number, number];
-    center: Vector3;
-    static mouseOnWorldPlane(mouse: {
-        x: number;
-        y: number;
-    }, camera: Camera): Vector3 | null;
-    update(camera: Camera, target: Vector3): void;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/camera-shake.ts
-
-/** @internal */
-declare class CameraShake {
-    #private;
-    _duration: Vector3;
-    _startTime: number[];
-    _strength: Vector3;
-    maxShakeDistance: number;
-    set enabled(val: boolean);
-    get enabled(): boolean;
-    constructor(duration?: number, frequency?: number, strength?: number);
-    setParams(component: 0 | 1 | 2, duration: number, frequency: number, strength: number): void;
-    _update(component: 0 | 1 | 2, elapsed: number): number | undefined;
-    _shake(component: 0 | 1 | 2, elapsed: number, duration: number, frequency: number, strength: number): void;
-    shake(elapsed: number, duration: Vector3, frequency: Vector3, strength: Vector3): void;
-    update(elapsed: number, camera: Camera): void;
-    restore(camera: Camera): void;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/canvas/surface.ts
-/** @internal */
-declare class Surface {
-    #private;
-    ctx?: CanvasRenderingContext2D;
-    canvas: HTMLCanvasElement;
-    constructor(canvas?: HTMLCanvasElement, useContext?: boolean, styles?: Partial<ElementCSSInlineStyle["style"]>);
-    setDimensions(width: number, height: number, pixelRatio?: number): void;
-    get aspect(): number;
-    get width(): number;
-    get height(): number;
-    get bufferWidth(): number;
-    get bufferHeight(): number;
-    get pixelRatio(): number;
-    getContext(): CanvasRenderingContext2D | null;
-    dispose(): void;
+    "frame-reset": number;
+    "minimap-enter": undefined;
+    "minimap-leave": undefined;
+    "image-destroyed": ImageBase;
+    "image-updated": ImageBase;
+    "image-created": ImageBase;
+    "units-cleared": undefined;
+    "settings-changed": {
+        settings: SessionSettingsData;
+        rhs: DeepPartial<SessionSettingsData>;
+    };
+    "plugin-configuration-changed": {
+        settings: SessionSettingsData;
+        rhs: DeepPartial<SessionSettingsData>;
+    };
+    "resize": GameSurface;
+    "box-selection-start": undefined;
+    "box-selection-move": undefined;
+    "box-selection-end": Unit[];
+    "box-selection-enabled": boolean;
+    "scene-controller-exit": string;
+    "scene-controller-enter": string;
+    "world-start": undefined;
+    "world-end": undefined;
+    "dispose": undefined;
+    "mouse-click": MouseEventDTO;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
@@ -3945,6 +3902,24 @@ declare class GameSurface extends Surface {
     dispose(): void;
     show(): void;
     hide(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/canvas/surface.ts
+/** @internal */
+declare class Surface {
+    #private;
+    ctx?: CanvasRenderingContext2D;
+    canvas: HTMLCanvasElement;
+    constructor(canvas?: HTMLCanvasElement, useContext?: boolean, styles?: Partial<ElementCSSInlineStyle["style"]>);
+    setDimensions(width: number, height: number, pixelRatio?: number): void;
+    get aspect(): number;
+    get width(): number;
+    get height(): number;
+    get bufferWidth(): number;
+    get bufferHeight(): number;
+    get pixelRatio(): number;
+    getContext(): CanvasRenderingContext2D | null;
+    dispose(): void;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/minimap-dimensions.ts
@@ -4090,12 +4065,12 @@ declare enum UnitSelectionStatus {
     Hovering = 2
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-controller-composer.ts
 
 /** @internal */
 declare type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-controller-composer.ts
 
 /**
  * The Scene Controller plugin is responsible for managing the game viewports.
@@ -4110,12 +4085,11 @@ declare const createViewControllerComposer: (world: World, { gameSurface }: Surf
     api: {
         readonly viewport: GameViewPort;
         readonly secondViewport: GameViewPort;
+        viewports: GameViewPort[];
     };
     update(delta: number): void;
     readonly viewports: GameViewPort[];
     deactivate(): void;
-    activeViewports(): Generator<GameViewPort, void, unknown>;
-    readonly numActiveViewports: number;
     /**
      * Activates a scene controller plugin.
      * Runs events on the previous scene controller if it exists.
@@ -4126,10 +4100,13 @@ declare const createViewControllerComposer: (world: World, { gameSurface }: Surf
      * @returns
      */
     activate(newController: SceneController | null | undefined, firstRunData?: any): Promise<void>;
-    readonly primaryViewport: GameViewPort | undefined;
+    /**
+     * Primary viewport is necessary because audio will require a camera position, and depth of field will only apply in one viewport for performance.
+     */
+    readonly primaryViewport: GameViewPort;
     aspect: number;
     readonly sceneController: SceneController | null;
-    readonly primaryCamera: DirectionalCamera | undefined;
+    readonly primaryCamera: PerspectiveCamera | import("three").OrthographicCamera;
     readonly primaryRenderMode3D: boolean;
     changeRenderMode(renderMode3D?: boolean): void;
     generatePrevData(): {
@@ -4157,10 +4134,124 @@ declare const createSurfaceComposer: (world: World) => {
     resize: (immediate?: boolean) => void;
     mount(): void;
     api: {
-        togglePointerLock: (val: boolean) => void;
-        isPointerLockLost(): boolean;
+        readonly surface: GameSurface | undefined;
     };
 };
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/game-viewport.ts
+
+/**
+ * @public
+ * A "view" into the game. Every viewport contains it's own camera, dimensions, and additional properties.
+ */
+export declare class GameViewPort extends Sizeable {
+    #private;
+    name: string;
+    camera: PerspectiveCamera | OrthographicCamera;
+    projectedView: ProjectedCameraView;
+    orbit: CameraControls;
+    viewport: Vector4;
+    cameraShake: CameraShake;
+    shakeCalculation: {
+        frequency: Vector3;
+        duration: Vector3;
+        strength: Vector3;
+        needsUpdate: boolean;
+    };
+    constrainToAspect: boolean;
+    needsUpdate: boolean;
+    rotateSprites: boolean;
+    audioType: "stereo" | "3d" | null;
+    set renderMode3D(val: boolean);
+    get renderMode3D(): boolean;
+    get enabled(): boolean;
+    set enabled(val: boolean);
+    constructor(surface: Surface, enabled?: boolean);
+    set orthographic(value: boolean);
+    dispose(): void;
+    generatePrevData(): {
+        target: Vector3;
+        position: Vector3;
+    };
+    shakeStart(elapsed: number, strength: number): void;
+    shakeEnd(): void;
+    update(targetDamping: number, delta: number): void;
+    get direction32(): number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/sizeable.ts
+
+/**
+ * A class that can be used to set the size and location of a surface on the screen.
+*/
+/** @internal */
+declare class Sizeable {
+    #private;
+    constructor(surface: Surface);
+    set center(val: Vector2 | null);
+    get center(): Vector2 | null;
+    get height(): number | null;
+    set height(val: number | null);
+    set width(val: number | null);
+    get width(): number | null;
+    get left(): number | null;
+    set left(val: number | null);
+    set right(val: number | null);
+    get right(): number | null;
+    get top(): number | null;
+    set top(val: number | null);
+    set bottom(val: number | null);
+    get bottom(): number | null;
+    get aspect(): number;
+    set aspect(val: number | null);
+    getActualSize(): Vector4;
+    fullScreen(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/projected-camera-view.ts
+
+/**
+ * World position for the four corners of our view
+ */
+/** @internal */
+declare class ProjectedCameraView {
+    left: number;
+    top: number;
+    right: number;
+    bottom: number;
+    width: number;
+    height: number;
+    bl: [number, number];
+    tr: [number, number];
+    br: [number, number];
+    tl: [number, number];
+    center: Vector3;
+    static mouseOnWorldPlane(mouse: {
+        x: number;
+        y: number;
+    }, camera: Camera): Vector3 | null;
+    update(camera: Camera, target: Vector3): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/camera-shake.ts
+
+/** @internal */
+declare class CameraShake {
+    #private;
+    _duration: Vector3;
+    _startTime: number[];
+    _strength: Vector3;
+    maxShakeDistance: number;
+    set enabled(val: boolean);
+    get enabled(): boolean;
+    constructor(duration?: number, frequency?: number, strength?: number);
+    setParams(component: 0 | 1 | 2, duration: number, frequency: number, strength: number): void;
+    _update(component: 0 | 1 | 2, elapsed: number): number | undefined;
+    _shake(component: 0 | 1 | 2, elapsed: number, duration: number, frequency: number, strength: number): void;
+    shake(elapsed: number, duration: Vector3, frequency: Vector3, strength: Vector3): void;
+    update(elapsed: number, camera: Camera): void;
+    restore(camera: Camera): void;
+}
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
@@ -4298,7 +4389,7 @@ declare const createPostProcessingComposer: (world: World, { scene, images, spri
     render(delta: number, elapsed: number): void;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-controller-composer.ts
 
 /** @internal */
 declare type ViewControllerComposerApi = ViewControllerComposer["api"];
@@ -4339,16 +4430,44 @@ declare const createOpenBWComposer: (world: World, scene: Pick<SceneComposer, "p
         gtapi_getCurrentFrame: () => number;
     };
     api: {
-        getCurrentFrame(): number;
-        skipForward: (gameSeconds?: number) => number;
-        skipBackward: (gameSeconds?: number) => number;
-        speedUp: () => number;
-        speedDown: () => number;
-        togglePause: (setPaused?: boolean) => boolean;
-        readonly gameSpeed: number;
-        setGameSpeed(value: number): void;
-        gotoFrame: (frame: number) => void;
+        openBW: {
+            readonly iterators: OpenBWIterators;
+            readonly mapTiles: SimpleBufferView<Uint8Array>;
+            skipForward: (gameSeconds?: number) => number;
+            skipBackward: (gameSeconds?: number) => number;
+            speedUp: () => number;
+            speedDown: () => number;
+            togglePause: (setPaused?: boolean) => boolean;
+            readonly gameSpeed: number;
+            setGameSpeed(value: number): void;
+            gotoFrame: (frame: number) => void;
+        };
+        readonly frame: number;
         playSound(typeId: number, volumeOrX?: number | undefined, y?: number | undefined, unitTypeId?: number | undefined): void;
+    };
+};
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-loop-composer.ts
+
+/** @internal */
+declare type GameLoopComposerApi = GameLoopComposer["api"];
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-loop-composer.ts
+
+/** @internal */
+declare type GameLoopComposer = ReturnType<typeof createGameLoopComposer>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-loop-composer.ts
+
+/** @internal */
+declare const createGameLoopComposer: (world: World) => {
+    readonly delta: number;
+    start(): void;
+    stop(): void;
+    onUpdate(val: (delta: number, elapsed: number) => void): void;
+    api: {
+        readonly elapsed: number;
+        readonly delta: number;
     };
 };
 
@@ -4430,9 +4549,6 @@ export interface SceneController extends Omit<NativePlugin, "config">, GameTimeA
  */
 export class SceneController extends PluginBase implements SceneController {
     isSceneController: boolean;
-    viewports: GameViewPort[];
-    get viewport(): GameViewPort;
-    get secondViewport(): GameViewPort;
     onEnterScene(prevData: unknown): Promise<unknown>;
     onUpdateAudioMixerOrientation(): Quaternion;
 }

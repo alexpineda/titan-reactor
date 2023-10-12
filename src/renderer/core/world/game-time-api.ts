@@ -9,6 +9,7 @@ import { PostProcessingComposerApi } from "./postprocessing-composer";
 import { ViewControllerComposerApi } from "./view-controller-composer";
 import { OpenBwComposerApi } from "./openbw-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
+import {  GameLoopComposerApi } from "./game-loop-composer";
 
 /**
  * @public
@@ -21,7 +22,9 @@ export interface GameTimeApi
         SurfaceComposerApi,
         PostProcessingComposerApi,
         ViewControllerComposerApi,
-        OpenBwComposerApi {
+        OpenBwComposerApi,
+        GameLoopComposerApi
+        {
     // & world composer api
     map: Chk;
     getCommands: () => CommandsStream;

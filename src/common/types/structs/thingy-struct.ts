@@ -4,4 +4,5 @@ export interface ThingyStruct {
      * @internal
      */
     spriteIndex: number;
+    spriteAddr: number;
 }

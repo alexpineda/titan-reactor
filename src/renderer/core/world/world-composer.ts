@@ -26,7 +26,6 @@ import { WorldEvents } from "./world-events";
 import { createInputComposer } from "./input-composer";
 import { settingsStore } from "@stores/settings-store";
 import { globalEvents } from "@core/global-events";
-import { Vector3 } from "three";
 
 export const createWorldComposer = async (
     openBW: OpenBW,
@@ -145,7 +144,7 @@ export const createWorldComposer = async (
             refreshScene: () => ( frameResetRequested = true ),
             simpleMessage( val: string ) {
                 simpleText.set( val );
-            },
+            }
         },
         surfaceComposer.api,
         sceneComposer.api,
@@ -153,7 +152,8 @@ export const createWorldComposer = async (
         inputsComposer.api,
         viewControllerComposer.api,
         postProcessingComposer.api,
-        overlayComposer.api
+        overlayComposer.api,
+        gameLoopComposer.api
     ) as GameTimeApi;
 
     return {
@@ -289,10 +289,5 @@ export const createWorldComposer = async (
 
             apiSession.native.hook_onRender( delta, elapsed );
         },
-
-        getBestStartLocation() {
-            const playerWithStartLocation = world.players.find(p => p.startLocation);
-            return playerWithStartLocation ? playerWithStartLocation.startLocation : sceneComposer.startLocations[0] ?? new Vector3();
-        }
     };
 };

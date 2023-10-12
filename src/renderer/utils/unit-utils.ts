@@ -1,6 +1,5 @@
-import { BwDAT, UnitDAT, UnitStruct } from "common/types";
-import { UnitFlags, unitTypes, iscriptHeaders, orders, upgrades } from "common/enums";
-import { SpritesBufferView, UnitsBufferView } from "@buffer-view";
+import { UnitDAT, UnitStruct } from "common/types";
+import { UnitFlags, unitTypes, orders, upgrades } from "common/enums";
 import { Unit } from "@core/unit";
 import debounce from "lodash.debounce";
 import { IterableSet } from "./data-structures/iterable-set";
@@ -78,27 +77,7 @@ export const getAngle = ( direction: number ) => {
     return -( ( direction * Math.PI ) / 128.0 ) + Math.PI / 2.0;
 };
 
-/**
- * @public
- */
-export const unitIsAttacking = (
-    u: UnitsBufferView,
-    mainSprite: SpritesBufferView,
-    bwDat: BwDAT
-) => {
-    if ( u.orderTargetAddr === 0 || u.orderTargetUnit === 0 ) return undefined;
-    const unit = u.subunit && bwDat.units[u.subunit.typeId].isTurret ? u.subunit : u;
-    switch ( mainSprite.mainImage.iscript.animation ) {
-        case iscriptHeaders.gndAttkInit:
-        case iscriptHeaders.gndAttkRpt:
-            return bwDat.weapons[bwDat.units[unit.typeId].groundWeapon];
-        case iscriptHeaders.airAttkInit:
-        case iscriptHeaders.airAttkRpt:
-            return bwDat.weapons[bwDat.units[unit.typeId].airWeapon];
-        default:
-            return undefined;
-    }
-};
+
 
 // ported from BWAPI
 /**

@@ -6,6 +6,7 @@ import type { UnitStruct } from "common/types/structs";
  * A unit (and its state) in the game.
  */
 export interface Unit extends UnitStruct {
+    isAttacking: boolean;
     extras: {
         recievingDamage: number;
         selected?: boolean;

@@ -5,6 +5,7 @@ import { DeepPartial, SessionSettingsData } from "common/types";
 import { ImageBase } from "..";
 
 export const worldEventsList: ( keyof WorldEvents )[] = [
+    "unit-completed",
     "unit-created",
     "unit-killed",
     "unit-destroyed",
@@ -40,6 +41,7 @@ export const worldEventsList: ( keyof WorldEvents )[] = [
 // do not put anything performance sensitive here as these are synchronous.
 // image created/destroyed is already pushing it
 export interface WorldEvents {
+    "unit-completed": Unit;
     "unit-created": Unit;
     "unit-killed": Unit;
     "unit-destroyed": Unit;

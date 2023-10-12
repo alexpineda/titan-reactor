@@ -21,19 +21,19 @@ export class UnitEntities {
         return this.units.get( unitId );
     }
 
-    getOrCreate( unitData: UnitsBufferView ) {
-        const unit = this.units.get( unitData.id );
+    getOrCreate( unitStruct: UnitsBufferView ) {
+        const unit = this.units.get( unitStruct.id );
         if ( unit ) {
             return unit;
         } else {
             const unit = ( this.freeUnits.pop() ?? { extras: {} } ) as Unit;
 
-            unitData.copyTo( unit );
+            unitStruct.copyTo( unit );
             unit.extras.recievingDamage = 0;
             unit.extras.selected = false;
-            unit.extras.dat = gameStore().assets!.bwDat.units[unitData.typeId];
+            unit.extras.dat = gameStore().assets!.bwDat.units[unitStruct.typeId];
 
-            this.units.set( unitData.id, unit as unknown as Unit );
+            this.units.set( unitStruct.id, unit as unknown as Unit );
             this.externalOnCreateUnit && this.externalOnCreateUnit( unit );
             return unit as unknown as Unit;
         }

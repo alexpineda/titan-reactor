@@ -33,7 +33,7 @@ const _getSelectionUnit =
 
 export const createInputComposer = (
     world: World,
-    { images, scene, simpleIndex }: SceneComposer
+    { images, scene, imageQuadrants }: SceneComposer
 ) => {
     const janitor = new Janitor( "InputComposer" );
     const mouseInput = janitor.mop( new MouseInput( document.body ), "mouseInput" );
@@ -46,7 +46,7 @@ export const createInputComposer = (
         world,
         mouseInput,
         scene,
-        simpleIndex,
+        imageQuadrants,
         _getSelectionUnit( images )
     );
 

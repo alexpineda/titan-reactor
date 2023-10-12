@@ -4,6 +4,9 @@ import { FP8 } from "./fixed-point";
 import { FlingyBufferView } from "./flingy-buffer-view";
 import { OpenBW } from "@openbw/openbw";
 import { IntrusiveList } from "./intrusive-list";
+import { iscriptHeaders } from "common/enums";
+import { SpritesBufferView } from "./sprites-buffer-view";
+import gameStore from "@stores/game-store";
 
 /**
  * Maps to openbw unit_t
@@ -11,6 +14,17 @@ import { IntrusiveList } from "./intrusive-list";
 export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
     #subunit?: UnitsBufferView;
     #currentBuildUnit?: UnitsBufferView;
+    #sprite!: SpritesBufferView;
+
+    getSprite() {
+        if ( this.spriteAddr ) {
+            if ( !this.#sprite ) {
+                this.#sprite = new SpritesBufferView( this._bw );
+            }
+
+            return this.#sprite.get( this.spriteAddr );
+        }
+    }
 
     readonly resourceAmount = 0;
 
@@ -73,7 +87,7 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
 
     // player_units_link 2
 
-    get subunit(): UnitStruct | null {
+    get subunit(): UnitsBufferView | null {
         // turrets will reference their parent unit, so we can't just return this
         // unless we want an infinite loop
         if ( this.typeFlags & 0x10 ) {
@@ -88,7 +102,7 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
         return this.#subunit.get( addr );
     }
 
-    get parentUnit(): UnitStruct | null {
+    get parentUnit(): UnitsBufferView | null {
         if ( ( this.typeFlags & 0x10 ) === 0 ) {
             return null;
         }
@@ -149,6 +163,9 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
     }
     // 	int previous_hp; 75
     // 	std::array<unit_id, 8> loaded_units; 4 wide 83
+    get loadedUnitIds() {
+        return this._bw.HEAPU32.subarray( this._addr32 + 83, this._addr32 + 91 );
+    }
 
     get statusFlags() {
         return this._bw.HEAP32[this._addr32 + 113];
@@ -170,8 +187,29 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
         return unit;
     }
 
-    override copyTo( dest: Partial<Unit> ) {
-        super.copyTo( dest );
+    isAttacking() {
+        if ( this.orderTargetAddr === 0 || this.orderTargetUnit === 0 ) return false;
+        const unit = this.subunit && gameStore().assets!.bwDat .units[this.subunit.typeId].isTurret ? this.subunit : this;
+        const sprite = unit.getSprite();
+        if (!sprite) return false;
+    
+        return Boolean((sprite.mainImage.iscript.animation === iscriptHeaders.gndAttkInit ||
+            sprite.mainImage.iscript.animation === iscriptHeaders.gndAttkRpt ||
+            sprite.mainImage.iscript.animation === iscriptHeaders.airAttkInit ||
+            sprite.mainImage.iscript.animation === iscriptHeaders.airAttkRpt) && unit.orderTargetUnit)
+    };
+
+    copyTo( dest: Partial<Unit>): void {
+
+        //flingy
+        dest.direction = this.direction;
+        dest.x = this.x;
+        dest.y = this.y;
+
+        //thingy
+        dest.hp = this.hp;
+        dest.spriteIndex = this.spriteIndex;
+
         dest.id = this.id;
         dest.typeId = this.typeId;
         dest.owner = this.owner;
@@ -182,6 +220,8 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
         dest.statusFlags = this.statusFlags;
         dest.remainingBuildTime = this.remainingBuildTime;
         dest.subunitId = this.subunitId;
+
+        dest.isAttacking = this.isAttacking();
     }
 
     copy( bufferView = new UnitsBufferView( this._bw ) ) {

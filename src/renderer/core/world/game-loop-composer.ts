@@ -2,6 +2,9 @@ import { log } from "@ipc/log";
 import { renderComposer } from "@render/render-composer";
 import { World } from "./world";
 
+export type GameLoopComposer = ReturnType<typeof createGameLoopComposer>;
+export type GameLoopComposerApi = GameLoopComposer["api"];
+
 export const createGameLoopComposer = ( world: World ) => {
     let delta = 0;
     let lastElapsed = 0;
@@ -32,5 +35,13 @@ export const createGameLoopComposer = ( world: World ) => {
         onUpdate( val: ( delta: number, elapsed: number ) => void ) {
             _onUpdate = val;
         },
+        api: {
+            get elapsed() {
+                return lastElapsed;
+            },
+            get delta() {
+                return delta;
+            }
+        }
     };
 };

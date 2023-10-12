@@ -40,7 +40,7 @@ export async function makeGameScene(
     false,
     settingsStore().data.input.sceneController,
     {
-      target: worldComposer.getBestStartLocation(),
+      target: worldComposer.sceneComposer.api.initialStartLocation
     },
   );
 
