@@ -3,6 +3,9 @@ import { Vector2 } from "three";
 export type NormalizedCoordinate = number;
 
 // simple quadrant for items
+/**
+ * @public
+ */
 export class SimpleQuadtree<T> {
     #size: number;
     #scale: Vector2;
@@ -16,7 +19,7 @@ export class SimpleQuadtree<T> {
         return this.#size;
     }
 
-    constructor(size: number, scale = new Vector2(1, 1), offset = new Vector2(0, 0)) {
+    constructor(size: number, scale = new Vector2(1, 1), offset = new Vector2(0, 0), ) {
         this.#size = size;
 
         for (let i = 0; i < this.#size; i++) {
@@ -34,7 +37,6 @@ export class SimpleQuadtree<T> {
         out.set(
             Math.floor(((x + (useOffset ? this.#offset.x : 0)) / this.#scale.x) * this.size), Math.floor(((y + (useOffset ? this.#offset.y : 0)) / this.#scale.y) * this.size));
     }
-
 
     add(x: number, y: number, item: T) {
         this.#normalize(this.#normalized, x, y);

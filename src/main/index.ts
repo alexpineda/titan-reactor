@@ -39,6 +39,7 @@ const createMainWindow = () => {
         filepath: "index.html",
     } );
     windows.main.maximize();
+    windows.main.autoHideMenuBar = true;
 };
 
 const createConfigurationWindow = () => {

@@ -222,6 +222,11 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
         dest.subunitId = this.subunitId;
 
         dest.isAttacking = this.isAttacking();
+        dest.groundWeaponCooldown = this.groundWeaponCooldown;
+        dest.airWeaponCooldown = this.airWeaponCooldown;
+        dest.spellCooldown = this.spellCooldown;
+        
+
     }
 
     copy( bufferView = new UnitsBufferView( this._bw ) ) {

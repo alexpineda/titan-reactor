@@ -168,6 +168,10 @@ export class OpenBW implements OpenBW {
         }
     }
 
+    setReplayFrameListener = (fn: () => void) => {
+        this.setupCallback("js_on_replay_frame", fn);
+    }
+
     /**
      * Increments the game frame where openbw will run until the next frame.
      * If the game is in sandbox mode, the game will run at 24 fps.
@@ -178,7 +182,7 @@ export class OpenBW implements OpenBW {
             this.#timer.update();
             if ( this.#timer.getElapsed() > 42 ) {
                 this.#timer.resetElapsed();
-                return this.nextFrameNoAdvance();
+                return this.nextStep();
             }
             return this.getCurrentFrame();
         }
@@ -194,8 +198,17 @@ export class OpenBW implements OpenBW {
         }
     };
 
-    nextFrameNoAdvance() {
-        return this.#wasm._next_no_replay();
+    nextStep() {
+        return this.#wasm._next_step();
+    }
+
+    nextReplayStep() {
+        try {
+            return this.#wasm._next_replay_step();
+        } catch ( e ) {
+            this.#withOpenBWError( e );
+            return 0;
+        }
     }
 
     setGameSpeed( speed: number ) {

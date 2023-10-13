@@ -25,7 +25,7 @@ const doThing = async () => {
             allowJs: false,
         },
         prefix: `/// <reference types="node" />`,
-        wrapInGlobal: ["PluginBase", "SceneController"],
+        wrapInGlobal: ["PluginBase", "SceneController", "enums", "context"],
     });
     writeFile(
         fn("./build/api-types/host/unrolled.json"),

@@ -143,6 +143,10 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
     const unitQuadtree = new SimpleQuadtree<UnitStruct>(8, mapScale, worldOffset);
 
+    const createUnitQuadTree = (size: number) => {
+        return new SimpleQuadtree<UnitStruct>(size, mapScale, worldOffset);
+    }
+
     const _unitPos = new Vector3();
 
     const buildUnit = ( unitStruct: UnitsBufferView ) => {
@@ -172,7 +176,9 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         unitStruct.copyTo( unit );
 
         pxToWorld.xyz( unitStruct.x, unitStruct.y, _unitPos );
-        unitQuadtree.add( _unitPos.x, _unitPos.z, unit)
+        unitQuadtree.add( _unitPos.x, _unitPos.z, unit);
+
+        world.events.emit( "unit-updated", unit );
 
 
         if ( isCompleted ) {
@@ -473,7 +479,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             //TODO: extend followedunits instead
             getFollowedUnitsCenterPosition: () => calculateFollowedUnitsTarget( followedUnits, pxToWorld ),
             selectedUnits,
-            
+            createUnitQuadTree
         } ) )( borrow( world ) ),
     };
 };

@@ -36,6 +36,9 @@ export const worldEventsList: ( keyof WorldEvents )[] = [
     "dispose",
 
     "mouse-click",
+
+    "pre-run:frame",
+    "pre-run:complete"
 ];
 
 // do not put anything performance sensitive here as these are synchronous.
@@ -44,6 +47,7 @@ export interface WorldEvents {
     "unit-completed": Unit;
     "unit-created": Unit;
     "unit-killed": Unit;
+    "unit-updated": Unit; 
     "unit-destroyed": Unit;
     "followed-units-changed": Unit[];
     "selected-units-changed": Unit[];
@@ -82,4 +86,7 @@ export interface WorldEvents {
     "dispose": undefined;
 
     "mouse-click": MouseEventDTO;
+
+    "pre-run:frame": { frame: number; commands: unknown[] }
+    "pre-run:complete": void;
 }

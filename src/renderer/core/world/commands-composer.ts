@@ -16,10 +16,12 @@ export const createCommandsComposer = (
     const _commandsThisFrame: unknown[] = [];
     let cmd = cmds.next();
 
-    world.events.on( "frame-reset", () => {
+    const reset = () => {
         cmds = commandsStream.generate();
         cmd = cmds.next();
-    } );
+    }
+
+    world.events.on( "frame-reset", reset );
 
     return {
         get commandsThisFrame() {
@@ -39,5 +41,6 @@ export const createCommandsComposer = (
                 cmd = cmds.next();
             }
         },
+        reset
     };
 };

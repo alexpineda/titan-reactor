@@ -67,14 +67,14 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
             openBW.setUnitLimits( 1700 );
             openBW.loadMap( dBuffer );
 
-            const players: BasePlayer[] = [];
+            const mapPlayers: BasePlayer[] = [];
             const p = new PlayerBufferViewIterator( openBW );
 
             let id = 0;
 
             for ( const player of p ) {
                 if ( player.controller === PlayerController.Occupied ) {
-                    players.push( {
+                    mapPlayers.push( {
                         id: id,
                         color: playerColors[id]!.hex,
                         name: `Player ${id}`,
@@ -85,7 +85,7 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
                 }
             }
 
-            return players;
+            return mapPlayers;
         }
     );
 

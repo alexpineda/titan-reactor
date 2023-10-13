@@ -9,6 +9,7 @@ type Callbacks = {
     js_read_data?: ( index: number, dst: number, offset: number, size: number ) => void;
     js_load_done?: () => void;
     js_file_index?: ( ptr: number ) => number;
+    js_on_replay_frame?: () => void;
 };
 
 export interface OpenBWWasm extends EmscriptenPreamble {
@@ -31,7 +32,8 @@ export interface OpenBWWasm extends EmscriptenPreamble {
     ) => void;
 
     _next_frame: () => number;
-    _next_no_replay: () => number;
+    _next_step: () => number;
+    _next_replay_step: () => number;
     _create_unit: ( unitId: number, playerId: number, x: number, y: number ) => number;
 
     _counts: ( index: number ) => number;
@@ -77,4 +79,5 @@ export interface OpenBWWasm extends EmscriptenPreamble {
     getExceptionMessage: ( e: unknown ) => string;
 
     setupCallbacks: ( callbacks: Callbacks ) => void;
+    setupCallback: (key: keyof Callbacks, callback: Callbacks[keyof Callbacks]) => void;
 }

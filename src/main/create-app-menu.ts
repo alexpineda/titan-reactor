@@ -128,6 +128,19 @@ export default (
                 },
             ],
         },
+        {
+            label: "&Window",
+            submenu: [
+                { label: "2560x1440", click: () => browserWindows.main?.setSize( 2560, 1440 ) },
+                { label: "1920x1080", click: () => browserWindows.main?.setSize( 1920, 1080 ) },
+                { label: "1280x720", click: () => browserWindows.main?.setSize( 1280, 720 ) },
+                { type: "separator" },
+                { label: "1080x1920", click: () => browserWindows.main?.setSize( 1080, 1920 ) },
+                { type: "separator" },
+                { role: "minimize" },
+                { role: "zoom" },
+            ]
+        }
     ];
 
     // @ts-expect-error

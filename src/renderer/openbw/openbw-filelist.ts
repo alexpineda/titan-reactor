@@ -54,6 +54,9 @@ export default class OpenBWFileList {
                 this.unused.splice( this.unused.indexOf( index ), 1 );
                 return index >= 0 ? index : 9999;
             },
+            js_on_replay_frame: () => {
+                // log.debug( "frame" );
+            }
         } );
     }
 

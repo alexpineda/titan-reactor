@@ -1,16 +1,15 @@
 import { GameTimeApi } from "./game-time-api";
-import { SettingsSessionStore } from "./settings-session-store";
 import { borrow, mix } from "@utils/object-utils";
 import { createMacrosComposer, MacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import { createPluginSession, PluginSession } from "./create-plugin-session";
 import { useSettingsStore } from "@stores/settings-store";
-import { OpenBW } from "@openbw/openbw";
 
 import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
 import { globalEvents } from "@core/global-events";
+import { World } from "./world";
 
 /**
  * A container for plugin and macro session which can be easily disposed of.
@@ -26,9 +25,7 @@ export class ApiSession {
     #janitor!: Janitor;
 
     async activate(
-        events: TypeEmitter<WorldEvents>,
-        settings: SettingsSessionStore,
-        openBW: OpenBW,
+        { events, openBW, settings }: World,
         gameTimeApi: GameTimeApi
     ) {
         this.#janitor = new Janitor();

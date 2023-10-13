@@ -138,7 +138,7 @@ export const createOpenBWComposer = (
          * Compiler shaders ahead of time
          */
         precompile() {
-            world.openBW.nextFrame();
+            world.openBW.nextFrameSafe();
             world.openBW.generateFrame();
             _tiles.address = world.openBW.getTilesPtr();
             _tiles.viewSize = world.openBW.getTilesSize();
@@ -183,6 +183,9 @@ export const createOpenBWComposer = (
             _getCurrentFrame: WeakRef<typeof gtapi_getCurrentFrame>
         ) => ( {
             openBW: {
+                getOriginal() {
+                    return b_world.openBW.deref()!;
+                },
                 get iterators() {
                     return b_world.openBW.deref()!.iterators;
                 },

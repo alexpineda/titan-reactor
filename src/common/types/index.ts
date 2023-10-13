@@ -9,7 +9,7 @@ export * from "./terrain";
 export * from "./image";
 export * from "./settings";
 export * from "./plugin";
-export * from "./openbw";
+export * from "./openbw-wasm";
 export * from "./structs";
 export * from "./macros";
 export * from "./utils";

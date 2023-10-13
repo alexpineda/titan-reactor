@@ -1,7 +1,7 @@
 import "ses";
 import * as THREE from "three";
 import * as postprocessing from "postprocessing";
-import cameraControls from "camera-controls";
+import CameraControls from "camera-controls";
 import * as enums from "common/enums";
 import { Janitor } from "three-janitor";
 import { mix } from "./object-utils";
@@ -12,7 +12,7 @@ export const createCompartment = ( userEnv: object = {} ) => {
         postprocessing,
         Janitor,
         enums,
-        cameraControls,
+        CameraControls,
         context: undefined,
     };
     const systemModules = {

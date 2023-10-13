@@ -338,6 +338,9 @@ interface UnitStruct extends FlingyStruct {
     orderTargetX: number;
     orderTargetY: number;
     orderTargetUnit: number;
+    groundWeaponCooldown: number;
+    airWeaponCooldown: number;
+    spellCooldown: number;
     /**
      * @internal
      */
@@ -1206,6 +1209,9 @@ export declare const useSelectedUnits: () => {
     orderTargetX?: number | undefined;
     orderTargetY?: number | undefined;
     orderTargetUnit?: number | undefined;
+    groundWeaponCooldown?: number | undefined;
+    airWeaponCooldown?: number | undefined;
+    spellCooldown?: number | undefined;
     subunit?: {
         id?: number | undefined;
         typeId?: number | undefined;
@@ -1221,6 +1227,9 @@ export declare const useSelectedUnits: () => {
         orderTargetX?: number | undefined;
         orderTargetY?: number | undefined;
         orderTargetUnit?: number | undefined;
+        groundWeaponCooldown?: number | undefined;
+        airWeaponCooldown?: number | undefined;
+        spellCooldown?: number | undefined;
         subunit?: any | null | undefined;
         subunitId?: number | null | undefined;
         x?: number | undefined;

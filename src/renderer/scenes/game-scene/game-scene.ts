@@ -7,7 +7,7 @@ import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
 import CommandsStream from "@process-replay/commands/commands-stream";
-import { createWorldComposer } from "@core/world/world-composer";
+import { WorldComposer, createWorldComposer } from "@core/world/world-composer";
 import readCascFile from "common/casclib";
 import processStore from "@stores/process-store";
 
@@ -16,6 +16,7 @@ export async function makeGameScene(
   janitor: Janitor,
   commandsStream: CommandsStream,
   onOpenBWReady: (openBW: OpenBW) => BasePlayer[],
+  onWorldInitialized?: (worldComposer: WorldComposer) => Promise<void> | void,
 ) {
   const openBW = await getOpenBW();
 
@@ -34,7 +35,10 @@ export async function makeGameScene(
     "worldComposer",
   );
 
-  worldComposer.init();
+  await worldComposer.init();
+
+  if (onWorldInitialized)
+    await onWorldInitialized(worldComposer);
 
   await worldComposer.activate(
     false,

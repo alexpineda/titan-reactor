@@ -60,11 +60,16 @@ export class SelectionObject extends Group {
     }
 }
 
+const MAX_VISIBLE_SELECTIONS = 100;
+
 /**
  * Manages the selection up to 12 selection objects.
  */
 export const createSelectionDisplayComposer = ( assets: Assets ) => {
-    const objects = range( 0, 12 ).map( ( _ ) => new SelectionObject() );
+    const objects = range( 0, MAX_VISIBLE_SELECTIONS ).map( ( _ ) => new SelectionObject() );
+    const group = new Group();
+    group.name = "SelectionDisplayComposer";
+    group.add( ...objects );
 
     const hideSelections = () => {
         for ( const selectionObject of objects ) {
@@ -79,7 +84,7 @@ export const createSelectionDisplayComposer = ( assets: Assets ) => {
     ) {
         let sprite: SpriteType | undefined;
 
-        for ( let i = 0; i < 12; i++ ) {
+        for ( let i = 0; i < MAX_VISIBLE_SELECTIONS; i++ ) {
             const unit = selectedUnits[i] as Unit | undefined;
             objects[i].visible = !!unit;
             if ( unit ) {
@@ -97,7 +102,7 @@ export const createSelectionDisplayComposer = ( assets: Assets ) => {
     }
 
     return {
-        objects,
+        group,
         hideSelections,
         update,
     };

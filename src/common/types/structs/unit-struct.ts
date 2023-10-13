@@ -18,6 +18,10 @@ export interface UnitStruct extends FlingyStruct {
   orderTargetY: number;
   orderTargetUnit: number;
 
+  groundWeaponCooldown: number;
+  airWeaponCooldown: number;
+  spellCooldown: number;
+
   /**
    * @internal
    */

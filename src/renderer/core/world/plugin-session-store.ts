@@ -29,6 +29,7 @@ export const createPluginSessionStore = (
 ) => {
     const janitor = new Janitor( "ReactivePluginApi" );
 
+    // why are we doing this for all plugins instead of individual snapshots?
     const sourceOfTruth = new SourceOfTruth( plugins.getConfigSnapshot() );
     const sessionStore = createDeepStore( {
         initialState: sourceOfTruth.clone(),

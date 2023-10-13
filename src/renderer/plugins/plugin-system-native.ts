@@ -63,6 +63,7 @@ export class PluginSystemNative {
 
             if ( pluginPackage.nativeSource ) {
                 if ( pluginPackage.nativeSource.includes( "export default" ) ) {
+                    log.debug(pluginPackage.nativeSource)
                     const Constructor = compartment.globalThis.Function(
                         pluginPackage.nativeSource.replace( "export default", "return" )
                     )();
@@ -94,7 +95,7 @@ export class PluginSystemNative {
                 { leading: true, trailing: false }
             );
 
-            log.debug( `@plugin-system-native: initialized plugin "${plugin.name}"` );
+            log.debug( `@plugin-system-native: activated plugin "${plugin.name}"` );
 
             this.#compartments.set( plugin, compartment );
 
@@ -279,11 +280,13 @@ export class PluginSystemNative {
         }, {} ) as PluginsConfigSnapshot;
     }
 
-    sessionInit() {
+    sessionInit( ) {
         for ( const plugin of this.#plugins ) {
             try {
+                log.debug(`init plugin ${plugin.name} ${!!plugin.init}` )
                 plugin.init && plugin.init();
             } catch ( e ) {
+                this.deactivatePlugin( plugin.id );
                 log.error(
                     withErrorMessage( e, `@plugin-system-native: init "${plugin.name}"` )
                 );

@@ -26,6 +26,9 @@ import { WorldEvents } from "./world-events";
 import { createInputComposer } from "./input-composer";
 import { settingsStore } from "@stores/settings-store";
 import { globalEvents } from "@core/global-events";
+import { createSelectionDisplayComposer } from "@core/selection-objects";
+
+export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 
 export const createWorldComposer = async (
     openBW: OpenBW,
@@ -86,6 +89,9 @@ export const createWorldComposer = async (
         viewControllerComposer,
         assets
     );
+
+    const unitSelectionComposer =  createSelectionDisplayComposer( assets );
+    sceneComposer.scene.add( unitSelectionComposer.group );
 
     let apiSession = new ApiSession();
 
@@ -153,7 +159,7 @@ export const createWorldComposer = async (
         viewControllerComposer.api,
         postProcessingComposer.api,
         overlayComposer.api,
-        gameLoopComposer.api
+        gameLoopComposer.api,
     ) as GameTimeApi;
 
     return {
@@ -162,7 +168,7 @@ export const createWorldComposer = async (
         /**
          * Must be called before any other calls on world composer.
          */
-        init() {
+        async init() {
             surfaceComposer.resize( true );
 
             gameLoopComposer.onUpdate( this.update.bind( this ) );
@@ -173,6 +179,9 @@ export const createWorldComposer = async (
                     this.activate( true, settings.getState().input.sceneController );
                 } )
             );
+
+            await apiSession.activate( world, gameTimeApi );
+
         },
 
         /**
@@ -197,9 +206,11 @@ export const createWorldComposer = async (
 
                 apiSession.dispose();
                 apiSession = new ApiSession();
+
+                await apiSession.activate( world, gameTimeApi );
+
             }
 
-            await apiSession.activate( events, settings, openBW, gameTimeApi );
 
             await _setSceneController( sceneController, targetData );
 
@@ -217,6 +228,7 @@ export const createWorldComposer = async (
                 window.gc();
             }
 
+            console.log("D")
             gameLoopComposer.start();
 
             
@@ -262,7 +274,12 @@ export const createWorldComposer = async (
                     viewControllerComposer.primaryViewport!.renderMode3D
                 );
 
-                overlayComposer.onFrame( openBwComposer.completedUpgrades );
+                unitSelectionComposer.update(
+                    sceneComposer.sprites,
+                    openBwComposer.completedUpgrades,
+                    sceneComposer.selectedUnits._dangerousArray
+                );
+                overlayComposer.onFrame();
 
                 apiSession.ui.onFrame(
                     openBwComposer.currentFrame,
@@ -280,6 +297,25 @@ export const createWorldComposer = async (
             this.onRender( delta, elapsed );
 
             inputsComposer.reset();
+        },
+
+        preRunObject: { 
+            frame: 0,
+            commands: [] as unknown[],
+        },
+        // the game is run once through openbw at 64x speed for analysis plugins
+        preRunFrame() {
+            commandsComposer.onFrame( world.openBW.getCurrentReplayFrame() );
+
+            this.preRunObject.frame = openBwComposer.currentFrame;
+            this.preRunObject.commands = commandsComposer.commandsThisFrame;
+
+            world.events.emit( "pre-run:frame", this.preRunObject );
+        },
+
+        preRunComplete() {
+            commandsComposer.reset();
+            world.events.emit( "pre-run:complete");
         },
 
         onRender: ( delta: number, elapsed: number ) => {

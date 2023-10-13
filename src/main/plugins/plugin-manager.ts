@@ -45,6 +45,9 @@ const tryLoadUtf8 = async (
     }
 };
 
+/**
+ * Interfaces with NPM packages and the file system to load plugins.
+ */
 export class PluginManager {
     #pluginPackages: PluginMetaData[] = [];
     #pluginDirectory = "";

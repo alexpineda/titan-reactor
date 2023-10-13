@@ -17,7 +17,6 @@ import { World } from "./world";
 import { WorldEvents } from "./world-events";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
-import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { UnitSelectionStatus } from "@input/create-unit-selection";
 import { VisualSelectionBox } from "@input/mouse-selection-box";
 import { Janitor } from "three-janitor";
@@ -34,7 +33,7 @@ export type OverlayComposer = {
     minimapUv: Vector2 | undefined;
     insideMinimap: boolean;
     update( delta: number ): void;
-    onFrame( completedUpgrades: number[][] ): void;
+    onFrame(): void;
 };
 export type OverlayComposerApi = OverlayComposer["api"];
 
@@ -50,9 +49,6 @@ export const createOverlayComposer = (
     {
         terrainExtra,
         units,
-        sprites,
-        selectedUnits,
-        scene,
     }: SceneComposer,
     surfaces: SurfaceComposer,
     inputs: InputsComposer,
@@ -61,9 +57,6 @@ export const createOverlayComposer = (
     assets: Assets
 ): OverlayComposer => {
     const janitor = new Janitor( "OverlayComposer" );
-
-    const selectionDisplayComposer = createSelectionDisplayComposer( assets );
-    scene.add( ...selectionDisplayComposer.objects );
 
     const visualBox = janitor.mop( new VisualSelectionBox( "#00cc00" ), "visualBox" );
 
@@ -302,13 +295,7 @@ export const createOverlayComposer = (
 
         },
 
-        onFrame( completedUpgrades: number[][] ) {
-            selectionDisplayComposer.update(
-                sprites,
-                completedUpgrades,
-                selectedUnits._dangerousArray
-            );
-
+        onFrame() {
             minimapMaterial.update(
                 world.fogOfWar.buffer,
                 terrainExtra.creep.minimapImageData,
