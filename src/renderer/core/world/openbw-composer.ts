@@ -205,6 +205,9 @@ export const createOpenBWComposer = (
                     const openBW = b_world.openBW.deref()!;
                     return openBW.getGameSpeed();
                 },
+                /**
+                 * Sets the game speed clamped to REPLAY_MIN_SPEED and REPLAY_MAX_SPEED
+                 */
                 setGameSpeed( value: number ) {
                     const openBW = b_world.openBW.deref()!;
                     openBW.setGameSpeed(

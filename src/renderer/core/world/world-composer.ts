@@ -228,9 +228,7 @@ export const createWorldComposer = async (
                 window.gc();
             }
 
-            console.log("D")
             gameLoopComposer.start();
-
             
         },
 

@@ -1,7 +1,6 @@
 import { UnitDAT, UnitStruct } from "common/types";
 import { UnitFlags, unitTypes, orders, upgrades } from "common/enums";
 import { Unit } from "@core/unit";
-import debounce from "lodash.debounce";
 import { IterableSet } from "./data-structures/iterable-set";
 import { PxToWorld } from "common/utils/conversions";
 import { Vector3 } from "three";
@@ -165,7 +164,7 @@ const _followedUnitsPosition = new Vector3();
 /**
  * @public
  */
-export const calculateFollowedUnitsTarget = debounce(
+export const calculateFollowedUnitsTarget = 
     ( set: IterableSet<Unit>, pxToGameUnit: PxToWorld ) => {
         const units = set._dangerousArray;
 
@@ -187,6 +186,4 @@ export const calculateFollowedUnitsTarget = debounce(
             );
         }
         return _followedUnitsPosition;
-    },
-    30
-);
+    }

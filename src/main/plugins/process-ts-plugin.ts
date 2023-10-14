@@ -21,7 +21,8 @@ export const removeImportDeclarations = (
             specifiers === true ||
             specifiers.includes( importDecl.getModuleSpecifierValue() )
         ) {
-            importDecl.remove();
+            importDecl.replaceWithText(importDecl.getFullText().split("\n").map(str => `//${str}`).join("\n"));
+            // importDecl.remove();
         }
     }
     return file.getText( true );

@@ -69,13 +69,13 @@ export const getImageLoOffset = (
     return out;
 };
 
-export const isInstancedImageHd = ( image: Object3D ): image is ImageHDInstanced =>
-    ( image as ImageHDInstanced ).isImageHd && ( image as ImageHDInstanced ).isInstanced;
+export const isInstancedImageHd = ( image: Object3D): image is ImageHDInstanced =>
+    image && ( image as ImageHDInstanced ).isImageHd && ( image as ImageHDInstanced ).isInstanced;
 export const isImageHd = ( image: Object3D ): image is ImageHD =>
-    ( image as ImageBase ).isImageHd;
+    image && ( image as ImageBase ).isImageHd;
 export const isImage3d = ( image: Object3D ): image is Image3D =>
-    ( image as ImageBase ).isImage3d;
-export const isMesh = ( image: Object3D ): image is Mesh => ( image as Mesh ).isMesh;
+    image && ( image as ImageBase ).isImage3d;
+export const isMesh = ( image: Object3D ): image is Mesh => image && ( image as Mesh ).isMesh;
 
 //dds is flipped y so we don't do it in our uvs
 export const calculateFrame = (

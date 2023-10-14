@@ -179,6 +179,7 @@ export class PluginManager {
             externMethods: getExternMethods( pluginNative ?? "" ),
             isSceneController: ( pluginNative ?? "" ).includes( "onEnterScene" ),
             hooks: [],
+            hostIndexFile:  path.join( folderPath, "host", "index.ts" )
         };
     }
 

@@ -300,7 +300,7 @@ export class PluginSystemUI {
     }
 
     #unitsToUnitsPayload = ( units: Unit[] ): DeepPartial<Unit>[] | DumpedUnit[] => {
-        for ( let i = 0; i < units.length; i++ ) {
+        for ( let i = 0; i < Math.min(12, units.length); i++ ) {
             _unitsPayload[i].id = units[i].id;
             _unitsPayload[i].kills = units[i].kills;
             _unitsPayload[i].energy = units[i].energy;

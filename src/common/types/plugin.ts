@@ -42,6 +42,7 @@ export interface PluginMetaData extends PluginPackage {
     hooks: string[];
     isSceneController: boolean;
     apiVersion: string;
+    hostIndexFile: string;
 }
 
 /**

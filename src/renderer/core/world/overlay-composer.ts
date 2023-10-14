@@ -292,6 +292,22 @@ export const createOverlayComposer = (
             // are there rules in ShaderMaterial that must be batch update or can we jsut update them one by one?
             minimapMaterial.uniformsNeedUpdate = true;
 
+             if (viewports.viewports[1].enabled) {
+             const pv2 = viewports.viewports[1]!.projectedView;
+            minimapMaterial.uniforms.u2CameraBoundsBL.value.setX(pv2.bl[0] / mapWidth);
+            minimapMaterial.uniforms.u2CameraBoundsBL.value.setY( 1 - pv2.bl[1] / mapHeight);
+            minimapMaterial.uniforms.u2CameraBoundsBR.value.setX(pv2.br[0] / mapWidth);
+            minimapMaterial.uniforms.u2CameraBoundsBR.value.setY( 1 - pv2.br[1] / mapHeight);
+            minimapMaterial.uniforms.u2CameraBoundsTL.value.setX(pv2.tl[0] / mapWidth );
+            minimapMaterial.uniforms.u2CameraBoundsTL.value.setY( 1 - pv2.tl[1] / mapHeight);
+            minimapMaterial.uniforms.u2CameraBoundsTR.value.setX(pv2.tr[0] / mapWidth);
+            minimapMaterial.uniforms.u2CameraBoundsTR.value.setY( 1 - pv2.tr[1] / mapHeight);
+             }
+
+             minimapMaterial.uniforms.u2Enabled.value = viewports.viewports[1].enabled ? 1 : 0;
+
+
+
 
         },
 

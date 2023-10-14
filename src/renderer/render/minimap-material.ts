@@ -7,11 +7,6 @@ import { Color, Matrix4, ShaderMaterial, Texture, Vector2 } from "three";
 import fragmentShader from "./minimap-frag.glsl?raw";
 import vertexShader from "./minimap-vert.glsl?raw";
 
-// if ( module.hot ) {
-//     module.hot.accept( "./minimap-frag.glsl?raw" );
-//     module.hot.accept( "./minimap-vert.glsl?raw" );
-// }
-
 export class MinimapMaterial extends ShaderMaterial {
     #resourceColor = new Color( 0, 55, 55 );
     #flashColor = new Color( 200, 200, 200 );
@@ -35,6 +30,11 @@ export class MinimapMaterial extends ShaderMaterial {
         uCameraBoundsBR : { value: new Vector2() },
         uCameraBoundsTL : { value: new Vector2() },
         uCameraBoundsTR : { value: new Vector2() },
+        u2CameraBoundsBL: { value: new Vector2() },
+        u2CameraBoundsBR : { value: new Vector2() },
+        u2CameraBoundsTL : { value: new Vector2() },
+        u2CameraBoundsTR : { value: new Vector2() },
+        u2Enabled: { value: 0 },
     };
 
     constructor( mapWidth: number, mapHeight: number, terrain: Texture ) {
