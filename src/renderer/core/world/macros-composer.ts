@@ -64,6 +64,8 @@ export const createMacrosComposer = ( settings: SettingsSessionStore ) => {
 
             targets.setHandler( ":function", {
                 action: ( action, context ) => {
+
+                    // @ts-ignore
                     container.globalThis.context = context;
 
                     try {
@@ -81,6 +83,7 @@ export const createMacrosComposer = ( settings: SettingsSessionStore ) => {
                     }
                 },
                 getValue: ( _, value, context ) => {
+                    // @ts-ignore
                     container.globalThis.context = context;
                     try {
                         return container.globalThis.Function( value )() as unknown;

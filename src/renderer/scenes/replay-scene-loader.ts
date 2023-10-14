@@ -108,7 +108,8 @@ export const replaySceneLoader = async ( filepath: string ): Promise<SceneState>
     log.info( `@load-replay/game-type: ${GameTypes[replay.header.gameType]!}` );
 
     useReplayAndMapStore.setState( { replay, map, mapImage: await createMapImage( map ) } );
-    settingsStore().setSession( "replay" );
+    settingsStore().initSessionData( "replay" );
+    globalEvents.emit( "replay-ready", { replay, map } );
 
     janitor.mop(
         () => useReplayAndMapStore.getState().reset(),
@@ -124,19 +125,60 @@ export const replaySceneLoader = async ( filepath: string ): Promise<SceneState>
 
     const commands = new CommandsStream( replay.rawCmds, replay.stormPlayerToGamePlayer );
     const scene = await makeGameScene(
-        map,
         janitor,
         commands,
         ( openBW: OpenBW ) => {
             openBW.setUnitLimits( replay.limits.units );
             openBW.loadReplay( replayBuffer );
 
-            return replay.header.players.map( ( player ) => ( {
+            const mapPlayers = replay.header.players.map( ( player ) => ( {
                 id: player.id,
                 name: player.name,
                 color: player.color,
                 race: player.race,
             } ) );
+
+            return mapPlayers;
+        },
+        worldComposer => {
+            const openBW = worldComposer.world.openBW;
+
+            openBW.setGameSpeed(64);
+           
+            openBW.setReplayFrameListener( () => {
+                worldComposer.preRunFrame();
+            })
+            // let i = 0;
+            while (openBW.nextFrameSafe() < replay.header.frameCount ) {
+                // console.log( openBW.getCurrentFrame(), openBW.getCurrentReplayFrame() )
+                // worldComposer.preRunFrame();
+                // i = i  + 1;
+                // if ( i > 1000) {
+                //     break;
+                // }
+            }
+
+            const loadNextReplay = debounce( () => {
+                console.log("requesting next replay")
+                sendWindow<SendWindowActionType.NextReplay>(
+                    InvokeBrowserTarget.CommandCenter,
+                    {
+                        type: SendWindowActionType.NextReplay
+                    }
+                );
+            }, 1000);
+            openBW.setReplayFrameListener( () => {
+                if (openBW.getCurrentReplayFrame()  > replay.header.frameCount  - 24  ) {
+                    console.log("GG WP");
+                    loadNextReplay();
+                    openBW.setReplayFrameListener( () => { } );
+
+                }
+            })
+            openBW.setCurrentReplayFrame( 0 );
+
+            worldComposer.preRunComplete();
+          
         }
     );
 

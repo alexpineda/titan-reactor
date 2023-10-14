@@ -1,4 +1,6 @@
+import { Replay } from "@process-replay/parse-replay";
 import { TypeEmitter } from "@utils/type-emitter";
+import Chk from "bw-chk";
 import { LogLevel } from "common/logging";
 import { MacroAction, PluginConfig, PluginMetaData, SettingsMeta } from "common/types";
 
@@ -21,6 +23,9 @@ export interface GlobalEvents {
     "reset-macro-actions": string;
     "exec-macro-action": { action: MacroAction; withReset: boolean };
     "document-hidden": boolean;
+    "end-of-replay-queue": undefined;
+    "replay-ready": { replay: Replay, map: Chk };
+    "map-ready": { map: Chk };
 }
 
 /**

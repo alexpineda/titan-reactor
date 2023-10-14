@@ -81,6 +81,23 @@ ipcRenderer.on(
     }
 );
 
+// Load Replay File ( Replay Queue)
+ipcRenderer.on(
+    SEND_BROWSER_WINDOW,
+    (
+        _,
+        {
+            type,
+        }: {
+            type: SendWindowActionType;
+        }
+    ) => {
+        if ( type === SendWindowActionType.EndOfReplays ) {
+            globalEvents.emit( "end-of-replay-queue" );
+        }
+    }
+);
+
 
 // Load Replay File ( Drag and Drop )
 

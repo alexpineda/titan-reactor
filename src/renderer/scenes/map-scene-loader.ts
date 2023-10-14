@@ -23,6 +23,7 @@ import { BasePlayer } from "@core/players";
 import { playerColors } from "common/enums";
 import { raceToString } from "@utils/string-utils";
 import { music } from "@core/global";
+import { globalEvents } from "@core/global-events";
 
 const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;
@@ -43,7 +44,8 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
     updateWindowTitle( map.title );
 
     useReplayAndMapStore.setState( { map, mapImage: await createMapImage( map ) } );
-    settingsStore().setSession( "map" );
+    settingsStore().initSessionData( "map" );
+    globalEvents.emit( "map-ready", {  map } );
 
     janitor.mop( () => useReplayAndMapStore.getState().reset(), "reset replayMapStore" );
 
@@ -60,7 +62,6 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
     }
 
     const scene = await makeGameScene(
-        map,
         janitor,
         new CommandsStream(),
         ( openBW: OpenBW ) => {

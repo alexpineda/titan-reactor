@@ -1,4 +1,3 @@
-import type Chk from "bw-chk";
 import { OpenBW } from "@openbw/openbw";
 
 import { BasePlayer } from "@core";
@@ -12,7 +11,6 @@ import readCascFile from "common/casclib";
 import processStore from "@stores/process-store";
 
 export async function makeGameScene(
-  map: Chk,
   janitor: Janitor,
   commandsStream: CommandsStream,
   onOpenBWReady: (openBW: OpenBW) => BasePlayer[],
@@ -28,7 +26,6 @@ export async function makeGameScene(
     await createWorldComposer(
       openBW,
       gameStore().assets!,
-      map,
       basePlayers,
       commandsStream,
     ),
