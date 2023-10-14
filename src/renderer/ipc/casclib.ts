@@ -13,15 +13,15 @@ import {
     ReadCascFileBatch,
 } from "common/types";
 
-export const openCascStorage: OpenCascStorage = async ( bwPath: string ) => {
+export const openCascStorageRemote: OpenCascStorage = async ( bwPath: string ) => {
     return await ipcRenderer.invoke( OPEN_CASCLIB, bwPath );
 };
 
-export const closeCascStorage: CloseCascStorage = () => {
+export const closeCascStorageRemote: CloseCascStorage = () => {
     ipcRenderer.invoke( CLOSE_CASCLIB );
 };
 
-export const readCascFile: ReadCascFile = async (
+export const readCascFileRemote: ReadCascFile = async (
     filepath: string,
     encoding?: BufferEncoding
 ) => {
@@ -30,7 +30,7 @@ export const readCascFile: ReadCascFile = async (
     return arrayBuffer;
 };
 
-export const readCascFileBatch: ReadCascFileBatch = async (
+export const readCascFileBatchRemote: ReadCascFileBatch = async (
     filepaths: string[],
     encoding?: BufferEncoding
 ) => {

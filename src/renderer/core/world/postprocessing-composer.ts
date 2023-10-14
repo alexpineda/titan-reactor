@@ -201,7 +201,6 @@ export const createPostProcessingComposer = (
 
                 //todo; make this bettta?
                 postProcessingBundle.overlayScene.getObjectByName("minimap")!.visible = v === viewportsComposer.primaryViewport;
-                postProcessingBundle.overlayScene.getObjectByName("cursor")!.visible = v === viewportsComposer.primaryViewport;
 
                 // iterate all images again and update image frames according to different view camera
                 for ( const spriteStruct of world.openBW.iterators.sprites ) {

@@ -1,8 +1,8 @@
-import { Replay } from "@process-replay/parse-replay";
 import { TypeEmitter } from "@utils/type-emitter";
 import Chk from "bw-chk";
 import { LogLevel } from "common/logging";
 import { MacroAction, PluginConfig, PluginMetaData, SettingsMeta } from "common/types";
+import { ValidatedReplay } from "renderer/scenes/replay-scene-loader";
 
 export interface GlobalEvents {
     "webglcontextlost": undefined;
@@ -13,9 +13,8 @@ export interface GlobalEvents {
     "command-center-plugin-deactivated": string;
     "unsafe-open-url": string;
     "load-home-scene": undefined;
-    "load-replay-file": string;
-    "load-map-file": string;
     "load-iscriptah": string;
+    "queue-files": { files: string[]; append?: boolean };
     "log-message": { message: string; level: LogLevel; server?: boolean };
     "initial-install-error-plugins": undefined;
     "reload-all-plugins": undefined;
@@ -24,7 +23,8 @@ export interface GlobalEvents {
     "exec-macro-action": { action: MacroAction; withReset: boolean };
     "document-hidden": boolean;
     "end-of-replay-queue": undefined;
-    "replay-ready": { replay: Replay, map: Chk };
+    "replay-ready": { replay: ValidatedReplay, map: Chk };
+    "replay-complete": ValidatedReplay;
     "map-ready": { map: Chk };
 }
 

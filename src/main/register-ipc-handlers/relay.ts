@@ -5,7 +5,7 @@ import {
     SEND_BROWSER_WINDOW,
 } from "common/ipc-handle-names";
 import { ipcMain } from "electron";
-import browserWindows from "../windows";
+import browserWindows, { getEntryFileUrl } from "../windows";
 
 ipcMain.on(
     SEND_BROWSER_WINDOW,
@@ -70,3 +70,7 @@ ipcMain.handle(
         } );
     }
 );
+
+ipcMain.handle("get-config-window-url", () => {
+    return  getEntryFileUrl( "command-center.html" );
+})

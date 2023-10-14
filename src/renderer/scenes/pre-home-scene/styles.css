@@ -87,6 +87,7 @@ ul {
     border-color: var(--team-green) transparent var(--team-green) transparent;
     animation: lds-dual-ring 1.2s linear infinite;
 }
+
 @keyframes lds-dual-ring {
     0% {
         transform: rotate(0deg);
@@ -94,4 +95,8 @@ ul {
     100% {
         transform: rotate(360deg);
     }
+}
+
+td {
+    padding: 1rem;
 }

@@ -1,6 +1,7 @@
 import { UI_SYSTEM_OPEN_URL } from "@plugins/events";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import {
+    ADD_REPLAY_DIALOG,
     DEACTIVATE_PLUGIN,
     GO_TO_START_PAGE,
     LOG_MESSAGE,
@@ -51,53 +52,20 @@ ipcRenderer.on( LOG_MESSAGE, ( _, message: string, level = "info" ) =>
 
 // Load Map File
 ipcRenderer.on( OPEN_MAP_DIALOG, ( _, map: string ) =>
-    globalEvents.emit( "load-map-file", map )
+    globalEvents.emit( "queue-files", {files:[map]} )
 );
 
 // Load Replay File
-ipcRenderer.on( OPEN_REPLAY_DIALOG, ( _, replay: string ) => {
-    console.log( "OPEN_REPLAY_DIALOG", replay );
-    globalEvents.emit( "load-replay-file", replay );
+ipcRenderer.on( OPEN_REPLAY_DIALOG, ( _, files: string[] ) => {
+    globalEvents.emit( "queue-files", {files} );
 }
 );
 
-
-// Load Replay File ( Replay Queue)
-ipcRenderer.on(
-    SEND_BROWSER_WINDOW,
-    (
-        _,
-        {
-            type,
-            payload,
-        }: {
-            type: SendWindowActionType;
-            payload: SendWindowActionPayload<SendWindowActionType.LoadReplay>;
-        }
-    ) => {
-        if ( type === SendWindowActionType.LoadReplay ) {
-            globalEvents.emit( "load-replay-file", payload );
-        }
-    }
+// Load Replay File
+ipcRenderer.on( ADD_REPLAY_DIALOG, ( _, files: string[] ) => {
+    globalEvents.emit( "queue-files", {files, append: true});
+}
 );
-
-// Load Replay File ( Replay Queue)
-ipcRenderer.on(
-    SEND_BROWSER_WINDOW,
-    (
-        _,
-        {
-            type,
-        }: {
-            type: SendWindowActionType;
-        }
-    ) => {
-        if ( type === SendWindowActionType.EndOfReplays ) {
-            globalEvents.emit( "end-of-replay-queue" );
-        }
-    }
-);
-
 
 // Load Replay File ( Drag and Drop )
 
@@ -112,12 +80,7 @@ document.addEventListener('drop', (event) => {
     event.stopPropagation();
 
     if (event.dataTransfer && event.dataTransfer.files.length) {
-        const filePath = event.dataTransfer.files[0].path;
-        if (filePath.endsWith('.rep')) {
-            globalEvents.emit( "load-replay-file", event.dataTransfer.files[0].path );
-        } else if ( filePath.endsWith('.scx') || filePath.endsWith('.scm') ) {
-            globalEvents.emit( "load-map-file", event.dataTransfer.files[0].path );
-        }
+        globalEvents.emit("queue-files", {files: [...event.dataTransfer.files].map( file => file.path ), append: event.shiftKey});
     }
 
 });
@@ -254,7 +217,6 @@ ipcRenderer.on(
 // Reload All Plugins
 ipcRenderer.on( RELOAD_PLUGINS, () => globalEvents.emit( "reload-all-plugins" ) );
 
-
 window.onerror = (
     _: Event | string,
     source?: string,
@@ -293,4 +255,8 @@ useSettingsStore.subscribe( ( settings ) => {
     setStoragePath( settings.data.directories.starcraft );
 } );
 
-
+// (async () => {
+//     const url = await ipcRenderer.invoke( "get-config-window-url" );
+//     console.log(url)
+//     window.open( url, "_blank" )
+// })()

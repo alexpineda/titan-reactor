@@ -4,7 +4,7 @@ import { fileExists } from "common/utils/file-exists";
 import { BwDAT, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
-import { openCascStorage, readCascFile } from "common/casclib";
+import { closeCascStorage, openCascStorage, readCascFile } from "common/casclib";
 
 import {
     AnimAtlas,
@@ -247,13 +247,16 @@ export const initializeAssets = async ( directories: {
 
     processStore().increment();
 
-    loadDatFilesRemote().then( ( dat ) => {
+    await loadDatFilesRemote().then( ( dat ) => {
         setAsset( "bwDat", dat );
         // preload some assets that will not be loaded otherwise?
         loadImageAtlas( imageTypes.warpInFlash, dat );
     } );
 
     const r = {
+        openCascStorage: () => openCascStorage( directories.starcraft ),
+        closeCascStorage,
+        readCascFile,
         remaining: 7,
         atlases,
         ...cursorIcons,
@@ -274,7 +277,10 @@ export const initializeAssets = async ( directories: {
         },
         skyBox,
         refId,
-        resetAssetCache: () => {
+        resetImagesCache: () => {
+            for (const atlas of atlases) {
+                atlas?.dispose?.();
+            }
             atlases.length = 0;
             loadingHD.clear();
             loadingHD2.clear();

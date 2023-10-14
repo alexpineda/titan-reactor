@@ -1,4 +1,4 @@
-import { app, powerSaveBlocker, nativeTheme, crashReporter } from "electron";
+import { app, powerSaveBlocker, nativeTheme, crashReporter, Menu } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
@@ -38,7 +38,7 @@ const createMainWindow = () => {
         removeMenu: false,
         filepath: "index.html",
     } );
-    windows.main.maximize();
+    // windows.main.maximize();
     windows.main.autoHideMenuBar = true;
 };
 
@@ -55,7 +55,7 @@ const createConfigurationWindow = () => {
         },
         nodeIntegration: true,
         removeMenu: !electronIsDev,
-        backgroundThrottling: true,
+        backgroundThrottling: false,
         devTools: true,
         filepath: "command-center.html",
     } );
@@ -93,7 +93,18 @@ async function start(){
 
     await initACLs();
 
-    createAppMenu(
+  
+
+    app.on( "second-instance", () => {
+        if ( windows.main ) {
+            if ( windows.main.isMinimized() ) windows.main.restore();
+            windows.main.focus();
+        }
+    } );
+
+    await app.whenReady();
+    
+    const menuTemplate = createAppMenu(
         () => createConfigurationWindow(),
         () => {
             windows.main?.webContents.send( GO_TO_START_PAGE );
@@ -111,15 +122,9 @@ async function start(){
             } );
         }
     );
+    const menu = Menu.buildFromTemplate( menuTemplate );
+    Menu.setApplicationMenu( menu );
 
-    app.on( "second-instance", () => {
-        if ( windows.main ) {
-            if ( windows.main.isMinimized() ) windows.main.restore();
-            windows.main.focus();
-        }
-    } );
-
-    await app.whenReady();
     await settings.init( settingsPath );
 
     createMainWindow();

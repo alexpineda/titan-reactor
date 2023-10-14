@@ -16,7 +16,7 @@ export const showOpenMapDialog = () =>
         extensions: ["scm", "scx"],
     } );
 
-export const showOpenReplayDialog = ( multiSelect = false ) =>
+export const showOpenReplayDialog = ( multiSelect = true ) =>
     showOpenFileDialog( {
         title: "Starcraft Replay",
         extensions: ["rep"],
@@ -24,7 +24,7 @@ export const showOpenReplayDialog = ( multiSelect = false ) =>
     } );
 
 ipcMain.handle( OPEN_MAP_DIALOG, async () => showOpenMapDialog() );
-ipcMain.handle( OPEN_REPLAY_DIALOG, async ( _, multiSelect = false ) =>
+ipcMain.handle( OPEN_REPLAY_DIALOG, async ( _, multiSelect ) =>
     showOpenReplayDialog( multiSelect )
 );
 

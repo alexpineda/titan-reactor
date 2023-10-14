@@ -1,7 +1,6 @@
 import { BrowserWindow } from "electron";
 import isDev from "electron-is-dev";
 import path from "path";
-// import { pathToFileURL } from "url";
 import { ROOT_PATH } from "./root-path";
 
 const browserWindows = {} as {
@@ -38,6 +37,14 @@ const createDefaultArgs = ( args: CreateWindowArgs ) =>
         },
         args
     );
+
+export const getEntryFileUrl = (filepath: string) => {
+    if ( isDev ) {
+       return `${process.env.VITE_DEV_SERVER_URL!}${filepath}`;
+    } else {
+       return path.join( ROOT_PATH.dist, filepath );
+    }
+}
 
 export const createWindow = ( createWindowArgs: CreateWindowArgs ) => {
     const {
@@ -92,18 +99,12 @@ export const createWindow = ( createWindowArgs: CreateWindowArgs ) => {
         w.removeMenu();
     }
 
-    if ( isDev ) {
-        w.loadURL( `${process.env.VITE_DEV_SERVER_URL!}${filepath}` );
-    } else {
-        w.loadURL( path.join( ROOT_PATH.dist, filepath ) );
-    }
-
-    // on(event: 'unresponsive', listener: Function): this;
+    w.loadURL(getEntryFileUrl(filepath))
 
     w.on( "ready-to-show", () => {
         w.show();
         if ( isDev && devTools ) {
-            w.webContents.openDevTools();
+            // w.webContents.openDevTools();
         }
     } );
 

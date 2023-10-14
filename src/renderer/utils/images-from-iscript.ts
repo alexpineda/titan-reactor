@@ -5,10 +5,10 @@ export const calculateImagesFromIScript = (
     bwDat: BwDAT,
     image: ImageDAT,
     unit?: UnitDAT | null,
-    preload = new Set<number>()
+    result = new Set<number>()
 ): number[] => {
     const getAllImages = ( imageDef: ImageDAT ) => {
-        preload.add( imageDef.index );
+        result.add( imageDef.index );
 
         if ( !imageDef.iscript ) {
             return;
@@ -72,7 +72,7 @@ export const calculateImagesFromIScript = (
                     case "creategasoverlays":
                         {
                             [ 430, 431, 432, 433, 434, 435, 436, 437, 438, 439 ].forEach(
-                                ( v ) => preload.add( v )
+                                ( v ) => result.add( v )
                             );
                         }
                         break;
@@ -102,11 +102,11 @@ export const calculateImagesFromIScript = (
             getAllImages( bwDat.images[unit.constructionImage] );
         }
     }
-    return [ ...preload ].filter( ( v ) => v !== undefined );
+    return [ ...result ].filter( ( v ) => v !== undefined );
 };
 
 export const calculateImagesFromUnitsIscript = ( bwDat: BwDAT, unitIds: number[] ) => {
-    const preload = new Set<number>();
+    const result = new Set<number>();
 
     uniq( unitIds ).forEach( ( id ) => {
         const unit = bwDat.units[id];
@@ -114,18 +114,18 @@ export const calculateImagesFromUnitsIscript = ( bwDat: BwDAT, unitIds: number[]
             bwDat,
             bwDat.images[unit.flingy.sprite.image.index],
             unit,
-            preload
+            result
         );
     } );
 
-    return [ ...preload ].filter( ( v ) => v !== undefined );
+    return [ ...result ].filter( ( v ) => v !== undefined );
 };
 
 export const calculateImagesFromSpritesIscript = (
     bwDat: BwDAT,
     spriteIds: number[]
 ) => {
-    const preload = new Set<number>();
+    const result = new Set<number>();
 
     uniq( spriteIds ).forEach( ( id ) => {
         const sprite = bwDat.sprites[id];
@@ -133,9 +133,9 @@ export const calculateImagesFromSpritesIscript = (
             bwDat,
             bwDat.images[sprite.image.index],
             null,
-            preload
+            result
         );
     } );
 
-    return [ ...preload ].filter( ( v ) => v !== undefined );
+    return [ ...result ].filter( ( v ) => v !== undefined );
 };

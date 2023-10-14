@@ -29,10 +29,7 @@ export enum SendWindowActionType {
     PluginConfigChanged = "PluginConfigChanged",
     // game -> command center
     ConsoleLog = "ConsoleLog",
-    // command center -> game
-    LoadReplay = "LoadReplay",
-    NextReplay = "NextReplay",
-    EndOfReplays = "EndOfReplays",
+
 }
 
 export type SendWindowActionPayload<T> =
@@ -48,12 +45,6 @@ export type SendWindowActionPayload<T> =
         ? { pluginId: string; config: PluginConfig }
         : T extends SendWindowActionType.ConsoleLog
         ? { message: string; level: "info" | "warning" | "error" | "debug" }
-        : T extends SendWindowActionType.LoadReplay
-        ? string
-        : T extends SendWindowActionType.NextReplay
-        ? undefined
-        : T extends SendWindowActionType.EndOfReplays
-        ? undefined
         : never;
 
 export function sendWindow<T extends SendWindowActionType>(

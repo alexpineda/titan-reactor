@@ -13,10 +13,9 @@ import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "@utils/leva
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
 import { sendWindow, SendWindowActionType } from "@ipc/relay";
-import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import { InvokeBrowserTarget  } from "common/ipc-handle-names";
 import { getUpdateVersion, localPluginRepository } from "./plugin-utils";
 import { PluginButton } from "./plugin-button";
-import { ReplayQueue } from "./replay-queue";
 import semver from "semver";
 
 import "../../../bundled/assets/normalize.min.css";
@@ -401,9 +400,6 @@ const CommandCenter = () => {
                     </Tab>
                     <Tab label="Macros">
                         <MacrosPanel />
-                    </Tab>
-                    <Tab label="Replay Queue">
-                        <ReplayQueue />
                     </Tab>
                 </Tabs>
             </div>

@@ -8,41 +8,50 @@ interface LoadBarProps {
     style?: object;
 }
 
-export const LoadBar = ( { color, thickness, style }: LoadBarProps ) => {
-    const divRef = useRef<HTMLDivElement>( null );
+export const LoadRing = () => <div
+    className="lds-dual-ring"
+    style={{
+        position: "absolute",
+        bottom: "0",
+        right: "0",
+    }}
+/>
 
-    useLayoutEffect( () => {
-        if ( divRef.current ) {
+export const LoadBar = ({ color, thickness, style }: LoadBarProps) => {
+    const divRef = useRef<HTMLDivElement>(null);
+
+    useLayoutEffect(() => {
+        if (divRef.current) {
             divRef.current.style.transform = "scaleX(0)";
         }
         let _updating = false;
 
-        return useProcessStore.subscribe( ( store ) => {
-            if ( _updating ) {
+        return useProcessStore.subscribe((store) => {
+            if (_updating) {
                 return;
             }
             _updating = true;
-            requestAnimationFrame( () => {
+            requestAnimationFrame(() => {
                 _updating = false;
-                if ( !divRef.current ) return;
+                if (!divRef.current) return;
                 divRef.current.style.transform = `scaleX(${store.getTotalProgress()})`;
-            } );
-        } );
-    }, [] );
+            });
+        });
+    }, []);
 
-    const c1 = new Color( color );
+    const c1 = new Color(color);
     const hsl = {
         h: 0,
         s: 0,
         l: 0,
     };
-    c1.getHSL( hsl );
+    c1.getHSL(hsl);
     hsl.l -= 0.75;
-    c1.setHSL( hsl.h, hsl.s, hsl.l );
+    c1.setHSL(hsl.h, hsl.s, hsl.l);
 
     hsl.h += 0.1;
     hsl.l -= 0.1;
-    const c2 = new Color().setHSL( hsl.h, hsl.s, hsl.l );
+    const c2 = new Color().setHSL(hsl.h, hsl.s, hsl.l);
     const gradient = c2.getHexString();
 
     return (

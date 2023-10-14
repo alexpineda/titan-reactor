@@ -12,7 +12,7 @@ export const showFolderDialog = async (): Promise<undefined | string[]> => {
     return ( await ipcRenderer.invoke( SHOW_FOLDER_DIALOG ) ) as undefined | string[];
 };
 
-export const openReplayDialog = async ( multiSelect = false ) => {
+export const openReplayDialog = async ( multiSelect = true ) => {
     return ipcRenderer.invoke( OPEN_REPLAY_DIALOG, multiSelect );
 };
 

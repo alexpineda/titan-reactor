@@ -102,6 +102,7 @@ export interface SettingsV6 {
         alertDesynced: boolean;
         alertDesyncedThreshold: number;
         logLevel: LogLevel;
+        autoPlayReplayQueue: boolean;
     };
     plugins: {
         serverPort: number;

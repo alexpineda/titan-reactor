@@ -179,6 +179,10 @@ const getUtilConfig = ( util: SettingsMeta["data"]["utilities"] ): UtilConfig =>
         min: 10,
         max: 100,
     },
+    "utilities.autoPlayReplayQueue": {
+        label: "Autoplay Replay Queue",
+        value: util.autoPlayReplayQueue
+    }
 } );
 
 type DirectoryConfig = {
@@ -297,12 +301,10 @@ const getInputConfig = (
     "input.unitSelection": {
         label: "Enable Unit Selection",
         value: input.unitSelection,
-        hidden: true,
     },
     "input.cursorVisible": {
         label: "Mouse Cursor Visible",
         value: input.cursorVisible,
-        hidden: true,
     },
 } );
 

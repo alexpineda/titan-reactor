@@ -29,6 +29,10 @@ const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;
 };
 export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState> => {
+    
+    await gameStore().assets?.openCascStorage();
+    gameStore().assets?.resetImagesCache();
+    
     processStore().clearCompleted();
     const process = processStore().create( "map", 3 );
     log.debug( "loading chk" );

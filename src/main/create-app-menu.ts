@@ -1,4 +1,4 @@
-import { Menu, shell } from "electron";
+import {  MenuItem, MenuItemConstructorOptions, shell } from "electron";
 import {
     showOpenMapDialog,
     showOpenReplayDialog,
@@ -8,6 +8,7 @@ import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton";
 import {
+    ADD_REPLAY_DIALOG,
     OPEN_MAP_DIALOG,
     OPEN_REPLAY_DIALOG,
     RELOAD_PLUGINS,
@@ -22,23 +23,40 @@ export default (
     goToStartPage: () => void,
     openIscriptah: () => void
 ) => {
-    const template = [
+    const template: Array<(MenuItemConstructorOptions) | (MenuItem)> = [
         {
             label: "&File",
             submenu: [
                 { type: "separator" },
                 {
-                    label: "Open &Replay",
+                    label: "Open &Replay(s)",
+                    accelerator: "CmdOrCtrl+O",
+                    registerAccelerator: true,
                     click: async function () {
                         const files = await showOpenReplayDialog();
                         if ( files && files.length > 0 ) {
                             browserWindows.main!.webContents.send(
                                 OPEN_REPLAY_DIALOG,
-                                files[0]
+                                files
                             );
                         }
                     },
                 },
+                {
+                    label: "&Add Replays to Queue",
+                    accelerator: "CmdOrCtrl+A",
+                    registerAccelerator: true,
+                    click: async function () {
+                        const files = await showOpenReplayDialog();
+                        if ( files && files.length > 0 ) {
+                            browserWindows.main!.webContents.send(
+                                ADD_REPLAY_DIALOG,
+                                files
+                            );
+                        }
+                    },
+                },
+                { type: "separator" },
                 {
                     label: "Open &Map (Sandbox)",
                     click: async function () {
@@ -114,7 +132,7 @@ export default (
                     },
                 },
                 { type: "separator" },
-                { role: "toggledevtools" },
+                { role: "toggleDevTools" },
 
                 // ...( electronIsDev
                 //     ? [ { type: "separator" }, { role: "toggledevtools" } ]
@@ -143,7 +161,5 @@ export default (
         }
     ];
 
-    // @ts-expect-error
-    const menu = Menu.buildFromTemplate( template );
-    Menu.setApplicationMenu( menu );
+    return template;
 };
