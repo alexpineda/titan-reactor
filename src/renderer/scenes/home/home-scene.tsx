@@ -9,6 +9,7 @@ import packageJSON from "../../../../package.json";
 import { LoadBar } from "../pre-home-scene/load-bar";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { useProcessStore } from "@stores/process-store";
+import { useEffect, useState } from "react";
 
 const iconStyle = {
     width: "var(--size-8)",
@@ -26,6 +27,14 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
     const { map, mapImage, replay } = useReplayAndMapStore();
 
     const progress = useProcessStore( ( state ) => state.getTotalProgress());
+
+    const [isInterstitial, setIsInterstitial] = useState( !!(map||replay) );
+
+    useEffect( () => {
+        setTimeout( () => {
+            setIsInterstitial( true );
+        }, 2000);
+    }, []);
 
     if ( mapImage ) {
         mapImage.style.borderRadius = "10px";
@@ -69,7 +78,7 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                         userSelect: "none",
                         flex: 1
                     }}>
-                    <div
+                    {!isInterstitial && <div
                         style={{
                             display: "flex",
                             justifyContent: "space-between",
@@ -129,7 +138,7 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                                 src={discordLogo}
                             />
                         </div>
-                    </div>
+                    </div>}
                     {!error && (
                         <div
                             style={{

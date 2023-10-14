@@ -31,6 +31,8 @@ export enum SendWindowActionType {
     ConsoleLog = "ConsoleLog",
     // command center -> game
     LoadReplay = "LoadReplay",
+    NextReplay = "NextReplay",
+    EndOfReplays = "EndOfReplays",
 }
 
 export type SendWindowActionPayload<T> =
@@ -48,11 +50,15 @@ export type SendWindowActionPayload<T> =
         ? { message: string; level: "info" | "warning" | "error" | "debug" }
         : T extends SendWindowActionType.LoadReplay
         ? string
+        : T extends SendWindowActionType.NextReplay
+        ? undefined
+        : T extends SendWindowActionType.EndOfReplays
+        ? undefined
         : never;
 
 export function sendWindow<T extends SendWindowActionType>(
     target: InvokeBrowserTarget,
-    message: { type: SendWindowActionType; payload: SendWindowActionPayload<T> }
+    message: { type: SendWindowActionType; payload?: SendWindowActionPayload<T> }
 ) {
     ipcRenderer.send( SEND_BROWSER_WINDOW, { target }, message );
 }

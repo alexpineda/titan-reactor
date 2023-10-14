@@ -16,16 +16,16 @@ ipcMain.on(
     ) => {
         const targetWindow =
             target === InvokeBrowserTarget.Game
-                ? browserWindows.main!.webContents
-                : browserWindows.config!.webContents;
+                ? browserWindows.main!
+                : browserWindows.config!;
 
-        if ( event.sender === targetWindow ) {
+        if ( event.sender === targetWindow.webContents ) {
             throw new Error(
                 `onWindowInvoked: target ${target} is the same as the sender`
             );
         }
 
-        targetWindow.send( SEND_BROWSER_WINDOW, message );
+        targetWindow.webContents.send( SEND_BROWSER_WINDOW, message );
     }
 );
 

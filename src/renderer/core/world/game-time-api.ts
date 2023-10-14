@@ -10,6 +10,7 @@ import { ViewControllerComposerApi } from "./view-controller-composer";
 import { OpenBwComposerApi } from "./openbw-composer";
 import CommandsStream from "@process-replay/commands/commands-stream";
 import {  GameLoopComposerApi } from "./game-loop-composer";
+import { Replay } from "@process-replay/parse-replay";
 
 /**
  * @public
@@ -27,6 +28,7 @@ export interface GameTimeApi
         {
     // & world composer api
     map: Chk;
+    replay?: Replay;
     getCommands: () => CommandsStream;
     assets: Assets;
     exitScene(): void;

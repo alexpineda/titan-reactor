@@ -27,13 +27,14 @@ import { createInputComposer } from "./input-composer";
 import { settingsStore } from "@stores/settings-store";
 import { globalEvents } from "@core/global-events";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
+import { Replay } from "@process-replay/parse-replay";
+import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 
 export const createWorldComposer = async (
     openBW: OpenBW,
     assets: Assets,
-    map: Chk,
     //todo: rename to Map Player
     basePlayers: BasePlayer[],
     commands: CommandsStream
@@ -41,6 +42,9 @@ export const createWorldComposer = async (
     const janitor = new Janitor( "WorldComposer" );
     const events = janitor.mop( new TypeEmitter<WorldEvents>(), "events" );
     const settings = janitor.mop( createSettingsSessionStore( events ) );
+
+    const map = useReplayAndMapStore.getState().map!;
+    const replay = useReplayAndMapStore.getState().replay;
 
     const fogOfWarEffect = janitor.mop( new FogOfWarEffect(), "FogOfWarEffect" );
     const fogOfWar = new FogOfWar( map.size[0], map.size[1], openBW, fogOfWarEffect );
@@ -137,6 +141,7 @@ export const createWorldComposer = async (
     const gameTimeApi: GameTimeApi = mix(
         {
             map,
+            replay,
             getCommands () {
                 return commands.copy();
             },
@@ -238,6 +243,7 @@ export const createWorldComposer = async (
         dispose: () => {
             events.emit( "world-end" );
             events.emit( "dispose" );
+            apiSession.dispose();
             janitor.dispose();
             surfaceComposer.gameSurface.hide();
         },

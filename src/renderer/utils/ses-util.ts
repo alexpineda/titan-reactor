@@ -19,6 +19,14 @@ export const createCompartment = ( userEnv: object = {} ) => {
         console: harden( console ),
     };
 
+    if ( process.env.NODE_ENV === "development" ) {
+        mix(globalThis, userModules, systemModules, userEnv)
+        return {
+            globalThis
+        }
+    }
+
+
     const compartment = new Compartment( mix( {}, userEnv, userModules, systemModules ) );
 
     compartment.globalThis.Math = Math;

@@ -278,7 +278,7 @@ export class PluginSystemUI {
         this.refresh();
 
         document.body.appendChild( this.#iframe );
-        this.#janitor.mop( () => document.body.removeChild( this.#iframe ), "iframe" );
+        this.#janitor.mop( () => this.#iframe.remove(), "iframe" );
     }
 
     isRunning() {
