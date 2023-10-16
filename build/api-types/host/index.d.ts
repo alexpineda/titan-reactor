@@ -27,7 +27,7 @@ interface NativePlugin {
      * Whether or not this plugin is a scene controller.
      */
     isSceneController: boolean;
-    config: object | undefined;
+    config: Record<string, any>;
     init?(): void;
     /**
      * Unprocessed configuration data from the package.json.
@@ -114,6 +114,7 @@ interface FieldDefinition<T = unknown> {
  */
 export interface GameTimeApi extends OverlayComposerApi, InputsComposerApi, SceneComposerApi, SurfaceComposerApi, PostProcessingComposerApi, ViewControllerComposerApi, OpenBwComposerApi, GameLoopComposerApi {
     map: Chk;
+    replay?: Replay;
     getCommands: () => CommandsStream;
     assets: Assets;
     exitScene(): void;
@@ -138,7 +139,7 @@ declare type OverlayComposer = {
     minimapUv: Vector2 | undefined;
     insideMinimap: boolean;
     update(delta: number): void;
-    onFrame(completedUpgrades: number[][]): void;
+    onFrame(): void;
 };
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/input-composer.ts
@@ -1428,7 +1429,7 @@ declare class FogOfWarEffect extends Effect {
 export interface OpenBW extends OpenBWWasm {
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/openbw-wasm.ts
 
 /** @internal */
 interface OpenBWWasm extends EmscriptenPreamble {
@@ -1438,7 +1439,8 @@ interface OpenBWWasm extends EmscriptenPreamble {
     _upload_height_map: (buffer: number, length: number, width: number, height: number) => void;
     _load_replay_with_height_map: (replayBuffer: number, replayLength: number, buffer: number, length: number, width: number, height: number) => void;
     _next_frame: () => number;
-    _next_no_replay: () => number;
+    _next_step: () => number;
+    _next_replay_step: () => number;
     _create_unit: (unitId: number, playerId: number, x: number, y: number) => number;
     _counts: (index: number) => number;
     _get_buffer: (index: number) => number;
@@ -1471,6 +1473,7 @@ interface OpenBWWasm extends EmscriptenPreamble {
     callMain: () => void;
     getExceptionMessage: (e: unknown) => string;
     setupCallbacks: (callbacks: Callbacks) => void;
+    setupCallback: (key: keyof Callbacks, callback: Callbacks[keyof Callbacks]) => void;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/emscripten.ts
@@ -1529,7 +1532,7 @@ interface SoundStruct {
     pan?: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/openbw-wasm.ts
 
 /** @internal */
 declare type Callbacks = {
@@ -1540,6 +1543,7 @@ declare type Callbacks = {
     js_read_data?: (index: number, dst: number, offset: number, size: number) => void;
     js_load_done?: () => void;
     js_file_index?: (ptr: number) => number;
+    js_on_replay_frame?: () => void;
 };
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
@@ -1582,6 +1586,7 @@ export declare class OpenBW implements OpenBW {
      * Called after init() to call main() and provide data files.
      */
     start(readFile: ReadFile): Promise<void>;
+    setReplayFrameListener: (fn: () => void) => void;
     /**
      * Increments the game frame where openbw will run until the next frame.
      * If the game is in sandbox mode, the game will run at 24 fps.
@@ -1589,7 +1594,8 @@ export declare class OpenBW implements OpenBW {
      */
     nextFrame: () => number;
     nextFrameSafe: () => number;
-    nextFrameNoAdvance(): number;
+    nextStep(): number;
+    nextReplayStep(): number;
     setGameSpeed(speed: number): void;
     getGameSpeed(): number;
     setCurrentFrame(frame: number): void;
@@ -1807,6 +1813,7 @@ declare const createSceneComposer: (world: World, assets: Assets) => Promise<{
         initialStartLocation: Vector3 | undefined;
         getFollowedUnitsCenterPosition: () => Vector3 | undefined;
         selectedUnits: IterableSet<Unit>;
+        createUnitQuadTree: (size: number) => SimpleQuadtree<UnitStruct>;
     };
 }>;
 
@@ -1900,10 +1907,13 @@ declare const initializeAssets: (directories: {
     loadImageAtlasAsync(imageId: number, bwDat: BwDAT): Promise<void>;
     skyBox: CubeTexture;
     refId: (id: number) => number;
-    resetAssetCache: () => void;
+    resetImagesCache: () => void;
     arrowIconsGPU: LegacyGRP;
     hoverIconsGPU: LegacyGRP;
     dragIconsGPU: LegacyGRP;
+    openCascStorage: () => Promise<void>;
+    closeCascStorage: () => void;
+    readCascFile: (filePath: string) => Promise<Buffer>;
     remaining: number;
     atlases: {
         isHD: boolean;
@@ -2610,6 +2620,16 @@ declare type Palettes = Uint8Array[] & {
     light?: Buffer;
 };
 
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
+
+/** @internal */
+declare const openCascStorage: (bwPath: string) => Promise<void>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
+
+/** @internal */
+declare const closeCascStorage: () => void;
+
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
 
 /** @internal */
@@ -2944,11 +2964,12 @@ interface SettingsV6 {
         alertDesynced: boolean;
         alertDesyncedThreshold: number;
         logLevel: LogLevel;
+        autoPlayReplayQueue: boolean;
     };
     plugins: {
         serverPort: number;
         developmentDirectory?: string;
-        enabled: string[];
+        activated: string[];
     };
     postprocessing: {
         anisotropy: number;
@@ -3176,6 +3197,9 @@ interface UnitStruct extends FlingyStruct {
     orderTargetX: number;
     orderTargetY: number;
     orderTargetUnit: number;
+    groundWeaponCooldown: number;
+    airWeaponCooldown: number;
+    spellCooldown: number;
     /**
      * @internal
      */
@@ -3262,8 +3286,10 @@ export declare class IterableMap<T, R> {
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/simple-quadtree.ts
 
-/** @internal */
-declare class SimpleQuadtree<T> {
+/**
+ * @public
+ */
+export declare class SimpleQuadtree<T> {
     #private;
     get size(): number;
     constructor(size: number, scale?: Vector2, offset?: Vector2);
@@ -3813,16 +3839,24 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
 
+/** @internal */
+declare class TypeEmitter<T> {
+    #private;
+    on<K extends keyof T>(s: K, listener: Listener<T[K]>["fn"], priority?: number): () => void;
+    off<K extends keyof T>(s: K, listener: Listener<T[K]>["fn"]): void;
+    emit(s: keyof T, v?: T[keyof T]): undefined | boolean;
+    dispose(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
+
 /**
  * @public
  */
-export declare class TypeEmitter<T> {
-    #private;
-    on<K extends keyof T>(s: K, listener: (v: T[K]) => void): () => void;
-    off<K extends keyof T>(s: K, listener: (v: T[K]) => void): void;
-    emit(s: keyof T, v?: T[keyof T]): undefined | false;
-    dispose(): void;
-}
+declare type Listener<T> = {
+    fn: (v: T) => any;
+    priority: number;
+};
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/world-events.ts
 
@@ -3831,6 +3865,7 @@ interface WorldEvents {
     "unit-completed": Unit;
     "unit-created": Unit;
     "unit-killed": Unit;
+    "unit-updated": Unit;
     "unit-destroyed": Unit;
     "followed-units-changed": Unit[];
     "selected-units-changed": Unit[];
@@ -3869,6 +3904,11 @@ interface WorldEvents {
     "world-end": undefined;
     "dispose": undefined;
     "mouse-click": MouseEventDTO;
+    "pre-run:frame": {
+        frame: number;
+        commands: unknown[];
+    };
+    "pre-run:complete": void;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
@@ -4278,7 +4318,7 @@ interface Injectables {
 export declare class TypeEmitterProxy<T> {
     #private;
     constructor(host: TypeEmitter<T>);
-    on<K extends keyof T>(s: K, listener: (v: T[K]) => void): () => void;
+    on<K extends keyof T>(s: K, listener: Listener<T[K]>["fn"], priority?: number): () => void;
     dispose(): void;
 }
 
@@ -4378,7 +4418,7 @@ declare type PostProcessingComposer = ReturnType<typeof createPostProcessingComp
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
 
 /** @internal */
-declare const createPostProcessingComposer: (world: World, { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer, viewports: ViewControllerComposer, assets: Assets) => {
+declare const createPostProcessingComposer: (world: World, { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer, viewportsComposer: ViewControllerComposer, assets: Assets) => {
     precompile(camera: PerspectiveCamera | OrthographicCamera): void;
     api: {
         changeRenderMode(renderMode3D?: boolean): void;
@@ -4431,6 +4471,7 @@ declare const createOpenBWComposer: (world: World, scene: Pick<SceneComposer, "p
     };
     api: {
         openBW: {
+            getOriginal(): OpenBW;
             readonly iterators: OpenBWIterators;
             readonly mapTiles: SimpleBufferView<Uint8Array>;
             skipForward: (gameSeconds?: number) => number;
@@ -4439,6 +4480,9 @@ declare const createOpenBWComposer: (world: World, scene: Pick<SceneComposer, "p
             speedDown: () => number;
             togglePause: (setPaused?: boolean) => boolean;
             readonly gameSpeed: number;
+            /**
+             * Sets the game speed clamped to REPLAY_MIN_SPEED and REPLAY_MAX_SPEED
+             */
             setGameSpeed(value: number): void;
             gotoFrame: (frame: number) => void;
         };
@@ -4471,6 +4515,95 @@ declare const createGameLoopComposer: (world: World) => {
     };
 };
 
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
+
+/**
+ * @public
+ * A replay file structure containing header information and raw command and map data
+ */
+export declare type Replay = Awaited<ReturnType<typeof parseReplay>>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
+/// <reference types="node" />
+/** @internal */
+declare const parseReplay: (buf: Buffer) => Promise<{
+    version: number;
+    rawHeader: Buffer;
+    header: {
+        isBroodwar: number;
+        gameName: string;
+        mapName: string;
+        gameType: number;
+        gameSubtype: number;
+        players: ReplayPlayer[];
+        frameCount: number;
+        randomSeed: number;
+        ancillary: {
+            campaignId: number;
+            commandByte: number;
+            playerBytes: Buffer;
+            unk1: number;
+            playerName: Buffer;
+            gameFlags: number;
+            mapWidth: number;
+            mapHeight: number;
+            activePlayerCount: number;
+            slotCount: number;
+            gameSpeed: number;
+            gameState: number;
+            unk2: number;
+            tileset: number;
+            replayAutoSave: number;
+            computerPlayerCount: number;
+            unk3: number;
+            unk4: number;
+            unk5: number;
+            unk6: number;
+            victoryCondition: number;
+            resourceType: number;
+            useStandardUnitStats: number;
+            fogOfWarEnabled: number;
+            createInitialUnits: number;
+            useFixedPositions: number;
+            restrictionFlags: number;
+            alliesEnabled: number;
+            teamsEnabled: number;
+            cheatsEnabled: number;
+            tournamentMode: number;
+            victoryConditionValue: number;
+            startingMinerals: number;
+            startingGas: number;
+            unk7: number;
+        };
+    };
+    rawCmds: Buffer;
+    chk: Buffer;
+    limits: {
+        images: number;
+        sprites: number;
+        thingies: number;
+        units: number;
+        bullets: number;
+        orders: number;
+        fogSprites: number;
+    };
+    stormPlayerToGamePlayer: number[];
+}>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay-header.ts
+/// <reference types="node" />
+/** @internal */
+interface ReplayPlayer {
+    id: number;
+    name: string;
+    race: "zerg" | "terran" | "protoss" | "unknown";
+    team: number;
+    color: string;
+    isComputer: boolean;
+    isHuman: boolean;
+    isActive: boolean;
+}
+
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/sandbox-api.ts
 
 /**
@@ -4496,6 +4629,10 @@ export declare const createSandboxApi: (_world: World, pxToWorldInverse: PxToWor
 
 export interface PluginBase extends NativePlugin, GameTimeApi, Injectables {
 }
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/types/plugin-host-types.ts
+
+export type context = any;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/scene-controller.ts
 
@@ -4576,12 +4713,12 @@ export class PluginBase {
     /**
      * Read from the normalized configuration.
      */
-    get config(): object | undefined;
+    get config(): Record<string, any>;
     /**
      * Set the config from unnormalized data (ie leva config schema).
      */
-    set rawConfig(value: PluginConfig | undefined);
-    get rawConfig(): PluginConfig | undefined;
+    set rawConfig(value: PluginConfig);
+    get rawConfig(): PluginConfig;
     /**
      * @param key The configuration key.
      * @returns the leva configuration for a particular field

@@ -78,7 +78,7 @@ export interface NativePlugin {
      */
     isSceneController: boolean;
 
-    config: object | undefined;
+    config: Record<string, any>;
 
     init?(): void;
 

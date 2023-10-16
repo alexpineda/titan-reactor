@@ -50,7 +50,7 @@ export const createAsteroids = () => {
                 const pos = new Vector3(
                     MathUtils.randInt( 60, 80 ),
                     MathUtils.randInt( 0, 30 ),
-                    MathUtils.randInt( -50, -100 )
+                    MathUtils.randInt( -100, -200 )
                 );
                 const m = new Matrix4();
                 const q = new Quaternion();

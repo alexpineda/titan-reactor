@@ -14,7 +14,7 @@ import {
     ToneMappingEffect,
     VignetteEffect,
 } from "postprocessing";
-import { VRButton } from 'three/examples/jsm/webxr/VRButton';
+// import { VRButton } from 'three/examples/jsm/webxr/VRButton';
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 import {
@@ -34,7 +34,7 @@ import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
 import { createBattleLights, distantStars } from "./stars";
 import { createBattleCruiser } from "./battlecruiser";
-import { createAsteroids } from "./asteroids";
+// import { createAsteroids } from "./asteroids";
 import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
@@ -64,7 +64,7 @@ introSurface.canvas.style.position = "absolute";
 let _lastElapsed = 0;
 
 const battleCruiser = createBattleCruiser();
-const asteroids = createAsteroids();
+// const asteroids = createAsteroids();
 const wraiths = createWraiths();
 const battleLights = createBattleLights();
 
@@ -79,7 +79,7 @@ export const preloadIntro = async () => {
         processStore().increment()
     );
 
-    await asteroids.load( envmap );
+    // await asteroids.load( envmap );
     processStore().increment();
 
     await wraiths.load( envmap, fireTexture );
@@ -145,7 +145,7 @@ export async function createWraithScene() {
 
     scene.add( janitor.mop( distantStars() ) );
     scene.add( janitor.mop( battleCruiser.object ) );
-    scene.add( janitor.mop( asteroids.object ) );
+    // scene.add( janitor.mop( asteroids.object ) );
     scene.add( janitor.mop( battleLights.object ) );
 
     const playRemixInterval = setInterval( () => {
@@ -261,13 +261,11 @@ export async function createWraithScene() {
         renderComposer.drawBuffer();
     } );
 
-    janitor.mop( () => {
-        renderComposer.dispose();
-    }, "renderLoop" );
+    janitor.mop( renderComposer );
 
     _sceneResizeHandler();
 
-    document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
+    // document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
 
     return {
         dispose: () => janitor.dispose(),

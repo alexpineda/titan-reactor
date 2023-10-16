@@ -174,6 +174,15 @@ interface ReplayAndMapStore {
     replay?: Replay;
     mapImage?: HTMLCanvasElement;
     reset: () => void;
+    totalGameTime: number;
+    addToTotalGameTime: (t: number) => void;
+    replayQueue: ValidatedReplay[];
+    nextReplay: ValidatedReplay | undefined;
+    addReplaysToQueue: (replays: ValidatedReplay[]) => void;
+    deleteReplayQueueItem: (replay: ValidatedReplay) => void;
+    queueUpNextReplay: (replay: ValidatedReplay) => void;
+    clearReplayQueue: () => void;
+    flushWatchedReplays: () => void;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
@@ -264,6 +273,14 @@ interface ReplayPlayer {
     isHuman: boolean;
     isActive: boolean;
 }
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/scenes/replay-scene-loader.ts
+
+/** @internal */
+declare type ValidatedReplay = Replay & {
+    buffer: Buffer;
+    uid: number;
+};
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
 
@@ -509,6 +526,7 @@ interface PluginMetaData extends PluginPackage {
     hooks: string[];
     isSceneController: boolean;
     apiVersion: string;
+    hostIndexFile: string;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
@@ -652,10 +670,13 @@ declare const initializeAssets: (directories: {
     loadImageAtlasAsync(imageId: number, bwDat: BwDAT): Promise<void>;
     skyBox: CubeTexture;
     refId: (id: number) => number;
-    resetAssetCache: () => void;
+    resetImagesCache: () => void;
     arrowIconsGPU: LegacyGRP;
     hoverIconsGPU: LegacyGRP;
     dragIconsGPU: LegacyGRP;
+    openCascStorage: () => Promise<void>;
+    closeCascStorage: () => void;
+    readCascFile: (filePath: string) => Promise<Buffer>;
     remaining: number;
     atlases: {
         isHD: boolean;
@@ -995,6 +1016,16 @@ declare type Palettes = Uint8Array[] & {
     dark?: Buffer;
     light?: Buffer;
 };
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
+
+/** @internal */
+declare const openCascStorage: (bwPath: string) => Promise<void>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
+
+/** @internal */
+declare const closeCascStorage: () => void;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
 

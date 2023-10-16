@@ -6,60 +6,86 @@ export type MatchingKeys<
 
 export type VoidKeys<Record> = MatchingKeys<Record, void>;
 
+
 /**
  * @public
  */
-export class TypeEmitter<T> {
+type Listener<T> = {
+    fn: (v: T ) => any;
+    priority: number;
+  };
+  
+  export class TypeEmitter<T> {
     #listeners = new Map<
-        keyof T,
-        ( ( v: T[keyof T] | undefined ) => undefined | false )[]
+      keyof T,
+      Array<Listener<T[keyof T]>>
     >();
-
-    on<K extends keyof T>( s: K, listener: ( v: T[K] ) => void ) {
-        //TODO: fixme
-        //@ts-expect-error
-        this.#listeners.set( s, ( this.#listeners.get( s ) ?? [] ).concat( listener ) );
-        return () => this.off( s, listener );
+  
+    on<K extends keyof T>(
+      s: K,
+      listener: Listener<T[K]>["fn"],
+      priority: number = 0
+    ) {
+      const existingListeners: Array<Listener<T[K]>> = this.#listeners.get(s) as Array<Listener<T[K]>> ?? [];
+      const newListener: Listener<T[K]> = { fn: listener, priority };
+  
+      existingListeners.push(newListener);
+      existingListeners.sort((a, b) => a.priority - b.priority);
+  
+      this.#listeners.set(s, existingListeners as unknown as Array<Listener<T[keyof T]>>);
+      return () => this.off(s, listener);
     }
-
-    off<K extends keyof T>( s: K, listener: ( v: T[K] ) => void ): void {
-        this.#listeners.set(
-            s,
-            ( this.#listeners.get( s ) ?? [] ).filter( ( l ) => l !== listener )
-        );
+  
+    off<K extends keyof T>(
+      s: K,
+      listener: Listener<T[K]>["fn"]
+    ): void {
+      const existingListeners = this.#listeners.get(s) ?? [];
+      const filteredListeners = existingListeners.filter((l) => l.fn !== listener);
+  
+      this.#listeners.set(s, filteredListeners);
     }
-
-    emit( s: keyof T, v?: T[keyof T] ): undefined | false {
-        for ( const listener of this.#listeners.get( s ) ?? [] ) {
-            if ( listener( v ) === false ) {
-                return false;
-            }
+  
+    emit(s: keyof T, v?: T[keyof T]): undefined | boolean {
+      const existingListeners = this.#listeners.get(s) ?? [];
+      for (const { fn } of existingListeners) {
+        if (fn(v!) === false) {
+          return false;
         }
+      }
     }
-
+  
     dispose() {
-        this.#listeners.clear();
+      this.#listeners.clear();
     }
-}
+  }
+  
+  
 
 /**
  * @public
  */
 export class TypeEmitterProxy<T> {
     #host: TypeEmitter<T>;
-    #disposers: ( () => void )[] = [];
-
-    constructor( host: TypeEmitter<T> ) {
-        this.#host = host;
+    #disposers: (() => void)[] = [];
+  
+    constructor(host: TypeEmitter<T>) {
+      this.#host = host;
     }
-
-    on<K extends keyof T>( s: K, listener: ( v: T[K] ) => void ) {
-        const dispose = this.#host.on( s, listener );
-        this.#disposers.push( dispose );
-        return dispose;
+  
+    on<K extends keyof T>(
+      s: K,
+      listener: Listener<T[K]>["fn"],
+      priority: number = 0
+    ) {
+      const dispose = this.#host.on(s, listener, priority);
+      this.#disposers.push(dispose);
+      return dispose;
     }
-
+  
     dispose() {
-        for ( const dispose of this.#disposers ) dispose();
+      for (const dispose of this.#disposers) dispose();
+      this.#disposers = [];
     }
-}
+  }
+  

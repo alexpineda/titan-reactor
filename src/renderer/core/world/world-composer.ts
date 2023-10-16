@@ -269,11 +269,11 @@ export const createWorldComposer = async (
                 overlayComposer
             );
 
-            if ( openBwComposer.update( elapsed, world.openBW.nextFrameSafe() ) ) {
+            if ( openBwComposer.update( elapsed, world.openBW.nextFrame() ) ) {
                 sceneComposer.onFrame(
                     delta,
                     elapsed,
-                    viewControllerComposer.primaryViewport!.renderMode3D
+                    viewControllerComposer.primaryViewport!.renderMode3D,
                 );
 
                 unitSelectionComposer.update(

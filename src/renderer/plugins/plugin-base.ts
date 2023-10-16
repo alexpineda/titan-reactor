@@ -22,18 +22,18 @@ export class PluginBase {
     readonly id: string;
     readonly name: string;
     isSceneController = false;
-    #config: PluginConfig | undefined = {};
+    #config: PluginConfig = {};
 
     /**
      * @internal
      * Same as config but simplified to [key] = value
      */
-    #normalizedConfig: Record<string, unknown> | undefined;
+    #normalizedConfig: Record<string, unknown> = {};
 
     constructor( pluginPackage: PluginPackage ) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
-        this.rawConfig = structuredClone( pluginPackage.config );
+        this.rawConfig = structuredClone( pluginPackage.config || {});
     }
 
     sendUIMessage: ( message: any ) => void = () => {};
@@ -71,7 +71,7 @@ export class PluginBase {
     refreshConfig() {
         this.#normalizedConfig = this.#config
             ? normalizePluginConfiguration( this.#config )
-            : undefined;
+            : {};
     }
 
     get configExists() {
@@ -81,14 +81,14 @@ export class PluginBase {
     /**
      * Read from the normalized configuration.
      */
-    get config(): object | undefined {
+    get config(): Record<string, any>  {
         return this.#normalizedConfig;
     }
 
     /**
      * Set the config from unnormalized data (ie leva config schema).
      */
-    set rawConfig( value: PluginConfig | undefined ) {
+    set rawConfig( value: PluginConfig ) {
         this.#config = value;
         this.refreshConfig();
     }

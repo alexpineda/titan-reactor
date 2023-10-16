@@ -95,9 +95,6 @@ globalEvents.on("queue-files", async ({ files, append}) => {
         return;
     }
 
-    if (!append ) {
-        // useReplayAndMapStore.getState().flushWatchedReplays();
-    }
     const replays: ValidatedReplay[] = [];
     for (const filepath of files) {
         try {
@@ -107,6 +104,10 @@ globalEvents.on("queue-files", async ({ files, append}) => {
         }
     }
 
+    
+    // if (!append ) {
+    //     useReplayAndMapStore.getState().flushWatchedReplays();
+    // }
     useReplayAndMapStore.getState().addReplaysToQueue(replays);
 
     // if we're appending just let the current replay finish
@@ -115,7 +116,7 @@ globalEvents.on("queue-files", async ({ files, append}) => {
     if (!append ) {
         useReplayAndMapStore.getState().queueUpNextReplay(replays[0]);
         await sceneStore().execSceneLoader(homeSceneLoader, "@home");
-        if (useReplayAndMapStore.getState().replayQueue.length === 1) {
+        if (useReplayAndMapStore.getState().replayQueue.length === 1 || settingsStore().data.utilities.autoPlayReplayQueue) {
             loadQueuedReplay();
         }
     }

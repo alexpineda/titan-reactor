@@ -20,6 +20,7 @@ export interface ReplayAndMapStore {
     deleteReplayQueueItem: (replay: ValidatedReplay) => void;
     queueUpNextReplay: (replay: ValidatedReplay) => void;
     clearReplayQueue: () => void;
+    flushWatchedReplays: () => void;
 }
 
 export const useReplayAndMapStore = create<ReplayAndMapStore>( ( set, get ) => ( {
@@ -40,6 +41,12 @@ export const useReplayAndMapStore = create<ReplayAndMapStore>( ( set, get ) => (
     clearReplayQueue: () => {
         set( { replayQueue: [] } );
         set({nextReplay: undefined});
+    },
+    flushWatchedReplays: () => {
+        const idx = get().replayQueue.findIndex( r => r === get().nextReplay );
+        if (idx !== -1) {
+            set( { replayQueue: get().replayQueue.slice( idx ) } );
+        }
     },
     addToTotalGameTime(t: number) {
         set( { totalGameTime: get().totalGameTime + t } );

@@ -14,6 +14,7 @@ import { useGameStore } from "@stores/game-store";
 import { omitCharacters } from "@utils/chk-utils";
 import { ValidatedReplay } from "../replay-scene-loader";
 import { loadQueuedReplay } from "../../titan-reactor";
+import { useSettingsStore } from "@stores/settings-store";
 
 const iconStyle = {
     width: "var(--size-8)",
@@ -147,6 +148,7 @@ const ReplayQueueList = () => {
         zerg: URL.createObjectURL(rawIcons.zerg),
     });
     const progress = useProcessStore((state) => state.getTotalProgress());
+    const isAutoplay = useSettingsStore(state => state.data.utilities.autoPlayReplayQueue);
 
     const idx  = replayQueue.findIndex((replay) => replay === upnextReplay);
     let sliceIndexStart = Math.max(0, idx - 2)
@@ -228,7 +230,7 @@ const ReplayQueueList = () => {
             })}
             </tbody>
         </table>
-        {!!progress && !replay && 
+        {!!progress && !replay && !isAutoplay &&
             <div style={{color:"#666", cursor: "pointer"}} onClick={loadQueuedReplay}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" style={{width:"24px"}}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12.75 15l3-3m0 0l-3-3m3 3h-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
