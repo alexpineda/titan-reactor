@@ -1,5 +1,5 @@
 import { Texture } from "three";
-import { SimpleBufferView } from "@buffer-view";
+import { SimpleBufferView } from "@openbw/structs";
 
 import { Janitor } from "three-janitor";
 import { generateCreep } from "./generate-creep";

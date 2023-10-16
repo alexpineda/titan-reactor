@@ -1,4 +1,4 @@
-import { UnitsBufferView } from "@buffer-view/units-buffer-view";
+import { UnitsBufferView } from "@openbw/structs/units-buffer-view";
 import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
 import { IterableMap } from "@utils/data-structures/iteratible-map";

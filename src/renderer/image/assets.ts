@@ -247,10 +247,12 @@ export const initializeAssets = async ( directories: {
 
     processStore().increment();
 
-    await loadDatFilesRemote().then( ( dat ) => {
+    const bwDat = await loadDatFilesRemote().then( ( dat ) => {
         setAsset( "bwDat", dat );
         // preload some assets that will not be loaded otherwise?
         loadImageAtlas( imageTypes.warpInFlash, dat );
+
+        return dat;
     } );
 
     const r = {
@@ -285,6 +287,10 @@ export const initializeAssets = async ( directories: {
             loadingHD.clear();
             loadingHD2.clear();
             glbExists.clear();
+
+            // special case because this is an overlay? todo: figure this out please
+            loadImageAtlas( imageTypes.warpInFlash, bwDat );
+
         },
     };
 

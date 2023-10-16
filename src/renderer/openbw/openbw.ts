@@ -5,9 +5,9 @@ import { readFileSync } from "fs";
 import path from "path";
 import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
-import { UnitsBufferViewIterator, destroyedUnitsIterator, killedUnitIterator } from "@buffer-view/units-buffer-view";
-import { SpritesBufferViewIterator, deletedSpritesIterator } from "@buffer-view/sprites-buffer-view-iterator";
-import { ImageBufferView, deletedImageIterator } from "@buffer-view/images-buffer-view";
+import { UnitsBufferViewIterator, destroyedUnitsIterator, killedUnitIterator } from "@openbw/structs/units-buffer-view.js";
+import { SpritesBufferViewIterator, deletedSpritesIterator } from "@openbw/structs/sprites-buffer-view-iterator.js";
+import { ImageBufferView, deletedImageIterator } from "@openbw/structs/images-buffer-view.js";
 
 /**
  * @public

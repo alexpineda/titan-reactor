@@ -6,7 +6,6 @@ module.exports = {
   "@ipc": "./src/renderer/ipc",
   "@plugins": "./src/renderer/plugins",
   "@process-replay": "./src/renderer/process-replay",
-  "@buffer-view": "./src/renderer/buffer-view",
   "@openbw": "./src/renderer/openbw",
   "@audio": "./src/renderer/audio",
   "@render": "./src/renderer/render",

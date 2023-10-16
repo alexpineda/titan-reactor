@@ -1,4 +1,4 @@
-import { UnitsBufferView } from "@buffer-view/units-buffer-view";
+import { UnitsBufferView } from "@openbw/structs/units-buffer-view";
 import { World } from "@core/world/world";
 import { borrow } from "@utils/object-utils";
 import { UnitStruct } from "common/types";

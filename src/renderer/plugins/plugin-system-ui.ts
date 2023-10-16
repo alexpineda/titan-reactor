@@ -24,7 +24,7 @@ import {
 } from "./events";
 import { waitForTruthy } from "@utils/wait-for";
 import { DumpedUnit, Unit } from "@core/unit";
-import { StdVector } from "../buffer-view/std-vector";
+import { StdVector } from "../openbw/structs/std-vector";
 import * as enums from "common/enums";
 import gameStore from "@stores/game-store";
 import { getSecond } from "common/utils/conversions";

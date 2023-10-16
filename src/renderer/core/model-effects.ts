@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unnecessary-condition */
-import { ImageBufferView } from "@buffer-view/images-buffer-view";
+import { ImageBufferView } from "@openbw/structs/images-buffer-view";
 import gameStore from "@stores/game-store";
 import { applyCameraDirectionToImageFrame } from "@utils/camera-utils";
 import {

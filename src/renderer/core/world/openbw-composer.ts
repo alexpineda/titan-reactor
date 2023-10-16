@@ -16,7 +16,7 @@ import { World } from "./world";
 import { mixer } from "@core/global";
 import { Timer } from "@utils/timer";
 import { borrow, Borrowed } from "@utils/object-utils";
-import { SimpleBufferView } from "@buffer-view/simple-buffer-view";
+import { SimpleBufferView } from "@openbw/structs/simple-buffer-view";
 
 export type OpenBwComposer = ReturnType<typeof createOpenBWComposer>;
 export type OpenBwComposerApi = OpenBwComposer["api"];

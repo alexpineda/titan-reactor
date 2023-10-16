@@ -1,4 +1,4 @@
-import { Unit } from "../core";
+import { Unit } from "../../core";
 import { UnitStruct } from "common/types/structs";
 import { FP8 } from "./fixed-point";
 import { FlingyBufferView } from "./flingy-buffer-view";
@@ -189,6 +189,11 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
 
     isAttacking() {
         if ( this.orderTargetAddr === 0 || this.orderTargetUnit === 0 ) return false;
+        if (this.subunit) {
+            if (!gameStore().assets!.bwDat .units[this.subunit.typeId]) {
+                debugger;
+            }
+        }
         const unit = this.subunit && gameStore().assets!.bwDat .units[this.subunit.typeId].isTurret ? this.subunit : this;
         const sprite = unit.getSprite();
         if (!sprite) return false;

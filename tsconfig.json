@@ -47,8 +47,6 @@
             "@plugins/*": ["renderer/plugins/*"],
             "@plugins": ["renderer/plugins/index.ts"],
             "@process-replay/*": ["renderer/process-replay/*"],
-            "@buffer-view/*": ["renderer/buffer-view/*"],
-            "@buffer-view": ["renderer/buffer-view/index.ts"],
             "@openbw/*": ["renderer/openbw/*"],
             "@openbw": ["renderer/openbw/index.ts"],
             "@audio/*": ["renderer/audio/*"],

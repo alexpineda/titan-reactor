@@ -18,7 +18,7 @@ import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-spri
 import {
     PlayerBufferViewIterator,
     PlayerController,
-} from "@buffer-view/player-buffer-view";
+} from "@openbw/structs/player-buffer-view";
 import { BasePlayer } from "@core/players";
 import { playerColors } from "common/enums";
 import { raceToString } from "@utils/string-utils";

@@ -1,7 +1,7 @@
-import type { SpritesBufferView } from "@buffer-view/sprites-buffer-view";
+import type { SpritesBufferView } from "@openbw/structs/sprites-buffer-view";
 import type {
     UnitsBufferView,
-} from "@buffer-view/units-buffer-view";
+} from "@openbw/structs/units-buffer-view";
 import { ImageEntities } from "@core/image-entities";
 import { ImageHD } from "@core/image-hd";
 import {

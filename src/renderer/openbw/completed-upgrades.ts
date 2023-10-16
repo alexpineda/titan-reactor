@@ -1,4 +1,4 @@
-import { StdVector } from "@buffer-view";
+import { StdVector } from "@openbw/structs";
 import { OpenBW } from "@openbw/openbw";
 
 import range from "common/utils/range";

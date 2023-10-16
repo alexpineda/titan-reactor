@@ -1,4 +1,4 @@
-import { UnitsBufferViewIterator } from "@buffer-view/units-buffer-view";
+import { UnitsBufferViewIterator } from "@openbw/structs/units-buffer-view";
 import { orders } from "common/enums";
 import { OpenBW } from "@openbw/openbw";
 import range from "common/utils/range";
