@@ -6,7 +6,7 @@ import { FieldDefinition } from "common/types";
 import { useMacroStore } from "../use-macros-store";
 import { useContext } from "react";
 import { PreviewContext } from "../PreviewContext";
-import { sendWindow, SendWindowActionType } from "@ipc/relay";
+import { sendWindow, SendWindowActionType } from "../../ipc/relay";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { Schema } from "leva/plugin";
 

@@ -6,7 +6,7 @@
 import { EditorView } from "@codemirror/view";
 import { useEffect, useRef } from "react";
 import { setupExtensions } from "./setup-extensions";
-import { setEditorContents } from "@ipc/editor";
+import { setEditorContents } from "../ipc/editor";
 
 export const ScriptInline = ( {
     content,

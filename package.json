@@ -14,15 +14,17 @@
         "test:once": "jest --runInBand",
         "test:debug": "node --inspect node_modules/jest/bin/jest --runInBand",
         "clear-cache": "rimraf .cache dist",
-        "build": "vite build",
-        "dist": "vite build && electron-builder",
+        "build:src": "vite build",
+        "build:electron": "electron-builder",
+        "build": "build && build:electron",
         "lint": "yarn eslint . && yarn prettier --check .",
         "clean-dev-win": "taskkill /f /im node.exe",
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
         "build-api-types": "ts-node -T .\\build\\api-types\\index.ts",
         "build-api-docs:host": "typedoc --out docs/host --tsconfig tsconfig.host-api.json build/api-types/host/index.d.ts",
         "build-api-docs:ui": "typedoc --out docs/ui --tsconfig tsconfig.ui-api.json build/api-types/ui/index.d.ts",
-        "build-api-docs": "yarn build-api-docs:host && yarn build-api-docs:ui"
+        "build-api-docs": "yarn build-api-docs:host && yarn build-api-docs:ui",
+        "web": "vite -c vite.config.web.ts"
     },
     "repository": {
         "type": "git",
@@ -142,7 +144,6 @@
         "@types/lodash.shuffle": "^4.2.6",
         "@types/lodash.throttle": "^4.1.6",
         "@types/mkdirp": "^1.0.2",
-        "@types/node": "^18.7.1",
         "@types/npmcli__package-json": "^2.0.0",
         "@types/offscreencanvas": "^2019.7.0",
         "@types/pacote": "^11.1.3",

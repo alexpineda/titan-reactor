@@ -13,18 +13,18 @@ import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { MeshoptDecoder } from "./mesh-opt-decoder";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
 import { getWebGLRenderer } from "@render/render-composer";
-import path from "path";
+// import path from "path";
 
-const ktx2Loader = new KTX2Loader();
-getWebGLRenderer(renderer => {
-    ktx2Loader.setTranscoderPath( path.join( __static, "basis" ) );
-    ktx2Loader.detectSupport( renderer );
-})
+// const ktx2Loader = new KTX2Loader();
+// getWebGLRenderer(renderer => {
+//     ktx2Loader.setTranscoderPath( path.join( __static, "basis" ) );
+//     ktx2Loader.detectSupport( renderer );
+// })
 
 
 const loader = new GLTFLoader()
-    .setMeshoptDecoder( MeshoptDecoder )
-    .setKTX2Loader( ktx2Loader );
+    // .setMeshoptDecoder( MeshoptDecoder )
+    // .setKTX2Loader( ktx2Loader );
 
 export interface GlbResponse {
     model: Group;

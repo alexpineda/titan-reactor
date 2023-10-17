@@ -8,7 +8,7 @@ import type {
 } from "common/types";
 
 import { log } from "@ipc/log";
-import { savePluginsConfig } from "@ipc/plugins";
+// import { savePluginsConfig } from "renderer/command-center/ipc/plugins";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 
 const structuredClone =
@@ -60,7 +60,7 @@ export class PluginBase {
 
         this.#config[key].value = value;
         if ( persist ) {
-            savePluginsConfig( this.id, this.#config );
+            // savePluginsConfig( this.id, this.#config );
         }
     }
 

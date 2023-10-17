@@ -1,4 +1,4 @@
-import { ipcRenderer } from "electron";
+// import { ipcRenderer } from "electron";
 
 import {
     OPEN_CASCLIB_REMOTE,
@@ -8,6 +8,7 @@ import {
 } from "common/ipc-handle-names";
 import {
     CloseCascStorage,
+    FindCascFiles,
     OpenCascStorage,
     ReadCascFile,
     ReadCascFileBatch,
@@ -41,4 +42,8 @@ export const readCascFileBatchRemote: ReadCascFileBatch = async (
     );
     // return arrayBuffers.map((b: Uint8Array) => Buffer.from(b.buffer));
     return arrayBuffers;
+};
+
+export const findFilesRemote: FindCascFiles = async ( fileName: string ) => {
+    return [];
 };

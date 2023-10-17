@@ -10,6 +10,9 @@ export type ReadCascFileBatch = (
     bwPath: string[],
     encoding?: BufferEncoding
 ) => Promise<ArrayBuffer[]>;
+export type FindCascFiles = (
+    bwPath: string
+) => Promise<string[]>;
 
 export type RemotePackage = {
     name: string;

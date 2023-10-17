@@ -6,6 +6,7 @@ import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
+// import { Canvas, useFrame as r3fUseFrame } from 'https://cdn.jsdelivr.net/npm/@react-three/fiber@8.14.5/+esm'
 
 // split up an array into chunks of size n
 function chunk( arr: Int32Array, n: number ) {
@@ -759,6 +760,23 @@ const App = ( { components }: { components: Component[] } ) => {
     );
 
     return (
+        <>
+        {/* <Canvas style={{
+            position: "absolute",
+            left: 0,
+            top: 0,
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+            zIndex: 0,
+            backgroundColor: "transparent",
+        }}>
+            <ambientLight />
+            <pointLight position={[10, 10, 10]} />
+            <Box position={[-1.2, 0, 0]} />
+            <Box position={[1.2, 0, 0]} />
+        </Canvas> */}
         <div
             ref={containerDiv}
             style={{
@@ -769,7 +787,10 @@ const App = ( { components }: { components: Component[] } ) => {
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-            }}>
+            backgroundColor: "transparent",
+
+            zIndex: 1,
+        }}>
             <div
                 id="top-container"
                 style={{
@@ -885,6 +906,7 @@ const App = ( { components }: { components: Component[] } ) => {
                 .sort( orderSort )
                 .map( renderComponent )}
         </div>
+        </>
     );
 };
 
@@ -919,6 +941,30 @@ class ErrorBoundary extends React.Component {
         return this.props.children;
     }
 }
+
+
+// function Box(props: any) {
+//   // This reference will give us direct access to the mesh
+//   const meshRef = useRef()
+//   // Set up state for the hovered and active state
+//   const [hovered, setHover] = useState(false)
+//   const [active, setActive] = useState(false)
+//   // Subscribe this component to the render-loop, rotate the mesh every frame
+//   r3fUseFrame((_, delta: number) => (meshRef.current.rotation.x += delta))
+//   // Return view, these are regular three.js elements expressed in JSX
+//   return (
+//     <mesh
+//       {...props}
+//       ref={meshRef}
+//       scale={active ? 1.5 : 1}
+//       onClick={(event) => setActive(!active)}
+//       onPointerOver={(event) => setHover(true)}
+//       onPointerOut={(event) => setHover(false)}>
+//       <boxGeometry args={[1, 1, 1]} />
+//       <meshStandardMaterial color={hovered ? 'hotpink' : 'orange'} />
+//     </mesh>
+//   )
+// }
 
 ReactDOM.render( <AppWrapper />, document.body );
 

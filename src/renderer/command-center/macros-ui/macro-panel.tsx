@@ -13,7 +13,7 @@ import { useMacroStore } from "./use-macros-store";
 import { MathUtils } from "three";
 import { ConfigureTrigger } from "./configure-trigger";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { sendWindow, SendWindowActionType } from "@ipc/relay";
+import { sendWindow, SendWindowActionType } from "../ipc/relay";
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import usePrevious from "@utils/react/use-previous";
 import { PreviewContext } from "./PreviewContext";

@@ -1,32 +1,32 @@
-import { Replay, parseReplay } from "@process-replay/parse-replay";
-import { writeReplay } from "@process-replay/write-replay";
+import type { Replay  } from "@process-replay/parse-replay";
+// import { Replay, parseReplay } from "@process-replay/parse-replay";
+// import { writeReplay } from "@process-replay/write-replay";
 import { Version } from "@process-replay/version";
 import CommandsStream from "@process-replay/commands/commands-stream";
-import ChkDowngrader from "@process-replay/chk/chk-downgrader";
+// import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 
-import Chk from "bw-chk";
+import type Chk from "bw-chk";
 
 import { OpenBW } from "@openbw/openbw";
 
 import { GameTypes } from "common/enums";
-import { openFile } from "@ipc/files";
 import { log } from "@ipc/log";
 import { settingsStore } from "@stores/settings-store";
 import processStore from "@stores/process-store";
 import { makeGameScene } from "./game-scene/game-scene";
 import { Janitor } from "three-janitor";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
-import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
+// import { cleanMapTitles  } from "@utils/chk-utils";
 import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
 import { detectMeleeObservers } from "@utils/replay-utils";
 import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import { SceneState } from "./scene";
 import gameStore from "@stores/game-store";
 import {   waitForSeconds, waitForTruthy } from "@utils/wait-for";
-import { writeFileSync } from "fs";
 import { globalEvents } from "@core/global-events";
 import debounce from "lodash.debounce";
 import { music } from "@audio/music";
+import { openFile } from "@ipc/files";
 // import { writeFileSync } from "fs";
 
 // const createNarrative = (commands: CommandsStream) => {
@@ -58,11 +58,11 @@ export type ValidatedReplay = Replay & {
     buffer: Buffer;
     uid: number;
 }
-export const loadAndValidateReplay = async ( filepath: string ) => {
+export const loadAndValidateReplay = async ( file: File ) => {
     const settings = settingsStore().data;
 
-    let replayBuffer = await openFile( filepath );
-    let replay = await parseReplay( replayBuffer );
+    let replayBuffer = await openFile( file );
+    let replay = {} as Replay;// await parseReplay( Buffer.from( replayBuffer ) );
 
     if ( replay.header.players.some( ( player ) => player.isComputer ) ) {
         throw new Error( "Replays with computer players are not currently supported." );
@@ -86,16 +86,16 @@ export const loadAndValidateReplay = async ( filepath: string ) => {
         }
     }
 
-    if ( replay.version !== Version.titanReactor ) {
-        const chkDowngrader = new ChkDowngrader();
-        const chk = chkDowngrader.downgrade( replay.chk.slice( 0 ) );
-        const rawCmds = sanityCheck.length ? writeCommands( replay, [] ) : replay.rawCmds;
+    // if ( replay.version !== Version.titanReactor ) {
+    //     const chkDowngrader = new ChkDowngrader();
+    //     const chk = chkDowngrader.downgrade( replay.chk.slice( 0 ) );
+    //     const rawCmds = sanityCheck.length ? writeCommands( replay, [] ) : replay.rawCmds;
 
-        replayBuffer = writeReplay( replay.rawHeader, rawCmds, chk, replay.limits );
+    //     replayBuffer = writeReplay( replay.rawHeader, rawCmds, chk, replay.limits );
 
 
-        replay = await parseReplay( replayBuffer );
-    }
+    //     replay = await parseReplay( Buffer.from(replayBuffer));
+    // }
 
 
     replay.header.players = replay.header.players.filter( ( p ) => p.isActive );
@@ -114,11 +114,11 @@ export const loadAndValidateReplay = async ( filepath: string ) => {
         );
     }
 
-    if ( process.env.NODE_ENV === "development" ) {
-        writeFileSync( "G:\\last_replay.rep", replayBuffer );
-    }
+    // if ( process.env.NODE_ENV === "development" ) {
+    //     writeFileSync( "G:\\last_replay.rep", replayBuffer );
+    // }
 
-    (replay as ValidatedReplay).buffer = replayBuffer;
+    (replay as ValidatedReplay).buffer = Buffer.from(replayBuffer);
     (replay as ValidatedReplay).uid = Math.random();
     return replay as ValidatedReplay;
 }
@@ -138,7 +138,7 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
     document.title = "Titan Reactor";
 
 
-    const map = new Chk( replay.chk );
+    const map = {} as Chk //new Chk( replay.chk );
 
     cleanMapTitles( map );
 
@@ -149,7 +149,8 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
     log.info( `@replay-scene-loader/game: ${gameTitle}` );
     log.info( `@replay-scene-loader/game-type: ${GameTypes[replay.header.gameType]!}` );
 
-    useReplayAndMapStore.setState( { replay, map, mapImage: await createMapImage( map ) } );
+    // useReplayAndMapStore.setState( { replay, map, mapImage: await createMapImage( map ) } );
+    useReplayAndMapStore.setState( { replay, map  } );
     settingsStore().initSessionData( "replay" );
     globalEvents.emit( "replay-ready", { replay, map } );
 

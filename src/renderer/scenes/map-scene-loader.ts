@@ -1,11 +1,11 @@
 import Chk from "bw-chk";
-import loadScm from "@utils/load-scm";
+// import loadScm from "@utils/load-scm";
 import { log } from "@ipc/log";
 import processStore from "@stores/process-store";
 import { OpenBW } from "@openbw/openbw";
 
 import { waitForTruthy } from "@utils/wait-for";
-import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
+// import { cleanMapTitles  } from "@utils/chk-utils";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import gameStore from "@stores/game-store";
 import { Janitor } from "three-janitor";
@@ -38,16 +38,17 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
     log.debug( "loading chk" );
 
     const janitor = new Janitor( "MapSceneLoader" );
-    const chkBuffer = await loadScm( chkFilepath );
+    const chkBuffer = {} as Buffer;// await loadScm( chkFilepath );
 
     const chkDowngrader = new ChkDowngrader();
     const dBuffer = chkDowngrader.downgrade( chkBuffer );
     const map = new Chk( dBuffer );
 
-    cleanMapTitles( map );
+    // cleanMapTitles( map );
     updateWindowTitle( map.title );
 
-    useReplayAndMapStore.setState( { map, mapImage: await createMapImage( map ) } );
+    useReplayAndMapStore.setState( { map } );
+    // useReplayAndMapStore.setState( { map, mapImage: await createMapImage( map ) } );
     settingsStore().initSessionData( "map" );
     globalEvents.emit( "map-ready", {  map } );
 

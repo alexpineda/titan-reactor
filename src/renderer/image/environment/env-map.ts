@@ -1,4 +1,4 @@
-import { readFile } from "fs/promises";
+// import { readFile } from "fs/promises";
 import {
     ClampToEdgeWrapping,
     DataTexture,
@@ -54,7 +54,9 @@ export function loadEnvironmentMap(
     const texture = new DataTexture();
 
     const execute = async () => {
-        const buffer = new Uint8Array( ( await readFile( filepath ) ).buffer );
+        const res = await fetch(filepath);
+        const buffer = new Uint8Array( await res.arrayBuffer() );
+
         worker.postMessage( { buffer }, [ buffer.buffer ] );
 
         worker.onmessage = function ( { data: texData }: { data: RGBE } ) {

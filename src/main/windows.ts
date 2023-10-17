@@ -4,9 +4,7 @@ import path from "path";
 import { ROOT_PATH } from "./root-path";
 
 const browserWindows = {} as {
-    main: null | BrowserWindow;
     config: null | BrowserWindow;
-    iscriptah: null | BrowserWindow;
 };
 
 interface CreateWindowArgs {

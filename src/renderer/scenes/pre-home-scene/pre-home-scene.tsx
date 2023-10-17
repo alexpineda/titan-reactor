@@ -7,8 +7,7 @@ import dmLogo from "@image/assets/dm.png";
 import { LoadBar } from "./load-bar";
 import "./styles.css";
 import { GlobalErrorState } from "../error-state";
-import { showFolderDialog } from "@ipc/dialogs";
-import { settingsStore, useSettingsStore } from "@stores/settings-store";
+import {   useSettingsStore } from "@stores/settings-store";
 
 const styleCenterText = {
     position: "absolute",
@@ -26,21 +25,7 @@ export const PreHomeScene = () => {
     const error = useSceneStore( ( state ) => state.error );
     const initialInstall = useSettingsStore( ( state ) => state.initialInstall );
 
-    const isStarCraftDirectoryError =
-        error && error.message.toLowerCase().includes( "starcraft directory" );
-
-    const action = isStarCraftDirectoryError ? (
-        <button
-            onClick={async () => {
-                const folders = await showFolderDialog();
-                if ( folders && folders.length > 0 ) {
-                    settingsStore().data.directories.starcraft = folders[0];
-                    await settingsStore().save( settingsStore().data );
-                }
-            }}>
-            Select StarCraft Directory
-        </button>
-    ) : null;
+    const action =   null;
 
     useEffect( () => {
         return useProcessStore.subscribe( ( store ) => {

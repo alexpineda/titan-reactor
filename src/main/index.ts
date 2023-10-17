@@ -1,46 +1,20 @@
-import { app, powerSaveBlocker, nativeTheme, crashReporter, Menu } from "electron";
+import { app, powerSaveBlocker, nativeTheme, crashReporter } from "electron";
 import path from "path";
 
 import "./register-ipc-handlers";
-import createAppMenu from "./create-app-menu";
 
 import windows, { createWindow } from "./windows";
 import settings from "./settings/singleton";
 import getUserDataPath from "./get-user-data-path";
-import pluginServer from "./plugins/server";
-import browserWindows from "./windows";
-import { getBootupLogs } from "./log";
-import { GO_TO_START_PAGE_LOCAL, LOG_MESSAGE_REMOTE } from "common/ipc-handle-names";
+import pluginServer from "./plugins/plugin-server";
+// import browserWindows from "./windows";
+// import { getBootupLogs } from "./log";
 import { logService } from "./logger/singleton";
 import electronIsDev from "electron-is-dev";
-import { initACLs } from "./acl";
 
 const settingsPath = path.join( getUserDataPath(), "settings.json" );
 
 const gotTheLock = app.requestSingleInstanceLock();
-
-const createMainWindow = () => {
-    if ( windows.main ) {
-        if ( windows.main.isMinimized() ) windows.main.restore();
-        windows.main.focus();
-        return;
-    }
-
-    windows.main = createWindow( {
-        onClose: () => {
-            windows.main = null;
-            windows.config?.close();
-        },
-        backgroundColor: "#000000",
-        nodeIntegration: true,
-        devTools: true,
-        backgroundThrottling: false,
-        removeMenu: false,
-        filepath: "index.html",
-    } );
-    // windows.main.maximize();
-    windows.main.autoHideMenuBar = true;
-};
 
 const createConfigurationWindow = () => {
     if ( windows.config ) {
@@ -91,56 +65,31 @@ async function start(){
     } );
     nativeTheme.themeSource = "light";
 
-    await initACLs();
-
-  
-
     app.on( "second-instance", () => {
-        if ( windows.main ) {
-            if ( windows.main.isMinimized() ) windows.main.restore();
-            windows.main.focus();
+        if ( windows.config ) {
+            if ( windows.config.isMinimized() ) windows.config.restore();
+            windows.config.focus();
         }
     } );
 
     await app.whenReady();
-    
-    const menuTemplate = createAppMenu(
-        () => createConfigurationWindow(),
-        () => {
-            windows.main?.webContents.send( GO_TO_START_PAGE_LOCAL );
-        },
-        () => {
-            createWindow( {
-                onClose: () => {
-                    windows.config = null;
-                },
-                nodeIntegration: true,
-                removeMenu: true,
-                backgroundThrottling: true,
-                devTools: true,
-                filepath: "iscriptah.html",
-            } );
-        }
-    );
-    const menu = Menu.buildFromTemplate( menuTemplate );
-    Menu.setApplicationMenu( menu );
 
     await settings.init( settingsPath );
 
-    createMainWindow();
+    createConfigurationWindow();
 
     // on window ready send bootup logs
-    const _readyToShowLogs = () => {
-        for ( const log of getBootupLogs() ) {
-            browserWindows.main?.webContents.send(
-                LOG_MESSAGE_REMOTE,
-                log.message,
-                log.level
-            );
-        }
-        browserWindows.main?.off( "ready-to-show", _readyToShowLogs );
-    };
-    browserWindows.main?.on( "ready-to-show", _readyToShowLogs );
+    // const _readyToShowLogs = () => {
+    //     for ( const log of getBootupLogs() ) {
+    //         browserWindows.main?.webContents.send(
+    //             LOG_MESSAGE_REMOTE,
+    //             log.message,
+    //             log.level
+    //         );
+    //     }
+    //     browserWindows.main?.off( "ready-to-show", _readyToShowLogs );
+    // };
+    // browserWindows.main?.on( "ready-to-show", _readyToShowLogs );
 
     pluginServer.listen( settings.get().plugins.serverPort, "localhost" );
 
@@ -152,7 +101,7 @@ async function start(){
     } );
 
     app.on( "activate", () => {
-        createMainWindow();
+        createConfigurationWindow();
     } );
 
     app.on( "web-contents-created", ( _, contents ) => {

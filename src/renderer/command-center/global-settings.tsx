@@ -1,4 +1,4 @@
-import { sendWindow, SendWindowActionType } from "@ipc/relay";
+import { sendWindow, SendWindowActionType } from "./ipc/relay";
 import { useSettingsStore } from "@stores/settings-store";
 import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import {

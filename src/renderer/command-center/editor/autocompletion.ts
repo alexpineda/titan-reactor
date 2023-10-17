@@ -1,6 +1,6 @@
 import { autocompletion, completeFromList } from "@codemirror/autocomplete";
 import { Extension } from "@codemirror/state";
-import { getTsCompletionsAtPosition } from "@ipc/editor";
+import { getTsCompletionsAtPosition } from "../ipc/editor";
 
 export function createAutocompletion(): Extension {
     return autocompletion({

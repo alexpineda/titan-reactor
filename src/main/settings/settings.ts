@@ -17,11 +17,6 @@ import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { logService } from "../logger/singleton";
 import { PluginManager } from "../plugins/plugin-manager";
-import browserWindows from "../windows";
-import {
-    ON_PLUGINS_INITIAL_INSTALL_LOCAL,
-    ON_PLUGINS_INITIAL_INSTALL_ERROR_LOCAL,
-} from "common/ipc-handle-names";
 import { setStorageIsCasc, setStoragePath } from "common/casclib";
 import uniq from "common/utils/uniq";
 
@@ -90,14 +85,14 @@ export class Settings {
         await this.plugins.init( this.#settings.directories.plugins );
 
         if ( !this.plugins.hasAnyPlugins ) {
-            await this.plugins.installDefaultPlugins( () =>
-                browserWindows.main?.webContents.send( ON_PLUGINS_INITIAL_INSTALL_LOCAL )
-            );
+            await this.plugins.installDefaultPlugins( () => {} );
+                // browserWindows.main?.webContents.send( ON_PLUGINS_INITIAL_INSTALL_LOCAL )
+            
 
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             if ( !this.plugins.hasAnyPlugins ) {
                 log.error( "@load-plugins/default: Failed to install default plugins" );
-                browserWindows.main?.webContents.send( ON_PLUGINS_INITIAL_INSTALL_ERROR_LOCAL );
+                // browserWindows.main?.webContents.send( ON_PLUGINS_INITIAL_INSTALL_ERROR_LOCAL );
             }
         }
 

@@ -16,6 +16,7 @@ import { globalEvents } from "@core/global-events";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import { normalizePluginConfiguration } from "@utils/function-utils";
+import TestController from "@plugins/built-in/default-camera-controller?raw";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
@@ -56,6 +57,22 @@ export const createPluginSession = async (
         ),
         "nativePlugins"
     );
+
+    nativePlugins.activateAdditionalPlugins([
+        {
+            externMethods: [],
+            apiVersion: "2.0.0",
+            hooks: [],
+            hostIndexFile: "",
+            id: "test-controller",
+            indexFile: "",
+            isSceneController: true,
+            name: "test-controller",
+            path: "",
+            version: "1.0.0",
+            nativeSource: TestController,
+        },
+    ], createCompartment)
 
     // available to macros and sandbox only
     const store = janitor.mop(

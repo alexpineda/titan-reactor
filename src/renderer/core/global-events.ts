@@ -14,7 +14,7 @@ export interface GlobalEvents {
     "unsafe-open-url": string;
     "load-home-scene": undefined;
     "load-iscriptah": string;
-    "queue-files": { files: string[]; append?: boolean };
+    "queue-files": { files: File[]; append?: boolean };
     "log-message": { message: string; level: LogLevel; server?: boolean };
     "initial-install-error-plugins": undefined;
     "reload-all-plugins": undefined;

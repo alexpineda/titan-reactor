@@ -1,5 +1,5 @@
 import fs from "fs";
-import { findFiles } from "common/casclib";
+import { findFilesRemote as findFiles } from "@ipc/casclib"
 
 import { log } from "@ipc/log";
 import { settingsStore } from "@stores/settings-store";

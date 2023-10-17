@@ -1,10 +1,9 @@
-import { promises as fsPromises } from "fs";
 import path from "path";
-import { fileExists } from "common/utils/file-exists";
 import { BwDAT, UnitTileScale } from "common/types";
 import electronFileLoader from "common/utils/electron-file-loader";
 
-import { closeCascStorage, openCascStorage, readCascFile } from "common/casclib";
+import { readCascFileRemote as readCascFile, openCascStorageRemote as openCascStorage, closeCascStorageRemote as closeCascStorage } from "@ipc/casclib";
+
 
 import {
     AnimAtlas,
@@ -109,10 +108,7 @@ export const initializeAssets = async ( directories: {
         ),
     };
 
-    const envEXRAssetFilename = path.join( directories.assets, "envmap.exr" );
-    const envMapFilename = ( await fileExists( envEXRAssetFilename ) )
-        ? envEXRAssetFilename
-        : path.join( __static, "./envmap.hdr" );
+    const envMapFilename = path.join( __static, "./envmap.hdr" );
     log.debug( `@load-assets/envmap: ${envMapFilename}` );
     loadEnvironmentMap( envMapFilename, ( tex ) => {
         setAsset( "envMap", tex );
@@ -198,14 +194,14 @@ export const initializeAssets = async ( directories: {
             loadingHD.add( refImageId );
             loadingHD.add( imageId );
             if ( settings !== "auto" ) {
-                glbExists.set( refImageId, await fileExists( glbFileName( glbRefImageId ) ) );
+                // glbExists.set( refImageId, await fileExists( glbFileName( glbRefImageId ) ) );
             }
         } else if ( loadingHD2.has( refImageId ) ) {
             return;
         } else if ( !loadingHD2.has( refImageId ) ) {
             loadingHD2.add( refImageId );
             loadingHD2.add( imageId );
-            glbExists.set( refImageId, await fileExists( glbFileName( glbRefImageId ) ) );
+            // glbExists.set( refImageId, await fileExists( glbFileName( glbRefImageId ) ) );
         }
 
         if ( res === UnitTileScale.HD && settings !== "ignore" ) {

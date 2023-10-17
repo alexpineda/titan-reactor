@@ -8,7 +8,7 @@ import aliases from "./build/aliases";
 import path from "path";
 import tsConfig from "./tsconfig.json"
 
-const OUT_DIR = "dist/electron";
+const OUT_DIR = "dist/command";
 
 rmSync(OUT_DIR, { recursive: true, force: true }); // v14.14.0
 
@@ -56,9 +56,7 @@ export default defineConfig((env) => {
             target: tsConfig.compilerOptions.target,
             rollupOptions: {
                 input: {
-                    index: path.resolve(__dirname, "./index.html"),
                     command: path.resolve(__dirname, "./command-center.html"),
-                    iscriptah: path.resolve(__dirname, "./iscriptah.html"),
                 },
             },
             minify: false,

@@ -109,6 +109,15 @@ export const createWorldComposer = async (
             await viewControllerComposer.activate( sceneController, defaultData );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
+        } else {
+            const sceneController = apiSession.native
+            .getAllSceneControllers()
+            .find( ( handler ) => handler.isSceneController );
+            apiSession.native.activateSceneController( sceneController );
+            await viewControllerComposer.activate( sceneController, defaultData );
+            inputsComposer.unitSelectionBox.camera =
+                viewControllerComposer.primaryCamera!;
+
         }
     };
 

@@ -3,7 +3,7 @@ import fs from "fs";
 import express from "express";
 import { transpile } from "../typescript/transpile";
 import browserWindows from "../windows";
-import { LOG_MESSAGE_REMOTE, EXEC_MACRO_LOCAL } from "common/ipc-handle-names";
+import { LOG_MESSAGE_REMOTE  } from "common/ipc-handle-names";
 import settings from "../settings/singleton";
 import { fileExists } from "common/utils/file-exists";
 import { logService } from "../logger/singleton";
@@ -47,10 +47,10 @@ app.get( "*", async function ( req, res ) {
                 return;
                 // POST wasn't working
             } else if ( req.query.macroId ) {
-                browserWindows.main!.webContents.send(
-                    EXEC_MACRO_LOCAL,
-                    req.query.macroId
-                );
+                // browserWindows.main!.webContents.send(
+                //     EXEC_MACRO_LOCAL,
+                //     req.query.macroId
+                // );
                 return res.status( 200 ).send();
             }
 

@@ -7,7 +7,7 @@ import {
     deactivatePlugin,
     activatePlugins,
     downloadPlugin,
-} from "@ipc/plugins";
+} from "./ipc/plugins";
 import semver from "semver";
 
 type RemotePackage = search.Result;

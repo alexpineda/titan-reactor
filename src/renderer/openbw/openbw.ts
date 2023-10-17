@@ -1,7 +1,7 @@
 import initializeWASM from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
 import { Timer } from "@utils/timer";
-import { readFileSync } from "fs";
+// import { readFileSync } from "fs";
 import path from "path";
 import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
@@ -72,7 +72,7 @@ export class OpenBW implements OpenBW {
                     return path.join( __static, "titan.worker.js" );
                 }
             },
-            wasmBinary: readFileSync( path.join( __static, "titan.wasm" ) ),
+            // wasmBinary: readFileSync( path.join( __static, "titan.wasm" ) ),
         } ) ) as OpenBWWasm;
         mix( this, this.#wasm );
     }

@@ -43,7 +43,7 @@ globalEvents.on("log-message", ({ message, level, server }) =>
 );
 
 //todo: change this to validatedmap
-const loadMapFile = async (file: string) => {
+const loadMapFile = async (file: File) => {
     await sceneStore().execSceneLoader(homeSceneLoader, "@home");
 
     useReplayAndMapStore.getState().clearReplayQueue();
@@ -90,15 +90,15 @@ globalEvents.on("queue-files", async ({ files, append}) => {
         return;
     }
     //todo map stuff here
-    if (files[0].endsWith('.scx') || files[0].endsWith('.scm')) {
+    if (files[0].path.endsWith('.scx') || files[0].path.endsWith('.scm')) {
         loadMapFile(files[0]);
         return;
     }
 
     const replays: ValidatedReplay[] = [];
-    for (const filepath of files) {
+    for (const file of files) {
         try {
-            replays.push(await loadAndValidateReplay(filepath));
+            replays.push(await loadAndValidateReplay(file));
         } catch (e) {
             console.error(e);
         }

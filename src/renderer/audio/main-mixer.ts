@@ -1,6 +1,6 @@
 import { AudioContext, Quaternion, Vector3 } from "three";
 import fs from "fs/promises";
-import { readCascFile } from "common/casclib";
+import { readCascFileRemote as readCascFile } from "@ipc/casclib";
 import gameStore from "@stores/game-store";
 import { Settings } from "common/types";
 const MUSIC_REDUCTION_RATIO = 0.1;

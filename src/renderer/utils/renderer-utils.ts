@@ -4,8 +4,7 @@ import { log } from "@ipc/log";
 
 export const logCapabilities = () => {
     log.info( `@init: titan-reactor ${version}` );
-    log.info( `@init: chrome ${process.versions.chrome}` );
-    log.info( `@init: electron ${process.versions.electron}` );
+    // log.info( `@init: chrome ${process.versions.chrome}` );
     log.info( `@init: resolution ${window.innerWidth}x${window.innerHeight}` );
 
     getWebGLRenderer(r => {
