@@ -1,11 +1,10 @@
 import "./style.css";
-import search from "libnpmsearch";
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { loadRemoteMetaData, savePluginsConfig } from "@ipc/plugins";
 import { useSettingsStore, settingsStore } from "@stores/settings-store";
-import { PluginConfig, PluginMetaData } from "common/types";
+import { PluginConfig, PluginMetaData, RemotePackage } from "common/types";
 import { DetailSheet } from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
@@ -16,11 +15,11 @@ import { sendWindow, SendWindowActionType } from "@ipc/relay";
 import { InvokeBrowserTarget  } from "common/ipc-handle-names";
 import { getUpdateVersion, localPluginRepository } from "./plugin-utils";
 import { PluginButton } from "./plugin-button";
-import semver from "semver";
 
 import "../../../bundled/assets/normalize.min.css";
 import "../../../bundled/assets/open-props.1.4.min.css";
 import "../../../bundled/assets/buttons.min.css";
+import { searchPackagesRemote } from "@ipc/files";
 
 document.title = "Command Center";
 
@@ -40,28 +39,7 @@ const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
     } );
 }, 100 );
 
-type RemotePackage = search.Result & {
-    readme?: string;
-};
 
-const LIMIT = 1000;
-const SEARCH_KEYWORDS = "keywords:titan-reactor-plugin";
-const SEARCH_OFFICIAL = "@titan-reactor-plugins";
-
-const searchPackages = async ( cb: ( val: RemotePackage[] ) => void ) => {
-    const officialPackages = await search( SEARCH_OFFICIAL, {
-        limit: LIMIT,
-    } );
-
-    const publicPackages = (
-        await search( SEARCH_KEYWORDS, {
-            limit: LIMIT,
-        } )
-    ).filter( ( pkg ) => !officialPackages.some( ( p ) => p.name === pkg.name ) );
-
-    const results = [ ...officialPackages, ...publicPackages ];
-    cb( results );
-};
 
 const isDeprecated = ( plugin: PluginMetaData | undefined ) =>
     ( plugin?.keywords ?? [] ).includes( "deprecated" );
@@ -95,7 +73,7 @@ const CommandCenter = () => {
         if ( !plugin.local ) {
             setSelectedPluginPackage( { remote: undefined } );
         }
-        searchPackages( setRemotePackages );
+        searchPackagesRemote( setRemotePackages );
     }, [ plugin.local ] );
 
     // populate the readme of a remote plugin
@@ -114,12 +92,6 @@ const CommandCenter = () => {
     const matchingRemotePlugin = remotePackages.find(
         ( p ) => p.name === plugin.local?.name
     );
-    const localVersionGreater = semver.gt(
-        plugin.local?.version ?? "0.0.0",
-        matchingRemotePlugin?.version ?? "0.0.0"
-    );
-
-    const canDelete = Boolean( matchingRemotePlugin && !localVersionGreater );
 
     const updateVersion = getUpdateVersion( matchingRemotePlugin, plugin.local );
 
@@ -353,7 +325,7 @@ const CommandCenter = () => {
                                                 }>
                                                 Enable Plugin
                                             </button>
-                                            {canDelete && (
+                                            {(
                                                 <button
                                                     style={{
                                                         background: "var(--red-5)",

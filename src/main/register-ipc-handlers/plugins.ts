@@ -8,6 +8,7 @@ import {
     ON_PLUGINS_ACTIVATED_LOCAL,
     RELOAD_PLUGINS_LOCAL,
     SAVE_PLUGIN_CONFIG_REMOTE,
+    SEARCH_NPM_PACKAGES_REMOTE,
 } from "common/ipc-handle-names";
 import settings from "../settings/singleton";
 import browserWindows from "../windows";
@@ -55,3 +56,8 @@ ipcMain.handle( DOWNLOAD_PLUGIN, async ( _, repository: string ) => {
 ipcMain.handle( LOAD_REMOTE_PLUGIN_METADATA, async ( _, repository: string ) => {
     return await settings.plugins.loadRemoteMetaData( repository );
 } );
+
+ipcMain.handle( SEARCH_NPM_PACKAGES_REMOTE, async (  ) => {
+    return await settings.plugins.searchPackages();
+} );
+

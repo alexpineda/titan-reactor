@@ -26,7 +26,6 @@ export interface PluginPackage {
     peerDependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
     config?: PluginConfig;
-    permissions?: string[];
 }
 
 /**
