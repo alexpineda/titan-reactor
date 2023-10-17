@@ -1,5 +1,5 @@
 import { ipcRenderer } from "electron";
-import { LOG_MESSAGE } from "common/ipc-handle-names";
+import { LOG_MESSAGE_REMOTE } from "common/ipc-handle-names";
 import { LogLevel } from "common/logging";
 import { settingsStore } from "@stores/settings-store";
 
@@ -44,7 +44,7 @@ export const logServer = ( message: string, level: LogLevel = "info" ) => {
         return;
     }
 
-    ipcRenderer.send( LOG_MESSAGE, { level, message } );
+    ipcRenderer.send( LOG_MESSAGE_REMOTE, { level, message } );
 };
 
 export const logClient = ( message: string, level: LogLevel = "info" ) => {

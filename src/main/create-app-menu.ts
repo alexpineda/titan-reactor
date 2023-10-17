@@ -8,10 +8,8 @@ import path from "path";
 import browserWindows from "./windows";
 import settings from "./settings/singleton";
 import {
-    ADD_REPLAY_DIALOG,
-    OPEN_MAP_DIALOG,
-    OPEN_REPLAY_DIALOG,
-    RELOAD_PLUGINS,
+    QUEUE_FILES_LOCAL,
+    RELOAD_PLUGINS_LOCAL,
 } from "common/ipc-handle-names";
 // import electronIsDev from "electron-is-dev";
 
@@ -36,8 +34,8 @@ export default (
                         const files = await showOpenReplayDialog();
                         if ( files && files.length > 0 ) {
                             browserWindows.main!.webContents.send(
-                                OPEN_REPLAY_DIALOG,
-                                files
+                                QUEUE_FILES_LOCAL,
+                                { files }
                             );
                         }
                     },
@@ -50,8 +48,8 @@ export default (
                         const files = await showOpenReplayDialog();
                         if ( files && files.length > 0 ) {
                             browserWindows.main!.webContents.send(
-                                ADD_REPLAY_DIALOG,
-                                files
+                                QUEUE_FILES_LOCAL,
+                                { files, append: true }
                             );
                         }
                     },
@@ -63,8 +61,8 @@ export default (
                         const files = await showOpenMapDialog();
                         if ( files && files.length > 0 ) {
                             browserWindows.main!.webContents.send(
-                                OPEN_MAP_DIALOG,
-                                files[0]
+                                QUEUE_FILES_LOCAL,
+                                { files: [ files[ 0 ] ] }
                             );
                         }
                     },
@@ -128,7 +126,7 @@ export default (
                     label: "Reload Plugins",
                     click: async () => {
                         await settings.initialize();
-                        browserWindows.main?.webContents.send( RELOAD_PLUGINS );
+                        browserWindows.main?.webContents.send( RELOAD_PLUGINS_LOCAL );
                     },
                 },
                 { type: "separator" },

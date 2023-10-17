@@ -1,10 +1,9 @@
 import { Vector3 } from "three";
 import { SoundDAT } from "common/types";
 import gameStore from "@stores/game-store";
-import { SoundChannels } from "@audio/sound-channels";
+import { SoundChannels, mixer } from "@audio";
 import { ProjectedCameraView } from "renderer/camera/projected-camera-view";
 import { PxToWorld } from "common/utils/conversions";
-import { mixer } from "@core/global";
 import { GameViewPort } from "../camera/game-viewport";
 
 export const MinPlayVolume = 10;

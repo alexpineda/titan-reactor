@@ -20,13 +20,13 @@ import { createViewControllerComposer } from "./view-controller-composer";
 import { TypeEmitter } from "@utils/type-emitter";
 import { World } from "./world";
 import { mix } from "@utils/object-utils";
-import { mixer } from "@core/global";
 import { WorldEvents } from "./world-events";
 import { createInputComposer } from "./input-composer";
 import { settingsStore } from "@stores/settings-store";
 import { globalEvents } from "@core/global-events";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
+import { mixer } from "@audio/main-mixer";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 

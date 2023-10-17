@@ -1,17 +1,17 @@
 import { ipcRenderer } from "electron";
 
 import {
-    DELETE_PLUGIN,
+    DELETE_PLUGIN_REMOTE,
     DEACTIVATE_PLUGIN,
-    ACTIVATE_PLUGINS,
+    ACTIVATE_PLUGINS_REMOTE,
     DOWNLOAD_PLUGIN,
     LOAD_REMOTE_PLUGIN_METADATA,
-    UPDATE_PLUGIN_CONFIG,
+    SAVE_PLUGIN_CONFIG_REMOTE,
 } from "common/ipc-handle-names";
 import { PluginMetaData } from "common/types";
 
 export const savePluginsConfig = async ( pluginId: string, config: any ) => {
-    await ipcRenderer.invoke( UPDATE_PLUGIN_CONFIG, pluginId, config );
+    await ipcRenderer.invoke( SAVE_PLUGIN_CONFIG_REMOTE, pluginId, config );
 };
 
 export const deactivatePlugin = async ( pluginId: string ) => {
@@ -19,11 +19,11 @@ export const deactivatePlugin = async ( pluginId: string ) => {
 };
 
 export const deletePlugin = async ( pluginId: string ) => {
-    return ( await ipcRenderer.invoke( DELETE_PLUGIN, pluginId ) ) as boolean | undefined;
+    return ( await ipcRenderer.invoke( DELETE_PLUGIN_REMOTE, pluginId ) ) as boolean | undefined;
 };
 
 export const activatePlugins = async ( pluginIds: string[] ) => {
-    return ( await ipcRenderer.invoke( ACTIVATE_PLUGINS, pluginIds ) ) as boolean;
+    return ( await ipcRenderer.invoke( ACTIVATE_PLUGINS_REMOTE, pluginIds ) ) as boolean;
 };
 
 export const downloadPlugin = async ( repository: string ) => {

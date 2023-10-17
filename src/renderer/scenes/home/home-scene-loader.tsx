@@ -2,8 +2,8 @@ import { SceneState, SceneStateID } from "../scene";
 import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
 import { Janitor } from "three-janitor";
-import { mixer } from "@core/global";
 import { root } from "@render/root";
+import { mixer } from "@audio/main-mixer";
 
 export async function homeSceneLoader(): Promise<SceneState> {
     const janitor = new Janitor( "home-scene-loader" );

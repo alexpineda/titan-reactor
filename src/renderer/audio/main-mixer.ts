@@ -8,7 +8,7 @@ const _position = new Vector3(),
     _orientation = new Vector3();
 
 // mixes sound and music volumes
-export class MainMixer {
+export class Mixer {
     intro: GainNode;
     sound: GainNode;
     music: GainNode;
@@ -186,3 +186,5 @@ export class MainMixer {
         );
     }
 }
+
+export const mixer = new Mixer();

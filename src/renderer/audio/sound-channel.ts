@@ -1,5 +1,5 @@
 import { Vector3 } from "three";
-import { MainMixer } from "./main-mixer";
+import { Mixer } from "./main-mixer";
 
 export class SoundChannel {
     static rolloffFactor = 1;
@@ -22,9 +22,9 @@ export class SoundChannel {
     #stereoPannerPool: StereoPannerNode[] = [];
     #gainPool: GainNode[] = [];
 
-    #mixerRef: WeakRef<MainMixer>;
+    #mixerRef: WeakRef<Mixer>;
 
-    constructor( mixer: MainMixer ) {
+    constructor( mixer: Mixer ) {
         this.#mixerRef = new WeakRef( mixer );
     }
 

@@ -10,7 +10,7 @@ import getUserDataPath from "./get-user-data-path";
 import pluginServer from "./plugins/server";
 import browserWindows from "./windows";
 import { getBootupLogs } from "./log";
-import { GO_TO_START_PAGE, LOG_MESSAGE } from "common/ipc-handle-names";
+import { GO_TO_START_PAGE_LOCAL, LOG_MESSAGE_REMOTE } from "common/ipc-handle-names";
 import { logService } from "./logger/singleton";
 import electronIsDev from "electron-is-dev";
 import { initACLs } from "./acl";
@@ -107,7 +107,7 @@ async function start(){
     const menuTemplate = createAppMenu(
         () => createConfigurationWindow(),
         () => {
-            windows.main?.webContents.send( GO_TO_START_PAGE );
+            windows.main?.webContents.send( GO_TO_START_PAGE_LOCAL );
         },
         () => {
             createWindow( {
@@ -133,7 +133,7 @@ async function start(){
     const _readyToShowLogs = () => {
         for ( const log of getBootupLogs() ) {
             browserWindows.main?.webContents.send(
-                LOG_MESSAGE,
+                LOG_MESSAGE_REMOTE,
                 log.message,
                 log.level
             );

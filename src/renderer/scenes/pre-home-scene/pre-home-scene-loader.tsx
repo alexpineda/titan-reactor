@@ -7,9 +7,8 @@ import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
 import {  waitForTruthy } from "@utils/wait-for";
 import path from "path";
-import { Filter } from "@audio/filter";
+import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
-import { mixer } from "@core/global";
 import processStore from "@stores/process-store";
 
 let _lastErrorMessage = "";

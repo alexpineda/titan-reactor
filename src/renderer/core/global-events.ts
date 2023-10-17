@@ -23,6 +23,7 @@ export interface GlobalEvents {
     "exec-macro-action": { action: MacroAction; withReset: boolean };
     "document-hidden": boolean;
     "end-of-replay-queue": undefined;
+    "clear-replay-queue": undefined;
     "replay-ready": { replay: ValidatedReplay, map: Chk };
     "replay-complete": ValidatedReplay;
     "map-ready": { map: Chk };

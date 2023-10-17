@@ -13,7 +13,7 @@ import { useEffect, useState } from "react";
 import { useGameStore } from "@stores/game-store";
 import { omitCharacters } from "@utils/chk-utils";
 import { ValidatedReplay } from "../replay-scene-loader";
-import { loadQueuedReplay } from "../../titan-reactor";
+import { loadQueuedReplay } from "../../core/titan-reactor";
 import { useSettingsStore } from "@stores/settings-store";
 
 const iconStyle = {

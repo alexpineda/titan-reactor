@@ -1,5 +1,4 @@
-import { Filter } from "@audio/filter";
-import { mixer } from "@core/global";
+import { Filter, mixer } from "@audio";
 import { Janitor } from "three-janitor";
 import { MathUtils } from "three";
 

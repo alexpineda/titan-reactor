@@ -3,7 +3,7 @@ import fs from "fs";
 import express from "express";
 import { transpile } from "../typescript/transpile";
 import browserWindows from "../windows";
-import { LOG_MESSAGE, SERVER_API_FIRE_MACRO } from "common/ipc-handle-names";
+import { LOG_MESSAGE_REMOTE, EXEC_MACRO_LOCAL } from "common/ipc-handle-names";
 import settings from "../settings/singleton";
 import { fileExists } from "common/utils/file-exists";
 import { logService } from "../logger/singleton";
@@ -48,7 +48,7 @@ app.get( "*", async function ( req, res ) {
                 // POST wasn't working
             } else if ( req.query.macroId ) {
                 browserWindows.main!.webContents.send(
-                    SERVER_API_FIRE_MACRO,
+                    EXEC_MACRO_LOCAL,
                     req.query.macroId
                 );
                 return res.status( 200 ).send();
@@ -162,7 +162,7 @@ app.get( "*", async function ( req, res ) {
             res.send( content );
         } else {
             const message = `@plugin-server: transpile error - ${transpileErrors[0].message} ${transpileErrors[0].snippet}`;
-            browserWindows.main?.webContents.send( LOG_MESSAGE, message, "error" );
+            browserWindows.main?.webContents.send( LOG_MESSAGE_REMOTE, message, "error" );
             logService.error( `@server/500-transpile-error: ${message}` );
             return res.sendStatus( 500 );
         }

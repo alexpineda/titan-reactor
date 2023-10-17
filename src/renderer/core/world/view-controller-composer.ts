@@ -1,4 +1,3 @@
-import { mixer } from "@core/global";
 import { SurfaceComposer } from "@core/world/surface-composer";
 import { log } from "@ipc/log";
 import { Janitor } from "three-janitor";
@@ -9,6 +8,7 @@ import { World } from "./world";
 import { SceneController } from "@plugins/scene-controller";
 import { easeInCubic } from "@utils/function-utils";
 import range from "common/utils/range";
+import { mixer } from "@audio/main-mixer";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {

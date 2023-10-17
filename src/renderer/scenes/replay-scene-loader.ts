@@ -23,10 +23,10 @@ import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-spri
 import { SceneState } from "./scene";
 import gameStore from "@stores/game-store";
 import {   waitForSeconds, waitForTruthy } from "@utils/wait-for";
-import { music } from "@core/global";
 import { writeFileSync } from "fs";
 import { globalEvents } from "@core/global-events";
 import debounce from "lodash.debounce";
+import { music } from "@audio/music";
 // import { writeFileSync } from "fs";
 
 // const createNarrative = (commands: CommandsStream) => {

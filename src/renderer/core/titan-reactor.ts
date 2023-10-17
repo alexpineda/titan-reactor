@@ -1,25 +1,25 @@
-import "./reset.css";
-import "../../bundled/assets/open-props.1.4.min.css";
-import sceneStore from "./stores/scene-store";
+import "../reset.css";
+import "../../../bundled/assets/open-props.1.4.min.css";
+import sceneStore from "../stores/scene-store";
 import { logCapabilities } from "@utils/renderer-utils";
 import { lockdown_ } from "@utils/ses-util";
-import "./scenes/home/home-scene";
-import { preHomeSceneLoader } from "./scenes/pre-home-scene/pre-home-scene-loader";
-import { homeSceneLoader } from "./scenes/home/home-scene-loader";
-import { mixer } from "./core/global";
-import { globalEvents } from "./core/global-events";
+import "../scenes/home/home-scene";
+import { preHomeSceneLoader } from "../scenes/pre-home-scene/pre-home-scene-loader";
+import { homeSceneLoader } from "../scenes/home/home-scene-loader";
+import { globalEvents } from "./global-events";
 import { openUrl } from "@ipc/dialogs";
-import { mapSceneLoader } from "./scenes/map-scene-loader";
-import { ValidatedReplay, loadAndValidateReplay, replaySceneLoader } from "./scenes/replay-scene-loader";
-import { interstitialSceneLoader } from "./scenes/interstitial-scene/interstitial-scene-loader";
+import { mapSceneLoader } from "../scenes/map-scene-loader";
+import { ValidatedReplay, loadAndValidateReplay, replaySceneLoader } from "../scenes/replay-scene-loader";
+import { interstitialSceneLoader } from "../scenes/interstitial-scene/interstitial-scene-loader";
 import { useSettingsStore } from "@stores/settings-store";
 import { log, logBoth, logClient } from "@ipc/log";
 import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
-import { settingsStore, useGameStore, useReplayAndMapStore } from "./stores";
-
+import { settingsStore, useGameStore, useReplayAndMapStore } from "../stores";
+import { mixer } from "@audio";
 /**
  * ENTRY POINT FOR TITAN REACTOR VIEWER APP
  */
+
 
 performance.mark("start");
 
@@ -156,6 +156,7 @@ const queueNextReplay = (prevReplay: ValidatedReplay) => {
 
 logCapabilities();
 lockdown_();
+
 
 
 (async function bootup() {

@@ -1,8 +1,8 @@
-import { mixer } from "@core/global";
+import { mixer } from "./main-mixer";
 import { Audio, AudioListener } from "three";
 const rand = ( n: number ) => Math.floor( Math.random() * n );
 
-export class Music {
+class Music {
     #audio: Audio;
     races = ["terran", "zerg", "protoss"];
 
@@ -47,3 +47,5 @@ export class Music {
         this.#audio.disconnect();
     }
 }
+
+export const music = new Music( mixer as unknown as AudioListener );

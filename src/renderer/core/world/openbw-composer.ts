@@ -1,4 +1,4 @@
-import { SoundChannels } from "@audio/sound-channels";
+import { SoundChannels, mixer } from "@audio";
 import { skipHandler } from "@openbw/skip-handler";
 import {
     REPLAY_MAX_SPEED,
@@ -13,7 +13,6 @@ import { MathUtils } from "three";
 import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
 import { ViewControllerComposer } from "@core/world/view-controller-composer";
 import { World } from "./world";
-import { mixer } from "@core/global";
 import { Timer } from "@utils/timer";
 import { borrow, Borrowed } from "@utils/object-utils";
 import { SimpleBufferView } from "@openbw/structs/simple-buffer-view";

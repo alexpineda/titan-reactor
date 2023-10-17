@@ -33,7 +33,7 @@ import { World } from "./world";
 import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/data-structures/iterable-set";
 import { borrow, Borrowed } from "@utils/object-utils";
-import { getJanitorLogLevel } from "@core/global";
+import { getJanitorLogLevel } from "@ipc/global";
 import { getMapTiles } from "@utils/chk-utils";
 import { ImageBase } from "..";
 import { ImageHDMaterial } from "@core/image-hd-material";

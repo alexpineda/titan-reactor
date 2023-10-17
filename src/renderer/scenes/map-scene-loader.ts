@@ -22,8 +22,8 @@ import {
 import { BasePlayer } from "@core/players";
 import { playerColors } from "common/enums";
 import { raceToString } from "@utils/string-utils";
-import { music } from "@core/global";
 import { globalEvents } from "@core/global-events";
+import { music } from "@audio/music";
 
 const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;

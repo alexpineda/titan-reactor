@@ -2,7 +2,7 @@ import { AudioListener, Vector3, Audio } from "three";
 import { SoundDAT } from "common/types";
 import range from "common/utils/range";
 import { SoundChannel } from "./sound-channel";
-import { MainMixer } from "./main-mixer";
+import { Mixer } from "./main-mixer";
 
 // an implementation of bw sound referenced from openbw, limited to 8 channels (although not really since tails are allowed to continue)
 export class SoundChannels {
@@ -11,9 +11,9 @@ export class SoundChannels {
     buffers = new Map<number, AudioBuffer>();
     #lastPlayed = new WeakMap<AudioBuffer, number>();
     #loading = new Map<number, boolean>();
-    #mixerRef: WeakRef<MainMixer>;
+    #mixerRef: WeakRef<Mixer>;
 
-    constructor( mixer: MainMixer ) {
+    constructor( mixer: Mixer ) {
         this.#mixerRef = new WeakRef( mixer );
         this.channels = range( 0, this.maxChannels ).map( () => new SoundChannel( mixer ) );
     }

@@ -1,14 +1,14 @@
-import { MainMixer } from "./main-mixer";
+import { Mixer } from "./main-mixer";
 
 export class Filter {
     node: BiquadFilterNode;
-    #mixer: WeakRef<MainMixer>;
+    #mixer: WeakRef<Mixer>;
 
     get mixer() {
         return this.#mixer.deref()!;
     }
 
-    constructor( mixer: MainMixer, type: BiquadFilterType, frequency = 84 ) {
+    constructor( mixer: Mixer, type: BiquadFilterType, frequency = 84 ) {
         this.#mixer = new WeakRef( mixer );
         this.node = mixer.context.createBiquadFilter();
         this.node.type = type;

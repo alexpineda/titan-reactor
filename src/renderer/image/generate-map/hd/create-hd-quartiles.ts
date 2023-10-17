@@ -16,7 +16,7 @@ import {
 import { parseDdsGrp } from "../../formats/parse-dds-grp";
 import { WrappedQuartileTextures, UnitTileScale } from "common/types";
 import { Janitor, JanitorLogLevel } from "three-janitor";
-import { getJanitorLogLevel } from "@core/global";
+import { getJanitorLogLevel } from "@ipc/global";
 import { LookupTextures } from "../lookup-textures";
 import { createDDSTexture, parseDDS } from "@image/formats";
 import processStore from "@stores/process-store";

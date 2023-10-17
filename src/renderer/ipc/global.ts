@@ -1,38 +1,29 @@
 import { UI_SYSTEM_OPEN_URL } from "@plugins/events";
 import { ipcRenderer, IpcRendererEvent } from "electron";
 import {
-    ADD_REPLAY_DIALOG,
     DEACTIVATE_PLUGIN,
-    GO_TO_START_PAGE,
-    LOG_MESSAGE,
-    ON_PLUGINS_ACTIVATED,
-    ON_PLUGINS_INITIAL_INSTALL,
-    ON_PLUGINS_INITIAL_INSTALL_ERROR,
-    OPEN_ISCRIPTAH,
-    OPEN_MAP_DIALOG,
-    OPEN_REPLAY_DIALOG,
-    RELOAD_PLUGINS,
+    GO_TO_START_PAGE_LOCAL,
+    LOG_MESSAGE_REMOTE,
+    ON_PLUGINS_ACTIVATED_LOCAL,
+    ON_PLUGINS_INITIAL_INSTALL_LOCAL,
+    ON_PLUGINS_INITIAL_INSTALL_ERROR_LOCAL,
+    OPEN_ISCRIPTAH_LOCAL,
+    RELOAD_PLUGINS_LOCAL,
     SEND_BROWSER_WINDOW,
-    SERVER_API_FIRE_MACRO,
+    EXEC_MACRO_LOCAL,
+    QUEUE_FILES_LOCAL,
+    CLEAR_REPLAY_DIALOG_LOCAL
 } from "common/ipc-handle-names";
 import { SendWindowActionPayload, SendWindowActionType } from "@ipc/relay";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { PluginMetaData } from "common/types";
-import { MainMixer } from "@audio/main-mixer";
-import { Music } from "@audio/music";
-import { AudioListener } from "three";
+
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor, JanitorLogLevel } from "three-janitor";
-import { globalEvents } from "./global-events";
+import { globalEvents } from "../core/global-events";
 import { setStorageIsCasc, setStoragePath } from "common/casclib";
 
-/**
- * INTERCEPTS IPC MESSAGES AND PUSHES THEM INTO THE GLOBAL EVENT BUS. WE DO THIS TO KEEP THINGS CLEAN.
- * ALSO CREATES GLOBAL SOUND MIXER AND MUSIC PLAYER
- */
 
-export const mixer = new MainMixer();
-export const music = new Music( mixer as unknown as AudioListener );
 
 window.addEventListener(
     "message",
@@ -42,31 +33,23 @@ window.addEventListener(
 );
 
 // Load Home Scene
-ipcRenderer.on( GO_TO_START_PAGE, () => globalEvents.emit( "load-home-scene" ) );
+ipcRenderer.on( GO_TO_START_PAGE_LOCAL, () => globalEvents.emit( "load-home-scene" ) );
 
 // Log Message
-ipcRenderer.on( LOG_MESSAGE, ( _, message: string, level = "info" ) =>
+ipcRenderer.on( LOG_MESSAGE_REMOTE, ( _, message: string, level = "info" ) =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     globalEvents.emit( "log-message", { message, level } )
 );
 
 // Load Map File
-ipcRenderer.on( OPEN_MAP_DIALOG, ( _, map: string ) =>
-    globalEvents.emit( "queue-files", {files:[map]} )
+ipcRenderer.on( QUEUE_FILES_LOCAL, ( _, payload ) =>
+    globalEvents.emit( "queue-files", payload )
 );
 
-// Load Replay File
-ipcRenderer.on( OPEN_REPLAY_DIALOG, ( _, files: string[] ) => {
-    globalEvents.emit( "queue-files", {files} );
-}
+// Load Map File
+ipcRenderer.on( CLEAR_REPLAY_DIALOG_LOCAL, ( ) =>
+    globalEvents.emit( "clear-replay-queue" )
 );
-
-// Load Replay File
-ipcRenderer.on( ADD_REPLAY_DIALOG, ( _, files: string[] ) => {
-    globalEvents.emit( "queue-files", {files, append: true});
-}
-);
-
 // Load Replay File ( Drag and Drop )
 
 document.addEventListener('dragover', (e) => {
@@ -87,7 +70,7 @@ document.addEventListener('drop', (event) => {
 
 
 // Load ISCRIPTAH
-ipcRenderer.on( OPEN_ISCRIPTAH, () => globalEvents.emit( "load-iscriptah" ) );
+ipcRenderer.on( OPEN_ISCRIPTAH_LOCAL, () => globalEvents.emit( "load-iscriptah" ) );
 
 // Command Center Updated Settings
 ipcRenderer.on(
@@ -131,7 +114,7 @@ ipcRenderer.on(
     }
 );
 
-ipcRenderer.on( ON_PLUGINS_ACTIVATED, ( _, plugins: PluginMetaData[] ) =>
+ipcRenderer.on( ON_PLUGINS_ACTIVATED_LOCAL, ( _, plugins: PluginMetaData[] ) =>
     globalEvents.emit( "command-center-plugins-activated", plugins )
 );
 
@@ -140,20 +123,20 @@ ipcRenderer.on( DEACTIVATE_PLUGIN, ( _, pluginId: string ) =>
 );
 
 // Plugin Initial Install Error
-ipcRenderer.on( ON_PLUGINS_INITIAL_INSTALL_ERROR, () =>
+ipcRenderer.on( ON_PLUGINS_INITIAL_INSTALL_ERROR_LOCAL, () =>
     globalEvents.emit( "initial-install-error-plugins" )
 );
 
 
 
 // Initial Plugin Install
-ipcRenderer.on( ON_PLUGINS_INITIAL_INSTALL, () => {
+ipcRenderer.on( ON_PLUGINS_INITIAL_INSTALL_LOCAL, () => {
     useSettingsStore.setState( { initialInstall: true } );
 } );
 
 
 // Execute a Macro
-ipcRenderer.on( SERVER_API_FIRE_MACRO, ( _: IpcRendererEvent, macroId: string ) =>
+ipcRenderer.on( EXEC_MACRO_LOCAL, ( _: IpcRendererEvent, macroId: string ) =>
     globalEvents.emit( "exec-macro", macroId )
 );
 
@@ -215,7 +198,7 @@ ipcRenderer.on(
 );
 
 // Reload All Plugins
-ipcRenderer.on( RELOAD_PLUGINS, () => globalEvents.emit( "reload-all-plugins" ) );
+ipcRenderer.on( RELOAD_PLUGINS_LOCAL, () => globalEvents.emit( "reload-all-plugins" ) );
 
 window.onerror = (
     _: Event | string,

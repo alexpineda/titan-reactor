@@ -1,20 +1,20 @@
 import { ipcMain } from "electron";
 import {
-    DELETE_PLUGIN,
+    DELETE_PLUGIN_REMOTE,
     DEACTIVATE_PLUGIN,
-    ACTIVATE_PLUGINS,
+    ACTIVATE_PLUGINS_REMOTE,
     DOWNLOAD_PLUGIN as DOWNLOAD_PLUGIN,
     LOAD_REMOTE_PLUGIN_METADATA,
-    ON_PLUGINS_ACTIVATED,
-    RELOAD_PLUGINS,
-    UPDATE_PLUGIN_CONFIG,
+    ON_PLUGINS_ACTIVATED_LOCAL,
+    RELOAD_PLUGINS_LOCAL,
+    SAVE_PLUGIN_CONFIG_REMOTE,
 } from "common/ipc-handle-names";
 import settings from "../settings/singleton";
 import browserWindows from "../windows";
 import { PluginConfig } from "common/types";
 
 ipcMain.handle(
-    UPDATE_PLUGIN_CONFIG,
+    SAVE_PLUGIN_CONFIG_REMOTE,
     async ( _, pluginId: string, config: PluginConfig ) => {
         return await settings.plugins.savePluginConfig( pluginId, config );
     }
@@ -30,15 +30,15 @@ ipcMain.handle( DEACTIVATE_PLUGIN, async ( _, pluginId: string ) => {
     return false;
 } );
 
-ipcMain.handle( DELETE_PLUGIN, ( _, pluginId: string ) => {
+ipcMain.handle( DELETE_PLUGIN_REMOTE, ( _, pluginId: string ) => {
     return settings.plugins.deletePlugin( pluginId );
 } );
 
-ipcMain.handle( ACTIVATE_PLUGINS, async ( _, pluginIds: string[] ) => {
+ipcMain.handle( ACTIVATE_PLUGINS_REMOTE, async ( _, pluginIds: string[] ) => {
     const plugins = await settings.activatePlugins( pluginIds );
 
     if ( plugins ) {
-        browserWindows.main?.webContents.send( ON_PLUGINS_ACTIVATED, plugins );
+        browserWindows.main?.webContents.send( ON_PLUGINS_ACTIVATED_LOCAL, plugins );
 
         return true;
     }
@@ -48,7 +48,7 @@ ipcMain.handle( ACTIVATE_PLUGINS, async ( _, pluginIds: string[] ) => {
 
 ipcMain.handle( DOWNLOAD_PLUGIN, async ( _, repository: string ) => {
     return await settings.plugins.downloadPlugin( repository, () => {
-        browserWindows.main?.webContents.send( RELOAD_PLUGINS );
+        browserWindows.main?.webContents.send( RELOAD_PLUGINS_LOCAL );
     } );
 } );
 

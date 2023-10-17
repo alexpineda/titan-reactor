@@ -1,10 +1,10 @@
 import { ipcRenderer } from "electron";
 
 import {
-    OPEN_CASCLIB,
-    OPEN_CASCLIB_FILE,
-    OPEN_CASCLIB_BATCH,
-    CLOSE_CASCLIB,
+    OPEN_CASCLIB_REMOTE,
+    OPEN_CASCLIB_FILE_REMOTE,
+    OPEN_CASCLIB_BATCH_REMOTE,
+    CLOSE_CASCLIB_REMOTE,
 } from "common/ipc-handle-names";
 import {
     CloseCascStorage,
@@ -14,18 +14,18 @@ import {
 } from "common/types";
 
 export const openCascStorageRemote: OpenCascStorage = async ( bwPath: string ) => {
-    return await ipcRenderer.invoke( OPEN_CASCLIB, bwPath );
+    return await ipcRenderer.invoke( OPEN_CASCLIB_REMOTE, bwPath );
 };
 
 export const closeCascStorageRemote: CloseCascStorage = () => {
-    ipcRenderer.invoke( CLOSE_CASCLIB );
+    ipcRenderer.invoke( CLOSE_CASCLIB_REMOTE );
 };
 
 export const readCascFileRemote: ReadCascFile = async (
     filepath: string,
     encoding?: BufferEncoding
 ) => {
-    const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE, filepath, encoding );
+    const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE_REMOTE, filepath, encoding );
     // return Buffer.from(arrayBuffer.buffer);
     return arrayBuffer;
 };
@@ -35,7 +35,7 @@ export const readCascFileBatchRemote: ReadCascFileBatch = async (
     encoding?: BufferEncoding
 ) => {
     const arrayBuffers = await ipcRenderer.invoke(
-        OPEN_CASCLIB_BATCH,
+        OPEN_CASCLIB_BATCH_REMOTE,
         filepaths,
         encoding
     );
