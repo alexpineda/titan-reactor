@@ -1,3 +1,10 @@
+
+
+import { PLUGIN_PORT } from "common/tmp-common";
+import pluginServer from "./plugins/plugin-server";
+
+pluginServer.listen( PLUGIN_PORT, "localhost" );
+
 // import { app, powerSaveBlocker, nativeTheme, crashReporter } from "electron";
 // import path from "path";
 

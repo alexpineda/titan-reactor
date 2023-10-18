@@ -10,9 +10,8 @@ import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { logService } from "../logger/singleton";
 import { PluginManager } from "../plugins/plugin-manager";
-import { setStorageIsCasc } from "common/casclib";
 import uniq from "common/utils/uniq";
-import { PLUGIN_PATH } from "main/tmp-main";
+import { PLUGIN_PATH } from "../tmp-main";
 
 const supportedLanguages = [ "en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU" ];
 
@@ -216,7 +215,7 @@ export class Settings {
             }
         );
 
-        setStorageIsCasc( true ); //await this.isCascStorage() );
+        // setStorageIsCasc( true ); //await this.isCascStorage() );
         // setStoragePath( this.#settings.directories.starcraft );
 
         return this.#settings;

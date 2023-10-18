@@ -6,19 +6,14 @@
     "main": "dist/electron/main/index.js",
     "typings": "dist/types/index.d.ts",
     "scripts": {
-        "dev": "vite",
+        "plugin-server": "vite -c vite.config.plugin-server.ts",
         "sanity": "yarn types:check && yarn test:once",
-        "deep-cleanse": "yarn eslint .",
         "types:check": "tsc --noEmit",
         "test": "jest --watchAll",
         "test:once": "jest --runInBand",
         "test:debug": "node --inspect node_modules/jest/bin/jest --runInBand",
         "clear-cache": "rimraf .cache dist",
-        "build:src": "vite build",
-        "build:electron": "electron-builder",
-        "build": "build && build:electron",
         "lint": "yarn eslint . && yarn prettier --check .",
-        "clean-dev-win": "taskkill /f /im node.exe",
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
         "build-api-types": "ts-node -T .\\build\\api-types\\index.ts",
         "build-api-docs:host": "typedoc --out docs/host --tsconfig tsconfig.host-api.json build/api-types/host/index.d.ts",
@@ -31,36 +26,10 @@
         "url": "git+https://github.com/imbateam-gg/titan-reactor.git"
     },
     "author": "Alex Pineda <alexpineda@fastmail.com>",
-    "license": "GPL-3.0",
     "bugs": {
         "url": "https://github.com/imbateam-gg/titan-reactor/issues"
     },
     "homepage": "https://github.com/imbateam-gg/titan-reactor#readme",
-    "build": {
-        "directories": {
-            "output": "release",
-            "buildResources": "build"
-        },
-        "files": [
-            "dist"
-        ],
-        "appId": "imbateam.titan-reactor",
-        "productName": "Titan Reactor",
-        "mac": {
-            "category": "An OpenBW Renderer"
-        },
-        "linux": {
-            "category": "Game",
-            "icon": "icon256x256.ico"
-        },
-        "extraResources": [
-            {
-                "from": "bundled",
-                "to": "bundled"
-            }
-        ],
-        "electronDist": "C:\\Users\\Game_Master\\Projects\\electron\\src\\out\\zip"
-    },
     "debug": {
         "env": {
             "VITE_DEV_SERVER_HOSTNAME": "127.0.0.1",
@@ -69,7 +38,6 @@
         }
     },
     "dependencies": {
-        "@brakebein/threeoctree": "^2.0.1",
         "@codemirror/autocomplete": "^6.5.1",
         "@codemirror/commands": "^6.2.2",
         "@codemirror/lang-javascript": "^6.1.6",
@@ -80,20 +48,15 @@
         "@codemirror/view": "^6.9.5",
         "@npmcli/package-json": "^2.0.0",
         "@types/lodash.set": "^4.3.7",
-        "@types/rbush": "^3.0.0",
         "@typescript/vfs": "^1.4.0",
         "bl": "^5.0.0",
         "buffer": "^6.0.3",
-        "bw-casclib": "^2.0.2",
         "bw-chk": "^1.4.0",
         "camera-controls": "1.37.2",
         "concat-stream": "^2.0.0",
         "deep-diff": "^1.0.2",
         "deepmerge": "^4.2.2",
-        "electron-devtools-installer": "^3.2.0",
-        "electron-is-dev": "^2.0.0",
         "express": "^4.17.3",
-        "iconv-lite": "0.6.3",
         "immer": "^9.0.15",
         "leva": "^0.9.23",
         "libnpmsearch": "^5.0.0",
@@ -104,10 +67,8 @@
         "lodash.set": "^4.3.2",
         "lodash.shuffle": "^4.2.0",
         "lodash.throttle": "^4.1.1",
-        "mkdirp": "^1.0.4",
         "node-fetch": "3.2.10",
         "pacote": "^14.0.0",
-        "pkware-wasm": "^1.0.0",
         "postprocessing": "6.32.2",
         "process-replay": "0.0.11",
         "random": "^3.0.6",
@@ -123,9 +84,6 @@
         "three-gpu-pathtracer": "^0.0.6",
         "three-instanced-uniforms-mesh": "^0.46.0",
         "three-janitor": "^2.0.1",
-        "threejs-shader-materials": "MasatoMakino/threejs-shader-materials",
-        "troika-three-utils": "^0.46.0",
-        "ts-morph": "^16.0.0",
         "typescript": "^4.8.4",
         "winreg": "^1.2.4",
         "zustand": "4.1.1"
@@ -158,7 +116,7 @@
         "@typescript-eslint/parser": "^5.1.0",
         "@vitejs/plugin-react": "^2.1.0",
         "dotenv": "^16.0.3",
-        "electron-builder": "^23.3.3",
+        "esbuild": "^0.19.5",
         "eslint": "^8.24.0",
         "eslint-config-prettier": "^8.5.0",
         "eslint-import-resolver-alias": "^1.1.2",
@@ -172,7 +130,6 @@
         "jest-environment-jsdom": "^29.0.3",
         "jest-extended": "^3.1.0",
         "memfs": "^4.6.0",
-        "nunjucks": "^3.2.4",
         "prettier": "^2.7.1",
         "prettier-plugin-glsl": "^0.0.5",
         "reflect-metadata": "^0.1.13",
@@ -180,6 +137,7 @@
         "source-map-support": "^0.5.19",
         "spectorjs": "^0.9.27",
         "ts-jest": "^29.0.1",
+        "ts-morph": "^16.0.0",
         "ts-node": "^10.9.1",
         "typedoc": "^0.25.1",
         "vite": "^3.1.3",

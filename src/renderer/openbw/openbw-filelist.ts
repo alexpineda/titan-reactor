@@ -1,6 +1,5 @@
 
 import { log } from "@ipc/log";
-import { settingsStore } from "@stores/settings-store";
 
 import filepaths from "./extra/filepaths";
 import { OpenBWWasm } from "common/types";
@@ -65,14 +64,7 @@ export default class OpenBWFileList {
         for ( const filepath of filepaths ) {
             const buffer = await readFile( filepath );
 
-            let int8 = new Int8Array();
-
-            // if ( settingsStore().isCascStorage ) {
-            //     //FIXME: why is casclib returning unit8array?
-                int8 = Int8Array.from( buffer.subarray( 0, buffer.byteLength / 8 ) );
-            // } else {
-                // int8 = new Int8Array( buffer.buffer, buffer.byteOffset, buffer.length );
-            // }
+            let int8 = Int8Array.from( buffer.subarray( 0, buffer.byteLength / 8 ) );
 
             this.buffers.push( int8 );
             this.index[this.normalize( filepath )] = this.buffers.length - 1;

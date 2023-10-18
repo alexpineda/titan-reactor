@@ -39,7 +39,6 @@ import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
 import processStore from "@stores/process-store";
 import { VRButton } from "@render/vr/vr-button";
-import { terrainComposer } from "@image/generate-map/terrain-composer";
 
 CameraControls.install( { THREE: THREE } );
 
@@ -165,7 +164,7 @@ export async function createWraithScene() {
 
     janitor.mop( camera.init( _controls, battleCruiser.object ), "camera" );
 
-    // const renderPass = janitor.mop( new RenderPass( scene, camera.get() ) );
+    const renderPass = janitor.mop( new RenderPass( scene, camera.get() ) );
     const sunMaterial = new MeshBasicMaterial( {
         color: 0xffddaa,
         transparent: true,
@@ -177,17 +176,17 @@ export async function createWraithScene() {
     sun.name = "sun";
     sun.frustumCulled = false;
 
-    // const godRaysEffect = new GodRaysEffect( camera.get(), sun, {
-    //     height: 480,
-    //     kernelSize: KernelSize.SMALL,
-    //     density: 1,
-    //     decay: 0.94,
-    //     weight: 1,
-    //     exposure: 1,
-    //     samples: 60,
-    //     clampMax: 1.0,
-    //     blendFunction: BlendFunction.SCREEN,
-    // } );
+    const godRaysEffect = new GodRaysEffect( camera.get(), sun, {
+        height: 480,
+        kernelSize: KernelSize.SMALL,
+        density: 1,
+        decay: 0.94,
+        weight: 1,
+        exposure: 1,
+        samples: 60,
+        clampMax: 1.0,
+        blendFunction: BlendFunction.SCREEN,
+    } );
 
     slight.position.set( 5, 5, 4 );
     slight.position.multiplyScalar( 10 );
@@ -197,42 +196,33 @@ export async function createWraithScene() {
     sun.updateMatrixWorld();
 
     glitchEffect.blendMode.setOpacity( 0.5 );
-    // const glitchPass = new EffectPass( camera.get(), glitchEffect );
-    // const tone = new ToneMappingEffect();
+    const glitchPass = new EffectPass( camera.get(), glitchEffect );
+    const tone = new ToneMappingEffect();
 
-    // const vignet = new VignetteEffect( {
-    //     darkness: 0.55,
-    // } );
-
-    // renderComposer.setBundlePasses( {
-    //     passes: janitor.mop( [
-    //         renderPass,
-    //         new EffectPass(
-    //             camera.get(),
-    //             new BloomEffect( {
-    //                 intensity: 1.25,
-    //                 blendFunction: BlendFunction.SCREEN,
-    //                 mipmapBlur: true,
-    //             } ),
-    //             new SMAAEffect(),
-    //             tone,
-    //             godRaysEffect,
-    //             vignet
-    //         ),
-    //         glitchPass,
-    //     ] ),
-    // } );
-
-    const testR = new THREE.WebGLRenderer( {
-        powerPreference: "high-performance",
-        precision: "highp",
+    const vignet = new VignetteEffect( {
+        darkness: 0.55,
     } );
-    testR.xr.enabled = true
-    document.body.appendChild(testR.domElement)
-    janitor.mop( testR.domElement);
-    janitor.mop( testR );
 
-    testR.setAnimationLoop( ( elapsed: number ) => {
+    renderComposer.setBundlePasses( {
+        passes: janitor.mop( [
+            renderPass,
+            new EffectPass(
+                camera.get(),
+                new BloomEffect( {
+                    intensity: 1.25,
+                    blendFunction: BlendFunction.SCREEN,
+                    mipmapBlur: true,
+                } ),
+                new SMAAEffect(),
+                tone,
+                godRaysEffect,
+                vignet
+            ),
+            glitchPass,
+        ] ),
+    } );
+
+    renderComposer.getWebGLRenderer().setAnimationLoop( ( elapsed: number ) => {
         const delta = elapsed - _lastElapsed;
         _lastElapsed = elapsed;
     
@@ -266,15 +256,15 @@ export async function createWraithScene() {
         _noiseInstance.value =
             camera.cameraState === CameraState.RotateAroundWraiths ? rear : 0;
     
-        testR.render( scene, camera.get() ); 
-        // renderComposer.drawBuffer();
+        renderComposer.render( delta );
+        renderComposer.drawBuffer();
     } );
 
     janitor.mop( renderComposer );
 
     _sceneResizeHandler();
 
-    document.body.appendChild( VRButton.createButton( testR ) );
+    document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
 
     return {
         dispose: () => janitor.dispose(),

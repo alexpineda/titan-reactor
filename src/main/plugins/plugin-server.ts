@@ -2,20 +2,17 @@ import path, { normalize } from "path";
 import fs from "fs";
 import express from "express";
 import { transpile } from "../typescript/transpile";
-// import browserWindows from "../windows";
-// import { LOG_MESSAGE_REMOTE  } from "common/ipc-handle-names";
 import settings from "../settings/singleton";
 import { fileExists } from "common/utils/file-exists";
 import { logService } from "../logger/singleton";
 import fetch from "node-fetch";
-import * as casclib from "bw-casclib";
 import runtimeHTML from "./runtime.html?raw";
 import runtimeJSX from "./runtime.tsx?raw";
 import { BUNDLED_SUBPATH, PLUGIN_PATH, RESOURCES_PATH } from "main/tmp-main";
 
 
 
-let _handle: any = null;
+// let _handle: any = null;
 const app = express();
 
 app.use( function ( _, res, next ) {
@@ -25,47 +22,48 @@ app.use( function ( _, res, next ) {
 } );
 
 app.get( "*", async function ( req, res ) {
-    if ( req.url.startsWith( "/m_api" ) ) {
-        if ( req.method === "GET" ) {
-            if ( req.query.iconPNG ) {
-                const icon = Number( req.query.iconPNG );
+    // todo: this moves to app
+    // if ( req.url.startsWith( "/m_api" ) ) {
+    //     if ( req.method === "GET" ) {
+    //         if ( req.query.iconPNG ) {
+    //             const icon = Number( req.query.iconPNG );
 
-                // if ( _handle === null ) {
-                //     _handle = ( await casclib.openStorage(
-                //         settings.get().directories.starcraft
-                //     ) ) as unknown;
-                // }
-                const data = await casclib.readFile(
-                    _handle,
-                    `webui/dist/lib/images/cmdicons.${icon}.png`
-                );
+    //             // if ( _handle === null ) {
+    //             //     _handle = ( await casclib.openStorage(
+    //             //         settings.get().directories.starcraft
+    //             //     ) ) as unknown;
+    //             // }
+    //             const data = await casclib.readFile(
+    //                 _handle,
+    //                 `webui/dist/lib/images/cmdicons.${icon}.png`
+    //             );
 
-                res.setHeader( "Content-Type", "image/png" );
-                res.send( data );
-                res.end();
-                return;
-                // POST wasn't working
-            } else if ( req.query.macroId ) {
-                // browserWindows.main!.webContents.send(
-                //     EXEC_MACRO_LOCAL,
-                //     req.query.macroId
-                // );
-                return res.status( 200 ).send();
-            }
+    //             res.setHeader( "Content-Type", "image/png" );
+    //             res.send( data );
+    //             res.end();
+    //             return;
+    //             // POST wasn't working
+    //         } else if ( req.query.macroId ) {
+    //             // browserWindows.main!.webContents.send(
+    //             //     EXEC_MACRO_LOCAL,
+    //             //     req.query.macroId
+    //             // );
+    //             return res.status( 200 ).send();
+    //         }
 
-            try {
-                req.headers;
-                const lastRevision = req.headers["X-LastRevision"];
-                if ( lastRevision === `${settings.get().macros.revision}` ) {
-                    res.status( 304 ).send();
-                    return;
-                }
-            } catch ( e ) {}
-            res.setHeader( "Content-Type", "application/json" );
-            res.send( settings.get().macros );
-        }
-        return;
-    }
+    //         try {
+    //             req.headers;
+    //             const lastRevision = req.headers["X-LastRevision"];
+    //             if ( lastRevision === `${settings.get().macros.revision}` ) {
+    //                 res.status( 304 ).send();
+    //                 return;
+    //             }
+    //         } catch ( e ) {}
+    //         res.setHeader( "Content-Type", "application/json" );
+    //         res.send( settings.get().macros );
+    //     }
+    //     return;
+    // }
 
     if ( req.query.proxy ) {
         const proxy = req.query.proxy;

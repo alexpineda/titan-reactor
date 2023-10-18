@@ -33,6 +33,7 @@ import { normalizePluginConfiguration } from "@utils/function-utils";
 import { Timer } from "@utils/timer";
 import { Assets } from "@image/assets";
 import { SceneStateID } from "../scenes/scene";
+import { PLUGIN_PORT } from "common/tmp-common";
 
 const screenChanged = ( screen: SceneStore ) => {
     return {
@@ -240,10 +241,10 @@ export class PluginSystemUI {
         };
 
         this.refresh = () => {
-            const settings = settingsStore().data;
+            // const settings = settingsStore().data;
 
             // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
-            this.#iframe.src = `http://localhost:${settings.plugins.serverPort}/runtime.html`;
+            this.#iframe.src = `http://localhost:${PLUGIN_PORT}/runtime.html`;
         };
 
         this.#janitor.mop(

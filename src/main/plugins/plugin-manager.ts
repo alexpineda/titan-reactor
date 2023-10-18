@@ -8,7 +8,7 @@ import deepMerge from "deepmerge";
 
 import { PluginConfig, PluginMetaData, PluginPackage } from "common/types";
 
-import readFolder from "../starcraft/get-files";
+import readFolder from "../get-files";
 import { withErrorMessage } from "common/utils/with-error-message";
 import log from "../log";
 import { fileExists } from "common/utils/file-exists";

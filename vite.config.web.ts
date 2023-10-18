@@ -75,7 +75,7 @@ export default defineConfig((env) => {
         },
         plugins: [
             react(),
-            mkcert() 
+            // mkcert() 
             // nodePolyfills({
             //     // Whether to polyfill `node:` protocol imports.
             //     protocolImports: true,
@@ -89,10 +89,12 @@ export default defineConfig((env) => {
             ? {
                   host: pkg.debug.env.VITE_DEV_SERVER_HOSTNAME,
                   port: pkg.debug.env.VITE_DEV_SERVER_PORT,
-                  https: true,
+                //   https: true,
+                  hmr: false
               }
             : {
-               https: true,
+            //    https: true,
+               hmr: false
             },
     };
 });
