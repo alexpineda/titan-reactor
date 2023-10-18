@@ -38,7 +38,6 @@ import { createBattleCruiser } from "./battlecruiser";
 import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
-import path from "path";
 import processStore from "@stores/process-store";
 
 CameraControls.install( { THREE: THREE } );

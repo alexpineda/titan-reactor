@@ -5,7 +5,7 @@ import semver from "semver";
 import { Tab, Tabs } from "./tabs";
 import ErrorBoundary from "./error-boundary";
 import { createLevaPanel } from "./create-leva-panel";
-import { groupConfigByFolder } from "@utils/leva-utils";
+import { groupConfigByFolder } from "./leva-plugins/leva-utils";
 import { Schema } from "leva/plugin";
 import { HostApiVersion, getPluginAPIVersion } from "common/utils/api-version";
 

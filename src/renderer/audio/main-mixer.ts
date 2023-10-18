@@ -1,5 +1,4 @@
 import { AudioContext, Quaternion, Vector3 } from "three";
-import fs from "fs/promises";
 import { readCascFileRemote as readCascFile } from "@ipc/casclib";
 import gameStore from "@stores/game-store";
 import { Settings } from "common/types";
@@ -142,8 +141,8 @@ export class Mixer {
             const buffer = ( await readCascFile( filename ) ).buffer;
             return await this.context.decodeAudioData( buffer.slice( 0 ) );
         } else {
-            const buffer = ( await fs.readFile( filenameOrId ) ).buffer;
-            return await this.context.decodeAudioData( buffer.slice( 0 ) );
+            // const buffer = ( await fs.readFile( filenameOrId ) ).buffer;
+            // return await this.context.decodeAudioData( buffer.slice( 0 ) );
         }
     }
 

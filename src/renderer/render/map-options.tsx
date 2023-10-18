@@ -1,7 +1,7 @@
 /* eslint-disable */
 // @ts-ignore
 import { defaultGeometryOptions } from "@image/generate-map/default-geometry-options";
-import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "renderer/command-center/leva-plugins/leva-utils";
 import { GeometryOptions } from "common/types";
 import { LevaPanel, useControls, useCreateStore } from "leva";
 import { useState } from "react";

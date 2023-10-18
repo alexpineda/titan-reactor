@@ -162,7 +162,7 @@ app.get( "*", async function ( req, res ) {
             res.send( content );
         } else {
             const message = `@plugin-server: transpile error - ${transpileErrors[0].message} ${transpileErrors[0].snippet}`;
-            browserWindows.main?.webContents.send( LOG_MESSAGE_REMOTE, message, "error" );
+            // browserWindows.main?.webContents.send( LOG_MESSAGE_REMOTE, message, "error" );
             logService.error( `@server/500-transpile-error: ${message}` );
             return res.sendStatus( 500 );
         }

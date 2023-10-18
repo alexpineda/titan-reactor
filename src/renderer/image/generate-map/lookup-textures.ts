@@ -5,8 +5,7 @@ import { LookupBitmaps } from "./lookup-bitmaps";
 import { parseDdsGrpAsTextures } from "..";
 import { parseTMSK } from "@image/formats/parse-tmsk";
 import { TilesetData } from "./get-tileset-buffers";
-import path from "path";
-import { TextureLoader } from "three";
+// import { TextureLoader } from "three";
 
 const _defaultOpts = {
     colorSpace: THREE.LinearSRGBColorSpace as THREE.ColorSpace,
@@ -156,7 +155,7 @@ export const createLookupTextures = async (
         waterNormal1: parseDdsGrpAsTextures( td.waterNormal1 ),
         waterNormal2: parseDdsGrpAsTextures( td.waterNormal2 ),
         //TODO: fix this
-        noise: await new TextureLoader().loadAsync( path.join( __static, "./noise.png" ) ),
+        noise: new THREE.Texture(),//await new TextureLoader().loadAsync( path.join( __static, "./noise.png" ) ),
         waterMask: td.waterMask ? parseDdsGrpAsTextures( td.waterMask ) : null,
         tileMask: td.tileMask ? parseTMSK( td.tileMask ) : null,
     };

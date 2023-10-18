@@ -13,7 +13,6 @@ import { FogOfWar, FogOfWarEffect } from "../fogofwar";
 import { createSurfaceComposer } from "./surface-composer";
 import { createOpenBWComposer } from "./openbw-composer";
 import { createOverlayComposer } from "./overlay-composer";
-import CommandsStream from "@process-replay/commands/commands-stream";
 import { createCommandsComposer } from "./commands-composer";
 import { createGameLoopComposer } from "./game-loop-composer";
 import { createViewControllerComposer } from "./view-controller-composer";
@@ -27,6 +26,7 @@ import { globalEvents } from "@core/global-events";
 import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { mixer } from "@audio/main-mixer";
+import { CommandsStream } from "process-replay";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 

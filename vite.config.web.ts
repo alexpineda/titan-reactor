@@ -1,13 +1,14 @@
 import { rmSync } from "fs";
 import { defineConfig } from "vite";
-import esmodule from "vite-plugin-esmodule";
 import react from "@vitejs/plugin-react";
 import pkg from "./package.json";
 import aliases from "./build/aliases";
 import path from "path";
 import tsConfig from "./tsconfig.json"
+import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 const OUT_DIR = "dist/web";
+const TARGET =  tsConfig.compilerOptions.target;// ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14']//"modules";
 
 rmSync(OUT_DIR, { recursive: true, force: true }); // v14.14.0
 
@@ -53,7 +54,7 @@ export default defineConfig((env) => {
         publicDir: "bundled",
         build: {
             outDir: OUT_DIR,
-            target: tsConfig.compilerOptions.target,
+            target: TARGET,
             rollupOptions: {
                 input: {
                     index: path.resolve(__dirname, "./index.html"),
@@ -64,7 +65,7 @@ export default defineConfig((env) => {
             minify: false,
         },
         esbuild: {
-            target: tsConfig.compilerOptions.target,
+            target: TARGET,
         },
 
         worker: {
@@ -72,6 +73,13 @@ export default defineConfig((env) => {
         },
         plugins: [
             react(),
+            // nodePolyfills({
+            //     // Whether to polyfill `node:` protocol imports.
+            //     protocolImports: true,
+            //     // overrides: {
+            //     //     fs: "memfs",
+            //     // }
+            //   })
             // esmodule(["minipass-fetch", "make-fetch-happen", "libnpmsearch"]),
         ],
         server: process.env.VSCODE_DEBUG

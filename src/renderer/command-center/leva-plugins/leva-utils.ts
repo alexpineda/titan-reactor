@@ -1,9 +1,9 @@
 import groupBy from "lodash.groupby";
-import keyboardShortcut from "../command-center/leva-plugins/keyboard-shortcut";
-import directory from "../command-center/leva-plugins/directory";
+import keyboardShortcut from "./keyboard-shortcut";
+import directory from "./directory";
 import { AppConfiguration, FieldDefinition } from "common/types";
 import { CustomInput, OnChangeHandler } from "leva/plugin";
-import { capitalizeFirstLetters } from "./string-utils";
+import { capitalizeFirstLetters } from "../../utils/string-utils";
 
 type LevaPluginWrapper =
     | ( ( input: ControllableDefinition ) => CustomInput<ControllableDefinition> )

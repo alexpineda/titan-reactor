@@ -107,7 +107,7 @@ export const playWraithComms = async ( rear: number ) => {
 
 export const playRemix = async () => {
     const sound = mixer.context.createBufferSource();
-    sound.buffer = await mixer.loadAudioBuffer( `${__static}/remix.ogg` );
+    // sound.buffer = await mixer.loadAudioBuffer( `${__static}/remix.ogg` );
 
     sound.detune.setValueAtTime( -200, mixer.context.currentTime + 0.01 );
     sound.detune.setValueAtTime( 0, mixer.context.currentTime + 1 );

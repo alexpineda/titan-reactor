@@ -7,7 +7,6 @@ import "../scenes/home/home-scene";
 import { preHomeSceneLoader } from "../scenes/pre-home-scene/pre-home-scene-loader";
 import { homeSceneLoader } from "../scenes/home/home-scene-loader";
 import { globalEvents } from "./global-events";
-import { openUrl } from "@ipc/dialogs";
 import { mapSceneLoader } from "../scenes/map-scene-loader";
 import { ValidatedReplay, loadAndValidateReplay, replaySceneLoader } from "../scenes/replay-scene-loader";
 import { interstitialSceneLoader } from "../scenes/interstitial-scene/interstitial-scene-loader";
@@ -26,11 +25,6 @@ performance.mark("start");
 globalEvents.on("command-center-save-settings", (payload) => {
     mixer.setVolumes(payload.data.audio);
     useSettingsStore.setState(payload);
-});
-
-// TODO: deprecate?
-globalEvents.on("unsafe-open-url", (payload) => {
-    openUrl(payload);
 });
 
 globalEvents.on(

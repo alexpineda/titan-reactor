@@ -1,7 +1,4 @@
 import type { Assets } from "@image/assets";
-import { CMDS } from "@process-replay/commands/commands";
-import CommandsStream from "@process-replay/commands/commands-stream";
-import type { Replay } from "@process-replay/parse-replay";
 import gameStore from "@stores/game-store";
 import processStore from "@stores/process-store";
 import {
@@ -10,6 +7,7 @@ import {
 } from "@utils/images-from-iscript";
 import type Chk from "bw-chk";
 import { techTree } from "common/enums";
+import { CMDS, CommandsStream, Replay } from "process-replay";
 
 export const preloadMapUnitsAndSpriteFiles = async (
     assets: Pick<Assets, "bwDat" | "loadImageAtlasAsync">,

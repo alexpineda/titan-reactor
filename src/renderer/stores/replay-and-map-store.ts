@@ -1,8 +1,8 @@
 // convenience store for plugin subscriptions
-import Chk from "bw-chk";
-import { Replay } from "../process-replay/parse-replay";
+import type Chk from "bw-chk";
 import create from "zustand";
 import { ValidatedReplay } from "renderer/scenes/replay-scene-loader";
+import { Replay } from "process-replay";
 
 export interface ReplayAndMapStore {
     type: "map" | "replay" | "live";

@@ -1,4 +1,4 @@
-import CommandsStream from "@process-replay/commands/commands-stream";
+import { CommandsStream } from "process-replay";
 import { World } from "./world";
 
 /**

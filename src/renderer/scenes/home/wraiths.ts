@@ -23,7 +23,6 @@ import {
 } from "three";
 import { playWraithComms } from "./wraith-noise";
 import { quadrants } from "@utils/quadrants";
-import path from "path";
 
 export type Wraith = Object3D & {
     init: () => void;

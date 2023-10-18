@@ -1,6 +1,5 @@
-import path from "path";
 import { BwDAT, UnitTileScale } from "common/types";
-import electronFileLoader from "common/utils/electron-file-loader";
+// import electronFileLoader from "common/utils/electron-file-loader";
 
 import { readCascFileRemote as readCascFile, openCascStorageRemote as openCascStorage, closeCascStorageRemote as closeCascStorage } from "@ipc/casclib";
 
@@ -17,7 +16,7 @@ import {
 import gameStore, { setAsset } from "@stores/game-store";
 import { generateCursorIcons, generateUIIcons } from "./generate-icons/generate-icons";
 import { log } from "@ipc/log";
-import { loadEnvironmentMap } from "./environment/env-map";
+// import { loadEnvironmentMap } from "./environment/env-map";
 import { imageTypes } from "common/enums";
 import { CubeTexture, CubeTextureLoader, Texture } from "three";
 import { settingsStore } from "@stores/settings-store";
@@ -55,27 +54,10 @@ export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     wireframeIcons?: Blob[];
 } & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
 
-const _hardfiles = [ ".glb", ".hdr", ".png", ".exr", ".js", ".wasm" ];
-
 export const initializeAssets = async ( directories: {
     starcraft: string;
     assets: string;
 } ) => {
-    electronFileLoader( ( file: string, directory?: string ) => {
-        log.debug( file );
-
-        if ( file.startsWith( "blob:" ) ) {
-            return fetch( file ).then( ( r ) => r.arrayBuffer() );
-        }
-        if ( _hardfiles.some( ( ext ) => file.endsWith( ext ) ) ) {
-            const fullPath = path.join( directory ?? "", file );
-            return file.endsWith( ".js" )
-                ? fsPromises.readFile( fullPath, { encoding: "utf-8" } )
-                : fsPromises.readFile( fullPath ).then( ( buffer ) => buffer.buffer );
-        } else {
-            return readCascFile( file );
-        }
-    } );
 
     await openCascStorage( directories.starcraft );
 
@@ -108,11 +90,11 @@ export const initializeAssets = async ( directories: {
         ),
     };
 
-    const envMapFilename = path.join( __static, "./envmap.hdr" );
-    log.debug( `@load-assets/envmap: ${envMapFilename}` );
-    loadEnvironmentMap( envMapFilename, ( tex ) => {
-        setAsset( "envMap", tex );
-    } );
+    // const envMapFilename = path.join( __static, "./envmap.hdr" );
+    // log.debug( `@load-assets/envmap: ${envMapFilename}` );
+    // loadEnvironmentMap( envMapFilename, ( tex ) => {
+    //     setAsset( "envMap", tex );
+    // } );
 
     processStore().increment();
 
@@ -136,8 +118,8 @@ export const initializeAssets = async ( directories: {
     const loadingHD = new Set();
     const glbExists = new Map<number, boolean>();
     const atlases: AnimAtlas[] = [];
-    const glbFileName = ( imageId: number ) =>
-        path.join( directories.assets, `00${imageId}`.slice( -3 ) + ".glb" );
+    // const glbFileName = ( imageId: number ) =>
+    //     path.join( directories.assets, `00${imageId}`.slice( -3 ) + ".glb" );
 
     const hdLoaderJob = new TimeSliceJob<number>(
         ( imageId: number, next ) => {
@@ -180,7 +162,7 @@ export const initializeAssets = async ( directories: {
      */
     const loadImageAtlas = async ( imageId: number, bwDat: BwDAT ) => {
         const refImageId = refId( imageId );
-        const glbRefImageId = modelSetFileRefIds.get( refImageId ) ?? refImageId;
+        // const glbRefImageId = modelSetFileRefIds.get( refImageId ) ?? refImageId;
         const settings = settingsStore().data.graphics.useHD2;
 
         let res = UnitTileScale.HD2;
@@ -210,36 +192,36 @@ export const initializeAssets = async ( directories: {
             await _loadAtlas( imageId, res, settings === "force" );
         }
 
-        if ( glbExists.get( refImageId ) ) {
-            glbExists.set( refImageId, false );
+        // if ( glbExists.get( refImageId ) ) {
+        //     glbExists.set( refImageId, false );
 
-            const glb = await loadGlbAtlas(
-                glbFileName( glbRefImageId ),
-                // use grp frames for convenience since we might fake being another image for re-use
-                // and we'll need access to those original frames in order to manipulate things
-                bwDat.grps[glbRefImageId].frames,
-                bwDat.images[imageId],
-                null
-            );
+        //     const glb = await loadGlbAtlas(
+        //         glbFileName( glbRefImageId ),
+        //         // use grp frames for convenience since we might fake being another image for re-use
+        //         // and we'll need access to those original frames in order to manipulate things
+        //         bwDat.grps[glbRefImageId].frames,
+        //         bwDat.images[imageId],
+        //         null
+        //     );
 
-            atlases[imageId] = Object.assign( {}, atlases[imageId], glb );
-            atlases[refImageId] = Object.assign( {}, atlases[refImageId], glb );
-        }
+        //     atlases[imageId] = Object.assign( {}, atlases[imageId], glb );
+        //     atlases[refImageId] = Object.assign( {}, atlases[refImageId], glb );
+        // }
     };
 
-    log.debug( "@load-assets/skybox" );
-    const loader = new CubeTextureLoader();
-    const rootPath = path.join( __static, "/skybox/sparse" );
-    log.debug( rootPath );
+    // log.debug( "@load-assets/skybox" );
+    // const loader = new CubeTextureLoader();
+    // const rootPath = path.join( __static, "/skybox/sparse" );
+    // log.debug( rootPath );
 
-    loader.setPath( rootPath );
+    // loader.setPath( rootPath );
 
-    const skyBox = await new Promise( ( res: ( t: CubeTexture ) => void ) =>
-        loader.load(
-            [ "right.png", "left.png", "top.png", "bot.png", "front.png", "back.png" ],
-            res
-        )
-    );
+    // const skyBox = await new Promise( ( res: ( t: CubeTexture ) => void ) =>
+    //     loader.load(
+    //         [ "right.png", "left.png", "top.png", "bot.png", "front.png", "back.png" ],
+    //         res
+    //     )
+    // );
 
     processStore().increment();
 
@@ -273,7 +255,7 @@ export const initializeAssets = async ( directories: {
         loadImageAtlasAsync( imageId: number, bwDat: BwDAT ) {
             return loadImageAtlas( imageId, bwDat );
         },
-        skyBox,
+        // skyBox,
         refId,
         resetImagesCache: () => {
             for (const atlas of atlases) {
@@ -297,36 +279,36 @@ export const initializeAssets = async ( directories: {
 
 export const loadImageAtlasDirect = async ( imageId: number, image3d: boolean ) => {
     const assets = gameStore().assets!;
-    const settings = settingsStore().data;
+    // const settings = settingsStore().data;
 
     const refImageId = assets.refId( imageId );
 
-    const glbFileName = path.join(
-        settings.directories.assets,
-        `00${refImageId}`.slice( -3 ) + ".glb"
-    );
-    const glbFileExists = image3d ? await fileExists( glbFileName ) : false;
+    // const glbFileName = path.join(
+    //     settings.directories.assets,
+    //     `00${refImageId}`.slice( -3 ) + ".glb"
+    // );
+    // const glbFileExists = image3d ? await fileExists( glbFileName ) : false;
 
-    const imageDat = assets.bwDat.images[imageId];
+    // const imageDat = assets.bwDat.images[imageId];
 
-    if ( glbFileExists ) {
-        log.debug( `loading glb  ${glbFileName}` );
+    // if ( glbFileExists ) {
+    //     log.debug( `loading glb  ${glbFileName}` );
 
-        const anim = loadAnimAtlas(
-            await loadAnimBuffer( refImageId, UnitTileScale.HD ),
-            imageId,
-            UnitTileScale.HD
-        );
+    //     const anim = loadAnimAtlas(
+    //         await loadAnimBuffer( refImageId, UnitTileScale.HD ),
+    //         imageId,
+    //         UnitTileScale.HD
+    //     );
 
-        return {
-            ...anim,
-            ...( await loadGlbAtlas( glbFileName, anim.frames, imageDat, assets.envMap! ) ),
-        };
-    } else {
+    //     return {
+    //         ...anim,
+    //         ...( await loadGlbAtlas( glbFileName, anim.frames, imageDat, assets.envMap! ) ),
+    //     };
+    // } else {
         return loadAnimAtlas(
             await loadAnimBuffer( refImageId, UnitTileScale.HD ),
             imageId,
             UnitTileScale.HD
         );
-    }
+    // }
 };

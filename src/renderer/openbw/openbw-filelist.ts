@@ -1,11 +1,8 @@
-import fs from "fs";
-import { findFilesRemote as findFiles } from "@ipc/casclib"
 
 import { log } from "@ipc/log";
 import { settingsStore } from "@stores/settings-store";
 
 import filepaths from "./extra/filepaths";
-import filelist from "./extra/search-list";
 import { OpenBWWasm } from "common/types";
 // A wrapper around file buffers that openbw wasm needs
 export default class OpenBWFileList {
@@ -83,20 +80,6 @@ export default class OpenBWFileList {
         }
     }
 
-    // utility
-    async dumpFileList() {
-        const paths: string[] = [];
-        for ( const filename of filelist ) {
-            const _paths = ( await findFiles( filename ) ).filter(
-                ( n: string ) => !n.includes( "Carbot" )
-            );
-            paths.push( ..._paths );
-        }
-        fs.writeFileSync(
-            "filelist.json",
-            ["export default", JSON.stringify( paths )].join( " " )
-        );
-    }
 
     clear() {
         this.buffers = [];

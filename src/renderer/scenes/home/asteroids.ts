@@ -14,7 +14,6 @@ import {
 } from "three";
 import range from "common/utils/range";
 import { upgradeStandardMaterial } from "@utils/material-utils";
-import path from "path";
 
 export const createAsteroids = () => {
     let asteroids: InstancedMesh;

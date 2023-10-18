@@ -1,4 +1,3 @@
-import { openUrl } from "@ipc/dialogs";
 import { useSceneStore } from "@stores/scene-store";
 import discordLogo from "@image/assets/discord.png";
 import youtubeLogo from "@image/assets/youtube.png";
@@ -56,11 +55,11 @@ const Header = () => <div
             opacity: "0.2",
         }}>
         <img
-            onClick={() =>
-                openUrl(
-                    "https://github.com/imbateam-gg/titan-reactor"
-                )
-            }
+            // onClick={() =>
+            //     openUrl(
+            //         "https://github.com/imbateam-gg/titan-reactor"
+            //     )
+            // }
             src={githubLogo}
             style={{
                 ...iconStyle,
@@ -68,7 +67,7 @@ const Header = () => <div
             }}
         />
         <img
-            onClick={() => openUrl("http://youtube.imbateam.gg")}
+            // onClick={() => openUrl("http://youtube.imbateam.gg")}
             src={youtubeLogo}
             style={{
                 ...iconStyle,
@@ -80,7 +79,7 @@ const Header = () => <div
                 ...iconStyle,
                 filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)",
             }}
-            onClick={() => openUrl("http://discord.imbateam.gg")}
+            // onClick={() => openUrl("http://discord.imbateam.gg")}
             src={discordLogo}
         />
     </div>

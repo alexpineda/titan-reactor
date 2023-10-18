@@ -1,6 +1,6 @@
 import { Assets } from "@image/assets";
 import { describe, it, expect, jest } from "@jest/globals";
-import Chk from "bw-chk";
+import type Chk from "bw-chk";
 import { preloadMapUnitsAndSpriteFiles } from "./preload-map-units-and-sprites";
 import processStore from "@stores/process-store";
 

@@ -13,7 +13,6 @@ import {
     Texture,
     Vector3,
 } from "three";
-import path from "path";
 
 const BC_START_POS = new Vector3( -900, -250, -500 );
 const BC_END_POS = new Vector3( -320, -560, -500 );

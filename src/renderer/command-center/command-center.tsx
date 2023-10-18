@@ -8,7 +8,7 @@ import { PluginConfig, PluginMetaData, RemotePackage } from "common/types";
 import { DetailSheet } from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
-import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "./leva-plugins/leva-utils";
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
 import { sendWindow, SendWindowActionType } from "./ipc/relay";

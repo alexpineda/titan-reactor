@@ -1,5 +1,5 @@
 import { TypeEmitter } from "@utils/type-emitter";
-import Chk from "bw-chk";
+import type Chk from "bw-chk";
 import { LogLevel } from "common/logging";
 import { MacroAction, PluginConfig, PluginMetaData, SettingsMeta } from "common/types";
 import { ValidatedReplay } from "renderer/scenes/replay-scene-loader";

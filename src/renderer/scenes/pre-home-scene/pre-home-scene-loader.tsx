@@ -6,7 +6,6 @@ import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
 import {  waitForTruthy } from "@utils/wait-for";
-import path from "path";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
 import processStore from "@stores/process-store";
@@ -47,9 +46,9 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     mixer.setVolumes( settings.data.audio );
 
     const dropYourSocks = mixer.context.createBufferSource();
-    dropYourSocks.buffer = await mixer.loadAudioBuffer(
-        path.join( __static, "drop-your-socks.mp3" )
-    );
+    // dropYourSocks.buffer = await mixer.loadAudioBuffer(
+    //     path.join( __static, "drop-your-socks.mp3" )
+    // );
 
     const _disconnect = mixer.connect(
         dropYourSocks,

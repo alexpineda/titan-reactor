@@ -1,4 +1,4 @@
-import Chk from "bw-chk";
+// import Chk from "bw-chk";
 // import loadScm from "@utils/load-scm";
 import { log } from "@ipc/log";
 import processStore from "@stores/process-store";
@@ -9,9 +9,7 @@ import { waitForTruthy } from "@utils/wait-for";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import gameStore from "@stores/game-store";
 import { Janitor } from "three-janitor";
-import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 import { makeGameScene } from "./game-scene/game-scene";
-import CommandsStream from "@process-replay/commands/commands-stream";
 import { SceneState } from "./scene";
 import { settingsStore } from "@stores/settings-store";
 import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
@@ -24,6 +22,7 @@ import { playerColors } from "common/enums";
 import { raceToString } from "@utils/string-utils";
 import { globalEvents } from "@core/global-events";
 import { music } from "@audio/music";
+import { ChkDowngrader } from "process-replay";
 
 const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;

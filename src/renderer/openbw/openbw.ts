@@ -2,7 +2,6 @@ import initializeWASM from "./titan.wasm.js";
 import OpenBWFileList from "./openbw-filelist";
 import { Timer } from "@utils/timer";
 // import { readFileSync } from "fs";
-import path from "path";
 import { OpenBWWasm, ReadFile } from "common/types";
 import { mix } from "@utils/object-utils.js";
 import { UnitsBufferViewIterator, destroyedUnitsIterator, killedUnitIterator } from "@openbw/structs/units-buffer-view.js";

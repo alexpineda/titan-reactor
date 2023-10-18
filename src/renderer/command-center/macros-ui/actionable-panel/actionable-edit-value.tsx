@@ -1,6 +1,6 @@
 import { useControls, useCreateStore } from "leva";
 import { createLevaPanel } from "../../create-leva-panel";
-import { wrapFieldConfigWithChangeListener } from "@utils/leva-utils";
+import { wrapFieldConfigWithChangeListener } from "../../leva-plugins/leva-utils";
 import { ActionablePanelProps } from "./actionable-pane-props";
 import { FieldDefinition } from "common/types";
 import { useMacroStore } from "../use-macros-store";

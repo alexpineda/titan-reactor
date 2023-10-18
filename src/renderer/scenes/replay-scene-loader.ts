@@ -1,9 +1,12 @@
-import type { Replay  } from "@process-replay/parse-replay";
+// import type { Replay  } from "@process-replay/parse-replay";
 // import { Replay, parseReplay } from "@process-replay/parse-replay";
 // import { writeReplay } from "@process-replay/write-replay";
-import { Version } from "@process-replay/version";
-import CommandsStream from "@process-replay/commands/commands-stream";
+// import { Version } from "@process-replay/version";
+// import CommandsStream from "@process-replay/commands/commands-stream";
 // import ChkDowngrader from "@process-replay/chk/chk-downgrader";
+
+import type { Replay } from "process-replay";
+import { CommandsStream, detectMeleeObservers, sanityCheckCommands } from "process-replay";
 
 import type Chk from "bw-chk";
 
@@ -17,8 +20,6 @@ import { makeGameScene } from "./game-scene/game-scene";
 import { Janitor } from "three-janitor";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 // import { cleanMapTitles  } from "@utils/chk-utils";
-import { sanityCheckCommands, writeCommands } from "@process-replay/write-commands";
-import { detectMeleeObservers } from "@utils/replay-utils";
 import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import { SceneState } from "./scene";
 import gameStore from "@stores/game-store";
@@ -140,7 +141,7 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
 
     const map = {} as Chk //new Chk( replay.chk );
 
-    cleanMapTitles( map );
+    // cleanMapTitles( map );
 
     const gameTitle = `${map.title} - ${replay.header.players
         .map( ( { name } ) => name )

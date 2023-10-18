@@ -28,7 +28,7 @@ export const readCascFileRemote: ReadCascFile = async (
 ) => {
     const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE_REMOTE, filepath, encoding );
     // return Buffer.from(arrayBuffer.buffer);
-    return arrayBuffer;
+    return Buffer.from(arrayBuffer);
 };
 
 export const readCascFileBatchRemote: ReadCascFileBatch = async (

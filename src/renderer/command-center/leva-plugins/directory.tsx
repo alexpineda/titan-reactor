@@ -1,4 +1,4 @@
-import { showFolderDialog } from "@ipc/dialogs";
+import { showFolderDialog } from "../ipc/dialogs";
 import { createPlugin } from "leva/plugin";
 import { useInputContext, Components, LevaInputProps } from "leva/plugin";
 

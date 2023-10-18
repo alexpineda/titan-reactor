@@ -7,7 +7,7 @@ import {
 } from "common/get-app-settings-leva-config";
 import { useControls, useCreateStore } from "leva";
 import {   useState } from "react";
-import { attachOnChangeAndGroupByFolder, groupConfigByKey } from "@utils/leva-utils";
+import { attachOnChangeAndGroupByFolder, groupConfigByKey } from "./leva-plugins/leva-utils";
 import { createWebGLRenderer } from "@render/render-composer";
 import deepMerge from "deepmerge";
 import { createLevaPanel } from "./create-leva-panel";
