@@ -6,7 +6,6 @@
     "main": "dist/electron/main/index.js",
     "typings": "dist/types/index.d.ts",
     "scripts": {
-        "plugin-server": "vite -c vite.config.plugin-server.ts",
         "sanity": "yarn types:check && yarn test:once",
         "types:check": "tsc --noEmit",
         "test": "jest --watchAll",
@@ -19,8 +18,13 @@
         "build-api-docs:host": "typedoc --out docs/host --tsconfig tsconfig.host-api.json build/api-types/host/index.d.ts",
         "build-api-docs:ui": "typedoc --out docs/ui --tsconfig tsconfig.ui-api.json build/api-types/ui/index.d.ts",
         "build-api-docs": "yarn build-api-docs:host && yarn build-api-docs:ui",
-        "web": "vite -c vite.config.web.ts"
+        "web": "vite -c vite.config.web.ts",
+        "web:build": "vite build -c vite.config.web.ts",
+        "ui-server": "yarn ui-server:build && node dist/ui-server/index.js",
+        "ui-server:build": "node build.ui-server.mjs"
+
     },
+    "license": "GPL-3.0",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/imbateam-gg/titan-reactor.git"
@@ -117,6 +121,7 @@
         "@vitejs/plugin-react": "^2.1.0",
         "dotenv": "^16.0.3",
         "esbuild": "^0.19.5",
+        "esbuild-plugin-inline-import": "^1.0.1",
         "eslint": "^8.24.0",
         "eslint-config-prettier": "^8.5.0",
         "eslint-import-resolver-alias": "^1.1.2",

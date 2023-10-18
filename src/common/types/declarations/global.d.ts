@@ -9,10 +9,20 @@ declare module "*?worker" {
     export default Worker;
 }
 
+// vite inline import - web
 declare module "*?raw" {
     const contents: string;
     export = contents;
 }
+
+// esbuild inline import - ui-server
+
+declare module "inline:*" {
+    const contents: string;
+    export = contents;
+}
+
+
 declare module "*.svg" {
     const contents: string;
     export = contents;

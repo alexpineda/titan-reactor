@@ -250,7 +250,7 @@ export const Home = ({ surface }: { surface: HTMLCanvasElement }) => {
     useEffect(() => {
         setTimeout(() => {
             setIsInterstitial(true);
-        }, 2000);
+        }, 10000);
     }, []);
 
     if (mapImage) {
@@ -275,7 +275,7 @@ export const Home = ({ surface }: { surface: HTMLCanvasElement }) => {
                 thickness={5}
                 style={{ marginBottom: "var(--size-10)", visibility: progress ? "visible" : "hidden" }}
             />
-            {!error && !!progress && isInterstitial && (
+            {!error && !!progress && isInterstitial && (replay || map) && (
                 <LoadRing />
             )}
             {!error && (

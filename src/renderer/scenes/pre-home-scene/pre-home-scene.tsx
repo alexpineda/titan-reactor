@@ -70,7 +70,7 @@ export const PreHomeScene = () => {
                         thickness={20}
                         style={{ marginTop: "30px" }}
                     />}
-                    {!initialInteraction && <button style={{ marginTop: "20px" }} onClick={() => useGameStore.setState({initialInteraction: true})}>ENTER</button>}
+                    {!initialInteraction && <button style={{ marginTop: "20px" }} onClick={() => useGameStore.setState({initialInteraction: true})}>BLACK SHEEP WALL</button>}
                 </div>
             )}
             {initialInstall && (

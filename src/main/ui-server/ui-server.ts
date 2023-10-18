@@ -6,10 +6,10 @@ import settings from "../settings/singleton";
 import { fileExists } from "common/utils/file-exists";
 import { logService } from "../logger/singleton";
 import fetch from "node-fetch";
-import runtimeHTML from "./runtime.html?raw";
-import runtimeJSX from "./runtime.tsx?raw";
+import runtimeHTML from "inline:./runtime.html";
+import runtimeJSX from "inline:./runtime.tsx";
 import { BUNDLED_SUBPATH, PLUGIN_PATH, RESOURCES_PATH } from "main/tmp-main";
-
+import { UI_PORT } from "common/tmp-common";
 
 
 // let _handle: any = null;
@@ -168,4 +168,6 @@ app.get( "*", async function ( req, res ) {
     }
 } );
 
-export default app;
+
+app.listen( UI_PORT, "localhost" );
+console.log( `@ui-server: listening on port ${UI_PORT}` );

@@ -8,11 +8,11 @@ import deepMerge from "deepmerge";
 
 import { PluginConfig, PluginMetaData, PluginPackage } from "common/types";
 
-import readFolder from "../get-files";
+import readFolder from "./get-files";
 import { withErrorMessage } from "common/utils/with-error-message";
-import log from "../log";
+import log from "./log";
 import { fileExists } from "common/utils/file-exists";
-import { transpile } from "../typescript/transpile";
+import { transpile } from "./typescript/transpile";
 import { DEFAULT_PLUGIN_PACKAGES } from "common/default-settings";
 import semver from "semver";
 import { arrayOverwriteMerge } from "@utils/object-utils";

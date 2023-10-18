@@ -1,4 +1,4 @@
-import { createWebGLRenderer, TitanRenderComposer } from "@render";
+import { TitanRenderComposer } from "@render";
 import { Surface } from "@image/canvas/surface";
 import { loadEnvironmentMap } from "@image/environment/env-map";
 import {

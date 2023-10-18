@@ -9,7 +9,7 @@ import { doMigrations } from "./migrate";
 import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { logService } from "../logger/singleton";
-import { PluginManager } from "../plugins/plugin-manager";
+import { PluginManager } from "../plugin-manager";
 import uniq from "common/utils/uniq";
 import { PLUGIN_PATH } from "../tmp-main";
 

@@ -5,7 +5,7 @@ import {
     ScriptTarget,
     transpileModule,
 } from "typescript";
-import { removeImportDeclarations } from "../plugins/process-ts-plugin";
+import { removeImportDeclarations } from "./remove-import-declarations";
 
 export interface TransformSyntaxError extends Error {
     message: string;
