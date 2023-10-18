@@ -1,24 +1,18 @@
-import { app } from "electron";
+// import { app } from "electron";
 import { promises as fsPromises } from "fs";
-import path from "path";
 
 import phrases from "common/phrases";
 import { defaultSettings } from "common/default-settings";
-import { fileExists } from "common/utils/file-exists";
 import { Settings as SettingsType, SettingsMeta } from "common/types";
 
-import { findStarcraftPath } from "../starcraft/find-install-path";
-import { findMapsPath } from "../starcraft/find-maps-path";
-import { findReplaysPath } from "../starcraft/find-replay-paths";
-import { foldersExist } from "./folders-exist";
 import { doMigrations } from "./migrate";
-import { findPluginsPath } from "../starcraft/find-plugins-path";
 import log from "../log";
 import { sanitizeMacros } from "common/macros/sanitize-macros";
 import { logService } from "../logger/singleton";
 import { PluginManager } from "../plugins/plugin-manager";
-import { setStorageIsCasc, setStoragePath } from "common/casclib";
+import { setStorageIsCasc } from "common/casclib";
 import uniq from "common/utils/uniq";
+import { PLUGIN_PATH } from "main/tmp-main";
 
 const supportedLanguages = [ "en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU" ];
 
@@ -82,7 +76,7 @@ export class Settings {
                 ( await this.createDefaults() )
         );
 
-        await this.plugins.init( this.#settings.directories.plugins );
+        await this.plugins.init( PLUGIN_PATH );
 
         if ( !this.plugins.hasAnyPlugins ) {
             await this.plugins.installDefaultPlugins( () => {} );
@@ -121,12 +115,12 @@ export class Settings {
         }
     }
 
-    async isCascStorage() {
-        return await foldersExist( this.#settings.directories.starcraft, [
-            "Data",
-            "locales",
-        ] );
-    }
+    // async isCascStorage() {
+    //     return await foldersExist( this.#settings.directories.starcraft, [
+    //         "Data",
+    //         "locales",
+    //     ] );
+    // }
 
     async activatePlugins( pluginIds: string[] ) {
         const plugins = this.deactivatedPlugins.filter( ( p ) => pluginIds.includes( p.id ) );
@@ -147,38 +141,25 @@ export class Settings {
     }
 
     async getMeta(): Promise<SettingsMeta> {
-        const errors = [];
-        const files = [ "plugins" ];
+        const errors: string[] = [];
 
-        for ( const file of files ) {
-            if (
-                !( await fileExists(
-                    this.#settings.directories[
-                        file as keyof SettingsType["directories"]
-                    ]
-                ) )
-            ) {
-                errors.push( `${file} directory is not a valid path. ` );
-            }
-        }
-
-        const isBareDirectory = await foldersExist(
-            this.#settings.directories.starcraft,
-            [ "anim", "arr" ]
-        );
-        if ( !( await this.isCascStorage() ) ) {
-            if (
-                await fileExists(
-                    path.join( this.#settings.directories.starcraft, "STARDAT.MPQ" )
-                )
-            ) {
-                errors.push(
-                    "The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported."
-                );
-            } else if ( !isBareDirectory ) {
-                errors.push( "The StarCraft directory is not a valid path." );
-            }
-        }
+        // const isBareDirectory = await foldersExist(
+        //     this.#settings.directories.starcraft,
+        //     [ "anim", "arr" ]
+        // );
+        // if ( !( await this.isCascStorage() ) ) {
+        //     if (
+        //         await fileExists(
+        //             path.join( this.#settings.directories.starcraft, "STARDAT.MPQ" )
+        //         )
+        //     ) {
+        //         errors.push(
+        //             "The StarCraft directory is not a valid path. Your configuration might be pointing to StarCraft 1.16 version which is not supported."
+        //         );
+        //     } else if ( !isBareDirectory ) {
+        //         errors.push( "The StarCraft directory is not a valid path." );
+        //     }
+        // }
 
         const localLanguage = supportedLanguages.includes( getEnvLocale()! )
             ? getEnvLocale()!
@@ -199,7 +180,7 @@ export class Settings {
         return {
             data: { ...this.#settings, macros },
             errors,
-            isCascStorage: await this.isCascStorage(),
+            isCascStorage: true, //await this.isCascStorage(),
             initialInstall: false,
             activatedPlugins: this.activatedPlugins,
             deactivatedPlugins: this.deactivatedPlugins,
@@ -235,8 +216,8 @@ export class Settings {
             }
         );
 
-        setStorageIsCasc( await this.isCascStorage() );
-        setStoragePath( this.#settings.directories.starcraft );
+        setStorageIsCasc( true ); //await this.isCascStorage() );
+        // setStoragePath( this.#settings.directories.starcraft );
 
         return this.#settings;
     }
@@ -250,13 +231,6 @@ export class Settings {
             ...defaultSettings,
             language:
                 supportedLanguages.find( ( s ) => s === String( getEnvLocale() ) ) ?? "en-US",
-            directories: {
-                starcraft: await findStarcraftPath(),
-                maps: await findMapsPath(),
-                replays: await findReplaysPath(),
-                assets: app.getPath( "documents" ),
-                plugins: await findPluginsPath(),
-            },
         };
     }
 }

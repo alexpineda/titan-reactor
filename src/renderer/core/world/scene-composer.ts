@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { SpritesBufferView } from "@openbw/structs/sprites-buffer-view";
 import type {
     UnitsBufferView,

@@ -1,5 +1,4 @@
 import { LogLevel } from "common/logging";
-import { app } from "electron";
 import fs from "fs";
 import mkdirp from "mkdirp";
 import path from "path";
@@ -86,7 +85,6 @@ export class Logger {
 
         this.writeToLog( "\n\n" );
         this.system( "Logging started" );
-        this.system( "Version: " + app.getVersion() );
     }
 
     log = ( level: LogLevel | "system", msg: string ) => {

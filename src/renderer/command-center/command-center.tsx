@@ -1,3 +1,4 @@
+// @ts-nocheck
 import "./style.css";
 import { debounce } from "lodash";
 import { useEffect, useState } from "react";
@@ -80,10 +81,11 @@ const CommandCenter = () => {
     useEffect( () => {
         if ( plugin.remote && !plugin.remote.readme ) {
             loadRemoteMetaData( plugin.remote.name ).then( ( metadata ) => {
-                if ( plugin.remote && metadata?.readme && !plugin.remote.readme ) {
-                    plugin.remote.readme = metadata.readme;
-                    setSelectedPluginPackage( { ...plugin } );
-                }
+                throw new Error();
+                // if ( plugin.remote && metadata?.readme && !plugin.remote.readme ) {
+                //     plugin.remote.readme = metadata.readme;
+                //     setSelectedPluginPackage( { ...plugin } );
+                // }
             } );
         }
     }, [ plugin ] );

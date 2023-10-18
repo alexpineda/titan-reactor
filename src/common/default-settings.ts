@@ -21,13 +21,6 @@ export const defaultSettingsV6: SettingsV6 = {
         sandbox: false,
         audioListenerDistance: 0.5,
     },
-    directories: {
-        starcraft: "",
-        maps: "",
-        replays: "",
-        assets: "",
-        plugins: "",
-    },
 
     audio: {
         global: 0.5,

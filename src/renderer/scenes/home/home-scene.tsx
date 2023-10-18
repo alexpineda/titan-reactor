@@ -54,34 +54,33 @@ const Header = () => <div
             justifyContent: "end",
             opacity: "0.2",
         }}>
+        <a href="#https://github.com/imbateam-gg/titan-reactor" target="_blank">
         <img
-            // onClick={() =>
-            //     openUrl(
-            //         "https://github.com/imbateam-gg/titan-reactor"
-            //     )
-            // }
             src={githubLogo}
             style={{
                 ...iconStyle,
                 filter: "grayscale(1) invert(1)",
             }}
         />
+        </a>
+        <a href="#https://youtube.imbateam.gg" target="_blank">
         <img
-            // onClick={() => openUrl("http://youtube.imbateam.gg")}
             src={youtubeLogo}
             style={{
                 ...iconStyle,
                 filter: "grayscale(1) invert(1) brightness(1.2)",
             }}
         />
+        </a>
+        <a href="#https://discord.imbateam.gg" target="_blank">
         <img
             style={{
                 ...iconStyle,
                 filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)",
             }}
-            // onClick={() => openUrl("http://discord.imbateam.gg")}
             src={discordLogo}
         />
+        </a>
     </div>
 </div>
 

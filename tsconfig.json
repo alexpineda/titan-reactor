@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "ESNext",
         "module": "ESNext",
-        "moduleResolution": "node",
+        "moduleResolution": "nodenext",
         "noImplicitOverride": true,
         "allowJs": true,
         "checkJs": false,

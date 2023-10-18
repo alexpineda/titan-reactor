@@ -1,124 +1,124 @@
-import { app, powerSaveBlocker, nativeTheme, crashReporter } from "electron";
-import path from "path";
+// import { app, powerSaveBlocker, nativeTheme, crashReporter } from "electron";
+// import path from "path";
 
-import "./register-ipc-handlers";
+// import "./register-ipc-handlers";
 
-import windows, { createWindow } from "./windows";
-import settings from "./settings/singleton";
-import getUserDataPath from "./get-user-data-path";
-import pluginServer from "./plugins/plugin-server";
-// import browserWindows from "./windows";
-// import { getBootupLogs } from "./log";
-import { logService } from "./logger/singleton";
-import electronIsDev from "electron-is-dev";
+// import windows, { createWindow } from "./windows";
+// import settings from "./settings/singleton";
+// import getUserDataPath from "./get-user-data-path";
+// import pluginServer from "./plugins/plugin-server";
+// // import browserWindows from "./windows";
+// // import { getBootupLogs } from "./log";
+// import { logService } from "./logger/singleton";
+// import electronIsDev from "electron-is-dev";
 
-const settingsPath = path.join( getUserDataPath(), "settings.json" );
+// const settingsPath = path.join( getUserDataPath(), "settings.json" );
 
-const gotTheLock = app.requestSingleInstanceLock();
+// const gotTheLock = app.requestSingleInstanceLock();
 
-const createConfigurationWindow = () => {
-    if ( windows.config ) {
-        if ( windows.config.isMinimized() ) windows.config.restore();
-        windows.config.focus();
-        return;
-    }
+// const createConfigurationWindow = () => {
+//     if ( windows.config ) {
+//         if ( windows.config.isMinimized() ) windows.config.restore();
+//         windows.config.focus();
+//         return;
+//     }
 
-    windows.config = createWindow( {
-        onClose: () => {
-            windows.config = null;
-        },
-        nodeIntegration: true,
-        removeMenu: !electronIsDev,
-        backgroundThrottling: false,
-        devTools: true,
-        filepath: "command-center.html",
-    } );
-    windows.config.title = "Configuration Panel";
-    windows.config.minimize();
-};
+//     windows.config = createWindow( {
+//         onClose: () => {
+//             windows.config = null;
+//         },
+//         nodeIntegration: true,
+//         removeMenu: !electronIsDev,
+//         backgroundThrottling: false,
+//         devTools: true,
+//         filepath: "command-center.html",
+//     } );
+//     windows.config.title = "Configuration Panel";
+//     windows.config.minimize();
+// };
 
-if ( !gotTheLock ) {
-    app.quit();
-} else {
-    start();
-}
+// if ( !gotTheLock ) {
+//     app.quit();
+// } else {
+//     start();
+// }
 
-async function start(){
-    const psbId = powerSaveBlocker.start( "prevent-display-sleep" );
+// async function start(){
+//     const psbId = powerSaveBlocker.start( "prevent-display-sleep" );
 
-    app.commandLine.appendSwitch( "enable-features", "SharedArrayBuffer" );
-    app.commandLine.appendSwitch( "force_high_performance_gpu" );
-    app.commandLine.appendSwitch( "strict-origin-isolation" );
-    app.commandLine.appendSwitch( "js-flags", "--expose-gc" );
-    app.commandLine.appendSwitch( "disable-gpu-process-crash-limit" );
-    app.commandLine.appendSwitch( "enable-logging=file" );
-    app.commandLine.appendSwitch( "trace-warnings" );
+//     app.commandLine.appendSwitch( "enable-features", "SharedArrayBuffer" );
+//     app.commandLine.appendSwitch( "force_high_performance_gpu" );
+//     app.commandLine.appendSwitch( "strict-origin-isolation" );
+//     app.commandLine.appendSwitch( "js-flags", "--expose-gc" );
+//     app.commandLine.appendSwitch( "disable-gpu-process-crash-limit" );
+//     app.commandLine.appendSwitch( "enable-logging=file" );
+//     app.commandLine.appendSwitch( "trace-warnings" );
 
-    app.disableDomainBlockingFor3DAPIs();
+//     app.disableDomainBlockingFor3DAPIs();
 
-    crashReporter.start( {
-        productName: "titan-reactor",
-        companyName: "imbateam",
-        submitURL:
-            "https://submit.backtrace.io/imbateam/6c0b4a6e4e557991c206cefa5ca48712c1a34e2f03f0d50c90672f034b58affc/minidump",
-        uploadToServer: true,
-    } );
-    nativeTheme.themeSource = "light";
+//     crashReporter.start( {
+//         productName: "titan-reactor",
+//         companyName: "imbateam",
+//         submitURL:
+//             "https://submit.backtrace.io/imbateam/6c0b4a6e4e557991c206cefa5ca48712c1a34e2f03f0d50c90672f034b58affc/minidump",
+//         uploadToServer: true,
+//     } );
+//     nativeTheme.themeSource = "light";
 
-    app.on( "second-instance", () => {
-        if ( windows.config ) {
-            if ( windows.config.isMinimized() ) windows.config.restore();
-            windows.config.focus();
-        }
-    } );
+//     app.on( "second-instance", () => {
+//         if ( windows.config ) {
+//             if ( windows.config.isMinimized() ) windows.config.restore();
+//             windows.config.focus();
+//         }
+//     } );
 
-    await app.whenReady();
+//     await app.whenReady();
 
-    await settings.init( settingsPath );
+//     await settings.init( settingsPath );
 
-    createConfigurationWindow();
+//     createConfigurationWindow();
 
-    // on window ready send bootup logs
-    // const _readyToShowLogs = () => {
-    //     for ( const log of getBootupLogs() ) {
-    //         browserWindows.main?.webContents.send(
-    //             LOG_MESSAGE_REMOTE,
-    //             log.message,
-    //             log.level
-    //         );
-    //     }
-    //     browserWindows.main?.off( "ready-to-show", _readyToShowLogs );
-    // };
-    // browserWindows.main?.on( "ready-to-show", _readyToShowLogs );
+//     // on window ready send bootup logs
+//     // const _readyToShowLogs = () => {
+//     //     for ( const log of getBootupLogs() ) {
+//     //         browserWindows.main?.webContents.send(
+//     //             LOG_MESSAGE_REMOTE,
+//     //             log.message,
+//     //             log.level
+//     //         );
+//     //     }
+//     //     browserWindows.main?.off( "ready-to-show", _readyToShowLogs );
+//     // };
+//     // browserWindows.main?.on( "ready-to-show", _readyToShowLogs );
 
-    pluginServer.listen( settings.get().plugins.serverPort, "localhost" );
+//     pluginServer.listen( settings.get().plugins.serverPort, "localhost" );
 
-    app.on( "window-all-closed", () => {
-        if ( process.platform !== "darwin" ) {
-            powerSaveBlocker.stop( psbId );
-            app.quit();
-        }
-    } );
+//     app.on( "window-all-closed", () => {
+//         if ( process.platform !== "darwin" ) {
+//             powerSaveBlocker.stop( psbId );
+//             app.quit();
+//         }
+//     } );
 
-    app.on( "activate", () => {
-        createConfigurationWindow();
-    } );
+//     app.on( "activate", () => {
+//         createConfigurationWindow();
+//     } );
 
-    app.on( "web-contents-created", ( _, contents ) => {
-        // prevent navigation
-        contents.on( "will-navigate", ( event ) => {
-            event.preventDefault();
-        } );
+//     app.on( "web-contents-created", ( _, contents ) => {
+//         // prevent navigation
+//         contents.on( "will-navigate", ( event ) => {
+//             event.preventDefault();
+//         } );
 
-        // prevent new windows
-        contents.setWindowOpenHandler( () => ( { action: "deny" } ) );
-    } );
+//         // prevent new windows
+//         contents.setWindowOpenHandler( () => ( { action: "deny" } ) );
+//     } );
 
-    app.on( "child-process-gone", ( _, details ) => {
-        logService.error( details.reason );
-    } );
+//     app.on( "child-process-gone", ( _, details ) => {
+//         logService.error( details.reason );
+//     } );
 
-    app.on( "render-process-gone", ( _, __, details ) => {
-        logService.error( details.reason );
-    } );
-}
+//     app.on( "render-process-gone", ( _, __, details ) => {
+//         logService.error( details.reason );
+//     } );
+// }

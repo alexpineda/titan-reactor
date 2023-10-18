@@ -6,9 +6,9 @@
 // import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 
 import type { Replay } from "process-replay";
-import { CommandsStream, detectMeleeObservers, sanityCheckCommands } from "process-replay";
+import { ChkDowngrader, CommandsStream, detectMeleeObservers, parseReplay, sanityCheckCommands, writeCommands, writeReplay, Version } from "process-replay";
 
-import type Chk from "bw-chk";
+import Chk from "bw-chk";
 
 import { OpenBW } from "@openbw/openbw";
 
@@ -63,7 +63,7 @@ export const loadAndValidateReplay = async ( file: File ) => {
     const settings = settingsStore().data;
 
     let replayBuffer = await openFile( file );
-    let replay = {} as Replay;// await parseReplay( Buffer.from( replayBuffer ) );
+    let replay =  await parseReplay( Buffer.from( replayBuffer ) );
 
     if ( replay.header.players.some( ( player ) => player.isComputer ) ) {
         throw new Error( "Replays with computer players are not currently supported." );
@@ -87,16 +87,16 @@ export const loadAndValidateReplay = async ( file: File ) => {
         }
     }
 
-    // if ( replay.version !== Version.titanReactor ) {
-    //     const chkDowngrader = new ChkDowngrader();
-    //     const chk = chkDowngrader.downgrade( replay.chk.slice( 0 ) );
-    //     const rawCmds = sanityCheck.length ? writeCommands( replay, [] ) : replay.rawCmds;
+    if ( replay.version !== Version.TitanReactor ) {
+        const chkDowngrader = new ChkDowngrader();
+        const chk = chkDowngrader.downgrade( replay.chk.slice( 0 ) );
+        const rawCmds = sanityCheck.length ? writeCommands( replay, [] ) : replay.rawCmds;
 
-    //     replayBuffer = writeReplay( replay.rawHeader, rawCmds, chk, replay.limits );
+        replayBuffer = writeReplay( replay.rawHeader, rawCmds, chk, replay.limits );
 
 
-    //     replay = await parseReplay( Buffer.from(replayBuffer));
-    // }
+        replay = await parseReplay( Buffer.from(replayBuffer));
+    }
 
 
     replay.header.players = replay.header.players.filter( ( p ) => p.isActive );
@@ -139,7 +139,7 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
     document.title = "Titan Reactor";
 
 
-    const map = {} as Chk //new Chk( replay.chk );
+    const map = new Chk( replay.chk );
 
     // cleanMapTitles( map );
 

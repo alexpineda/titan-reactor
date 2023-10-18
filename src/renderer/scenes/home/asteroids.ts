@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { loadGlb } from "@image/formats";
 import {
     Euler,

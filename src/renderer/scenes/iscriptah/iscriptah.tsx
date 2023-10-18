@@ -24,7 +24,6 @@ import { Janitor } from "three-janitor";
 import { RenderPass } from "postprocessing";
 import { TitanRenderComposer } from "@render/render-composer";
 import { root } from "@render/root";
-import { settingsStore } from "@stores/settings-store";
 import { initializeAssets, loadImageAtlasDirect } from "@image/assets";
 import gameStore from "@stores/game-store";
 import { IScriptRunner } from "./iscript-runner";
@@ -42,9 +41,8 @@ import { IScriptImage } from "./iscript-sprite";
 import { getDirection32 } from "@utils/camera-utils";
 
 const bootup = async () => {
-    const settings = await settingsStore().load();
 
-    await initializeAssets( settings.data.directories );
+    await initializeAssets(  );
 
     const janitor = new Janitor( "iscriptah-scene-loader" );
 
@@ -188,7 +186,7 @@ const bootup = async () => {
         const preload = async () => {
             const { header } = block;
 
-            const atlas = await loadImageAtlasDirect( block.image.index, true );
+            const atlas = await loadImageAtlasDirect( block.image.index )// true );
 
             const image = isGltfAtlas( atlas )
                 ? new Image3D( atlas )

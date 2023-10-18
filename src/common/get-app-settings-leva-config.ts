@@ -37,7 +37,6 @@ export const getAppSettingsInLevaFormat = (
     maxPixelRatio = 1,
     maxAntiAlias = 1
 ) => ( {
-    ...getDirectoryConfig( settings.directories ),
     ...getGraphicsConfig( settings.graphics, maxPixelRatio ),
     ...getUtilConfig( settings.utilities ),
     ...getSessionSettingsInLevaFormat( settings, plugins, maxAnisotropy, maxAntiAlias ),
@@ -183,35 +182,6 @@ const getUtilConfig = ( util: SettingsMeta["data"]["utilities"] ): UtilConfig =>
         label: "Autoplay Replay Queue",
         value: util.autoPlayReplayQueue
     }
-} );
-
-type DirectoryConfig = {
-    [key in `directories.${keyof SettingsMeta["data"]["directories"]}`]?: any;
-};
-
-const getDirectoryConfig = (
-    directories: SettingsMeta["data"]["directories"]
-): DirectoryConfig => ( {
-    "directories.starcraft": {
-        label: "Starcraft",
-        value: directories.starcraft,
-        type: "directory",
-    },
-    "directories.maps": {
-        label: "Maps",
-        value: directories.maps,
-        type: "directory",
-    },
-    "directories.replays": {
-        label: "Replays",
-        value: directories.replays,
-        type: "directory",
-    },
-    "directories.assets": {
-        label: "3D Assets",
-        value: directories.assets,
-        type: "directory",
-    },
 } );
 
 type MinimapConfig = {

@@ -1,4 +1,4 @@
-import { TitanRenderComposer } from "@render";
+import { createWebGLRenderer, TitanRenderComposer } from "@render";
 import { Surface } from "@image/canvas/surface";
 import { loadEnvironmentMap } from "@image/environment/env-map";
 import {
@@ -14,7 +14,6 @@ import {
     ToneMappingEffect,
     VignetteEffect,
 } from "postprocessing";
-// import { VRButton } from 'three/examples/jsm/webxr/VRButton';
 import { EXRLoader } from "three/examples/jsm/loaders/EXRLoader.js";
 
 import {
@@ -39,6 +38,8 @@ import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
 import processStore from "@stores/process-store";
+import { VRButton } from "@render/vr/vr-button";
+import { terrainComposer } from "@image/generate-map/terrain-composer";
 
 CameraControls.install( { THREE: THREE } );
 
@@ -71,10 +72,10 @@ let fireTexture: Texture;
 
 export const preloadIntro = async () => {
     if ( fireTexture === undefined ) {
-        fireTexture = new EXRLoader().load( path.join( __static, "./FireBall03_8x8.exr" ) );
+        fireTexture = await new EXRLoader().loadAsync( __static + "/FireBall03_8x8.exr"  );
     }
 
-    const envmap = loadEnvironmentMap( path.join( __static, "./envmap.hdr" ), () =>
+    const envmap = loadEnvironmentMap( __static + "/envmap.hdr" , () =>
         processStore().increment()
     );
 
@@ -164,7 +165,7 @@ export async function createWraithScene() {
 
     janitor.mop( camera.init( _controls, battleCruiser.object ), "camera" );
 
-    const renderPass = janitor.mop( new RenderPass( scene, camera.get() ) );
+    // const renderPass = janitor.mop( new RenderPass( scene, camera.get() ) );
     const sunMaterial = new MeshBasicMaterial( {
         color: 0xffddaa,
         transparent: true,
@@ -176,17 +177,17 @@ export async function createWraithScene() {
     sun.name = "sun";
     sun.frustumCulled = false;
 
-    const godRaysEffect = new GodRaysEffect( camera.get(), sun, {
-        height: 480,
-        kernelSize: KernelSize.SMALL,
-        density: 1,
-        decay: 0.94,
-        weight: 1,
-        exposure: 1,
-        samples: 60,
-        clampMax: 1.0,
-        blendFunction: BlendFunction.SCREEN,
-    } );
+    // const godRaysEffect = new GodRaysEffect( camera.get(), sun, {
+    //     height: 480,
+    //     kernelSize: KernelSize.SMALL,
+    //     density: 1,
+    //     decay: 0.94,
+    //     weight: 1,
+    //     exposure: 1,
+    //     samples: 60,
+    //     clampMax: 1.0,
+    //     blendFunction: BlendFunction.SCREEN,
+    // } );
 
     slight.position.set( 5, 5, 4 );
     slight.position.multiplyScalar( 10 );
@@ -196,33 +197,42 @@ export async function createWraithScene() {
     sun.updateMatrixWorld();
 
     glitchEffect.blendMode.setOpacity( 0.5 );
-    const glitchPass = new EffectPass( camera.get(), glitchEffect );
-    const tone = new ToneMappingEffect();
+    // const glitchPass = new EffectPass( camera.get(), glitchEffect );
+    // const tone = new ToneMappingEffect();
 
-    const vignet = new VignetteEffect( {
-        darkness: 0.55,
+    // const vignet = new VignetteEffect( {
+    //     darkness: 0.55,
+    // } );
+
+    // renderComposer.setBundlePasses( {
+    //     passes: janitor.mop( [
+    //         renderPass,
+    //         new EffectPass(
+    //             camera.get(),
+    //             new BloomEffect( {
+    //                 intensity: 1.25,
+    //                 blendFunction: BlendFunction.SCREEN,
+    //                 mipmapBlur: true,
+    //             } ),
+    //             new SMAAEffect(),
+    //             tone,
+    //             godRaysEffect,
+    //             vignet
+    //         ),
+    //         glitchPass,
+    //     ] ),
+    // } );
+
+    const testR = new THREE.WebGLRenderer( {
+        powerPreference: "high-performance",
+        precision: "highp",
     } );
+    testR.xr.enabled = true
+    document.body.appendChild(testR.domElement)
+    janitor.mop( testR.domElement);
+    janitor.mop( testR );
 
-    renderComposer.setBundlePasses( {
-        passes: janitor.mop( [
-            renderPass,
-            new EffectPass(
-                camera.get(),
-                new BloomEffect( {
-                    intensity: 1.25,
-                    blendFunction: BlendFunction.SCREEN,
-                    mipmapBlur: true,
-                } ),
-                new SMAAEffect(),
-                tone,
-                godRaysEffect,
-                vignet
-            ),
-            glitchPass,
-        ] ),
-    } );
-
-    renderComposer.getWebGLRenderer().setAnimationLoop( ( elapsed: number ) => {
+    testR.setAnimationLoop( ( elapsed: number ) => {
         const delta = elapsed - _lastElapsed;
         _lastElapsed = elapsed;
     
@@ -256,15 +266,15 @@ export async function createWraithScene() {
         _noiseInstance.value =
             camera.cameraState === CameraState.RotateAroundWraiths ? rear : 0;
     
-        renderComposer.render( delta );
-        renderComposer.drawBuffer();
+        testR.render( scene, camera.get() ); 
+        // renderComposer.drawBuffer();
     } );
 
     janitor.mop( renderComposer );
 
     _sceneResizeHandler();
 
-    // document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
+    document.body.appendChild( VRButton.createButton( testR ) );
 
     return {
         dispose: () => janitor.dispose(),

@@ -5,7 +5,8 @@ import pkg from "./package.json";
 import aliases from "./build/aliases";
 import path from "path";
 import tsConfig from "./tsconfig.json"
-import { nodePolyfills } from 'vite-plugin-node-polyfills'
+import mkcert from 'vite-plugin-mkcert'
+// import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 const OUT_DIR = "dist/web";
 const TARGET =  tsConfig.compilerOptions.target;// ['es2020', 'edge88', 'firefox78', 'chrome87', 'safari14']//"modules";
@@ -22,10 +23,11 @@ const alias = Object.entries(aliases).reduce(
     }
 );
 
+console.log("VSCODE_DEBUG", process.env.VSCODE_DEBUG);
 export const sharedViteConfig = ({ command }) => ({
     define: {
         __static: JSON.stringify(
-            command === "build" ? "./resources/bundled" : "./bundled"
+            command === "build" ? "/resources/bundled" : "/bundled"
         ),
     },
     resolve: {
@@ -73,6 +75,7 @@ export default defineConfig((env) => {
         },
         plugins: [
             react(),
+            mkcert() 
             // nodePolyfills({
             //     // Whether to polyfill `node:` protocol imports.
             //     protocolImports: true,
@@ -86,7 +89,10 @@ export default defineConfig((env) => {
             ? {
                   host: pkg.debug.env.VITE_DEV_SERVER_HOSTNAME,
                   port: pkg.debug.env.VITE_DEV_SERVER_PORT,
+                  https: true,
               }
-            : undefined,
+            : {
+               https: true,
+            },
     };
 });

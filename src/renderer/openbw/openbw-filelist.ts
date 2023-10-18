@@ -67,12 +67,12 @@ export default class OpenBWFileList {
 
             let int8 = new Int8Array();
 
-            if ( settingsStore().isCascStorage ) {
-                //FIXME: why is casclib returning unit8array?
+            // if ( settingsStore().isCascStorage ) {
+            //     //FIXME: why is casclib returning unit8array?
                 int8 = Int8Array.from( buffer.subarray( 0, buffer.byteLength / 8 ) );
-            } else {
-                int8 = new Int8Array( buffer.buffer, buffer.byteOffset, buffer.length );
-            }
+            // } else {
+                // int8 = new Int8Array( buffer.buffer, buffer.byteOffset, buffer.length );
+            // }
 
             this.buffers.push( int8 );
             this.index[this.normalize( filepath )] = this.buffers.length - 1;

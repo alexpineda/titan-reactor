@@ -9,12 +9,17 @@ import {  waitForTruthy } from "@utils/wait-for";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
 import processStore from "@stores/process-store";
+import gameStore from "@stores/game-store";
 
 let _lastErrorMessage = "";
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
     processStore().create( "pre-home-scene", 7 );
     root.render( <PreHomeScene /> );
+
+    await waitForTruthy( () => {
+        return gameStore().initialInteraction;
+    });
 
     log.debug( "Loading settings" );
     const settings = await settingsStore().load();
@@ -37,7 +42,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
         return settingsStore().errors.length === 0;
     } );
 
-    await initializeAssets( settings.data.directories );
+    await initializeAssets(  );
 
     await preloadIntro();
 
@@ -46,9 +51,9 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     mixer.setVolumes( settings.data.audio );
 
     const dropYourSocks = mixer.context.createBufferSource();
-    // dropYourSocks.buffer = await mixer.loadAudioBuffer(
-    //     path.join( __static, "drop-your-socks.mp3" )
-    // );
+    dropYourSocks.buffer = await mixer.loadAudioBuffer(
+         __static + "/drop-your-socks.mp3" 
+    );
 
     const _disconnect = mixer.connect(
         dropYourSocks,

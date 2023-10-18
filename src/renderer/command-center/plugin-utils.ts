@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PluginMetaData, SettingsMeta } from "common/types";
 import type search from "libnpmsearch";
 import { log } from "@ipc/log";

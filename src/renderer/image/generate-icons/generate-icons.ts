@@ -79,7 +79,7 @@ export const generateCursorIcons = async ( readFile: ReadFile ) => {
 };
 
 export const generateUIIcons = async ( readFile: ReadFile ) => {
-    const r = ( f: string ) => readFile( f ).then( ( b ) => b.buffer );
+    const r = ( f: string ) => readFile( f )
 
     generateWireframeOffscreen( readFile );
 

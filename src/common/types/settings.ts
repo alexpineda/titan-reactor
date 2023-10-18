@@ -54,13 +54,6 @@ export interface SettingsV6 {
         sandbox: boolean;
         audioListenerDistance: number;
     };
-    directories: {
-        starcraft: string;
-        maps: string;
-        replays: string;
-        assets: string;
-        plugins: string;
-    };
     audio: {
         global: number;
         music: number;

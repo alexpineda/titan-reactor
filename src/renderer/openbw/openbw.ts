@@ -65,14 +65,9 @@ export class OpenBW implements OpenBW {
      * Load the WASM module and initialize the OpenBW instance.
      */
     async init() {
-        this.#wasm = ( await initializeWASM( {
-            locateFile: ( filename: string ) => {
-                if ( filename === "titan.worker.js" ) {
-                    return path.join( __static, "titan.worker.js" );
-                }
-            },
-            // wasmBinary: readFileSync( path.join( __static, "titan.wasm" ) ),
-        } ) ) as OpenBWWasm;
+
+        this.#wasm = ( await initializeWASM() ) as OpenBWWasm;
+
         mix( this, this.#wasm );
     }
 

@@ -1,14 +1,12 @@
 import { BwDAT, UnitTileScale } from "common/types";
-// import electronFileLoader from "common/utils/electron-file-loader";
 
-import { readCascFileRemote as readCascFile, openCascStorageRemote as openCascStorage, closeCascStorageRemote as closeCascStorage } from "@ipc/casclib";
-
+import { readCascFileRemote as readCascFile, closeCascStorageRemote as closeCascStorage, openCascStorageRemote as openCascStorage, readCascFileRemote } from "@ipc/casclib";
 
 import {
     AnimAtlas,
     createDDSTexture,
     loadAnimAtlas,
-    loadGlbAtlas,
+    // loadGlbAtlas,
     parseAnim,
     RefAnim,
 } from ".";
@@ -16,16 +14,16 @@ import {
 import gameStore, { setAsset } from "@stores/game-store";
 import { generateCursorIcons, generateUIIcons } from "./generate-icons/generate-icons";
 import { log } from "@ipc/log";
-// import { loadEnvironmentMap } from "./environment/env-map";
 import { imageTypes } from "common/enums";
-import { CubeTexture, CubeTextureLoader, Texture } from "three";
 import { settingsStore } from "@stores/settings-store";
-import { modelSetFileRefIds } from "@core/model-effects-configuration";
-import { loadDatFilesRemote } from "@ipc/files";
+// import { modelSetFileRefIds } from "@core/model-effects-configuration";
 import { parseDDS } from "./formats/parse-dds";
 import { b2ba } from "@utils/bin-utils";
 import processStore from "@stores/process-store";
 import { TimeSliceJob } from "@utils/time-slice-job";
+import { CubeTexture, CubeTextureLoader, Texture } from "three";
+import { loadEnvironmentMap } from "./environment/env-map";
+import { loadDATFiles } from "common/bwdat/load-dat-files";
 
 // if ( import.meta.hot ) {
 //     import.meta.hot.accept( "@core/model-effects-configuration" );
@@ -54,12 +52,12 @@ export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     wireframeIcons?: Blob[];
 } & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
 
-export const initializeAssets = async ( directories: {
-    starcraft: string;
-    assets: string;
-} ) => {
+export const initializeAssets = async () => {
 
-    await openCascStorage( directories.starcraft );
+    await openCascStorage(  );
+
+    const bwDat = await loadDATFiles(readCascFileRemote);
+    setAsset( "bwDat", bwDat );
 
     log.debug( "@load-assets/images" );
     const sdAnimBuf = await readCascFile( "SD/mainSD.anim" );
@@ -90,11 +88,11 @@ export const initializeAssets = async ( directories: {
         ),
     };
 
-    // const envMapFilename = path.join( __static, "./envmap.hdr" );
-    // log.debug( `@load-assets/envmap: ${envMapFilename}` );
-    // loadEnvironmentMap( envMapFilename, ( tex ) => {
-    //     setAsset( "envMap", tex );
-    // } );
+    const envMapFilename = __static + "/envmap.hdr";
+    log.debug( `@load-assets/envmap: ${envMapFilename}` );
+    loadEnvironmentMap( envMapFilename, ( tex ) => {
+        setAsset( "envMap", tex );
+    } );
 
     processStore().increment();
 
@@ -160,7 +158,7 @@ export const initializeAssets = async ( directories: {
      * refImageId means we use the same images and iscript with another image id.
      * glbRefImageId means we use the same glb/frame count with another image id.
      */
-    const loadImageAtlas = async ( imageId: number, bwDat: BwDAT ) => {
+    const loadImageAtlas = async ( imageId: number) => {
         const refImageId = refId( imageId );
         // const glbRefImageId = modelSetFileRefIds.get( refImageId ) ?? refImageId;
         const settings = settingsStore().data.graphics.useHD2;
@@ -210,31 +208,27 @@ export const initializeAssets = async ( directories: {
     };
 
     // log.debug( "@load-assets/skybox" );
-    // const loader = new CubeTextureLoader();
-    // const rootPath = path.join( __static, "/skybox/sparse" );
+    const loader = new CubeTextureLoader();
+    const rootPath =  __static + "/skybox/sparse/";
     // log.debug( rootPath );
 
-    // loader.setPath( rootPath );
+    loader.setPath( rootPath );
 
-    // const skyBox = await new Promise( ( res: ( t: CubeTexture ) => void ) =>
-    //     loader.load(
-    //         [ "right.png", "left.png", "top.png", "bot.png", "front.png", "back.png" ],
-    //         res
-    //     )
-    // );
+    const skyBox = await new Promise( ( res: ( t: CubeTexture ) => void ) =>
+        loader.load(
+            [ "right.png", "left.png", "top.png", "bot.png", "front.png", "back.png" ],
+            res
+        )
+    );
 
     processStore().increment();
 
-    const bwDat = await loadDatFilesRemote().then( ( dat ) => {
-        setAsset( "bwDat", dat );
-        // preload some assets that will not be loaded otherwise?
-        loadImageAtlas( imageTypes.warpInFlash, dat );
+    
 
-        return dat;
-    } );
+    loadImageAtlas( imageTypes.warpInFlash)
 
     const r = {
-        openCascStorage: () => openCascStorage( directories.starcraft ),
+        openCascStorage,
         closeCascStorage,
         readCascFile,
         remaining: 7,
@@ -242,8 +236,8 @@ export const initializeAssets = async ( directories: {
         ...cursorIcons,
         selectionCircles,
         minimapConsole,
-        loadImageAtlas( imageId: number, bwDat: BwDAT ) {
-            loadImageAtlas( imageId, bwDat );
+        loadImageAtlas( imageId: number ){
+            loadImageAtlas( imageId );
             return this.getImageAtlas( imageId );
         },
         getImageAtlas( imageId: number ): AnimAtlas | undefined {
@@ -252,10 +246,10 @@ export const initializeAssets = async ( directories: {
         hasImageAtlas( imageId: number ): boolean {
             return !!this.getImageAtlas( imageId );
         },
-        loadImageAtlasAsync( imageId: number, bwDat: BwDAT ) {
-            return loadImageAtlas( imageId, bwDat );
+        loadImageAtlasAsync( imageId: number ) {
+            return loadImageAtlas( imageId )
         },
-        // skyBox,
+        skyBox,
         refId,
         resetImagesCache: () => {
             for (const atlas of atlases) {
@@ -267,7 +261,7 @@ export const initializeAssets = async ( directories: {
             glbExists.clear();
 
             // special case because this is an overlay? todo: figure this out please
-            loadImageAtlas( imageTypes.warpInFlash, bwDat );
+            loadImageAtlas( imageTypes.warpInFlash );
 
         },
     };
@@ -277,7 +271,7 @@ export const initializeAssets = async ( directories: {
     return r;
 };
 
-export const loadImageAtlasDirect = async ( imageId: number, image3d: boolean ) => {
+export const loadImageAtlasDirect = async ( imageId: number ) => {//, image3d: boolean ) => {
     const assets = gameStore().assets!;
     // const settings = settingsStore().data;
 

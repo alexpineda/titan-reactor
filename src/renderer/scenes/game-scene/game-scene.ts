@@ -5,10 +5,10 @@ import { getOpenBW } from "@openbw";
 import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
 import { settingsStore } from "@stores/settings-store";
-import CommandsStream from "@process-replay/commands/commands-stream";
 import { WorldComposer, createWorldComposer } from "@core/world/world-composer";
 import { readCascFileRemote as readCascFile } from "@ipc/casclib";
 import processStore from "@stores/process-store";
+import { CommandsStream } from "process-replay";
 
 export async function makeGameScene(
   janitor: Janitor,

@@ -2,7 +2,6 @@ import PackageJson from "@npmcli/package-json";
 import path from "path";
 import { MathUtils } from "three";
 import { promises as fsPromises } from "fs";
-import { shell, app } from "electron";
 import pacote from "pacote";
 import sanitizeFilename from "sanitize-filename";
 import deepMerge from "deepmerge";
@@ -308,7 +307,7 @@ export class PluginManager {
 
         const delPath = path.join( this.#pluginDirectory, plugin.path );
         try {
-            shell.trashItem( delPath );
+            // shell.trashItem( delPath );
             this.#pluginPackages = this.#pluginPackages.filter(
                 ( otherPlugin ) => otherPlugin.id !== pluginId
             );
@@ -363,12 +362,12 @@ export class PluginManager {
         log.info( `@load-plugins/loadRemoteMetaData: ${repository}` );
 
         try {
-            const folderPath = path.join( app.getPath( "temp" ), "TitanReactor" );
+            const folderPath = path.join(  "TitanReactor" );
 
             const manifest = await pacote.manifest( repository );
             // delete resolvedFolderPath if it exists
             if ( await fileExists( folderPath ) ) {
-                await shell.trashItem( folderPath );
+                // await shell.trashItem( folderPath );
             }
             await pacote.extract( repository, folderPath );
 

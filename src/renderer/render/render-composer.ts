@@ -30,7 +30,6 @@ export const createWebGLRenderer = () => {
         alpha: false,
         precision: "highp",
     } );
-    renderer.outputColorSpace = SRGBColorSpace;
     renderer.debug.checkShaderErrors = process.env.NODE_ENV === "development";
     renderer.xr.enabled = true;
 

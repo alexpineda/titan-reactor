@@ -1,41 +1,41 @@
-import { genIndexContent, getTSEnv } from "./ts-env";
-import { ipcMain } from "electron";
+// import { genIndexContent, getTSEnv } from "./ts-env";
+// // import { ipcMain } from "electron";
 
-import {
-    EDITOR_GET_TS_COMPLETIONS_AT_POS_REMOTE,
-    EDITOR_SET_CONTENTS_REMOTE,
-} from "common/ipc-handle-names";
+// import {
+//     EDITOR_GET_TS_COMPLETIONS_AT_POS_REMOTE,
+//     EDITOR_SET_CONTENTS_REMOTE,
+// } from "common/ipc-handle-names";
 
 
-console.log("registering editor ipc handlers")
-ipcMain.handle( EDITOR_GET_TS_COMPLETIONS_AT_POS_REMOTE, async ( _, pos: number ) => {
+// console.log("registering editor ipc handlers")
+// ipcMain.handle( EDITOR_GET_TS_COMPLETIONS_AT_POS_REMOTE, async ( _, pos: number ) => {
 
-    const completions = (await getTSEnv()).languageService.getCompletionsAtPosition(
-        "/index.ts",
-        pos,
-        {
-            includeCompletionsForModuleExports: true,
-            includeCompletionsWithSnippetText: true,
-            includeCompletionsWithInsertText: true,
-            includeCompletionsWithObjectLiteralMethodSnippets: true,
-            useLabelDetailsInCompletionEntries: true,
-            allowIncompleteCompletions: true,
-        }
-    );
+//     const completions = (await getTSEnv()).languageService.getCompletionsAtPosition(
+//         "/index.ts",
+//         pos,
+//         {
+//             includeCompletionsForModuleExports: true,
+//             includeCompletionsWithSnippetText: true,
+//             includeCompletionsWithInsertText: true,
+//             includeCompletionsWithObjectLiteralMethodSnippets: true,
+//             useLabelDetailsInCompletionEntries: true,
+//             allowIncompleteCompletions: true,
+//         }
+//     );
 
-    if ( completions ) {
-        return completions.entries.map( ( c ) => ( {
-            type: c.kind,
-            label: c.name,
-        } ) );
-    }
+//     if ( completions ) {
+//         return completions.entries.map( ( c ) => ( {
+//             type: c.kind,
+//             label: c.name,
+//         } ) );
+//     }
 
-    return [];
+//     return [];
 
-} );
+// } );
 
-//@TODO support multiple files/ids at once so that types can reach across macros / plugins
-ipcMain.handle( EDITOR_SET_CONTENTS_REMOTE, async ( _, contents: string ) => {
-    (await getTSEnv()).updateFile( "/index.ts", genIndexContent( contents ) );
-    return true;
-} );
+// //@TODO support multiple files/ids at once so that types can reach across macros / plugins
+// ipcMain.handle( EDITOR_SET_CONTENTS_REMOTE, async ( _, contents: string ) => {
+//     (await getTSEnv()).updateFile( "/index.ts", genIndexContent( contents ) );
+//     return true;
+// } );

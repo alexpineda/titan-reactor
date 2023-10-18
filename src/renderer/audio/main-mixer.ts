@@ -143,6 +143,9 @@ export class Mixer {
         } else {
             // const buffer = ( await fs.readFile( filenameOrId ) ).buffer;
             // return await this.context.decodeAudioData( buffer.slice( 0 ) );
+
+            //todo change this to fetch request for audio files
+            return await this.context.decodeAudioData( await fetch( filenameOrId ).then( ( r ) => r.arrayBuffer() ) );
         }
     }
 

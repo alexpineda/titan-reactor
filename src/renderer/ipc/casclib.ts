@@ -1,49 +1,35 @@
 // import { ipcRenderer } from "electron";
 
+// import {
+//     OPEN_CASCLIB_REMOTE,
+//     OPEN_CASCLIB_FILE_REMOTE,
+//     OPEN_CASCLIB_BATCH_REMOTE,
+//     CLOSE_CASCLIB_REMOTE,
+// } from "common/ipc-handle-names";
+import { REMOTE_HOST_URL } from "common/tmp-common";
 import {
-    OPEN_CASCLIB_REMOTE,
-    OPEN_CASCLIB_FILE_REMOTE,
-    OPEN_CASCLIB_BATCH_REMOTE,
-    CLOSE_CASCLIB_REMOTE,
-} from "common/ipc-handle-names";
-import {
-    CloseCascStorage,
-    FindCascFiles,
-    OpenCascStorage,
+    // FindCascFiles,
     ReadCascFile,
-    ReadCascFileBatch,
+    // ReadCascFileBatch,
 } from "common/types";
 
-export const openCascStorageRemote: OpenCascStorage = async ( bwPath: string ) => {
-    return await ipcRenderer.invoke( OPEN_CASCLIB_REMOTE, bwPath );
+export const openCascStorageRemote = async (  ) => {
+    const res = await fetch(`${REMOTE_HOST_URL}?open=true`)
+    return res.ok;
 };
 
-export const closeCascStorageRemote: CloseCascStorage = () => {
-    ipcRenderer.invoke( CLOSE_CASCLIB_REMOTE );
+export const closeCascStorageRemote = async () => {
+    const res = await fetch(`${REMOTE_HOST_URL}?close=true`)
+    return res.ok;
 };
 
 export const readCascFileRemote: ReadCascFile = async (
     filepath: string,
-    encoding?: BufferEncoding
+    // encoding?: BufferEncoding
 ) => {
-    const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE_REMOTE, filepath, encoding );
+    // const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE_REMOTE, filepath, encoding );
     // return Buffer.from(arrayBuffer.buffer);
-    return Buffer.from(arrayBuffer);
-};
-
-export const readCascFileBatchRemote: ReadCascFileBatch = async (
-    filepaths: string[],
-    encoding?: BufferEncoding
-) => {
-    const arrayBuffers = await ipcRenderer.invoke(
-        OPEN_CASCLIB_BATCH_REMOTE,
-        filepaths,
-        encoding
-    );
-    // return arrayBuffers.map((b: Uint8Array) => Buffer.from(b.buffer));
-    return arrayBuffers;
-};
-
-export const findFilesRemote: FindCascFiles = async ( fileName: string ) => {
-    return [];
+    // return Buffer.from(arrayBuffer);
+    const res = await fetch(`${REMOTE_HOST_URL}/${filepath}`)
+    return Buffer.from(await res.arrayBuffer());
 };

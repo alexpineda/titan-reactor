@@ -22,12 +22,13 @@ import { playerColors } from "common/enums";
 import { raceToString } from "@utils/string-utils";
 import { globalEvents } from "@core/global-events";
 import { music } from "@audio/music";
-import { ChkDowngrader } from "process-replay";
+import { ChkDowngrader, CommandsStream } from "process-replay";
+import type Chk from "bw-chk";
 
 const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;
 };
-export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState> => {
+export const mapSceneLoader = async ( chkFilepath: File ): Promise<SceneState> => {
     
     await gameStore().assets?.openCascStorage();
     gameStore().assets?.resetImagesCache();
@@ -37,11 +38,12 @@ export const mapSceneLoader = async ( chkFilepath: string ): Promise<SceneState>
     log.debug( "loading chk" );
 
     const janitor = new Janitor( "MapSceneLoader" );
+    console.log( "chkFilepath", chkFilepath)
     const chkBuffer = {} as Buffer;// await loadScm( chkFilepath );
 
     const chkDowngrader = new ChkDowngrader();
     const dBuffer = chkDowngrader.downgrade( chkBuffer );
-    const map = new Chk( dBuffer );
+    const map = {} as Chk; //new Chk( dBuffer );
 
     // cleanMapTitles( map );
     updateWindowTitle( map.title );

@@ -2,8 +2,8 @@ import path, { normalize } from "path";
 import fs from "fs";
 import express from "express";
 import { transpile } from "../typescript/transpile";
-import browserWindows from "../windows";
-import { LOG_MESSAGE_REMOTE  } from "common/ipc-handle-names";
+// import browserWindows from "../windows";
+// import { LOG_MESSAGE_REMOTE  } from "common/ipc-handle-names";
 import settings from "../settings/singleton";
 import { fileExists } from "common/utils/file-exists";
 import { logService } from "../logger/singleton";
@@ -11,10 +11,9 @@ import fetch from "node-fetch";
 import * as casclib from "bw-casclib";
 import runtimeHTML from "./runtime.html?raw";
 import runtimeJSX from "./runtime.tsx?raw";
-import { ROOT_PATH } from "../root-path";
+import { BUNDLED_SUBPATH, PLUGIN_PATH, RESOURCES_PATH } from "main/tmp-main";
 
-const BUNDLED_SUBPATH = path.normalize( "/bundled/" );
-const RESOURCES_PATH = path.normalize( ROOT_PATH.public );
+
 
 let _handle: any = null;
 const app = express();
@@ -31,11 +30,11 @@ app.get( "*", async function ( req, res ) {
             if ( req.query.iconPNG ) {
                 const icon = Number( req.query.iconPNG );
 
-                if ( _handle === null ) {
-                    _handle = ( await casclib.openStorage(
-                        settings.get().directories.starcraft
-                    ) ) as unknown;
-                }
+                // if ( _handle === null ) {
+                //     _handle = ( await casclib.openStorage(
+                //         settings.get().directories.starcraft
+                //     ) ) as unknown;
+                // }
                 const data = await casclib.readFile(
                     _handle,
                     `webui/dist/lib/images/cmdicons.${icon}.png`
@@ -110,10 +109,10 @@ app.get( "*", async function ( req, res ) {
     }
 
     const filepath = path.normalize(
-        path.join( settings.get().directories.plugins, req.path )
+        path.join( PLUGIN_PATH, req.path )
     );
 
-    if ( !filepath.startsWith( path.normalize( settings.get().directories.plugins ) ) ) {
+    if ( !filepath.startsWith( path.normalize( PLUGIN_PATH ) ) ) {
         logService.error( `@server/403-forbidden: ${filepath}` );
         return res.sendStatus( 403 );
     }
@@ -136,7 +135,7 @@ app.get( "*", async function ( req, res ) {
             if (
                 filepath.startsWith(
                     path.normalize(
-                        path.join( settings.get().directories.plugins, _plugin.path )
+                        path.join( PLUGIN_PATH, _plugin.path )
                     )
                 )
             ) {

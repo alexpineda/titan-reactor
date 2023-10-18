@@ -4,6 +4,7 @@ import { Assets } from "@image/assets";
 import { waitForTruthy } from "@utils/wait-for";
 
 export interface GameStore {
+    initialInteraction: boolean;
     assets: Assets | null;
     dimensions: MinimapDimensions;
     setAssets: ( assets: Assets | null ) => void;
@@ -11,6 +12,7 @@ export interface GameStore {
 }
 
 export const useGameStore = create<GameStore>( ( set ) => ( {
+    initialInteraction: false,
     assets: null,
     dimensions: {
         matrix: [],

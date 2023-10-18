@@ -1,6 +1,5 @@
 import { Grp } from "common/image/grp";
 import { parseIScriptBin } from "./parse-iscript-bin";
-import path from "path";
 
 import { ReadFile, AnimFrame, GrpSprite } from "../types";
 import range from "../utils/range";
@@ -25,7 +24,7 @@ export async function loadDATFiles( readFile: ReadFile ): Promise<BwDAT> {
     const los: LoDAT[] = [];
     for ( let i = 0; i < imagesDat.stats.length; i++ ) {
         if ( imagesDat.stats[i]!.includes( ".lo" ) ) {
-            const fpath = path.join( "unit/", imagesDat.stats[i]!.replace( /\\/g, "/" ) );
+            const fpath = "unit/" + imagesDat.stats[i]!.replace( /\\/g, "/" );
             los[i] = parseLo( await readFile( fpath ) );
         }
     }

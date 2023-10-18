@@ -1,4 +1,5 @@
-import { showFolderDialog } from "../ipc/dialogs";
+// @ts-nocheck
+// import { showFolderDialog } from "../ipc/dialogs";
 import { createPlugin } from "leva/plugin";
 import { useInputContext, Components, LevaInputProps } from "leva/plugin";
 
@@ -16,11 +17,11 @@ export default createPlugin( {
                 <Row
                     input
                     onClick={async () => {
-                        const folders = await showFolderDialog();
-                        if ( folders && folders.length ) {
-                            onUpdate( folders[0] );
-                            emitOnEditEnd();
-                        }
+                        // const folders = await showFolderDialog();
+                        // if ( folders && folders.length ) {
+                        //     onUpdate( folders[0] );
+                        //     emitOnEditEnd();
+                        // }
                     }}>
                     <Label>{label}</Label>
                     <String

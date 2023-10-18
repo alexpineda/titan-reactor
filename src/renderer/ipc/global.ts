@@ -1,8 +1,8 @@
 import { UI_SYSTEM_OPEN_URL } from "@plugins/events";
 import { withErrorMessage } from "common/utils/with-error-message";
 
-import { settingsStore, useSettingsStore } from "@stores/settings-store";
-import { Janitor, JanitorLogLevel } from "three-janitor";
+import { settingsStore } from "@stores/settings-store";
+import { JanitorLogLevel } from "three-janitor";
 import { globalEvents } from "../core/global-events";
 // import { setStorageIsCasc, setStoragePath } from "common/casclib";
 

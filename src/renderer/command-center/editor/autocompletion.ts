@@ -1,6 +1,7 @@
-import { autocompletion, completeFromList } from "@codemirror/autocomplete";
+// import { autocompletion, completeFromList } from "@codemirror/autocomplete";
+import { autocompletion } from "@codemirror/autocomplete";
 import { Extension } from "@codemirror/state";
-import { getTsCompletionsAtPosition } from "../ipc/editor";
+// import { getTsCompletionsAtPosition } from "../ipc/editor";
 
 export function createAutocompletion(): Extension {
     return autocompletion({
@@ -9,17 +10,17 @@ export function createAutocompletion(): Extension {
 
                 const { pos } = ctx;
                 console.log("pos", pos);
-                try {
-                    const completions = await getTsCompletionsAtPosition(pos);
+                // try {
+                //     const completions = await getTsCompletionsAtPosition(pos);
 
-                    if (completions.length === 0) {
-                        return null;
-                    }   
+                //     if (completions.length === 0) {
+                //         return null;
+                //     }   
 
-                    return completeFromList(completions)(ctx);
-                } catch (e) {
-                    console.error(e);
-                }
+                //     return completeFromList(completions)(ctx);
+                // } catch (e) {
+                //     console.error(e);
+                // }
 
                 return null;
             },

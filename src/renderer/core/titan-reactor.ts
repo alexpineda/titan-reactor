@@ -1,5 +1,11 @@
 import "../reset.css";
 import "../../../bundled/assets/open-props.1.4.min.css";
+
+
+import { Buffer as BufferPolyfill } from 'buffer'
+declare var Buffer: typeof BufferPolyfill;
+globalThis.Buffer = BufferPolyfill
+
 import sceneStore from "../stores/scene-store";
 import { logCapabilities } from "@utils/renderer-utils";
 import { lockdown_ } from "@utils/ses-util";
@@ -84,7 +90,7 @@ globalEvents.on("queue-files", async ({ files, append}) => {
         return;
     }
     //todo map stuff here
-    if (files[0].path.endsWith('.scx') || files[0].path.endsWith('.scm')) {
+    if (files[0].name.endsWith('.scx') || files[0].name.endsWith('.scm')) {
         loadMapFile(files[0]);
         return;
     }

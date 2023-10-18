@@ -8,6 +8,7 @@ import { LoadBar } from "./load-bar";
 import "./styles.css";
 import { GlobalErrorState } from "../error-state";
 import {   useSettingsStore } from "@stores/settings-store";
+import { useGameStore } from "@stores/game-store";
 
 const styleCenterText = {
     position: "absolute",
@@ -24,6 +25,7 @@ const styleCenterText = {
 export const PreHomeScene = () => {
     const error = useSceneStore( ( state ) => state.error );
     const initialInstall = useSettingsStore( ( state ) => state.initialInstall );
+    const initialInteraction = useGameStore( ( state ) => state.initialInteraction );
 
     const action =   null;
 
@@ -63,11 +65,12 @@ export const PreHomeScene = () => {
                 <div style={styleCenterText}>
                     {/* <div>{imbateamLogo}</div> */}
                     <img src={dmLogo} style={{ width: "200px" }} />
-                    <LoadBar
+                    {initialInteraction && <LoadBar
                         color="#ffffff"
                         thickness={20}
-                        style={{ marginTop: "20px" }}
-                    />
+                        style={{ marginTop: "30px" }}
+                    />}
+                    {!initialInteraction && <button style={{ marginTop: "20px" }} onClick={() => useGameStore.setState({initialInteraction: true})}>ENTER</button>}
                 </div>
             )}
             {initialInstall && (

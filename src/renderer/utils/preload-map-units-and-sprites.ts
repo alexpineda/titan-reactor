@@ -52,7 +52,7 @@ export const preloadMapUnitsAndSpriteFiles = async (
     await Promise.all(
         allImages.map( ( imageId ) =>
             assets
-                .loadImageAtlasAsync( imageId, assets.bwDat )
+                .loadImageAtlasAsync( imageId )//, assets.bwDat )
                 .then( () => preload.increment() )
         )
     );
