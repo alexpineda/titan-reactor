@@ -13,23 +13,23 @@ import {
     // ReadCascFileBatch,
 } from "common/types";
 
-export const openCascStorageRemote = async (  ) => {
-    const res = await fetch(`${REMOTE_HOST_URL}?open=true`)
+export const openCascStorageRemote = async () => {
+    const res = await fetch( `${REMOTE_HOST_URL}?open=true` );
     return res.ok;
 };
 
 export const closeCascStorageRemote = async () => {
-    const res = await fetch(`${REMOTE_HOST_URL}?close=true`)
+    const res = await fetch( `${REMOTE_HOST_URL}?close=true` );
     return res.ok;
 };
 
 export const readCascFileRemote: ReadCascFile = async (
-    filepath: string,
+    filepath: string
     // encoding?: BufferEncoding
 ) => {
     // const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE_REMOTE, filepath, encoding );
     // return Buffer.from(arrayBuffer.buffer);
     // return Buffer.from(arrayBuffer);
-    const res = await fetch(`${REMOTE_HOST_URL}/${filepath}`)
-    return Buffer.from(await res.arrayBuffer());
+    const res = await fetch( `${REMOTE_HOST_URL}/${filepath}` );
+    return Buffer.from( await res.arrayBuffer() );
 };

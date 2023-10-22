@@ -49,10 +49,6 @@ export const createPluginSessionStore = (
                 return false;
             }
 
-            if ( !plugin.configExists ) {
-                return false;
-            }
-
             const field = plugin.getFieldDefinition( path[1] );
 
             if ( field === undefined ) {

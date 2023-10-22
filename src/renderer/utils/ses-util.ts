@@ -1,4 +1,4 @@
-import "ses";
+// import "ses";
 import * as THREE from "three";
 import * as postprocessing from "postprocessing";
 import CameraControls from "camera-controls";
@@ -16,59 +16,58 @@ export const createCompartment = ( userEnv: object = {} ) => {
         context: undefined,
     };
     const systemModules = {
-        console: harden( console ),
+        // console: harden( console ),
     };
 
     if ( process.env.NODE_ENV === "development" ) {
-        mix(globalThis, userModules, systemModules, userEnv)
+        mix( globalThis, userModules, systemModules, userEnv );
         return {
-            globalThis
-        }
+            globalThis,
+        };
     }
 
+    // const compartment = new Compartment( mix( {}, userEnv, userModules, systemModules ) );
 
-    const compartment = new Compartment( mix( {}, userEnv, userModules, systemModules ) );
+    // compartment.globalThis.Math = Math;
 
-    compartment.globalThis.Math = Math;
-
-    return compartment;
+    // return compartment;
 };
 
 export const lockdown_ = () => {
-    if ( process.env.NODE_ENV === "development" ) {
-        window.harden = ( x ) => x;
+    // if ( process.env.NODE_ENV === "development" ) {
+        // window.harden = ( x ) => x;
 
-        // @ts-expect-error
-        window.Compartment = function Compartment( env: object ) {
-            const globalThis: Record<string, any> = env;
-            globalThis.Function = ( code: string ) => {
-                const vars = `
-                    const {${Object.keys( env ).join( "," )}} = this;
-                    globalThis = this;
-                `;
-                // eslint-disable-next-line @typescript-eslint/no-implied-eval
-                const fn = Function( vars + code );
+        // // @ts-expect-error
+        // window.Compartment = function Compartment( env: object ) {
+        //     const globalThis: Record<string, any> = env;
+        //     globalThis.Function = ( code: string ) => {
+        //         const vars = `
+        //             const {${Object.keys( env ).join( "," )}} = this;
+        //             globalThis = this;
+        //         `;
+        //         // eslint-disable-next-line @typescript-eslint/no-implied-eval
+        //         const fn = Function( vars + code );
 
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                return fn.bind( globalThis );
-            };
-            return {
-                evaluate( code: string ) {
-                    const vars = `const {${Object.keys( env ).join(
-                        ","
-                    )}} = env; this=globalThis;\n`;
-                    eval( vars + code );
-                },
-                globalThis,
-            };
-        };
-    } else {
-        lockdown( {
-            localeTaming: "unsafe",
-            consoleTaming: "unsafe",
-            errorTaming: "unsafe",
-            errorTrapping: "none",
-            mathTaming: "unsafe",
-        } );
-    }
+        //         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        //         return fn.bind( globalThis );
+        //     };
+        //     return {
+        //         evaluate( code: string ) {
+        //             const vars = `const {${Object.keys( env ).join(
+        //                 ","
+        //             )}} = env; this=globalThis;\n`;
+        //             eval( vars + code );
+        //         },
+        //         globalThis,
+        //     };
+        // };
+    // } else {
+    //     lockdown( {
+    //         localeTaming: "unsafe",
+    //         consoleTaming: "unsafe",
+    //         errorTaming: "unsafe",
+    //         errorTrapping: "none",
+    //         mathTaming: "unsafe",
+    //     } );
+    // }
 };

@@ -33,7 +33,7 @@ export class PluginBase {
     constructor( pluginPackage: PluginPackage ) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
-        this.rawConfig = structuredClone( pluginPackage.config || {});
+        this.rawConfig = structuredClone( pluginPackage.config ?? {} );
     }
 
     sendUIMessage: ( message: any ) => void = () => {};
@@ -47,10 +47,6 @@ export class PluginBase {
      * @returns
      */
     saveConfigProperty( key: string, value: unknown, persist = true ): void {
-        if ( !this.#config ) {
-            return;
-        }
-
         if ( !( key in this.#config ) ) {
             log.warn(
                 `Plugin ${this.id} tried to set config key ${key} but it was not found`
@@ -69,19 +65,13 @@ export class PluginBase {
      * Same as config but simplified to [key] = value
      */
     refreshConfig() {
-        this.#normalizedConfig = this.#config
-            ? normalizePluginConfiguration( this.#config )
-            : {};
-    }
-
-    get configExists() {
-        return this.#config !== undefined;
+        this.#normalizedConfig = normalizePluginConfiguration( this.#config );
     }
 
     /**
      * Read from the normalized configuration.
      */
-    get config(): Record<string, any>  {
+    get config(): Record<string, any> {
         return this.#normalizedConfig;
     }
 
@@ -102,9 +92,6 @@ export class PluginBase {
      * @returns the leva configuration for a particular field
      */
     getFieldDefinition( key: string ) {
-        if ( !this.#config ) {
-            return undefined;
-        }
-        return this.#config[key] as FieldDefinition;
+        return this.#config[key] as FieldDefinition | undefined;
     }
 }

@@ -1,11 +1,9 @@
-// import Chk from "bw-chk";
 // import loadScm from "@utils/load-scm";
 import { log } from "@ipc/log";
 import processStore from "@stores/process-store";
 import { OpenBW } from "@openbw/openbw";
 
 import { waitForTruthy } from "@utils/wait-for";
-// import { cleanMapTitles  } from "@utils/chk-utils";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import gameStore from "@stores/game-store";
 import { Janitor } from "three-janitor";
@@ -23,35 +21,35 @@ import { raceToString } from "@utils/string-utils";
 import { globalEvents } from "@core/global-events";
 import { music } from "@audio/music";
 import { ChkDowngrader, CommandsStream } from "process-replay";
-import type Chk from "bw-chk";
+import Chk from "bw-chk";
+import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
+// import loadScm from "@utils/load-scm";
+// import { openFile } from "@ipc/files";
 
 const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;
 };
-export const mapSceneLoader = async ( chkFilepath: File ): Promise<SceneState> => {
-    
+export const mapSceneLoader = async ( file: File ): Promise<SceneState> => {
     await gameStore().assets?.openCascStorage();
     gameStore().assets?.resetImagesCache();
-    
+
     processStore().clearCompleted();
     const process = processStore().create( "map", 3 );
     log.debug( "loading chk" );
 
     const janitor = new Janitor( "MapSceneLoader" );
-    console.log( "chkFilepath", chkFilepath)
-    const chkBuffer = {} as Buffer;// await loadScm( chkFilepath );
+    const chkBuffer = {} as Buffer; // await loadScm( Buffer.from(await openFile( file ) ));
 
     const chkDowngrader = new ChkDowngrader();
     const dBuffer = chkDowngrader.downgrade( chkBuffer );
-    const map = {} as Chk; //new Chk( dBuffer );
+    const map = new Chk( dBuffer );
 
-    // cleanMapTitles( map );
+    cleanMapTitles( map );
     updateWindowTitle( map.title );
 
-    useReplayAndMapStore.setState( { map } );
-    // useReplayAndMapStore.setState( { map, mapImage: await createMapImage( map ) } );
+    useReplayAndMapStore.setState( { map, mapImage: await createMapImage( map ) } );
     settingsStore().initSessionData( "map" );
-    globalEvents.emit( "map-ready", {  map } );
+    globalEvents.emit( "map-ready", { map } );
 
     janitor.mop( () => useReplayAndMapStore.getState().reset(), "reset replayMapStore" );
 

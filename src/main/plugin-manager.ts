@@ -110,9 +110,8 @@ export class PluginManager {
 
         let pluginNative = null;
         const _pluginHostIndexFile = path.join( folderPath, "host", "index.ts" );
-        if ( await fileExists( _pluginHostIndexFile) ) {
-            const tsSource = ( await tryLoadUtf8( _pluginHostIndexFile ) ) as
-                | string;
+        if ( await fileExists( _pluginHostIndexFile ) ) {
+            const tsSource = ( await tryLoadUtf8( _pluginHostIndexFile ) ) as string;
             if ( tsSource ) {
                 try {
                     const result = transpile(
@@ -161,8 +160,10 @@ export class PluginManager {
             }
         }
 
-        if (!indexFile && !pluginNative) {
-            log.error( `@load-plugins/load-plugin-package: Plugin ${sanitizedFolderLabel} has no host or ui plugin files` );
+        if ( !indexFile && !pluginNative ) {
+            log.error(
+                `@load-plugins/load-plugin-package: Plugin ${sanitizedFolderLabel} has no host or ui plugin files`
+            );
             return null;
         }
 
@@ -183,7 +184,7 @@ export class PluginManager {
             externMethods: getExternMethods( pluginNative ?? "" ),
             isSceneController: ( pluginNative ?? "" ).includes( "onEnterScene" ),
             hooks: [],
-            hostIndexFile:  path.join( folderPath, "host", "index.ts" )
+            hostIndexFile: path.join( folderPath, "host", "index.ts" ),
         };
     }
 
@@ -209,11 +210,7 @@ export class PluginManager {
 
             if ( this.#isIncompatible( plugin.apiVersion ) ) {
                 log.error(
-                    `@load-plugins/load-plugin-packages: Plugin ${
-                        plugin.name
-                    } requires Titan Reactor API version ${
-                        plugin.apiVersion
-                    } but the current version is ${HostApiVersion}`
+                    `@load-plugins/load-plugin-packages: Plugin ${plugin.name} requires Titan Reactor API version ${plugin.apiVersion} but the current version is ${HostApiVersion}`
                 );
             }
         }
@@ -362,7 +359,7 @@ export class PluginManager {
         log.info( `@load-plugins/loadRemoteMetaData: ${repository}` );
 
         try {
-            const folderPath = path.join(  "TitanReactor" );
+            const folderPath = path.join( "TitanReactor" );
 
             const manifest = await pacote.manifest( repository );
             // delete resolvedFolderPath if it exists
@@ -404,7 +401,10 @@ export class PluginManager {
         return null;
     }
 
-    async searchPackages (){
+    /**
+     * Search npm for titan reactor plugin packages
+     */
+    async searchPackages() {
         const officialPackages = await search( SEARCH_OFFICIAL, {
             limit: LIMIT,
         } );
@@ -415,8 +415,8 @@ export class PluginManager {
             } )
         ).filter( ( pkg ) => !officialPackages.some( ( p ) => p.name === pkg.name ) );
 
-        return [ ...officialPackages, ...publicPackages ];
-    };
+        return { officialPackages, publicPackages };
+    }
 }
 
 const getExternMethods = ( fn: string ) => {

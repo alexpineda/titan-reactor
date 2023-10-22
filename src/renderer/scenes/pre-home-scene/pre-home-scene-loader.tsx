@@ -5,7 +5,7 @@ import { log } from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
-import {  waitForTruthy } from "@utils/wait-for";
+import { waitForTruthy } from "@utils/wait-for";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
 import processStore from "@stores/process-store";
@@ -19,7 +19,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     await waitForTruthy( () => {
         return gameStore().initialInteraction;
-    });
+    } );
 
     log.debug( "Loading settings" );
     const settings = await settingsStore().load();
@@ -42,7 +42,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
         return settingsStore().errors.length === 0;
     } );
 
-    await initializeAssets(  );
+    await initializeAssets();
 
     await preloadIntro();
 
@@ -52,7 +52,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     const dropYourSocks = mixer.context.createBufferSource();
     dropYourSocks.buffer = await mixer.loadAudioBuffer(
-         __static + "/drop-your-socks.mp3" 
+        __static + "/drop-your-socks.mp3"
     );
 
     const _disconnect = mixer.connect(

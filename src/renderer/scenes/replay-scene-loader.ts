@@ -6,7 +6,16 @@
 // import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 
 import type { Replay } from "process-replay";
-import { ChkDowngrader, CommandsStream, detectMeleeObservers, parseReplay, sanityCheckCommands, writeCommands, writeReplay, Version } from "process-replay";
+import {
+    ChkDowngrader,
+    CommandsStream,
+    detectMeleeObservers,
+    parseReplay,
+    sanityCheckCommands,
+    writeCommands,
+    writeReplay,
+    Version,
+} from "process-replay";
 
 import Chk from "bw-chk";
 
@@ -23,11 +32,12 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import { SceneState } from "./scene";
 import gameStore from "@stores/game-store";
-import {   waitForSeconds, waitForTruthy } from "@utils/wait-for";
+import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
 import { globalEvents } from "@core/global-events";
 import debounce from "lodash.debounce";
 import { music } from "@audio/music";
 import { openFile } from "@ipc/files";
+import { createMapImage } from "@utils/chk-utils";
 // import { writeFileSync } from "fs";
 
 // const createNarrative = (commands: CommandsStream) => {
@@ -41,15 +51,15 @@ import { openFile } from "@ipc/files";
 //             const unitTags = [c.unit].filter( ( x ) => x !== undefined ).concat( c.unitTags ?? [] );
 
 //             s = s + [
-//                 c.frame ?? "", 
-//                 c.id  ?? "", 
-//                 c.x ?? "", 
-//                 c.y ?? "", 
-//                 c.unitTypeId ? `0x${c.unitTypeId.toString(16)}` : "", 
-//                 c.hotkeyType ?? "", 
-//                 c.group ?? "", 
-//                 c.order ? `0x${c.order.toString(16)}` : "", 
-//                 c.value ?? "", 
+//                 c.frame ?? "",
+//                 c.id  ?? "",
+//                 c.x ?? "",
+//                 c.y ?? "",
+//                 c.unitTypeId ? `0x${c.unitTypeId.toString(16)}` : "",
+//                 c.hotkeyType ?? "",
+//                 c.group ?? "",
+//                 c.order ? `0x${c.order.toString(16)}` : "",
+//                 c.value ?? "",
 //                 unitTags?.join(":")].join(",") + "\n";
 //         }
 //     }
@@ -58,12 +68,12 @@ import { openFile } from "@ipc/files";
 export type ValidatedReplay = Replay & {
     buffer: Buffer;
     uid: number;
-}
+};
 export const loadAndValidateReplay = async ( file: File ) => {
     const settings = settingsStore().data;
 
     let replayBuffer = await openFile( file );
-    let replay =  await parseReplay( Buffer.from( replayBuffer ) );
+    let replay = await parseReplay( Buffer.from( replayBuffer ) );
 
     if ( replay.header.players.some( ( player ) => player.isComputer ) ) {
         throw new Error( "Replays with computer players are not currently supported." );
@@ -94,10 +104,8 @@ export const loadAndValidateReplay = async ( file: File ) => {
 
         replayBuffer = writeReplay( replay.rawHeader, rawCmds, chk, replay.limits );
 
-
-        replay = await parseReplay( Buffer.from(replayBuffer));
+        replay = await parseReplay( Buffer.from( replayBuffer ) );
     }
-
 
     replay.header.players = replay.header.players.filter( ( p ) => p.isActive );
 
@@ -119,13 +127,14 @@ export const loadAndValidateReplay = async ( file: File ) => {
     //     writeFileSync( "G:\\last_replay.rep", replayBuffer );
     // }
 
-    (replay as ValidatedReplay).buffer = Buffer.from(replayBuffer);
-    (replay as ValidatedReplay).uid = Math.random();
+    ( replay as ValidatedReplay ).buffer = Buffer.from( replayBuffer );
+    ( replay as ValidatedReplay ).uid = Math.random();
     return replay as ValidatedReplay;
-}
+};
 
-
-export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<SceneState> => {
+export const replaySceneLoader = async (
+    replay: ValidatedReplay
+): Promise<SceneState> => {
     processStore().clearCompleted();
     const loadProcess = processStore().create( "replay", 2 );
 
@@ -138,7 +147,6 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
 
     document.title = "Titan Reactor";
 
-
     const map = new Chk( replay.chk );
 
     // cleanMapTitles( map );
@@ -150,8 +158,8 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
     log.info( `@replay-scene-loader/game: ${gameTitle}` );
     log.info( `@replay-scene-loader/game-type: ${GameTypes[replay.header.gameType]!}` );
 
-    // useReplayAndMapStore.setState( { replay, map, mapImage: await createMapImage( map ) } );
-    useReplayAndMapStore.setState( { replay, map  } );
+    useReplayAndMapStore.setState( { replay, map, mapImage: await createMapImage( map ) } );
+    useReplayAndMapStore.setState( { replay, map } );
     settingsStore().initSessionData( "replay" );
     globalEvents.emit( "replay-ready", { replay, map } );
 
@@ -186,11 +194,11 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
 
             return mapPlayers;
         },
-        worldComposer => {
+        ( worldComposer ) => {
             const openBW = worldComposer.world.openBW;
 
             // openBW.setGameSpeed(64);
-           
+
             // openBW.setReplayFrameListener( () => {
             //     worldComposer.preRunFrame();
             // })
@@ -205,35 +213,32 @@ export const replaySceneLoader = async ( replay: ValidatedReplay ): Promise<Scen
             // }
 
             const emitComplete = debounce( () => {
-                openBW.setReplayFrameListener( () => { } );
-                console.log("GG WP");
-                globalEvents.emit("replay-complete", replay);
-            }, 1000);
+                openBW.setReplayFrameListener( () => {} );
+                console.log( "GG WP" );
+                globalEvents.emit( "replay-complete", replay );
+            }, 1000 );
 
             openBW.setReplayFrameListener( () => {
-                if (openBW.getCurrentReplayFrame()  > replay.header.frameCount  - 1000  ) {
+                if ( openBW.getCurrentReplayFrame() > replay.header.frameCount - 1000 ) {
                     emitComplete();
                 }
-            })
+            } );
             // openBW.setCurrentReplayFrame( 0 );
 
             // worldComposer.preRunComplete();
-          
         }
     );
     loadProcess.increment();
 
-
     document.title = `Titan Reactor - ${gameTitle}`;
 
-    await waitForSeconds(2);
+    await waitForSeconds( 2 );
 
     return {
         id: "@replay",
         start: () => {
             scene.start();
             music.playGame();
-
         },
         dispose: () => {
             music.stop();

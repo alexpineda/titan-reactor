@@ -1,6 +1,8 @@
 // import { rgbToCanvas } from "@image/canvas";
 // import { readCascFile } from "common/casclib";
-import type Chk from "bw-chk";
+import { rgbToCanvas } from "@image/canvas";
+import { readCascFileRemote } from "@ipc/casclib";
+import Chk from "bw-chk";
 import { charColor } from "common/enums";
 
 export const omitCharacters = ( str: string ) =>
@@ -49,25 +51,25 @@ export const cleanMapTitles = ( chk: Chk ) => {
     chk.description = omitCharacters( chk.description );
 };
 
-// export const createMapImage = async ( chk: Chk ) => {
-//     const img = await chk.image(
-//         Chk.customFileAccess( async ( fs, isOptional ) => {
-//             try {
-//                 const img = await readCascFile( fs );
-//                 return img;
-//             } catch ( e ) {
-//                 if ( isOptional ) {
-//                     return null;
-//                 }
-//                 throw e;
-//             }
-//         } ),
-//         512,
-//         512
-//     );
+export const createMapImage = async ( chk: Chk ) => {
+    const img = await chk.image(
+        Chk.customFileAccess( async ( fs, isOptional ) => {
+            try {
+                const img = await readCascFileRemote( fs );
+                return img;
+            } catch ( e ) {
+                if ( isOptional ) {
+                    return null;
+                }
+                throw e;
+            }
+        } ),
+        512,
+        512
+    );
 
-//     return rgbToCanvas( { data: img, width: 512, height: 512 }, "rgb" );
-// };
+    return rgbToCanvas( { data: img, width: 512, height: 512 }, "rgb" );
+};
 
 export const getMapTiles = ( chk: Chk ) => {
     const buffer = chk._tiles;

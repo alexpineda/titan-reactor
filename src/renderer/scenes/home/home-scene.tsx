@@ -10,7 +10,7 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { useProcessStore } from "@stores/process-store";
 import { useEffect, useState } from "react";
 import { useGameStore } from "@stores/game-store";
-// import { omitCharacters } from "@utils/chk-utils";
+import { omitCharacters } from "@utils/chk-utils";
 import { ValidatedReplay } from "../replay-scene-loader";
 import { loadQueuedReplay } from "../../core/titan-reactor";
 import { useSettingsStore } from "@stores/settings-store";
@@ -218,7 +218,7 @@ const ReplayQueueList = () => {
                             {replay.header.players[0].name}<div style={{ width: "100px", height: "50px", background: icon1, display: "inline-block", marginLeft: "16px" }}></div>
                         </div>
                     </td>
-                    {/* <td style={{ paddingInline: "8rem" }}>{omitCharacters(replay.header.mapName)}</td> */}
+                    <td style={{ paddingInline: "8rem" }}>{omitCharacters(replay.header.mapName)}</td>
                     <td>
                         <div style={{ color,  ...playerNameStyle, ...alignItems }}>
                             {replay.header.players[1].name}<div style={{ width: "100px", height: "50px", background: icon2, display: "inline-block", marginLeft: "16px"}}></div>

@@ -22,7 +22,6 @@
         "web:build": "vite build -c vite.config.web.ts",
         "ui-server": "yarn ui-server:build && node dist/ui-server/index.js",
         "ui-server:build": "node build.ui-server.mjs"
-
     },
     "license": "GPL-3.0",
     "repository": {
@@ -83,7 +82,6 @@
         "sanitize-filename": "^1.6.3",
         "scm-extractor": "^1.0.6",
         "semver": "^7.3.5",
-        "ses": "^0.15.17",
         "three": "0.156.0",
         "three-gpu-pathtracer": "^0.0.6",
         "three-instanced-uniforms-mesh": "^0.46.0",

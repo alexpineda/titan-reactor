@@ -170,3 +170,5 @@ lockdown_();
 })();
 
 
+
+window.addEventListener( "wheel", evt => evt.preventDefault() , { passive: false } );

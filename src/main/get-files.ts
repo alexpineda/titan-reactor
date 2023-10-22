@@ -1,7 +1,9 @@
 // ported from https://github.com/ShieldBattery/ShieldBattery
 
-import { promises as fsPromises, Stats } from "fs";
-import path from "path";
+import { promises as fsPromises, Stats } from "node:fs";
+import path from "node:path";
+import os from "node:os";
+import { fileExists } from "common/utils/file-exists";
 
 export interface ReadFolderResult {
     isFolder: boolean;
@@ -22,12 +24,12 @@ export default async function readFolder(
             if ( typeof stats === "string" ) {
                 throw new Error( "stats is a string" );
             }
-            return [name, targetPath, stats];
+            return [ name, targetPath, stats ];
         } )
     ) ) as unknown as [string, string, Stats][];
 
     return stats
-        .map( ( [name, targetPath, s] ) => {
+        .map( ( [ name, targetPath, s ] ) => {
             return {
                 isFolder: s.isDirectory(),
                 name,
@@ -46,4 +48,26 @@ export default async function readFolder(
             }
             return f;
         } ) as ReadFolderResult[];
+}
+
+export async function useTempDir( cb: ( dir: string ) => Promise<void> ) {
+    let dir = "";
+
+    try {
+        dir = await fsPromises.mkdtemp( path.join( os.tmpdir(), "tr-" ) );
+    } catch ( e: unknown ) {
+        if ( !( await fileExists( dir ) ) ) {
+            throw new Error( ( e as Error ).message );
+        }
+    }
+
+    try {
+        await cb( dir );
+    } catch ( e ) {}
+
+    try {
+        fsPromises.rm( dir, { recursive: true, force: true } );
+    } catch ( e ) {
+        console.log( "useTempDir failed to cleanup", e );
+    }
 }
