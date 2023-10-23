@@ -5,9 +5,8 @@ import { useEffect } from "react";
 import titanReactorLogo from "@image/assets/logo.png";
 import dmLogo from "@image/assets/dm.png";
 import { LoadBar } from "./load-bar";
-import "./styles.css";
 import { GlobalErrorState } from "../error-state";
-import {   useSettingsStore } from "@stores/settings-store";
+import { useSettingsStore } from "@stores/settings-store";
 import { useGameStore } from "@stores/game-store";
 
 const styleCenterText = {
@@ -22,12 +21,13 @@ const styleCenterText = {
     flexDirection: "column",
 };
 
-export const PreHomeScene = () => {
+export const PreHomeScene = ( { assetServerUrl }: { assetServerUrl: string } ) => {
     const error = useSceneStore( ( state ) => state.error );
     const initialInstall = useSettingsStore( ( state ) => state.initialInstall );
-    const initialInteraction = useGameStore( ( state ) => state.initialInteraction );
 
-    const action =   null;
+    const validatedAssertServerUrl = useGameStore( ( state ) => state.assetServerUrl );
+
+    const action = null;
 
     useEffect( () => {
         return useProcessStore.subscribe( ( store ) => {
@@ -65,12 +65,19 @@ export const PreHomeScene = () => {
                 <div style={styleCenterText}>
                     {/* <div>{imbateamLogo}</div> */}
                     <img src={dmLogo} style={{ width: "200px" }} />
-                    {initialInteraction && <LoadBar
-                        color="#ffffff"
-                        thickness={20}
-                        style={{ marginTop: "30px" }}
-                    />}
-                    {!initialInteraction && <button style={{ marginTop: "20px" }} onClick={() => useGameStore.setState({initialInteraction: true})}>BLACK SHEEP WALL</button>}
+                    {!!validatedAssertServerUrl && (
+                        <LoadBar
+                            color="#ffffff"
+                            thickness={20}
+                            style={{ marginTop: "30px" }}
+                        />
+                    )}
+                    {!validatedAssertServerUrl && (
+                        <>
+                            <p>Waiting for assets</p>
+                            <p>{assetServerUrl}</p>
+                        </>
+                    )}
                 </div>
             )}
             {initialInstall && (

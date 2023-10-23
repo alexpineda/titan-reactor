@@ -39,7 +39,6 @@ const createBasePlugin = ( _package?: Partial<PluginMetaData> ) => {
         id: "123",
         name: "test-plugin",
         version: "1.0.0",
-        hooks: [],
         config,
         ..._package,
     };

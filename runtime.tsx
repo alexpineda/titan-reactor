@@ -6,6 +6,7 @@ import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";
+
 // import { Canvas, useFrame as r3fUseFrame } from 'https://cdn.jsdelivr.net/npm/@react-three/fiber@8.14.5/+esm'
 
 // split up an array into chunks of size n
@@ -543,64 +544,6 @@ export function convertIcons( {
     };
 }
 
-const _messageListener = function ( event: MessageEvent ) {
-    if ( event.data.type.startsWith( "system:" ) ) {
-        if ( event.data.type === "system:ready" ) {
-            const payload = event.data.payload as SystemReadyMessage;
-            useStore.setState( payload.initialStore );
-
-            updateDimensionsCss( payload.initialStore.dimensions );
-
-            Object.assign( assets, payload.assets );
-
-            Object.assign(
-                assets,
-                convertIcons( payload.assets as Required<SystemReadyMessage["assets"]> )
-            );
-
-            Object.assign( enums, event.data.payload.enums );
-
-            event.data.payload.plugins.forEach( _addPlugin );
-            ReactDOM.render( <AppWrapper />, document.body );
-        } else if ( event.data.type === "system:plugins-enabled" ) {
-            event.data.payload.forEach( _addPlugin );
-        } else if ( event.data.type === "system:plugin-disabled" ) {
-            _removePlugin( event.data.payload as string );
-        } else if ( event.data.type === "system:plugin-config-changed" ) {
-            useConfig.setState( {
-                [event.data.payload.pluginId]: event.data.payload.config as object,
-            } );
-        } else if ( event.data.type === "system:mouse-click" ) {
-            const { clientX, clientY, button, shiftKey, ctrlKey } = event.data
-                .payload as MouseEvent;
-
-            const element = document.elementFromPoint( clientX, clientY )!;
-            ReactTestUtils.Simulate.click( element, {
-                button,
-                shiftKey,
-                ctrlKey,
-                clientX,
-                clientY,
-            } );
-        } else if ( event.data.type === "system:custom-message" ) {
-            const { message, pluginId } = event.data.payload as {
-                message: object;
-                pluginId: string;
-            };
-            const plugin = _plugins[pluginId];
-            if ( plugin ) {
-                const event = new CustomEvent( "message", { detail: message } );
-                plugin.messageHandler.dispatchEvent( event );
-            }
-        }
-    } else {
-        if ( event.data.type === "dimensions" ) {
-            updateDimensionsCss( event.data.payload as MinimapDimensions );
-        }
-        useStore.setState( { [event.data.type]: event.data.payload as unknown } );
-    }
-};
-window.addEventListener( "message", _messageListener );
 
 const PluginContext = createContext<Component | null>( null );
 
@@ -965,6 +908,68 @@ class ErrorBoundary extends React.Component {
 //     </mesh>
 //   )
 // }
+
+/**
+ * Core of runtime, listens for messages from the plugin ui manager.
+ */
+window.addEventListener( "message", function ( event: MessageEvent ) {
+    if ( event.data.type.startsWith( "system:" ) ) {
+        if ( event.data.type === "system:ready" ) {
+            const payload = event.data.payload as SystemReadyMessage;
+            useStore.setState( payload.initialStore );
+
+            updateDimensionsCss( payload.initialStore.dimensions );
+
+            Object.assign( assets, payload.assets );
+
+            Object.assign(
+                assets,
+                convertIcons( payload.assets as Required<SystemReadyMessage["assets"]> )
+            );
+
+            Object.assign( enums, event.data.payload.enums );
+
+            event.data.payload.plugins.forEach( _addPlugin );
+            ReactDOM.render( <AppWrapper />, document.body );
+        } else if ( event.data.type === "system:plugins-enabled" ) {
+            event.data.payload.forEach( _addPlugin );
+        } else if ( event.data.type === "system:plugin-disabled" ) {
+            _removePlugin( event.data.payload as string );
+        } else if ( event.data.type === "system:plugin-config-changed" ) {
+            useConfig.setState( {
+                [event.data.payload.pluginId]: event.data.payload.config as object,
+            } );
+        } else if ( event.data.type === "system:mouse-click" ) {
+            const { clientX, clientY, button, shiftKey, ctrlKey } = event.data
+                .payload as MouseEvent;
+
+            const element = document.elementFromPoint( clientX, clientY )!;
+            ReactTestUtils.Simulate.click( element, {
+                button,
+                shiftKey,
+                ctrlKey,
+                clientX,
+                clientY,
+            } );
+        } else if ( event.data.type === "system:custom-message" ) {
+            const { message, pluginId } = event.data.payload as {
+                message: object;
+                pluginId: string;
+            };
+            const plugin = _plugins[pluginId];
+            if ( plugin ) {
+                const event = new CustomEvent( "message", { detail: message } );
+                plugin.messageHandler.dispatchEvent( event );
+            }
+        }
+    } else {
+        if ( event.data.type === "dimensions" ) {
+            updateDimensionsCss( event.data.payload as MinimapDimensions );
+        }
+        useStore.setState( { [event.data.type]: event.data.payload as unknown } );
+    }
+} );
+
 
 ReactDOM.render( <AppWrapper />, document.body );
 

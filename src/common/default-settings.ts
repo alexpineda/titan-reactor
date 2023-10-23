@@ -1,4 +1,4 @@
-import { SettingsV6, SettingsV5, MacroDTO } from "./types";
+import { SettingsV6, MacroDTO } from "./types";
 import defaultMacros from "common/macros/default-macros.json";
 
 export const DEFAULT_PLUGIN_PACKAGES: string[] = [
@@ -57,7 +57,7 @@ export const defaultSettingsV6: SettingsV6 = {
         alertDesynced: true,
         alertDesyncedThreshold: 10,
         logLevel: "info",
-        autoPlayReplayQueue: false
+        autoPlayReplayQueue: false,
     },
     graphics: {
         pixelRatio: 1,
@@ -91,59 +91,9 @@ export const defaultSettingsV6: SettingsV6 = {
         sunlightIntensity: 9,
         shadowQuality: 4,
     },
-    plugins: {
-        serverPort: 8080,
-        activated: DEFAULT_PLUGIN_PACKAGES,
-    },
     macros: {
         revision: 0,
         macros: defaultMacros as MacroDTO[],
-    },
-};
-
-export const defaultSettingsV5: SettingsV5 = {
-    version: 5,
-    language: "en-US",
-    directories: {
-        starcraft: "",
-        maps: "",
-        replays: "",
-        assets: "",
-        plugins: "",
-    },
-    assets: {
-        terrain: "hd",
-        images: "hd",
-        preload: false,
-        enable3dAssets: true,
-    },
-    audio: {
-        global: 0.5,
-        music: 0.5,
-        sound: 0.5,
-        playIntroSounds: true,
-    },
-    game: {
-        sceneController: "@titan-reactor-plugins/camera-standard",
-        minimapSize: 1,
-    },
-    util: {
-        sanityCheckReplayCommands: true,
-        debugMode: false,
-    },
-    graphics: {
-        anisotropy: "low",
-        pixelRatio: "low",
-        antialias: false,
-        terrainShadows: false,
-    },
-    plugins: {
-        serverPort: 8080,
-        enabled: [],
-    },
-    macros: {
-        revision: 0,
-        macros: [],
     },
 };
 

@@ -33,7 +33,6 @@ import { normalizePluginConfiguration } from "@utils/function-utils";
 import { Timer } from "@utils/timer";
 import { Assets } from "@image/assets";
 import { SceneStateID } from "../scenes/scene";
-import { UI_PORT } from "common/tmp-common";
 
 const screenChanged = ( screen: SceneStore ) => {
     return {
@@ -244,7 +243,7 @@ export class PluginSystemUI {
             // const settings = settingsStore().data;
 
             // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
-            this.#iframe.src = `http://localhost:${UI_PORT}/runtime.html`;
+            this.#iframe.src = gameStore().uiRuntimeUrl;
         };
 
         this.#janitor.mop(
@@ -301,7 +300,7 @@ export class PluginSystemUI {
     }
 
     #unitsToUnitsPayload = ( units: Unit[] ): DeepPartial<Unit>[] | DumpedUnit[] => {
-        for ( let i = 0; i < Math.min(12, units.length); i++ ) {
+        for ( let i = 0; i < Math.min( 12, units.length ); i++ ) {
             _unitsPayload[i].id = units[i].id;
             _unitsPayload[i].kills = units[i].kills;
             _unitsPayload[i].energy = units[i].energy;

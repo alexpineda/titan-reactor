@@ -229,14 +229,6 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
             return action;
         }
 
-        if (
-            action.path[2] &&
-            action.path[2].startsWith( "externMethod" ) &&
-            !plugin.externMethods.includes( action.path[2] )
-        ) {
-            action.path[2] = "";
-        }
-
         const field = getPluginFieldDefinition(
             settings,
             action.path as TargetedPath<":plugin">
@@ -251,14 +243,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
 
         if ( fieldName ) {
             action.path.push( fieldName );
-        } else if ( plugin.externMethods.length > 0 ) {
-            action.path.push( plugin.externMethods[0] );
-
-            if ( action.type === "action" ) {
-                action.operator = Operator.Execute;
-            }
         }
-
         if ( shouldHaveValue( action ) ) {
             const field = plugin.config?.[action.path[2] as keyof typeof plugin] ?? {
                 value: null,

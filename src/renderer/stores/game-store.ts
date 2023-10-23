@@ -4,15 +4,23 @@ import { Assets } from "@image/assets";
 import { waitForTruthy } from "@utils/wait-for";
 
 export interface GameStore {
-    initialInteraction: boolean;
+    assetServerUrl: string;
+    pluginRepositoryUrl: string;
+    uiRuntimeUrl: string;
     assets: Assets | null;
     dimensions: MinimapDimensions;
     setAssets: ( assets: Assets | null ) => void;
     setDimensions: ( dimensions: MinimapDimensions ) => void;
 }
+const pluginUrl =
+    process.env.NODE_ENV === "development"
+        ? "http://localhost:8090/"
+        : "https://plugins-o8a.pages.dev/";
 
 export const useGameStore = create<GameStore>( ( set ) => ( {
-    initialInteraction: false,
+    assetServerUrl: "",
+    pluginRepositoryUrl: pluginUrl,
+    uiRuntimeUrl: pluginUrl + "runtime.html",
     assets: null,
     dimensions: {
         matrix: [],

@@ -1,6 +1,5 @@
 import { log } from "@ipc/log";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
-import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import lGet from "lodash.get";
 import lSet from "lodash.set";
@@ -8,7 +7,6 @@ import { createDeepStore } from "@stores/deep-store";
 import { createOperatableStore, MutationVariable } from "@stores/operatable-store";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { UI_SYSTEM_PLUGIN_CONFIG_CHANGED } from "@plugins/events";
-import { PluginBase } from "@plugins/plugin-base";
 import { SourceOfTruth } from "@stores/source-of-truth";
 import { FieldDefinition } from "common/types";
 
@@ -68,7 +66,7 @@ export const createPluginSessionStore = (
 
             plugins.hook_onConfigChanged(
                 plugin.id,
-                lSet( plugin.rawConfig!, [ path[1], "value" ], value )
+                lSet( plugin.rawConfig, [ path[1], "value" ], value )
             );
 
             uiPlugins.sendMessage( {
@@ -94,17 +92,6 @@ export const createPluginSessionStore = (
                 const compKey = [ plugin.name, key ];
                 lSet( acc, compKey, store.createVariable( compKey ) );
             }
-        } );
-
-        // callables
-        (
-            settingsStore().activatedPlugins.find( ( p ) => p.id === plugin.id )
-                ?.externMethods ?? []
-        ).map( ( method ) => {
-            lSet( acc, [ plugin.name, method ], ( ...args: any[] ) =>
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                ( plugin[method as keyof PluginBase] as any )( ...args )
-            );
         } );
 
         return acc;

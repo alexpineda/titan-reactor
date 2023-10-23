@@ -12,7 +12,6 @@ export interface GlobalEvents {
     "command-center-plugins-activated": PluginMetaData[];
     "command-center-plugin-deactivated": string;
     "unsafe-open-url": string;
-    "load-home-scene": undefined;
     "load-iscriptah": string;
     "queue-files": { files: File[]; append?: boolean };
     "log-message": { message: string; level: LogLevel; server?: boolean };

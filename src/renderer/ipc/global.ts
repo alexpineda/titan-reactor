@@ -66,13 +66,4 @@ export const getJanitorLogLevel = () => {
 
 // useSettingsStore.subscribe( ( settings ) => {
 //     Janitor.logLevel = getJanitorLogLevel();
-
-//     setStorageIsCasc( settings.isCascStorage );
-//     setStoragePath( settings.data.directories.starcraft );
 // } );
-
-// (async () => {
-//     const url = await ipcRenderer.invoke( "get-config-window-url" );
-//     console.log(url)
-//     window.open( url, "_blank" )
-// })()

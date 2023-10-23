@@ -99,10 +99,17 @@ export const loadAndValidateReplay = async ( file: File ) => {
 
     if ( replay.version !== Version.TitanReactor ) {
         const chkDowngrader = new ChkDowngrader();
-        const chk = chkDowngrader.downgrade( replay.chk.slice( 0 ) );
-        const rawCmds = sanityCheck.length ? writeCommands( replay, [] ) : replay.rawCmds;
+        const chk = chkDowngrader.downgrade( ( replay.chk as Buffer ).slice( 0 ) );
+        const rawCmds = sanityCheck.length
+            ? writeCommands( replay, [] )
+            : ( replay.rawCmds as Buffer );
 
-        replayBuffer = writeReplay( replay.rawHeader, rawCmds, chk, replay.limits );
+        replayBuffer = writeReplay(
+            replay.rawHeader as Buffer,
+            rawCmds,
+            chk,
+            replay.limits
+        );
 
         replay = await parseReplay( Buffer.from( replayBuffer ) );
     }
@@ -110,12 +117,12 @@ export const loadAndValidateReplay = async ( file: File ) => {
     replay.header.players = replay.header.players.filter( ( p ) => p.isActive );
 
     if (
-        replay.header.gameType === GameTypes.Melee &&
+        ( replay.header.gameType as GameTypes ) === GameTypes.Melee &&
         settings.utilities.detectMeleeObservers
     ) {
         const meleeObservers = detectMeleeObservers(
             settings.utilities.detectMeleeObserversThreshold,
-            new CommandsStream( replay.rawCmds, replay.stormPlayerToGamePlayer )
+            new CommandsStream( replay.rawCmds as Buffer, replay.stormPlayerToGamePlayer )
         );
 
         replay.header.players = replay.header.players.filter(
@@ -147,7 +154,7 @@ export const replaySceneLoader = async (
 
     document.title = "Titan Reactor";
 
-    const map = new Chk( replay.chk );
+    const map = new Chk( replay.chk as Buffer );
 
     // cleanMapTitles( map );
 
@@ -177,7 +184,10 @@ export const replaySceneLoader = async (
 
     loadProcess.increment();
 
-    const commands = new CommandsStream( replay.rawCmds, replay.stormPlayerToGamePlayer );
+    const commands = new CommandsStream(
+        replay.rawCmds as Buffer,
+        replay.stormPlayerToGamePlayer
+    );
     const scene = await makeGameScene(
         janitor,
         commands,

@@ -67,14 +67,14 @@ const battleCruiser = createBattleCruiser();
 const wraiths = createWraiths();
 const battleLights = createBattleLights();
 
-let fireTexture: Texture;
+let fireTexture: Texture | undefined = undefined;
 
 export const preloadIntro = async () => {
     if ( fireTexture === undefined ) {
-        fireTexture = await new EXRLoader().loadAsync( __static + "/FireBall03_8x8.exr"  );
+        fireTexture = await new EXRLoader().loadAsync( __static + "/FireBall03_8x8.exr" );
     }
 
-    const envmap = loadEnvironmentMap( __static + "/envmap.hdr" , () =>
+    const envmap = loadEnvironmentMap( __static + "/envmap.hdr", () =>
         processStore().increment()
     );
 
@@ -112,14 +112,18 @@ export async function createWraithScene() {
     _noiseInstance = janitor.mop( createWraithNoise() );
     _noiseInstance.start();
 
-    _controls = janitor.mop(new CameraControls( camera.get(), document.body ));
+    _controls = janitor.mop( new CameraControls( camera.get(), document.body ) );
     _controls.maxPolarAngle = Infinity;
     _controls.minPolarAngle = -Infinity;
     _controls.maxAzimuthAngle = Infinity;
     _controls.minAzimuthAngle = -Infinity;
 
     const _sceneResizeHandler = () => {
-        introSurface.setDimensions( window.innerWidth, window.innerHeight, devicePixelRatio );
+        introSurface.setDimensions(
+            window.innerWidth,
+            window.innerHeight,
+            devicePixelRatio
+        );
         renderComposer.targetSurface = introSurface;
         camera.get().aspect = introSurface.width / introSurface.height;
         camera.get().updateProjectionMatrix();
@@ -225,17 +229,17 @@ export async function createWraithScene() {
     renderComposer.getWebGLRenderer().setAnimationLoop( ( elapsed: number ) => {
         const delta = elapsed - _lastElapsed;
         _lastElapsed = elapsed;
-    
+
         _controls.update( delta / 1000 );
-    
+
         const azimuth = THREE.MathUtils.euclideanModulo(
             _controls.azimuthAngle,
             360 * THREE.MathUtils.DEG2RAD
         );
         const rear = azimuth < Math.PI ? azimuth / Math.PI : 2 - azimuth / Math.PI;
-    
+
         camera.update( delta, _controls, azimuth, mouse );
-    
+
         wraiths.update(
             delta,
             camera.get(),
@@ -245,17 +249,17 @@ export async function createWraithScene() {
         );
         battleCruiser.update( delta, CAMERA_ROTATE_SPEED, camera.get() );
         battleLights.update( camera.get(), delta, azimuth );
-    
+
         const g =
             camera.cameraState === CameraState.UnderWraiths
                 ? MathUtils.smoothstep( Math.pow( rear, 2.5 ), 0.25, 1 )
                 : 0;
         glitchEffect.minStrength = glitchMax.x * g;
         glitchEffect.maxStrength = glitchMax.y * g;
-    
+
         _noiseInstance.value =
             camera.cameraState === CameraState.RotateAroundWraiths ? rear : 0;
-    
+
         renderComposer.render( delta );
         renderComposer.drawBuffer();
     } );
@@ -268,6 +272,6 @@ export async function createWraithScene() {
 
     return {
         dispose: () => janitor.dispose(),
-        resize: _sceneResizeHandler
+        resize: _sceneResizeHandler,
     };
 }

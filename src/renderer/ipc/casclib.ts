@@ -6,21 +6,23 @@
 //     OPEN_CASCLIB_BATCH_REMOTE,
 //     CLOSE_CASCLIB_REMOTE,
 // } from "common/ipc-handle-names";
-import { REMOTE_HOST_URL } from "common/tmp-common";
 import {
     // FindCascFiles,
     ReadCascFile,
     // ReadCascFileBatch,
 } from "common/types";
 
-export const openCascStorageRemote = async () => {
-    const res = await fetch( `${REMOTE_HOST_URL}?open=true` );
-    return res.ok;
+let _cascurl = "";
+
+export const openCascStorageRemote = async ( url = _cascurl ) => {
+    _cascurl = url;
+    return await fetch( `${_cascurl}?open=true` )
+        .then( ( res ) => res.ok )
+        .catch( () => false );
 };
 
 export const closeCascStorageRemote = async () => {
-    const res = await fetch( `${REMOTE_HOST_URL}?close=true` );
-    return res.ok;
+    await fetch( `${_cascurl}?close=true` );
 };
 
 export const readCascFileRemote: ReadCascFile = async (
@@ -30,6 +32,6 @@ export const readCascFileRemote: ReadCascFile = async (
     // const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE_REMOTE, filepath, encoding );
     // return Buffer.from(arrayBuffer.buffer);
     // return Buffer.from(arrayBuffer);
-    const res = await fetch( `${REMOTE_HOST_URL}/${filepath}` );
+    const res = await fetch( `${_cascurl}/${filepath}` );
     return Buffer.from( await res.arrayBuffer() );
 };

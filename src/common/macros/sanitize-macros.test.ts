@@ -33,7 +33,7 @@ const util = {
             type: "action",
             id: "1",
             operator: Operator.SetToDefault,
-            path: [":app"],
+            path: [ ":app" ],
             ...partial,
         };
     },
@@ -49,7 +49,7 @@ describe( "sanitizeMacros", () => {
 
         sanitizeMacros(
             {
-                macros: [macro],
+                macros: [ macro ],
                 revision: 0,
             },
             {} as SettingsAndPluginsMeta
@@ -63,7 +63,7 @@ describe( "sanitizeActionable", () => {
     describe( ":function", () => {
         it( "should set to empty string if undefined", () => {
             const action = util.createAction( {
-                path: [":function"],
+                path: [ ":function" ],
             } );
 
             sanitizeActionable( action, {} as SettingsAndPluginsMeta );
@@ -78,7 +78,7 @@ describe( "sanitizeActionable", () => {
 
             sanitizeActionable( action, {} as SettingsAndPluginsMeta );
 
-            expect( action.path ).toEqual( [":app", "audio", "music"] );
+            expect( action.path ).toEqual( [ ":app", "audio", "music" ] );
         } );
 
         it( "should leave path if valid field", () => {
@@ -86,12 +86,12 @@ describe( "sanitizeActionable", () => {
             fieldUtilities.getAppFieldDefinition = jest.fn().mockReturnValue( true );
 
             const action = util.createAction( {
-                path: [":app", "my", "path"],
+                path: [ ":app", "my", "path" ],
             } );
 
             sanitizeActionable( action, {} as SettingsAndPluginsMeta );
 
-            expect( action.path ).toEqual( [":app", "my", "path"] );
+            expect( action.path ).toEqual( [ ":app", "my", "path" ] );
         } );
 
         it( "should patch value of literal type if operator is Set", () => {
@@ -121,7 +121,7 @@ describe( "sanitizeActionable", () => {
             //@ts-expect-error
             fieldUtilities.getAppFieldDefinition = jest.fn().mockReturnValue( {
                 value: "foo",
-                options: ["foo", "bar"],
+                options: [ "foo", "bar" ],
             } );
 
             const patched = util.createAction( {
@@ -139,7 +139,7 @@ describe( "sanitizeActionable", () => {
         it( "should error if no plugin found", () => {
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
-                path: [":plugin"],
+                path: [ ":plugin" ],
             } );
 
             sanitizeActionable( action, {
@@ -152,7 +152,7 @@ describe( "sanitizeActionable", () => {
         it( "should not set path if invalid or no config", () => {
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
-                path: [":plugin"],
+                path: [ ":plugin" ],
             } );
 
             sanitizeActionable( action, {
@@ -164,13 +164,13 @@ describe( "sanitizeActionable", () => {
                 ],
             } as unknown as SettingsAndPluginsMeta );
 
-            expect( action.path ).toEqual( [":plugin", "test-plugin"] );
+            expect( action.path ).toEqual( [ ":plugin", "test-plugin" ] );
         } );
 
         it( "should set path to config if invalid", () => {
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
-                path: [":plugin"],
+                path: [ ":plugin" ],
             } );
 
             sanitizeActionable( action, {
@@ -185,26 +185,7 @@ describe( "sanitizeActionable", () => {
                 ],
             } as unknown as SettingsAndPluginsMeta );
 
-            expect( action.path ).toEqual( [":plugin", "test-plugin", "foo"] );
-        } );
-
-        it( "should set path to extern method if invalid or no config", () => {
-            const action = util.createAction( {
-                operator: Operator.SetToDefault,
-                path: [":plugin"],
-            } );
-
-            sanitizeActionable( action, {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: ["baz"],
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta );
-
-            expect( action.path ).toEqual( [":plugin", "test-plugin", "baz"] );
-            expect( action.operator ).toEqual( Operator.Execute );
+            expect( action.path ).toEqual( [ ":plugin", "test-plugin", "foo" ] );
         } );
 
         it( "should set path to action value if field definition exists", () => {
@@ -213,7 +194,7 @@ describe( "sanitizeActionable", () => {
 
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
-                path: [":plugin", "test-plugin", "foo"],
+                path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
             sanitizeActionable( action, {
@@ -225,7 +206,7 @@ describe( "sanitizeActionable", () => {
                 ],
             } as unknown as SettingsAndPluginsMeta );
 
-            expect( action.path ).toEqual( [":plugin", "test-plugin", "foo"] );
+            expect( action.path ).toEqual( [ ":plugin", "test-plugin", "foo" ] );
         } );
 
         it( "should set path to externMethod if it exists", () => {
@@ -234,19 +215,19 @@ describe( "sanitizeActionable", () => {
 
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
-                path: [":plugin", "test-plugin", "externMethodFoo"],
+                path: [ ":plugin", "test-plugin", "externMethodFoo" ],
             } );
 
             sanitizeActionable( action, {
                 activatedPlugins: [
                     {
                         name: "test-plugin",
-                        externMethods: ["externMethodFoo"],
+                        externMethods: [ "externMethodFoo" ],
                     },
                 ],
             } as unknown as SettingsAndPluginsMeta );
 
-            expect( action.path ).toEqual( [":plugin", "test-plugin", "externMethodFoo"] );
+            expect( action.path ).toEqual( [ ":plugin", "test-plugin", "externMethodFoo" ] );
         } );
 
         it( "should strip externMethod if it does not exists", () => {
@@ -255,7 +236,7 @@ describe( "sanitizeActionable", () => {
 
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
-                path: [":plugin", "test-plugin", "externMethodFoo"],
+                path: [ ":plugin", "test-plugin", "externMethodFoo" ],
             } );
 
             sanitizeActionable( action, {
@@ -267,7 +248,7 @@ describe( "sanitizeActionable", () => {
                 ],
             } as unknown as SettingsAndPluginsMeta );
 
-            expect( action.path ).toEqual( [":plugin", "test-plugin"] );
+            expect( action.path ).toEqual( [ ":plugin", "test-plugin" ] );
         } );
 
         it( "should patch value of literal type if operator is Set", () => {
@@ -276,7 +257,7 @@ describe( "sanitizeActionable", () => {
 
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
-                path: [":plugin", "test-plugin", "foo"],
+                path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
             const settings = {
@@ -298,7 +279,7 @@ describe( "sanitizeActionable", () => {
 
             const patched = util.createAction( {
                 operator: Operator.Set,
-                path: [":plugin", "test-plugin", "foo"],
+                path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
             sanitizeActionable( patched, settings );
@@ -318,7 +299,7 @@ describe( "sanitizeActionable", () => {
                         config: {
                             foo: {
                                 value: "bar",
-                                options: ["bar", "baz"],
+                                options: [ "bar", "baz" ],
                             },
                         },
                     },
@@ -327,7 +308,7 @@ describe( "sanitizeActionable", () => {
 
             const patched = util.createAction( {
                 operator: Operator.Set,
-                path: [":plugin", "test-plugin", "foo"],
+                path: [ ":plugin", "test-plugin", "foo" ],
                 value: "cray",
             } );
 

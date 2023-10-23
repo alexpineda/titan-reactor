@@ -16,10 +16,6 @@ export const v5tov6 = ( oldSettings: PreviousSettings ): PreviousSettings => {
         postprocessing3d: defaultSettingsV6.postprocessing3d,
         graphics: defaultSettingsV6.graphics,
         utilities: defaultSettingsV6.utilities,
-        plugins: {
-            ...oldSettings.plugins,
-            activated: oldSettings.plugins.enabled,
-        }
     };
 
     return settings;

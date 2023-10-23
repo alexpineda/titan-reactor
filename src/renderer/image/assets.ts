@@ -1,6 +1,11 @@
 import { BwDAT, UnitTileScale } from "common/types";
 
-import { readCascFileRemote as readCascFile, closeCascStorageRemote as closeCascStorage, openCascStorageRemote as openCascStorage, readCascFileRemote } from "@ipc/casclib";
+import {
+    readCascFileRemote as readCascFile,
+    closeCascStorageRemote as closeCascStorage,
+    openCascStorageRemote as openCascStorage,
+    readCascFileRemote,
+} from "@ipc/casclib";
 
 import {
     AnimAtlas,
@@ -53,10 +58,7 @@ export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
 } & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
 
 export const initializeAssets = async () => {
-
-    await openCascStorage(  );
-
-    const bwDat = await loadDATFiles(readCascFileRemote);
+    const bwDat = await loadDATFiles( readCascFileRemote );
     setAsset( "bwDat", bwDat );
 
     log.debug( "@load-assets/images" );
@@ -158,7 +160,7 @@ export const initializeAssets = async () => {
      * refImageId means we use the same images and iscript with another image id.
      * glbRefImageId means we use the same glb/frame count with another image id.
      */
-    const loadImageAtlas = async ( imageId: number) => {
+    const loadImageAtlas = async ( imageId: number ) => {
         const refImageId = refId( imageId );
         // const glbRefImageId = modelSetFileRefIds.get( refImageId ) ?? refImageId;
         const settings = settingsStore().data.graphics.useHD2;
@@ -209,7 +211,7 @@ export const initializeAssets = async () => {
 
     // log.debug( "@load-assets/skybox" );
     const loader = new CubeTextureLoader();
-    const rootPath =  __static + "/skybox/sparse/";
+    const rootPath = __static + "/skybox/sparse/";
     // log.debug( rootPath );
 
     loader.setPath( rootPath );
@@ -223,9 +225,7 @@ export const initializeAssets = async () => {
 
     processStore().increment();
 
-    
-
-    loadImageAtlas( imageTypes.warpInFlash)
+    loadImageAtlas( imageTypes.warpInFlash );
 
     const r = {
         openCascStorage,
@@ -236,7 +236,7 @@ export const initializeAssets = async () => {
         ...cursorIcons,
         selectionCircles,
         minimapConsole,
-        loadImageAtlas( imageId: number ){
+        loadImageAtlas( imageId: number ) {
             loadImageAtlas( imageId );
             return this.getImageAtlas( imageId );
         },
@@ -247,13 +247,18 @@ export const initializeAssets = async () => {
             return !!this.getImageAtlas( imageId );
         },
         loadImageAtlasAsync( imageId: number ) {
-            return loadImageAtlas( imageId )
+            return loadImageAtlas( imageId );
         },
         skyBox,
         refId,
         resetImagesCache: () => {
-            for (const atlas of atlases) {
-                atlas?.dispose?.();
+            for ( const atlas of atlases ) {
+                // might be gaps in the atlases when preloaded and we reset,
+                // todo: figure out which case this is and why
+                if ( atlas ) {
+                    debugger;
+                    atlas.dispose();
+                }
             }
             atlases.length = 0;
             loadingHD.clear();
@@ -262,7 +267,6 @@ export const initializeAssets = async () => {
 
             // special case because this is an overlay? todo: figure this out please
             loadImageAtlas( imageTypes.warpInFlash );
-
         },
     };
 
@@ -271,7 +275,8 @@ export const initializeAssets = async () => {
     return r;
 };
 
-export const loadImageAtlasDirect = async ( imageId: number ) => {//, image3d: boolean ) => {
+export const loadImageAtlasDirect = async ( imageId: number ) => {
+    //, image3d: boolean ) => {
     const assets = gameStore().assets!;
     // const settings = settingsStore().data;
 
@@ -299,10 +304,10 @@ export const loadImageAtlasDirect = async ( imageId: number ) => {//, image3d: b
     //         ...( await loadGlbAtlas( glbFileName, anim.frames, imageDat, assets.envMap! ) ),
     //     };
     // } else {
-        return loadAnimAtlas(
-            await loadAnimBuffer( refImageId, UnitTileScale.HD ),
-            imageId,
-            UnitTileScale.HD
-        );
+    return loadAnimAtlas(
+        await loadAnimBuffer( refImageId, UnitTileScale.HD ),
+        imageId,
+        UnitTileScale.HD
+    );
     // }
 };

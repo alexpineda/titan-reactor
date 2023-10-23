@@ -92,7 +92,7 @@ export const createWorldComposer = async (
         assets
     );
 
-    const unitSelectionComposer =  createSelectionDisplayComposer( assets );
+    const unitSelectionComposer = createSelectionDisplayComposer( assets );
     sceneComposer.scene.add( unitSelectionComposer.group );
 
     let apiSession = new ApiSession();
@@ -111,13 +111,12 @@ export const createWorldComposer = async (
                 viewControllerComposer.primaryCamera!;
         } else {
             const sceneController = apiSession.native
-            .getAllSceneControllers()
-            .find( ( handler ) => handler.isSceneController );
+                .getAllSceneControllers()
+                .find( ( handler ) => handler.isSceneController );
             apiSession.native.activateSceneController( sceneController );
             await viewControllerComposer.activate( sceneController, defaultData );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
-
         }
     };
 
@@ -149,7 +148,7 @@ export const createWorldComposer = async (
         {
             map,
             replay,
-            getCommands () {
+            getCommands() {
                 return commands.copy();
             },
             assets,
@@ -162,7 +161,7 @@ export const createWorldComposer = async (
             refreshScene: () => ( frameResetRequested = true ),
             simpleMessage( val: string ) {
                 simpleText.set( val );
-            }
+            },
         },
         surfaceComposer.api,
         sceneComposer.api,
@@ -171,7 +170,7 @@ export const createWorldComposer = async (
         viewControllerComposer.api,
         postProcessingComposer.api,
         overlayComposer.api,
-        gameLoopComposer.api,
+        gameLoopComposer.api
     ) as GameTimeApi;
 
     return {
@@ -187,21 +186,20 @@ export const createWorldComposer = async (
 
             janitor.mop(
                 globalEvents.on( "reload-all-plugins", async () => {
-                    await settingsStore().load();
+                    await settingsStore().init();
                     this.activate( true, settings.getState().input.sceneController );
                 } )
             );
 
             await apiSession.activate( world, gameTimeApi );
-
         },
 
         /**
          * Activate the world and start the game loop.
-         * 
+         *
          * @param reloadPlugins
-         * @param sceneController 
-         * @param targetData 
+         * @param sceneController
+         * @param targetData
          */
         async activate(
             reloadPlugins: boolean,
@@ -220,14 +218,12 @@ export const createWorldComposer = async (
                 apiSession = new ApiSession();
 
                 await apiSession.activate( world, gameTimeApi );
-
             }
-
 
             await _setSceneController( sceneController, targetData );
 
             openBwComposer.precompile();
-            postProcessingComposer.precompile( viewControllerComposer.primaryCamera! );
+            postProcessingComposer.precompile( viewControllerComposer.primaryCamera );
 
             events.emit( "resize", surfaceComposer.gameSurface );
             events.emit( "settings-changed", {
@@ -241,7 +237,6 @@ export const createWorldComposer = async (
             }
 
             gameLoopComposer.start();
-            
         },
 
         surfaceComposer,
@@ -282,7 +277,7 @@ export const createWorldComposer = async (
                 sceneComposer.onFrame(
                     delta,
                     elapsed,
-                    viewControllerComposer.primaryViewport!.renderMode3D,
+                    viewControllerComposer.primaryViewport.renderMode3D
                 );
 
                 unitSelectionComposer.update(
@@ -310,7 +305,7 @@ export const createWorldComposer = async (
             inputsComposer.reset();
         },
 
-        preRunObject: { 
+        preRunObject: {
             frame: 0,
             commands: [] as unknown[],
         },
@@ -326,7 +321,7 @@ export const createWorldComposer = async (
 
         preRunComplete() {
             commandsComposer.reset();
-            world.events.emit( "pre-run:complete");
+            world.events.emit( "pre-run:complete" );
         },
 
         onRender: ( delta: number, elapsed: number ) => {

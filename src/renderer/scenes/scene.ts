@@ -4,11 +4,12 @@ export type SceneStateID =
     | "@replay"
     | "@map"
     | "@iscriptah"
-    | "@interstitial";
+    | "@interstitial"
+    | "@auth";
 
 export interface SceneState {
     id: SceneStateID;
-    dispose: (newId?: SceneStateID) => void;
+    dispose: ( newId?: SceneStateID ) => void;
     start: ( prevId?: SceneStateID ) => void;
-    beforeNext?: (newId?: SceneStateID) => void;
+    beforeNext?: ( newId?: SceneStateID ) => void;
 }

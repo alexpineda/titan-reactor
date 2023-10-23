@@ -9,20 +9,37 @@ import { waitForTruthy } from "@utils/wait-for";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
 import processStore from "@stores/process-store";
-import gameStore from "@stores/game-store";
+import gameStore, { useGameStore } from "@stores/game-store";
+import { openCascStorageRemote } from "@ipc/casclib";
 
 let _lastErrorMessage = "";
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
     processStore().create( "pre-home-scene", 7 );
-    root.render( <PreHomeScene /> );
 
+    const urlParams = new URLSearchParams( window.location.search );
+    const assetServerUrlParam = urlParams.get( "assetServerUrl" );
+    const assetServerUrl =
+        assetServerUrlParam ??
+        localStorage.getItem( "assetServerUrl" ) ??
+        "http://localhost:8080";
+
+    root.render( <PreHomeScene assetServerUrl={assetServerUrl} /> );
+
+    const _int = setInterval( async () => {
+        const ok = await openCascStorageRemote( assetServerUrl );
+        if ( ok ) {
+            localStorage.setItem( "assetServerUrl", assetServerUrl );
+            useGameStore.setState( { assetServerUrl } );
+        }
+    }, 1000 );
     await waitForTruthy( () => {
-        return gameStore().initialInteraction;
+        return gameStore().assetServerUrl;
     } );
+    clearInterval( _int );
 
     log.debug( "Loading settings" );
-    const settings = await settingsStore().load();
+    const settings = await settingsStore().init();
 
     await waitForTruthy( () => {
         // wait until there are no errors

@@ -58,21 +58,21 @@ export const createPluginSession = async (
         "nativePlugins"
     );
 
-    nativePlugins.activateAdditionalPlugins([
-        {
-            externMethods: [],
-            apiVersion: "2.0.0",
-            hooks: [],
-            hostIndexFile: "",
-            id: "test-controller",
-            indexFile: "",
-            isSceneController: true,
-            name: "test-controller",
-            path: "",
-            version: "1.0.0",
-            nativeSource: TestController,
-        },
-    ], createCompartment)
+    nativePlugins.activateAdditionalPlugins(
+        [
+            {
+                apiVersion: "2.0.0",
+                id: "test-controller",
+                indexFile: "",
+                isSceneController: true,
+                name: "test-controller",
+                path: "",
+                version: "1.0.0",
+                nativeSource: TestController,
+            },
+        ],
+        createCompartment
+    );
 
     // available to macros and sandbox only
     const store = janitor.mop(

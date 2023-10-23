@@ -9,11 +9,14 @@ import { PluginConfig, PluginMetaData, RemotePackage } from "common/types";
 import { DetailSheet } from "./detail-sheet";
 import { GlobalSettings } from "./global-settings";
 import { Tab, Tabs } from "./tabs";
-import { attachOnChangeAndGroupByFolder, groupConfigByFolder } from "./leva-plugins/leva-utils";
+import {
+    attachOnChangeAndGroupByFolder,
+    groupConfigByFolder,
+} from "./leva-plugins/leva-utils";
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { Helmet } from "react-helmet";
 import { sendWindow, SendWindowActionType } from "./ipc/relay";
-import { InvokeBrowserTarget  } from "common/ipc-handle-names";
+import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { getUpdateVersion, localPluginRepository } from "./plugin-utils";
 import { PluginButton } from "./plugin-button";
 
@@ -40,8 +43,6 @@ const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
     } );
 }, 100 );
 
-
-
 const isDeprecated = ( plugin: PluginMetaData | undefined ) =>
     ( plugin?.keywords ?? [] ).includes( "deprecated" );
 
@@ -52,7 +53,10 @@ interface Plugin {
 
 const CommandCenter = () => {
     const settings = useSettingsStore();
-    const { activatedPlugins: activatedPlugins, deactivatedPlugins: deactivatedPlugins } = settings;
+    const {
+        activatedPlugins: activatedPlugins,
+        deactivatedPlugins: deactivatedPlugins,
+    } = settings;
     const [ plugin, setSelectedPluginPackage ] = useState<Plugin>( {
         local: activatedPlugins[0] ?? deactivatedPlugins[0],
     } );
@@ -159,7 +163,7 @@ const CommandCenter = () => {
         setSelectedPluginPackage,
         setBanner,
         setTabIndex,
-        settings.load
+        settings.init
     );
 
     return (
@@ -272,52 +276,58 @@ const CommandCenter = () => {
                                         </button>
                                     </>
                                 )}
-                                {plugin.local && activatedPlugins.includes( plugin.local ) && (
-                                    <>
-                                        {!isDeprecated( plugin.local ) && (
-                                            <DetailSheet
-                                                key={plugin.local.id}
-                                                pluginPackage={plugin.local}
-                                                controls={groupConfigByFolder(
-                                                    attachOnChangeAndGroupByFolder( {
-                                                        config: plugin.local.config,
-                                                        onChange: () => {
-                                                            onChange(
-                                                                plugin.local!.id,
-                                                                plugin.local!.config!
-                                                            );
-                                                        },
-                                                    } )
-                                                )}
-                                                updateAvailable={!!updateVersion}
-                                            />
-                                        )}
-                                        {isDeprecated( plugin.local ) && (
-                                            <div style={{ marginTop: "1rem" }}>
-                                                🛑 The author of this plugin has marked
-                                                it as deprecated and this plugin should
-                                                be disabled/deleted and no longer used.
-                                            </div>
-                                        )}
-                                        {updateVersion && (
+                                {plugin.local &&
+                                    activatedPlugins.includes( plugin.local ) && (
+                                        <>
+                                            {!isDeprecated( plugin.local ) && (
+                                                <DetailSheet
+                                                    key={plugin.local.id}
+                                                    pluginPackage={plugin.local}
+                                                    controls={groupConfigByFolder(
+                                                        attachOnChangeAndGroupByFolder( {
+                                                            config: plugin.local.config,
+                                                            onChange: () => {
+                                                                onChange(
+                                                                    plugin.local!.id,
+                                                                    plugin.local!
+                                                                        .config!
+                                                                );
+                                                            },
+                                                        } )
+                                                    )}
+                                                    updateAvailable={!!updateVersion}
+                                                />
+                                            )}
+                                            {isDeprecated( plugin.local ) && (
+                                                <div style={{ marginTop: "1rem" }}>
+                                                    🛑 The author of this plugin has
+                                                    marked it as deprecated and this
+                                                    plugin should be disabled/deleted
+                                                    and no longer used.
+                                                </div>
+                                            )}
+                                            {updateVersion && (
+                                                <button
+                                                    style={{
+                                                        backgroundColor:
+                                                            "var(--yellow-3)",
+                                                    }}
+                                                    onClick={() =>
+                                                        tryUpdatePlugin(
+                                                            plugin.local!.name
+                                                        )
+                                                    }>
+                                                    Update to {updateVersion}
+                                                </button>
+                                            )}
                                             <button
-                                                style={{
-                                                    backgroundColor: "var(--yellow-3)",
-                                                }}
                                                 onClick={() =>
-                                                    tryUpdatePlugin( plugin.local!.name )
+                                                    tryDisablePlugin( plugin.local!.id )
                                                 }>
-                                                Update to {updateVersion}
+                                                Disable Plugin
                                             </button>
-                                        )}
-                                        <button
-                                            onClick={() =>
-                                                tryDisablePlugin( plugin.local!.id )
-                                            }>
-                                            Disable Plugin
-                                        </button>
-                                    </>
-                                )}
+                                        </>
+                                    )}
                                 {plugin.local &&
                                     deactivatedPlugins.includes( plugin.local ) && (
                                         <>
@@ -327,7 +337,7 @@ const CommandCenter = () => {
                                                 }>
                                                 Enable Plugin
                                             </button>
-                                            {(
+                                            {
                                                 <button
                                                     style={{
                                                         background: "var(--red-5)",
@@ -340,7 +350,7 @@ const CommandCenter = () => {
                                                     }>
                                                     Delete Plugin
                                                 </button>
-                                            )}
+                                            }
                                             {!isDeprecated( plugin.local ) && (
                                                 <DetailSheet
                                                     key={plugin.local.id}
@@ -385,7 +395,7 @@ const container = document.getElementById( "app" );
 const root = createRoot( container! );
 
 settingsStore()
-    .load()
+    .init()
     .then( () => {
         root.render( <CommandCenter /> );
     } );

@@ -97,11 +97,6 @@ export interface SettingsV6 {
         logLevel: LogLevel;
         autoPlayReplayQueue: boolean;
     };
-    plugins: {
-        serverPort: number;
-        developmentDirectory?: string;
-        activated: string[];
-    };
     postprocessing: {
         anisotropy: number;
         antialias: number;
@@ -136,14 +131,9 @@ export type Settings = SettingsV6;
 export interface SettingsMeta {
     data: Settings;
     errors: string[];
-    phrases: Record<string, string>;
     activatedPlugins: PluginMetaData[];
     deactivatedPlugins: PluginMetaData[];
     initialInstall: boolean;
-    /**
-     * Whether the starcraft directory is a CASC storage or direct filesystem
-     */
-    isCascStorage: boolean;
 }
 
 export type SessionSettingsData = Pick<

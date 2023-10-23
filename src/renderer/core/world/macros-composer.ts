@@ -64,8 +64,7 @@ export const createMacrosComposer = ( settings: SettingsSessionStore ) => {
 
             targets.setHandler( ":function", {
                 action: ( action, context ) => {
-
-                    // @ts-ignore
+                    // @ts-expect-error
                     container.globalThis.context = context;
 
                     try {
@@ -83,10 +82,10 @@ export const createMacrosComposer = ( settings: SettingsSessionStore ) => {
                     }
                 },
                 getValue: ( _, value, context ) => {
-                    // @ts-ignore
+                    // @ts-expect-error
                     container.globalThis.context = context;
                     try {
-                        return container.globalThis.Function( value )() as unknown;
+                        return container.globalThis.Function( value as string )() as unknown;
                     } catch ( e ) {
                         log.error(
                             withErrorMessage( e, "Error executing macro condition" )
