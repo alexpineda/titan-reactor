@@ -8,7 +8,6 @@ import { useSettingsStore } from "@stores/settings-store";
 
 import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
-import { globalEvents } from "@core/global-events";
 import { World } from "./world";
 
 /**
@@ -84,7 +83,7 @@ export class ApiSession {
         this.native.useTryCatchOnHooks =
             useSettingsStore.getState().data.utilities.debugMode;
         this.#janitor.mop(
-            globalEvents.on( "command-center-save-settings", ( settings ) => {
+            useSettingsStore.subscribe( ( settings ) => {
                 this.native.useTryCatchOnHooks = settings.data.utilities.debugMode;
             } )
         );

@@ -2,19 +2,16 @@
 import "./style.css";
 import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { GlobalSettingsConfiguration } from "./global-settings";
+import { GlobalSettingsConfiguration } from "./global-settings-configuration";
 import { Tab, Tabs } from "./tabs";
 
 import { MacrosPanel } from "./macros-ui/macros-panel";
 import { PluginsConfiguration } from "./plugins-configuration";
 import { Helmet } from "react-helmet";
 
-import  { settingsStore } from "@stores/settings-store"
-
 import "../../../bundled/assets/normalize.min.css";
 import "../../../bundled/assets/open-props.1.4.min.css";
 import "../../../bundled/assets/buttons.min.css";
-import gameStore from "@stores/game-store";
 
 document.title = "Configuration";
 
@@ -70,19 +67,15 @@ const root = createRoot( container! );
 // root.render( <CommandCenter /> )
 
 window.opener.postMessage( {
-    type: "get-deps"
+    type: "connect"
 } );
 
 window.addEventListener( "message", ( event ) => {
-    console.log( event );
-    if ( event.data.type === "set-deps" ) {
-        window.deps = event.data.payload;
-        console.log( window.deps );
+    if ( event.data.type === "connected" ) {
+        console.log( "connected", window.deps.useSettingsStore.getState() );
+        window.deps.useSettingsStore.subscribe( ( state ) => {
+            console.log( "state", state );
+        } );
+        root.render( <CommandCenter /> )
     }
 } );
-
-settingsStore()
-    .init()
-    .then( () => {
-        root.render( <CommandCenter /> );
-    } );

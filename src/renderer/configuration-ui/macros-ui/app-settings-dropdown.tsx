@@ -2,7 +2,7 @@ import { capitalizeFirstLetters } from "@utils/string-utils";
 import { getSessionSettingsInLevaFormat } from "common/get-app-settings-leva-config";
 import { FieldDefinition } from "common/types";
 import React from "react";
-import { useSettingsStore } from "@stores/settings-store";
+import { useStore } from "zustand";
 
 interface Props {
     onChange: ( evt: React.ChangeEvent<HTMLSelectElement> ) => void;
@@ -16,7 +16,8 @@ export const SessionSettingsDropDown = ( {
     disabled,
     onlyConditional,
 }: Props ) => {
-    const settings = useSettingsStore.getState();
+    const settings = useStore( window.deps.useSettingsStore );
+    
     const config = getSessionSettingsInLevaFormat(
         settings.data,
         settings.activatedPlugins

@@ -12,7 +12,7 @@ import {
     getMacroConditionValidComparators,
 } from "common/macros/sanitize-macros";
 import { useMacroStore } from "../use-macros-store";
-import { useSettingsStore } from "@stores/settings-store";
+import { useStore } from "zustand";
 
 const getValidOps = ( action: MacroAction | MacroCondition, settings: SettingsStore ) => {
     return action.type === "action"
@@ -23,7 +23,7 @@ const getValidOps = ( action: MacroAction | MacroCondition, settings: SettingsSt
 export const ActionableOpsSelector = ( { action, macro }: ActionablePanelProps ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { updateActionable } = useMacroStore();
-    const settings = useSettingsStore();
+    const settings = useStore( window.deps.useSettingsStore );
     const validInstructions = getValidOps( action, settings );
 
     return (

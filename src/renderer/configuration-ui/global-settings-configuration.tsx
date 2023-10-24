@@ -3,7 +3,6 @@ import {
     generateAppSettingsFromLevaFormat,
 } from "common/get-app-settings-leva-config";
 import { useControls, useCreateStore } from "leva";
-import { useSettingsStore } from "@stores/settings-store";
 import { useState } from "react";
 import {
     attachOnChangeAndGroupByFolder,
@@ -14,8 +13,7 @@ import deepMerge from "deepmerge";
 import { createLevaPanel } from "./create-leva-panel";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 import { Schema } from "leva/plugin";
-import { sendWindow } from "./send-window";
-// import { useStore } from "zustand";
+import { useStore } from "zustand";
 
 const renderer = createWebGLRenderer();
 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -26,8 +24,7 @@ renderer.dispose();
  * Global App Settings UI
  */
 export const GlobalSettingsConfiguration = () => {
-    // const settings = useStore( window.deps.useSettingsStore )
-    const settings = useSettingsStore();
+    const settings = useStore( window.deps.useSettingsStore )
 
     const [ state, setState ] = useState(
         getAppSettingsInLevaFormat(
@@ -55,9 +52,7 @@ export const GlobalSettingsConfiguration = () => {
                     }
                 );
 
-                settings.save( newState ).then( ( payload ) => {
-                    sendWindow( "command-center-save-settings", payload );
-                } );
+                settings.save( newState );
             },
         } )
     );

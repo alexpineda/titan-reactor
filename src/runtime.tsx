@@ -297,7 +297,7 @@ const _addPlugin = ( plugin: PluginMetaData ) => {
     const script = document.createElement( "script" );
     script.type = "module";
     script.async = true;
-    script.src = `${plugin.path}/ui/${plugin.indexFile}`;
+    script.src = `${plugin.path}/${plugin.indexFile}`;
     document.head.appendChild( script );
 
     _plugins[plugin.id] = {
@@ -544,7 +544,6 @@ export function convertIcons( {
     };
 }
 
-
 const PluginContext = createContext<Component | null>( null );
 
 /**
@@ -612,9 +611,6 @@ export const useStyleSheet = ( content: string, deps = [] ) => {
  */
 export const proxyFetch = ( url: string ) => fetch( `?proxy=${encodeURIComponent( url )}` );
 
-/**
- * @internal
- */
 export const _rc = (
     pluginId: string,
     component: Component,
@@ -704,7 +700,7 @@ const App = ( { components }: { components: Component[] } ) => {
 
     return (
         <>
-        {/* <Canvas style={{
+            {/* <Canvas style={{
             position: "absolute",
             left: 0,
             top: 0,
@@ -720,135 +716,135 @@ const App = ( { components }: { components: Component[] } ) => {
             <Box position={[-1.2, 0, 0]} />
             <Box position={[1.2, 0, 0]} />
         </Canvas> */}
-        <div
-            ref={containerDiv}
-            style={{
-                position: "absolute",
-                left: 0,
-                top: 0,
-                width: "100%",
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-            backgroundColor: "transparent",
+            <div
+                ref={containerDiv}
+                style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    width: "100%",
+                    height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
+                    backgroundColor: "transparent",
 
-            zIndex: 1,
-        }}>
-            <div
-                id="top-container"
-                style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "space-between",
+                    zIndex: 1,
                 }}>
                 <div
-                    id="top-left"
+                    id="top-container"
                     style={{
+                        width: "100%",
                         display: "flex",
-                        flexDirection: "column",
-                    }}>
-                    {components
-                        .filter( ( c ) => c.snap === "top-left" )
-                        .filter( screenFilter )
-                        .sort( orderSort )
-                        .map( renderComponent )}
-                </div>
-                <div
-                    id="top"
-                    style={{
-                        display: "flex",
-                        flexGrow: 1,
-                    }}>
-                    {components
-                        .filter( ( c ) => c.snap === "top" )
-                        .filter( screenFilter )
-                        .sort( orderSort )
-                        .map( renderComponent )}
-                </div>
-                <div
-                    id="top-right"
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                    }}>
-                    {components
-                        .filter( ( c ) => c.snap === "top-right" )
-                        .filter( screenFilter )
-                        .sort( orderSort )
-                        .map( renderComponent )}
-                </div>
-            </div>
-            <div
-                id="left_right"
-                style={{
-                    width: "100%",
-                    display: "flex",
-                    justifyContent: "space-between",
-                    flexGrow: 1,
-                }}>
-                <div
-                    id="left"
-                    style={{
-                        display: "flex",
-                        flexDirection: "column-reverse",
-                        // marginBottom: "var(--minimap-height)",
-                    }}>
-                    {components
-                        .filter( ( c ) => c.snap === "left" )
-                        .filter( screenFilter )
-                        .sort( orderSort )
-                        .map( renderComponent )}
-                </div>
-                <div
-                    id="center_container"
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        flexGrow: 1,
+                        justifyContent: "space-between",
                     }}>
                     <div
-                        id="center"
+                        id="top-left"
                         style={{
                             display: "flex",
-                            justifyContent: "center",
-                            alignItems: "center",
+                            flexDirection: "column",
+                        }}>
+                        {components
+                            .filter( ( c ) => c.snap === "top-left" )
+                            .filter( screenFilter )
+                            .sort( orderSort )
+                            .map( renderComponent )}
+                    </div>
+                    <div
+                        id="top"
+                        style={{
+                            display: "flex",
                             flexGrow: 1,
                         }}>
                         {components
-                            .filter( ( c ) => c.snap === "center" )
+                            .filter( ( c ) => c.snap === "top" )
                             .filter( screenFilter )
                             .sort( orderSort )
                             .map( renderComponent )}
                     </div>
                     <div
-                        id="bottom"
+                        id="top-right"
                         style={{
                             display: "flex",
+                            flexDirection: "column",
                         }}>
                         {components
-                            .filter( ( c ) => c.snap === "bottom" )
+                            .filter( ( c ) => c.snap === "top-right" )
                             .filter( screenFilter )
                             .sort( orderSort )
                             .map( renderComponent )}
                     </div>
                 </div>
                 <div
-                    id="right"
-                    style={{ display: "flex", flexDirection: "column-reverse" }}>
-                    {components
-                        .filter( ( c ) => c.snap === "right" )
-                        .filter( screenFilter )
-                        .sort( orderSort )
-                        .map( renderComponent )}
+                    id="left_right"
+                    style={{
+                        width: "100%",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        flexGrow: 1,
+                    }}>
+                    <div
+                        id="left"
+                        style={{
+                            display: "flex",
+                            flexDirection: "column-reverse",
+                            // marginBottom: "var(--minimap-height)",
+                        }}>
+                        {components
+                            .filter( ( c ) => c.snap === "left" )
+                            .filter( screenFilter )
+                            .sort( orderSort )
+                            .map( renderComponent )}
+                    </div>
+                    <div
+                        id="center_container"
+                        style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            flexGrow: 1,
+                        }}>
+                        <div
+                            id="center"
+                            style={{
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                                flexGrow: 1,
+                            }}>
+                            {components
+                                .filter( ( c ) => c.snap === "center" )
+                                .filter( screenFilter )
+                                .sort( orderSort )
+                                .map( renderComponent )}
+                        </div>
+                        <div
+                            id="bottom"
+                            style={{
+                                display: "flex",
+                            }}>
+                            {components
+                                .filter( ( c ) => c.snap === "bottom" )
+                                .filter( screenFilter )
+                                .sort( orderSort )
+                                .map( renderComponent )}
+                        </div>
+                    </div>
+                    <div
+                        id="right"
+                        style={{ display: "flex", flexDirection: "column-reverse" }}>
+                        {components
+                            .filter( ( c ) => c.snap === "right" )
+                            .filter( screenFilter )
+                            .sort( orderSort )
+                            .map( renderComponent )}
+                    </div>
                 </div>
-            </div>
 
-            {components
-                .filter( ( c ) => c.snap === "loose" )
-                .filter( screenFilter )
-                .sort( orderSort )
-                .map( renderComponent )}
-        </div>
+                {components
+                    .filter( ( c ) => c.snap === "loose" )
+                    .filter( screenFilter )
+                    .sort( orderSort )
+                    .map( renderComponent )}
+            </div>
         </>
     );
 };
@@ -884,7 +880,6 @@ class ErrorBoundary extends React.Component {
         return this.props.children;
     }
 }
-
 
 // function Box(props: any) {
 //   // This reference will give us direct access to the mesh
@@ -969,7 +964,6 @@ window.addEventListener( "message", function ( event: MessageEvent ) {
         useStore.setState( { [event.data.type]: event.data.payload as unknown } );
     }
 } );
-
 
 ReactDOM.render( <AppWrapper />, document.body );
 

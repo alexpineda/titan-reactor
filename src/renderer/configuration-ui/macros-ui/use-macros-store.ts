@@ -1,13 +1,10 @@
-import { sendWindow } from "../send-window";
 import { createMacroStore } from "./macros-store";
-import { useSettingsStore } from "@stores/settings-store";
 
-export const useMacroStore = createMacroStore( ( payload ) =>
-    sendWindow( "command-center-save-settings", payload )
-);
+export const useMacroStore = createMacroStore();
 
-useSettingsStore.subscribe( ( settings ) => {
-    useMacroStore.setState( ( state ) => {
-        state.macros = settings.data.macros;
-    } );
-} );
+//todo: why are we doing this again? i'd rather it not be here at all
+// window.deps.useSettingsStore.subscribe( ( settings ) => {
+//     useMacroStore.setState( ( state ) => {
+//         state.macros = settings.data.macros;
+//     } );
+// } );

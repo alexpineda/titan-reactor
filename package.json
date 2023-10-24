@@ -22,8 +22,8 @@
         "plugins:serve": "http-server .\\dist\\plugins -p 8090 --cors",
         "web": "vite -c vite.config.web.ts",
         "web:build": "vite build -c vite.config.web.ts",
-        "runtime:build": "vite build -c vite.config.runtime.ts",
-        "plugins": "plugins:build && runtime:build && plugins:serve"
+        "runtime:build": "vite build -c vite.config.runtime.ts && ts-node -T ./vite.runtime.post.ts",
+        "plugins:all": "yarn runtime:build && yarn plugins:build  && yarn plugins:serve"
     },
     "license": "GPL-3.0",
     "repository": {

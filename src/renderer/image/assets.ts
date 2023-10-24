@@ -254,9 +254,7 @@ export const initializeAssets = async () => {
         resetImagesCache: () => {
             for ( const atlas of atlases ) {
                 // might be gaps in the atlases when preloaded and we reset,
-                // todo: figure out which case this is and why
                 if ( atlas ) {
-                    debugger;
                     atlas.dispose();
                 }
             }

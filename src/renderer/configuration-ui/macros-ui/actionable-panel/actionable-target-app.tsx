@@ -6,10 +6,10 @@ import { useMacroStore } from "../use-macros-store";
 import { ActionableOpsSelector } from "./actionable-ops-selector";
 import { ActionableEditValue } from "./actionable-edit-value";
 import { ActionablePanelProps } from "./actionable-pane-props";
-import { useSettingsStore } from "@stores/settings-store";
+import { useStore } from "zustand";
 
 export const ActionableTargetApp = ( props: ActionablePanelProps ) => {
-    const settings = useSettingsStore.getState();
+    const settings = useStore( window.deps.useSettingsStore );
     const { action, macro } = props;
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { updateActionable } = useMacroStore();

@@ -75,7 +75,7 @@ export class PluginsRepository {
             .catch( () => null );
 
         const indexFile = await fetch( `${pluginRootUrl}/ui.js` )
-            .then( ( r ) => r.text() )
+            .then( () => "ui.js" )
             .catch( () => "" );
 
         const readme = await fetch( `${pluginRootUrl}/readme.md` )
@@ -130,6 +130,15 @@ export class PluginsRepository {
             _enabled: { value: false, label: "Enabled", folder: "System" },
         } );
         return config;
+    }
+
+    //todo: deprecate once we move configs and values to separate containers
+    createEnabledOption( value: boolean ) {
+        return {
+            value,
+            label: "Enabled",
+            folder: "System",
+        };
     }
 
     async fetch( rootUrl: string ) {

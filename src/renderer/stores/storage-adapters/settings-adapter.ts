@@ -1,7 +1,7 @@
 import { defaultSettings } from "common/default-settings";
-import { PluginConfig, Settings } from "common/types";
+import {  PluginConfig, Settings } from "common/types";
 
-export interface SettingsAdapter {
+export interface StorageAdapter {
     loadSettings(): Promise<Settings> | Settings;
 
     saveSettings( settings: Settings ): Promise<void> | void;
@@ -11,6 +11,12 @@ export interface SettingsAdapter {
     ): Promise<PluginConfig | undefined> | ( PluginConfig | undefined );
 
     savePluginSettings( id: string, value: PluginConfig ): Promise<void> | void;
+
+    // loadMacros(
+    //     id: string
+    // ): Promise<MacrosDTO | undefined> | ( MacrosDTO | undefined );
+
+    // saveMacros( macros: MacrosDTO ): Promise<void> | void;
 }
 
 export const supportedLanguages = [ "en-US", "es-ES", "ko-KR", "pl-PL", "ru-RU" ];

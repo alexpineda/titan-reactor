@@ -1,5 +1,4 @@
 import create from "zustand";
-import { settingsStore } from "@stores/settings-store";
 import {
     Actionable,
     MacroAction,
@@ -7,7 +6,7 @@ import {
     MacroCondition,
     MacroDTO,
     MacrosDTO,
-    SettingsMeta,
+    Settings,
 } from "common/types";
 import { immer } from "zustand/middleware/immer";
 import { MathUtils } from "three";
@@ -20,7 +19,7 @@ import { log } from "@ipc/log";
 import { WritableDraft } from "immer/dist/internal";
 export interface MacroStore {
     macros: MacrosDTO;
-    persist(): Promise<SettingsMeta | undefined>;
+    persist(): Promise<Settings | undefined>;
     busy: boolean;
 
     createMacro(
@@ -53,11 +52,15 @@ const insertAction = (
     actions.splice( idx2 + offset, 0, action );
 };
 
-export const createMacroStore = ( onSave?: ( settings: SettingsMeta ) => void ) =>
+export const createMacroStore = ( settingsStore = () =>  window.deps.useSettingsStore.getState() ) =>
     create(
         immer<MacroStore>( ( set, get ) => ( {
-            macros: settingsStore().data.macros,
+            macros: { revision: 0, macros: [] },
             busy: false,
+
+            init() {
+                set( ( state ) => state.macros = settingsStore().data.macros );
+            },
 
             async persist() {
                 if ( get().busy ) {
@@ -76,10 +79,8 @@ export const createMacroStore = ( onSave?: ( settings: SettingsMeta ) => void ) 
                     } );
 
                     set( ( state ) => {
-                        state.macros = settings.data.macros;
+                        state.macros = settings.macros;
                     } );
-
-                    onSave && onSave( settings );
 
                     return settings;
                 } catch ( e ) {

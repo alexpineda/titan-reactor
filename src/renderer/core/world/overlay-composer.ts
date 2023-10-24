@@ -280,35 +280,31 @@ export const createOverlayComposer = (
 
             _minimapUv = _intersectMinimap();
 
-            const pv = viewports.primaryViewport!.projectedView;
-            minimapMaterial.uniforms.uCameraBoundsBL.value.setX(pv.bl[0] / mapWidth);
-            minimapMaterial.uniforms.uCameraBoundsBL.value.setY( 1 - pv.bl[1] / mapHeight);
-            minimapMaterial.uniforms.uCameraBoundsBR.value.setX(pv.br[0] / mapWidth);
-            minimapMaterial.uniforms.uCameraBoundsBR.value.setY( 1 - pv.br[1] / mapHeight);
-            minimapMaterial.uniforms.uCameraBoundsTL.value.setX(pv.tl[0] / mapWidth );
-            minimapMaterial.uniforms.uCameraBoundsTL.value.setY( 1 - pv.tl[1] / mapHeight);
-            minimapMaterial.uniforms.uCameraBoundsTR.value.setX(pv.tr[0] / mapWidth);
-            minimapMaterial.uniforms.uCameraBoundsTR.value.setY( 1 - pv.tr[1] / mapHeight);
+            const pv = viewports.primaryViewport.projectedView;
+            minimapMaterial.uniforms.uCameraBoundsBL.value.setX( pv.bl[0] / mapWidth );
+            minimapMaterial.uniforms.uCameraBoundsBL.value.setY( 1 - pv.bl[1] / mapHeight );
+            minimapMaterial.uniforms.uCameraBoundsBR.value.setX( pv.br[0] / mapWidth );
+            minimapMaterial.uniforms.uCameraBoundsBR.value.setY( 1 - pv.br[1] / mapHeight );
+            minimapMaterial.uniforms.uCameraBoundsTL.value.setX( pv.tl[0] / mapWidth );
+            minimapMaterial.uniforms.uCameraBoundsTL.value.setY( 1 - pv.tl[1] / mapHeight );
+            minimapMaterial.uniforms.uCameraBoundsTR.value.setX( pv.tr[0] / mapWidth );
+            minimapMaterial.uniforms.uCameraBoundsTR.value.setY( 1 - pv.tr[1] / mapHeight );
             // are there rules in ShaderMaterial that must be batch update or can we jsut update them one by one?
             minimapMaterial.uniformsNeedUpdate = true;
 
-             if (viewports.viewports[1].enabled) {
+             if ( viewports.viewports[1].enabled ) {
              const pv2 = viewports.viewports[1]!.projectedView;
-            minimapMaterial.uniforms.u2CameraBoundsBL.value.setX(pv2.bl[0] / mapWidth);
-            minimapMaterial.uniforms.u2CameraBoundsBL.value.setY( 1 - pv2.bl[1] / mapHeight);
-            minimapMaterial.uniforms.u2CameraBoundsBR.value.setX(pv2.br[0] / mapWidth);
-            minimapMaterial.uniforms.u2CameraBoundsBR.value.setY( 1 - pv2.br[1] / mapHeight);
-            minimapMaterial.uniforms.u2CameraBoundsTL.value.setX(pv2.tl[0] / mapWidth );
-            minimapMaterial.uniforms.u2CameraBoundsTL.value.setY( 1 - pv2.tl[1] / mapHeight);
-            minimapMaterial.uniforms.u2CameraBoundsTR.value.setX(pv2.tr[0] / mapWidth);
-            minimapMaterial.uniforms.u2CameraBoundsTR.value.setY( 1 - pv2.tr[1] / mapHeight);
+            minimapMaterial.uniforms.u2CameraBoundsBL.value.setX( pv2.bl[0] / mapWidth );
+            minimapMaterial.uniforms.u2CameraBoundsBL.value.setY( 1 - pv2.bl[1] / mapHeight );
+            minimapMaterial.uniforms.u2CameraBoundsBR.value.setX( pv2.br[0] / mapWidth );
+            minimapMaterial.uniforms.u2CameraBoundsBR.value.setY( 1 - pv2.br[1] / mapHeight );
+            minimapMaterial.uniforms.u2CameraBoundsTL.value.setX( pv2.tl[0] / mapWidth );
+            minimapMaterial.uniforms.u2CameraBoundsTL.value.setY( 1 - pv2.tl[1] / mapHeight );
+            minimapMaterial.uniforms.u2CameraBoundsTR.value.setX( pv2.tr[0] / mapWidth );
+            minimapMaterial.uniforms.u2CameraBoundsTR.value.setY( 1 - pv2.tr[1] / mapHeight );
              }
 
              minimapMaterial.uniforms.u2Enabled.value = viewports.viewports[1].enabled ? 1 : 0;
-
-
-
-
         },
 
         onFrame() {
@@ -324,7 +320,7 @@ export const createOverlayComposer = (
                         unit,
                         assets.bwDat.units[unit.typeId],
                         world.fogOfWar,
-                        ( playerId: number ) => world.players!.get(playerId)?.color ?? white 
+                        ( playerId: number ) => world.players.get( playerId )?.color ?? white 
                     );
                 }
             }

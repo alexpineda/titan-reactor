@@ -24,6 +24,11 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
         localStorage.getItem( "assetServerUrl" ) ??
         "http://localhost:8080";
 
+    const settings = await settingsStore().init();
+
+    // load after settings is initialized please
+    gameStore().openConfigurationWindow();
+
     root.render( <PreHomeScene assetServerUrl={assetServerUrl} /> );
 
     const _int = setInterval( async () => {
@@ -38,8 +43,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     } );
     clearInterval( _int );
 
-    log.debug( "Loading settings" );
-    const settings = await settingsStore().init();
+    
 
     await waitForTruthy( () => {
         // wait until there are no errors

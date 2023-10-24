@@ -1,7 +1,7 @@
 import { PluginConfig, Settings } from "common/types";
-import { SettingsAdapter, createDefaults } from "./settings-adapter";
+import { StorageAdapter, createDefaults } from "./settings-adapter";
 
-export class LocalStorageAdapter implements SettingsAdapter {
+export class LocalStorageAdapter implements StorageAdapter {
     loadSettings() {
         try {
             const settings = localStorage.getItem( "settings" );

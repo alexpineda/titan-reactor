@@ -9,8 +9,8 @@ import { PluginButton } from "./plugin-button";
 import { Tab, Tabs } from "./tabs";
 import { useState } from "react";
 import { sendWindow } from "./send-window";
-// import { useStore } from "zustand";
-import { useSettingsStore } from "@stores/settings-store";
+import { useStore } from "zustand";
+import "./window-dep"
 
 const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
     sendWindow( "command-center-plugin-config-changed", {
@@ -22,13 +22,7 @@ const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
 const isDeprecated = ( plugin: PluginMetaData | undefined ) =>
     ( plugin?.keywords ?? [] ).includes( "deprecated" );
 
-    declare global {
-        interface Window {
-            deps: {
-                useSettingsStore: typeof useSettingsStore
-            }
-        }
-    }
+    
 
 export const PluginsConfiguration = ( {
     setBanner,
@@ -36,9 +30,7 @@ export const PluginsConfiguration = ( {
     setBanner: React.Dispatch<React.SetStateAction<string>>;
 } ) => {
     const [ tabIndex, setTabIndex ] = useState( 0 );
-    const settings = useSettingsStore(); //useStore( window.deps.useSettingsStore )
-
-    console.log( settings )
+    const settings = useStore( window.deps.useSettingsStore );
 
     const {
          activatedPlugins,
@@ -52,18 +44,20 @@ export const PluginsConfiguration = ( {
     const tryDeactivatePlugin = ( pluginId: string ) => {
         if ( confirm( "Are you sure you want to deactivate this plugin?" ) ) {
             sendWindow( "command-center-plugin-deactivated", pluginId );
+            settings.enablePlugins( [ pluginId ] );
         }
     };
 
-    const tryActivatePlugin = async ( pluginId: string ) => {
+    const tryActivatePlugin = ( pluginId: string ) => {
         if ( confirm( "Do you wish to continue and activate this plugin?" ) ) {
-            const plugin = ( await settings.init() ).activatedPlugins.find(
+            const plugin = settings.deactivatedPlugins.find(
                 ( p ) => p.id === pluginId
             );
             if ( plugin ) {
-                //todo change this to pluginId
+                //todo change this to pluginId,  move into enablePlugin function as global event
                 sendWindow( "command-center-plugins-activated", [ plugin ] );
                 setSelectedPluginPackage( plugin );
+                settings.enablePlugins( [ plugin.id ] );
             } else {
                 setBanner( "Failed to activate plugin" );
             }

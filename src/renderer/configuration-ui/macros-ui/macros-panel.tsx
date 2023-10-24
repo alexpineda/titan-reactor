@@ -4,10 +4,11 @@ import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
 import { useMacroStore } from "./use-macros-store";
 import { TreeList } from "./treelist";
-import { useSettingsStore } from "@stores/settings-store";
+import { useStore } from "zustand";
 
 export const MacrosPanel = () => {
-    const settings = useSettingsStore();
+    const settings = useStore( window.deps.useSettingsStore );
+    
     const {
         macros: { macros },
     } = useMacroStore();

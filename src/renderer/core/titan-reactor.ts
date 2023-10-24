@@ -31,9 +31,9 @@ import { supabase } from "common/supabase";
 
 performance.mark( "start" );
 
-globalEvents.on( "command-center-save-settings", ( payload ) => {
+useSettingsStore.subscribe( ( payload ) => {
+    console.log( payload )
     mixer.setVolumes( payload.data.audio );
-    useSettingsStore.setState( payload );
 } );
 
 globalEvents.on( "log-message", ( { message, level, server } ) =>
@@ -186,8 +186,6 @@ lockdown_();
             }
         }
     } else {
-        gameStore().openConfigurationWindow();
-
         await sceneStore().execSceneLoader( preHomeSceneLoader, "@loading" );
 
         await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
@@ -201,12 +199,26 @@ lockdown_();
 window.addEventListener( "wheel", ( evt ) => evt.preventDefault(), { passive: false } );
 
 window.addEventListener( "message", ( event ) => {
-    if ( event.data.type === "get-deps" && gameStore().configurationWindow ) {
-        console.log( event );
-        gameStore().configurationWindow!.deps = gameStore().configurationWindowDeps!;
-        event.source!.postMessage( { type: "set-deps" }, { targetOrigin: event.origin } );
+    if ( event.data.type === "connect" ) {
+        console.log( "connecting" )
+        useGameStore.setState( { configurationWindow: event.source as Window } )
+        gameStore().configurationWindow!.deps = { useSettingsStore };
+        event.source!.postMessage( { type: "connected" }, { targetOrigin: event.origin } );
     }
 } );
 
 window.document.title = "Titan Reactor";
 
+window.addEventListener( "keypress", ( event ) => {
+    if ( event.code === "KeyO" && event.shiftKey ) {
+        event.preventDefault();
+        console.log( "opening config" )
+        gameStore().openConfigurationWindow();
+    }
+} );
+
+window.addEventListener( "beforeunload", () => {
+    if ( gameStore().configurationWindow ) {
+        gameStore().configurationWindow!.close();
+    }
+} );

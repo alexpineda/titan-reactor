@@ -7,7 +7,6 @@ import {
 } from "@plugins/events";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
-import screenStore from "@stores/scene-store";
 import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { createPluginSessionStore } from "@core/world/plugin-session-store";
@@ -112,13 +111,6 @@ export const createPluginSession = async (
             nativePlugins.activateAdditionalPlugins( plugins, createCompartment );
         } ),
         "command-center-plugins-activated"
-    );
-
-    janitor.mop(
-        globalEvents.on( "initial-install-error-plugins", () => {
-            screenStore().setError( new Error( "Failed to install plugins" ) );
-        } ),
-        "initial-install-error-plugins"
     );
 
     const _clickPassThrough = ( evt: MouseEvent ) =>

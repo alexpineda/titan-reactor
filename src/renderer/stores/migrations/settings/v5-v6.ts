@@ -1,6 +1,6 @@
 import { defaultSettingsV6 } from "common/default-settings";
 import { Settings } from "common/types";
-import { PreviousSettings } from ".";
+import { PreviousSettings } from "./settings-migrations";
 
 export const v5tov6 = ( oldSettings: PreviousSettings ): PreviousSettings => {
     if ( oldSettings.version != 5 ) {

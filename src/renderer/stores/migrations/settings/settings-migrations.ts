@@ -3,9 +3,9 @@ import { v5tov6 } from "./v5-v6";
 
 export type PreviousSettings = SettingsV5 | Settings;
 
-const migrations: ( ( settings: PreviousSettings ) => PreviousSettings )[] = [v5tov6];
+const migrations: ( ( settings: PreviousSettings ) => PreviousSettings )[] = [ v5tov6 ];
 
-export const doMigrations = ( _settings: PreviousSettings ): Settings => {
+export const applySettingsMigrations = ( _settings: PreviousSettings ): Settings => {
     let settings = _settings;
 
     for ( const migration of migrations ) {

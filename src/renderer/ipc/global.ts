@@ -76,19 +76,13 @@ export const getJanitorLogLevel = () => {
     return JanitorLogLevel.None;
 };
 
-// for debug
-// ipcRenderer.on( RELOAD_PLUGINS, () => globalEvents.emit( "reload-all-plugins" ) );
+window.addEventListener( "keydown", ( event ) => {
+    event.code === "KeyR" && globalEvents.emit( "reload-all-plugins" );
+} );
+
 
 useSettingsStore.subscribe( () => {
     Janitor.logLevel = getJanitorLogLevel();
 } );
 
 // ipcRenderer.on( OPEN_ISCRIPTAH, () => globalEvents.emit( "load-iscriptah" ) );
-
-// ipcRenderer.on( ON_PLUGINS_ACTIVATED, ( _, plugins: PluginMetaData[] ) =>
-//     globalEvents.emit( "command-center-plugins-activated", plugins )
-// );
-
-// ipcRenderer.on( DEACTIVATE_PLUGIN, ( _, pluginId: string ) =>
-//     globalEvents.emit( "command-center-plugin-deactivated", pluginId )
-// );

@@ -13,13 +13,17 @@ export default defineConfig({
     base: "./",
     logLevel: "info",
     publicDir: "bundled/assets",
+    mode: "production",
     build: {
+        // emptyOutDir: false,
         outDir: OUT_DIR,
         target: TARGET,
         rollupOptions: {
             input: {
-                runtime: path.resolve(__dirname, "./runtime.html"),
+                runtime: path.resolve(__dirname, "src", "runtime.html"),
             },
+            preserveEntrySignatures: "strict",
+            treeshake: false,
         },
         minify: false, //env.command === "build",
         sourcemap: false, //env.command === "build",
@@ -27,6 +31,9 @@ export default defineConfig({
     esbuild: {
         target: TARGET,
         format: "esm",
+        keepNames: true,
+        platform: "browser",
+        treeShaking: false,
     },
 
     worker: {

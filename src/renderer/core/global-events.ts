@@ -1,13 +1,12 @@
 import { TypeEmitter } from "@utils/type-emitter";
 import type Chk from "bw-chk";
-import { LogLevel } from "common/logging";
-import { MacroAction, PluginConfig, PluginMetaData, SettingsMeta } from "common/types";
-import { ValidatedReplay } from "renderer/scenes/replay-scene-loader";
+import type { LogLevel } from "common/logging";
+import type { MacroAction, PluginConfig, PluginMetaData } from "common/types";
+import type { ValidatedReplay } from "../scenes/replay-scene-loader";
 
 export interface GlobalEvents {
     "webglcontextlost": undefined;
     "webglcontextrestored": undefined;
-    "command-center-save-settings": SettingsMeta;
     "command-center-plugin-config-changed": { pluginId: string; config: PluginConfig };
     "command-center-plugins-activated": PluginMetaData[];
     "command-center-plugin-deactivated": string;
@@ -15,7 +14,6 @@ export interface GlobalEvents {
     "load-iscriptah": string;
     "queue-files": { files: File[]; append?: boolean };
     "log-message": { message: string; level: LogLevel; server?: boolean };
-    "initial-install-error-plugins": undefined;
     "reload-all-plugins": undefined;
     "exec-macro": string;
     "reset-macro-actions": string;
@@ -31,7 +29,6 @@ export interface GlobalEvents {
 export const globalEventKeys: ( keyof GlobalEvents )[] = [
     "webglcontextlost",
     "webglcontextrestored",
-    "command-center-save-settings",
     "command-center-plugin-config-changed",
     "command-center-plugins-activated",
     "command-center-plugin-deactivated",
@@ -39,7 +36,6 @@ export const globalEventKeys: ( keyof GlobalEvents )[] = [
     "load-iscriptah",
     "queue-files",
     "log-message",
-    "initial-install-error-plugins",
     "reload-all-plugins",
     "exec-macro",
     "reset-macro-actions",
