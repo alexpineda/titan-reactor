@@ -1,14 +1,10 @@
-import { sendWindow, SendWindowActionType } from "../ipc/relay";
-import { useSettingsStore } from "@stores/settings-store";
-import { InvokeBrowserTarget } from "common/ipc-handle-names";
+import { sendWindow } from "../send-window";
 import { createMacroStore } from "./macros-store";
+import { useSettingsStore } from "@stores/settings-store";
 
-export const useMacroStore = createMacroStore( ( payload ) => {
-    sendWindow( InvokeBrowserTarget.Game, {
-        type: SendWindowActionType.CommitSettings,
-        payload,
-    } );
-} );
+export const useMacroStore = createMacroStore( ( payload ) =>
+    sendWindow( "command-center-save-settings", payload )
+);
 
 useSettingsStore.subscribe( ( settings ) => {
     useMacroStore.setState( ( state ) => {

@@ -133,7 +133,6 @@ export interface SettingsMeta {
     errors: string[];
     activatedPlugins: PluginMetaData[];
     deactivatedPlugins: PluginMetaData[];
-    initialInstall: boolean;
 }
 
 export type SessionSettingsData = Pick<

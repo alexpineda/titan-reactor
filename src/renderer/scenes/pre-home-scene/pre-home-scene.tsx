@@ -6,7 +6,6 @@ import titanReactorLogo from "@image/assets/logo.png";
 import dmLogo from "@image/assets/dm.png";
 import { LoadBar } from "./load-bar";
 import { GlobalErrorState } from "../error-state";
-import { useSettingsStore } from "@stores/settings-store";
 import { useGameStore } from "@stores/game-store";
 
 const styleCenterText = {
@@ -23,7 +22,6 @@ const styleCenterText = {
 
 export const PreHomeScene = ( { assetServerUrl }: { assetServerUrl: string } ) => {
     const error = useSceneStore( ( state ) => state.error );
-    const initialInstall = useSettingsStore( ( state ) => state.initialInstall );
 
     const validatedAssertServerUrl = useGameStore( ( state ) => state.assetServerUrl );
 
@@ -57,10 +55,10 @@ export const PreHomeScene = ( { assetServerUrl }: { assetServerUrl: string } ) =
                 display: "flex",
                 flexDirection: "column",
             }}>
-            {error && !initialInstall && (
+            {error  && (
                 <GlobalErrorState error={error} action={action} />
             )}
-            {!error && !initialInstall && (
+            {!error && (
                 //@ts-expect-error
                 <div style={styleCenterText}>
                     {/* <div>{imbateamLogo}</div> */}
@@ -78,14 +76,6 @@ export const PreHomeScene = ( { assetServerUrl }: { assetServerUrl: string } ) =
                             <p>{assetServerUrl}</p>
                         </>
                     )}
-                </div>
-            )}
-            {initialInstall && (
-                //@ts-expect-error
-                <div style={styleCenterText}>
-                    <p style={{ fontSize: "var(--font-size-6)" }}>
-                        Installing Default Plugins...
-                    </p>
                 </div>
             )}
         </div>

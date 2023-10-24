@@ -9,15 +9,4 @@ export type ReadCascFileBatch = (
     bwPath: string[],
     encoding?: BufferEncoding
 ) => Promise<Buffer[]>;
-export type FindCascFiles = (
-    bwPath: string
-) => Promise<string[]>;
-
-export type RemotePackage = {
-    name: string;
-    version: string;
-    description?: string | undefined;
-    keywords?: string[] | undefined;
-    date?: Date | undefined;
-    readme?: string;
-};
+export type FindCascFiles = ( bwPath: string ) => Promise<string[]>;

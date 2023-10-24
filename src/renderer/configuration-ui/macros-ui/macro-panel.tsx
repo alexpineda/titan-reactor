@@ -12,14 +12,13 @@ import { CreateMacroConditionOrAction } from "./create-macro-condition-or-action
 import { useMacroStore } from "./use-macros-store";
 import { MathUtils } from "three";
 import { ConfigureTrigger } from "./configure-trigger";
-import { InvokeBrowserTarget } from "common/ipc-handle-names";
-import { sendWindow, SendWindowActionType } from "../ipc/relay";
 import { spaceOutCapitalLetters } from "@utils/string-utils";
 import usePrevious from "@utils/react/use-previous";
 import { PreviewContext } from "./PreviewContext";
 
 import groupBy from "lodash.groupby";
 import { ActionableGroupPanel } from "./actionable-panel/actionable-group-panel";
+import { sendWindow } from "../send-window";
 
 export const MacroPanel = ( {
     macro,
@@ -70,15 +69,9 @@ export const MacroPanel = ( {
 
     useEffect( () => {
         if ( activePreview && macro.actionSequence === MacroActionSequence.AllSync ) {
-            sendWindow( InvokeBrowserTarget.Game, {
-                type: SendWindowActionType.ManualMacroTrigger,
-                payload: macro.id,
-            } );
+            sendWindow( "exec-macro", macro.id );
         } else if ( !activePreview && activePreview !== prevActivePreview ) {
-            sendWindow( InvokeBrowserTarget.Game, {
-                type: SendWindowActionType.ResetMacroActions,
-                payload: macro.id,
-            } );
+            sendWindow( "reset-macro-actions", macro.id );
         }
     }, [
         activePreview,
@@ -103,7 +96,7 @@ export const MacroPanel = ( {
                     alignItems: "center",
                     justifyContent: "start",
                     marginBottom: "var(--size-5)",
-                    flexWrap: "wrap"
+                    flexWrap: "wrap",
                 }}>
                 <div>
                     <h4
@@ -139,7 +132,7 @@ export const MacroPanel = ( {
                             contentEditable
                             style={{
                                 display: "inline-block",
-                                width: "50ch"
+                                width: "50ch",
                             }}
                             onFocus={() => {
                                 descriptionRef.current!.innerText =
@@ -216,20 +209,14 @@ export const MacroPanel = ( {
 
                     <button
                         onClick={() => {
-                            sendWindow( InvokeBrowserTarget.Game, {
-                                type: SendWindowActionType.ManualMacroTrigger,
-                                payload: macro.id,
-                            } );
+                            sendWindow( "exec-macro", macro.id );
                         }}>
                         Run
                     </button>
 
                     <button
                         onClick={() => {
-                            sendWindow( InvokeBrowserTarget.Game, {
-                                type: SendWindowActionType.ResetMacroActions,
-                                payload: macro.id,
-                            } );
+                            sendWindow( "reset-macro-actions", macro.id );
                         }}>
                         Reset Preview
                     </button>

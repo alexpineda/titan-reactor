@@ -3,7 +3,7 @@ import { WorldEvents } from "@core/world/world-events";
 import { TypeEmitterProxy } from "@utils/type-emitter";
 import { FieldDefinition } from "./fields";
 
-export type PluginConfig = Record<string, FieldDefinition | undefined>;
+export type PluginConfig = Record<string, FieldDefinition>;
 
 /**
  * A package definition for a plugin.
@@ -39,6 +39,7 @@ export interface PluginMetaData extends PluginPackage {
     indexFile: string;
     isSceneController: boolean;
     apiVersion: string;
+    config: PluginConfig;
 }
 
 /**

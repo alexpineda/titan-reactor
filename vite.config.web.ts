@@ -29,6 +29,7 @@ export default defineConfig((env) => {
             target: TARGET,
             rollupOptions: {
                 input: {
+                    command: path.resolve(__dirname, "./configuration.html"),
                     index: path.resolve(__dirname, "./index.html"),
                 },
             },

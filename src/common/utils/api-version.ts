@@ -3,6 +3,6 @@ export { version as HostApiVersion } from "../../../build/api-types/host/package
 
 import { PluginPackage } from "common/types";
 
-export const getPluginAPIVersion = (plugin: Partial<PluginPackage>) => {
+export const getPluginAPIVersion = ( plugin: Partial<PluginPackage> ) => {
     return plugin.peerDependencies?.["titan-reactor-api"] ?? "0.0.0";
 };

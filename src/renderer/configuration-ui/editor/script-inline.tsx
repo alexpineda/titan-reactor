@@ -6,7 +6,7 @@
 import { EditorView } from "@codemirror/view";
 import { useEffect, useRef } from "react";
 import { setupExtensions } from "./setup-extensions";
-import { setEditorContents } from "../ipc/editor";
+// import { setEditorContents } from "../ipc/editor";
 
 export const ScriptInline = ( {
     content,
@@ -19,7 +19,7 @@ export const ScriptInline = ( {
     const codeMirror = useRef<EditorView | null>( null );
 
     useEffect( () => {
-        setEditorContents( content );
+        // setEditorContents( content );
 
         if ( divRef.current ) {
             codeMirror.current = new EditorView( {
@@ -31,7 +31,7 @@ export const ScriptInline = ( {
                     if ( transaction.docChanged ) {
                         // eslint-disable-next-line @typescript-eslint/no-base-to-string
                         const updatedContent = codeMirror.current!.state.doc.toString();
-                        setEditorContents( updatedContent );
+                        // setEditorContents( updatedContent );
                         onChange( updatedContent );
                     }
                 },

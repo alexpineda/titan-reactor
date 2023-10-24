@@ -1,12 +1,10 @@
 import { UI_SYSTEM_OPEN_URL } from "@plugins/events";
 import { withErrorMessage } from "common/utils/with-error-message";
 
-import { settingsStore } from "@stores/settings-store";
-import { JanitorLogLevel } from "three-janitor";
-import { globalEvents } from "../core/global-events";
+import { settingsStore, useSettingsStore } from "@stores/settings-store";
+import { Janitor, JanitorLogLevel } from "three-janitor";
+import { globalEventKeys, GlobalEvents, globalEvents } from "../core/global-events";
 // import { setStorageIsCasc, setStoragePath } from "common/casclib";
-
-
 
 window.addEventListener(
     "message",
@@ -17,21 +15,22 @@ window.addEventListener(
 
 // Load Replay File ( Drag and Drop )
 
-document.addEventListener('dragover', (e) => {
+document.addEventListener( "dragover", ( e ) => {
     e.preventDefault();
     e.stopPropagation();
-});
+} );
 
-document.addEventListener('drop', (event) => {
-    
+document.addEventListener( "drop", ( event ) => {
     event.preventDefault();
     event.stopPropagation();
 
-    if (event.dataTransfer && event.dataTransfer.files.length) {
-        globalEvents.emit("queue-files", {files: [...event.dataTransfer.files], append: event.shiftKey});
+    if ( event.dataTransfer && event.dataTransfer.files.length ) {
+        globalEvents.emit( "queue-files", {
+            files: [ ...event.dataTransfer.files ],
+            append: event.shiftKey,
+        } );
     }
-
-});
+} );
 
 window.onerror = (
     _: Event | string,
@@ -52,6 +51,19 @@ document.addEventListener(
     false
 );
 
+type ConfigMessage = {
+    type: keyof GlobalEvents;
+    payload: any;
+};
+
+// receive global events from configuration ui
+window.addEventListener( "message", function ( event: MessageEvent<ConfigMessage> ) {
+    if ( globalEventKeys.includes( event.data.type ) ) {
+        // eslint-disable-next-line
+        globalEvents.emit(event.data.type, event.data.payload);
+    }
+} );
+
 export const getJanitorLogLevel = () => {
     switch ( settingsStore().data.utilities.logLevel ) {
         case "debug":
@@ -64,6 +76,19 @@ export const getJanitorLogLevel = () => {
     return JanitorLogLevel.None;
 };
 
-// useSettingsStore.subscribe( ( settings ) => {
-//     Janitor.logLevel = getJanitorLogLevel();
-// } );
+// for debug
+// ipcRenderer.on( RELOAD_PLUGINS, () => globalEvents.emit( "reload-all-plugins" ) );
+
+useSettingsStore.subscribe( () => {
+    Janitor.logLevel = getJanitorLogLevel();
+} );
+
+// ipcRenderer.on( OPEN_ISCRIPTAH, () => globalEvents.emit( "load-iscriptah" ) );
+
+// ipcRenderer.on( ON_PLUGINS_ACTIVATED, ( _, plugins: PluginMetaData[] ) =>
+//     globalEvents.emit( "command-center-plugins-activated", plugins )
+// );
+
+// ipcRenderer.on( DEACTIVATE_PLUGIN, ( _, pluginId: string ) =>
+//     globalEvents.emit( "command-center-plugin-deactivated", pluginId )
+// );

@@ -32,7 +32,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
             localStorage.setItem( "assetServerUrl", assetServerUrl );
             useGameStore.setState( { assetServerUrl } );
         }
-    }, 1000 );
+    }, 5_000 );
     await waitForTruthy( () => {
         return gameStore().assetServerUrl;
     } );

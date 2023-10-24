@@ -2,9 +2,9 @@ import { useState } from "react";
 import ErrorBoundary from "../error-boundary";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
-import { useSettingsStore } from "@stores/settings-store";
 import { useMacroStore } from "./use-macros-store";
 import { TreeList } from "./treelist";
+import { useSettingsStore } from "@stores/settings-store";
 
 export const MacrosPanel = () => {
     const settings = useSettingsStore();

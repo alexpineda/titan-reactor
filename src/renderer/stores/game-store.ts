@@ -1,7 +1,8 @@
-import create from "zustand";
+import create  from "zustand";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { Assets } from "@image/assets";
 import { waitForTruthy } from "@utils/wait-for";
+import { useSettingsStore } from "@stores/settings-store";
 
 export interface GameStore {
     assetServerUrl: string;
@@ -11,17 +12,35 @@ export interface GameStore {
     dimensions: MinimapDimensions;
     setAssets: ( assets: Assets | null ) => void;
     setDimensions: ( dimensions: MinimapDimensions ) => void;
+    configurationWindow: Window | null;
+    configurationWindowDeps: { useSettingsStore: typeof useSettingsStore } | null;
+    openConfigurationWindow: () => void;
 }
 const pluginUrl =
     process.env.NODE_ENV === "development"
         ? "http://localhost:8090/"
         : "https://plugins-o8a.pages.dev/";
 
-export const useGameStore = create<GameStore>( ( set ) => ( {
+export const useGameStore = create<GameStore>( ( set, get ) => ( {
     assetServerUrl: "",
     pluginRepositoryUrl: pluginUrl,
     uiRuntimeUrl: pluginUrl + "runtime.html",
     assets: null,
+    configurationWindow: null,
+    configurationWindowDeps: null,
+    openConfigurationWindow() {
+        if ( get().configurationWindow ) {
+            return;
+        }
+        const w = window.open( "/configuration.html", "_blank" );
+        if ( !w ) return;
+
+        set( { configurationWindow: w, configurationWindowDeps: { useSettingsStore } } );
+
+        w.addEventListener( "beforeunload", () => {
+            set( { configurationWindow: null } );
+        } );
+    },
     dimensions: {
         matrix: [],
         minimapWidth: 0,

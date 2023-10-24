@@ -69,6 +69,7 @@ export const createPluginSession = async (
                 path: "",
                 version: "1.0.0",
                 nativeSource: TestController,
+                config: {},
             },
         ],
         createCompartment

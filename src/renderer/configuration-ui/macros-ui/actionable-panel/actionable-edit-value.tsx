@@ -6,9 +6,8 @@ import { FieldDefinition } from "common/types";
 import { useMacroStore } from "../use-macros-store";
 import { useContext } from "react";
 import { PreviewContext } from "../PreviewContext";
-import { sendWindow, SendWindowActionType } from "../../ipc/relay";
-import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import { Schema } from "leva/plugin";
+import { sendWindow } from "../../send-window";
 
 export const ActionableEditValue = (
     props: ActionablePanelProps & { config: FieldDefinition }
@@ -27,12 +26,9 @@ export const ActionableEditValue = (
                 };
                 updateActionable( macro, newAction );
                 if ( activePreview && newAction.type === "action" ) {
-                    sendWindow( InvokeBrowserTarget.Game, {
-                        type: SendWindowActionType.ManualMacroActionTrigger,
-                        payload: {
-                            action: newAction,
-                            withReset: false,
-                        },
+                    sendWindow( "exec-macro-action", {
+                        action: newAction,
+                        withReset: false,
                     } );
                 }
             }
@@ -41,7 +37,7 @@ export const ActionableEditValue = (
 
     const store = useCreateStore();
 
-    useControls( controls as Schema, { store }, [action] );
+    useControls( controls as Schema, { store }, [ action ] );
 
     return createLevaPanel( store );
 };

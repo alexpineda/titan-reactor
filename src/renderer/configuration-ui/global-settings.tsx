@@ -1,18 +1,21 @@
-import { sendWindow, SendWindowActionType } from "./ipc/relay";
-import { useSettingsStore } from "@stores/settings-store";
-import { InvokeBrowserTarget } from "common/ipc-handle-names";
 import {
     getAppSettingsInLevaFormat,
     generateAppSettingsFromLevaFormat,
 } from "common/get-app-settings-leva-config";
 import { useControls, useCreateStore } from "leva";
-import {   useState } from "react";
-import { attachOnChangeAndGroupByFolder, groupConfigByKey } from "./leva-plugins/leva-utils";
+import { useSettingsStore } from "@stores/settings-store";
+import { useState } from "react";
+import {
+    attachOnChangeAndGroupByFolder,
+    groupConfigByKey,
+} from "./leva-plugins/leva-utils";
 import { createWebGLRenderer } from "@render/render-composer";
 import deepMerge from "deepmerge";
 import { createLevaPanel } from "./create-leva-panel";
 import { arrayOverwriteMerge } from "@utils/object-utils";
 import { Schema } from "leva/plugin";
+import { sendWindow } from "./send-window";
+// import { useStore } from "zustand";
 
 const renderer = createWebGLRenderer();
 const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
@@ -22,7 +25,8 @@ renderer.dispose();
 /**
  * Global App Settings UI
  */
-export const GlobalSettings = () => {
+export const GlobalSettingsConfiguration = () => {
+    // const settings = useStore( window.deps.useSettingsStore )
     const settings = useSettingsStore();
 
     const [ state, setState ] = useState(
@@ -52,10 +56,7 @@ export const GlobalSettings = () => {
                 );
 
                 settings.save( newState ).then( ( payload ) => {
-                    sendWindow( InvokeBrowserTarget.Game, {
-                        type: SendWindowActionType.CommitSettings,
-                        payload,
-                    } );
+                    sendWindow( "command-center-save-settings", payload );
                 } );
             },
         } )

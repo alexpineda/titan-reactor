@@ -6,12 +6,13 @@ import {
     Operator,
 } from "common/types";
 import { ActionablePanelProps } from "./actionable-pane-props";
-import { SettingsStore, useSettingsStore } from "@stores";
+import { SettingsStore  } from "@stores";
 import {
     getAvailableOperationsForAction,
     getMacroConditionValidComparators,
 } from "common/macros/sanitize-macros";
 import { useMacroStore } from "../use-macros-store";
+import { useSettingsStore } from "@stores/settings-store";
 
 const getValidOps = ( action: MacroAction | MacroCondition, settings: SettingsStore ) => {
     return action.type === "action"

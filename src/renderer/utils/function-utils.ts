@@ -18,8 +18,8 @@ export const throttleFn = ( interval: number ) => {
 export const normalizePluginConfiguration = ( config: PluginConfig ) => {
     const configCopy: Record<string, any> = {};
     Object.keys( config ).forEach( ( key ) => {
-        if ( config[key].value !== undefined ) {
-            configCopy[key] = config[key].value;
+        if ( config[key]?.value !== undefined ) {
+            configCopy[key] = config[key]!.value;
         }
     } );
     return configCopy;

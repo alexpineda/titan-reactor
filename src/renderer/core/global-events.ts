@@ -23,10 +23,34 @@ export interface GlobalEvents {
     "document-hidden": boolean;
     "end-of-replay-queue": undefined;
     "clear-replay-queue": undefined;
-    "replay-ready": { replay: ValidatedReplay, map: Chk };
+    "replay-ready": { replay: ValidatedReplay; map: Chk };
     "replay-complete": ValidatedReplay;
     "map-ready": { map: Chk };
 }
+
+export const globalEventKeys: ( keyof GlobalEvents )[] = [
+    "webglcontextlost",
+    "webglcontextrestored",
+    "command-center-save-settings",
+    "command-center-plugin-config-changed",
+    "command-center-plugins-activated",
+    "command-center-plugin-deactivated",
+    "unsafe-open-url",
+    "load-iscriptah",
+    "queue-files",
+    "log-message",
+    "initial-install-error-plugins",
+    "reload-all-plugins",
+    "exec-macro",
+    "reset-macro-actions",
+    "exec-macro-action",
+    "document-hidden",
+    "end-of-replay-queue",
+    "clear-replay-queue",
+    "replay-ready",
+    "replay-complete",
+    "map-ready",
+];
 
 /**
  * Centralized event emitter for global events.

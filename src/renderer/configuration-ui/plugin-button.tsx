@@ -5,7 +5,6 @@ export interface PluginButtonProps {
     onClick: () => void;
     isDisabled?: boolean;
     isOnline?: boolean;
-    hasUpdateAvailable: boolean;
 }
 
 export const PluginButton = ( {
@@ -14,8 +13,6 @@ export const PluginButton = ( {
     isSelected,
     onClick,
     isDisabled = false,
-    isOnline = false,
-    hasUpdateAvailable,
 }: PluginButtonProps ) => {
     return (
         <button
@@ -31,18 +28,6 @@ export const PluginButton = ( {
             }}>
             {icon}
             {description}{" "}
-            {hasUpdateAvailable && !isDisabled && !isOnline && (
-                <span
-                    style={{
-                        fontSize: "30%",
-                        position: "absolute",
-                        top: "2px",
-                        right: "2px",
-                    }}
-                    title="Update available">
-                    🔴
-                </span>
-            )}
         </button>
     );
 };

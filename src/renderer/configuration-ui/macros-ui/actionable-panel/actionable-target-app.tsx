@@ -1,4 +1,3 @@
-import { settingsStore } from "@stores/settings-store";
 import { getAppFieldDefinition } from "common/macros/field-utilities";
 import { ConditionComparator, Operator, TargetedPath } from "common/types";
 import ErrorBoundary from "../../error-boundary";
@@ -7,9 +6,10 @@ import { useMacroStore } from "../use-macros-store";
 import { ActionableOpsSelector } from "./actionable-ops-selector";
 import { ActionableEditValue } from "./actionable-edit-value";
 import { ActionablePanelProps } from "./actionable-pane-props";
+import { useSettingsStore } from "@stores/settings-store";
 
 export const ActionableTargetApp = ( props: ActionablePanelProps ) => {
-    const settings = settingsStore();
+    const settings = useSettingsStore.getState();
     const { action, macro } = props;
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { updateActionable } = useMacroStore();
@@ -33,14 +33,14 @@ export const ActionableTargetApp = ( props: ActionablePanelProps ) => {
                     if ( action.type === "action" ) {
                         updateActionable( macro, {
                             ...action,
-                            path: [":app", ...evt.target.value.split( "." )],
+                            path: [ ":app", ...evt.target.value.split( "." ) ],
                             operator: Operator.SetToDefault,
                             value: undefined,
                         } );
                     } else {
                         updateActionable( macro, {
                             ...action,
-                            path: [":app", ...evt.target.value.split( "." )],
+                            path: [ ":app", ...evt.target.value.split( "." ) ],
                             comparator: ConditionComparator.Equals,
                             value: undefined,
                         } );

@@ -22,9 +22,9 @@ import { useSettingsStore } from "@stores/settings-store";
 import { log, logBoth, logClient } from "@ipc/log";
 import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
 import { settingsStore, useGameStore, useReplayAndMapStore } from "../stores";
+import gameStore from "@stores/game-store";
 import { mixer } from "@audio";
 import { supabase } from "common/supabase";
-
 /**
  * ENTRY POINT FOR TITAN REACTOR VIEWER APP
  */
@@ -186,6 +186,8 @@ lockdown_();
             }
         }
     } else {
+        gameStore().openConfigurationWindow();
+
         await sceneStore().execSceneLoader( preHomeSceneLoader, "@loading" );
 
         await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
@@ -197,3 +199,14 @@ lockdown_();
 } )();
 
 window.addEventListener( "wheel", ( evt ) => evt.preventDefault(), { passive: false } );
+
+window.addEventListener( "message", ( event ) => {
+    if ( event.data.type === "get-deps" && gameStore().configurationWindow ) {
+        console.log( event );
+        gameStore().configurationWindow!.deps = gameStore().configurationWindowDeps!;
+        event.source!.postMessage( { type: "set-deps" }, { targetOrigin: event.origin } );
+    }
+} );
+
+window.document.title = "Titan Reactor";
+

@@ -209,48 +209,6 @@ describe( "sanitizeActionable", () => {
             expect( action.path ).toEqual( [ ":plugin", "test-plugin", "foo" ] );
         } );
 
-        it( "should set path to externMethod if it exists", () => {
-            //@ts-expect-error
-            fieldUtilities.getPluginFieldDefinition = jest.fn().mockReturnValue( false );
-
-            const action = util.createAction( {
-                operator: Operator.SetToDefault,
-                path: [ ":plugin", "test-plugin", "externMethodFoo" ],
-            } );
-
-            sanitizeActionable( action, {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: [ "externMethodFoo" ],
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta );
-
-            expect( action.path ).toEqual( [ ":plugin", "test-plugin", "externMethodFoo" ] );
-        } );
-
-        it( "should strip externMethod if it does not exists", () => {
-            //@ts-expect-error
-            fieldUtilities.getPluginFieldDefinition = jest.fn().mockReturnValue( false );
-
-            const action = util.createAction( {
-                operator: Operator.SetToDefault,
-                path: [ ":plugin", "test-plugin", "externMethodFoo" ],
-            } );
-
-            sanitizeActionable( action, {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: [],
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta );
-
-            expect( action.path ).toEqual( [ ":plugin", "test-plugin" ] );
-        } );
-
         it( "should patch value of literal type if operator is Set", () => {
             //@ts-expect-error
             fieldUtilities.getPluginFieldDefinition = jest.fn().mockReturnValue( true );

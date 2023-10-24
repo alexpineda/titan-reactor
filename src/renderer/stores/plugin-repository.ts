@@ -1,9 +1,11 @@
-import path from "path";
 import { PluginMetaData, PluginPackage } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { getPluginAPIVersion } from "common/utils/api-version";
 
 const log = console;
+
+import semver from "semver";
+import { HostApiVersion } from "common/utils/api-version";
 
 /**
  * Interfaces with NPM packages and the file system to load plugins.
@@ -18,6 +20,12 @@ export class PluginsRepository {
 
     get hasAnyPlugins() {
         return this.#pluginPackages.length > 0;
+    }
+
+    #isPluginIncompatible( plugin: Partial<PluginPackage> ) {
+        return (
+            semver.major( HostApiVersion ) !== semver.major( getPluginAPIVersion( plugin ) )
+        );
     }
 
     //todo: do this at build time
@@ -55,6 +63,13 @@ export class PluginsRepository {
             return null;
         }
 
+        if ( this.#isPluginIncompatible( packageJSON ) ) {
+            log.error(
+                `@load-plugins/load-configs: Plugin ${sanitizedFolderLabel} is incompatible with this version.`
+            );
+            return null;
+        }
+
         const pluginNative = await fetch( `${pluginRootUrl}/host.js` )
             .then( ( r ) => r.text() )
             .catch( () => null );
@@ -68,15 +83,6 @@ export class PluginsRepository {
             .catch( () => undefined );
 
         const config = packageJSON.config ?? {};
-        if ( typeof config._visible !== "object" ) {
-            if ( indexFile ) {
-                Object.assign( config, {
-                    _visible: { value: true, label: "UI Visible", folder: "System" },
-                } );
-            } else {
-                delete config._visible;
-            }
-        }
 
         if ( !indexFile && !pluginNative ) {
             log.error(
@@ -85,7 +91,7 @@ export class PluginsRepository {
             return null;
         }
 
-        return {
+        const pluginPackage = {
             id: packageJSON.name, // MathUtils.generateUUID(), We used to have this to help protect individual plugins, will revisit later
             name: packageJSON.name,
             version: packageJSON.version,
@@ -101,9 +107,32 @@ export class PluginsRepository {
             isSceneController: ( pluginNative ?? "" ).includes( "onEnterScene" ),
             readme,
         };
+
+        return pluginPackage;
     }
 
-    async init( rootUrl: string ) {
+    #sanitizeConfig( plugin: PluginMetaData ) {
+        const config = plugin.config;
+        Object.assign( config, {
+            _visible: { value: true, label: "UI Visible", folder: "System" },
+        } );
+        Object.assign( config, {
+            _replay: {
+                value: false,
+                label: "Activated On Replay",
+                folder: "System",
+            },
+        } );
+        Object.assign( config, {
+            _map: { value: false, label: "Activated On Map", folder: "System" },
+        } );
+        Object.assign( config, {
+            _enabled: { value: false, label: "Enabled", folder: "System" },
+        } );
+        return config;
+    }
+
+    async fetch( rootUrl: string ) {
         this.repositoryUrl = rootUrl;
         this.#pluginPackages = [];
 
@@ -118,6 +147,7 @@ export class PluginsRepository {
                 plugin
             );
             if ( pluginPackage ) {
+                this.#sanitizeConfig( pluginPackage );
                 this.#pluginPackages.push( pluginPackage );
             }
         }

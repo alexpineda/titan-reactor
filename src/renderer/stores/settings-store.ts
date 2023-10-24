@@ -14,14 +14,13 @@ export type SettingsStore = SettingsMeta & {
     initSessionData( type: "replay" | "map", sandbox?: boolean ): void;
 };
 
+
 export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
     data: { ...defaultSettings },
     phrases: {},
     errors: [],
     activatedPlugins: [],
     deactivatedPlugins: [],
-    pluginsMetadata: [],
-    initialInstall: false,
     set: ( settings ) => {
         set( ( state ) => ( { data: { ...state.data, ...settings } } ) );
     },
@@ -31,8 +30,8 @@ export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
         } );
     },
     save: async ( settings ) => {
-        settingsRepository.save( { ...get().data, ...settings } );
-        return await get().init();
+        await settingsRepository.save( { ...get().data, ...settings } );
+        return get();
     },
     init: async () => {
         const settings = await settingsRepository.init();
