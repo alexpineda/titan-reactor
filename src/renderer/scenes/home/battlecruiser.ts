@@ -31,7 +31,7 @@ export const createBattleCruiser = () => {
         color: new Color( 1, 1, 1 ),
         coordMultipler: new Vector3( 0.1, 0.1, 0.1 ),
         async load( envmap: Texture, particle: Texture ) {
-            const { model } = await loadGlb( __static + "/_bc.glb" , envmap );
+            const { model } = await loadGlb( __static + "/three/_bc.glb", envmap );
             battleCruiser = model;
             battleCruiser.name = "battlecruiser";
             model.traverse( ( o: Object3D ) => {
@@ -55,8 +55,8 @@ export const createBattleCruiser = () => {
 
             const alphaSpline = createSpline(
                 MathUtils.lerp,
-                [0, 0.15, 0.33, 0.45, 0.66, 0.8, 1],
-                [0, 1, 0, 1, 0, 1, 0],
+                [ 0, 0.15, 0.33, 0.45, 0.66, 0.8, 1 ],
+                [ 0, 1, 0, 1, 0, 1, 0 ],
                 0.01
             );
 

@@ -22,7 +22,7 @@ export const createAsteroids = () => {
     return {
         async load( envmap: Texture ) {
             const { model: asteroid } = await loadGlb(
-                path.join( __static, "_ast.glb" ),
+                path.join( __static, "three", "_ast.glb" ),
                 envmap
             );
 

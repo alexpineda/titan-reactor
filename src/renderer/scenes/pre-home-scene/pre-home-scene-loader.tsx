@@ -43,8 +43,6 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     } );
     clearInterval( _int );
 
-    
-
     await waitForTruthy( () => {
         // wait until there are no errors
         const errors = settingsStore().errors;
@@ -73,7 +71,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     const dropYourSocks = mixer.context.createBufferSource();
     dropYourSocks.buffer = await mixer.loadAudioBuffer(
-        __static + "/drop-your-socks.mp3"
+        __static + "/three/drop-your-socks.mp3"
     );
 
     const _disconnect = mixer.connect(

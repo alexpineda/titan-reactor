@@ -90,7 +90,7 @@ export const initializeAssets = async () => {
         ),
     };
 
-    const envMapFilename = __static + "/envmap.hdr";
+    const envMapFilename = __static + "/three/envmap.hdr";
     log.debug( `@load-assets/envmap: ${envMapFilename}` );
     loadEnvironmentMap( envMapFilename, ( tex ) => {
         setAsset( "envMap", tex );

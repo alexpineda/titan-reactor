@@ -71,10 +71,12 @@ let fireTexture: Texture | undefined = undefined;
 
 export const preloadIntro = async () => {
     if ( fireTexture === undefined ) {
-        fireTexture = await new EXRLoader().loadAsync( __static + "/FireBall03_8x8.exr" );
+        fireTexture = await new EXRLoader().loadAsync(
+            __static + "/three/FireBall03_8x8.exr"
+        );
     }
 
-    const envmap = loadEnvironmentMap( __static + "/envmap.hdr", () =>
+    const envmap = loadEnvironmentMap( __static + "/three/envmap.hdr", () =>
         processStore().increment()
     );
 

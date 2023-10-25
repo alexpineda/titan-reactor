@@ -148,14 +148,18 @@ export const createLookupTextures = async (
         new Float32Array( td.palette.length ).fill( 0 ).map( ( _, i ) => td.palette[i] / 255 ),
         td.palette.length / 4,
         1,
-        { textureDataType: THREE.FloatType, flipY: false, colorSpace: THREE.SRGBColorSpace }
+        {
+            textureDataType: THREE.FloatType,
+            flipY: false,
+            colorSpace: THREE.SRGBColorSpace,
+        }
     );
 
     const effectsTextures = {
         waterNormal1: parseDdsGrpAsTextures( td.waterNormal1 ),
         waterNormal2: parseDdsGrpAsTextures( td.waterNormal2 ),
         //TODO: fix this
-        noise: new THREE.Texture(),//await new TextureLoader().loadAsync( path.join( __static, "./noise.png" ) ),
+        noise: new THREE.Texture(), //await new TextureLoader().loadAsync( path.join( __static, "./three/noise.png" ) ),
         waterMask: td.waterMask ? parseDdsGrpAsTextures( td.waterMask ) : null,
         tileMask: td.tileMask ? parseTMSK( td.tileMask ) : null,
     };

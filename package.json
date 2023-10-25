@@ -25,7 +25,6 @@
         "runtime:build": "vite build -c vite.config.runtime.ts && ts-node -T ./vite.runtime.post.ts",
         "plugins:all": "yarn runtime:build && yarn plugins:build  && yarn plugins:serve"
     },
-    "license": "GPL-3.0",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/imbateam-gg/titan-reactor.git"
