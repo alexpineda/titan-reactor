@@ -1,7 +1,7 @@
 {
     "name": "titan-reactor",
     "productName": "Titan Reactor",
-    "version": "0.6.9",
+    "version": "0.7.0",
     "description": "An OpenBW Renderer",
     "main": "dist/electron/main/index.js",
     "typings": "dist/types/index.d.ts",
@@ -22,7 +22,7 @@
         "plugins:serve": "http-server .\\dist\\plugins -p 8090 --cors",
         "web": "vite -c vite.config.web.ts",
         "web:build": "vite build -c vite.config.web.ts",
-        "runtime:build": "vite build -c vite.config.runtime.ts && ts-node -T ./vite.runtime.post.ts",
+        "runtime:build": "ts-node -T ./esbuild.runtime.ts",
         "plugins:all": "yarn runtime:build && yarn plugins:build  && yarn plugins:serve"
     },
     "repository": {
@@ -131,6 +131,7 @@
         "eslint-plugin-jsx-a11y": "^6.4.1",
         "eslint-plugin-react": "^7.21.5",
         "eslint-plugin-react-hooks": "^4.2.0",
+        "fs-extra": "^11.1.1",
         "http-server": "^14.1.1",
         "jest": "^29.0.3",
         "jest-environment-jsdom": "^29.0.3",

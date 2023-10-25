@@ -37,7 +37,7 @@ import { globalEvents } from "@core/global-events";
 import debounce from "lodash.debounce";
 import { music } from "@audio/music";
 import { openFile } from "@ipc/files";
-import { createMapImage } from "@utils/chk-utils";
+import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 // import { writeFileSync } from "fs";
 
 // const createNarrative = (commands: CommandsStream) => {
@@ -156,7 +156,7 @@ export const replaySceneLoader = async (
 
     const map = new Chk( replay.chk as Buffer );
 
-    // cleanMapTitles( map );
+    cleanMapTitles( map );
 
     const gameTitle = `${map.title} - ${replay.header.players
         .map( ( { name } ) => name )

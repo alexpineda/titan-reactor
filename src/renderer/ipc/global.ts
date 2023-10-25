@@ -77,9 +77,8 @@ export const getJanitorLogLevel = () => {
 };
 
 window.addEventListener( "keydown", ( event ) => {
-    event.code === "KeyR" && globalEvents.emit( "reload-all-plugins" );
+    event.code === "KeyR" && event.ctrlKey && globalEvents.emit( "reload-all-plugins" );
 } );
-
 
 useSettingsStore.subscribe( () => {
     Janitor.logLevel = getJanitorLogLevel();

@@ -94,7 +94,7 @@ const AppVersion = () => (
             bottom: 0,
             color: "var(--gray-4)",
         }}>
-        <p>v{packageJSON.version}</p>
+        <p>Titan Reactor v{packageJSON.version}</p>
     </div>
 );
 
@@ -389,7 +389,6 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                         userSelect: "none",
                         flex: 1,
                     }}>
-                    {!isInterstitial && <Header />}
                     {!error && replayQueue.length <= 1 && replay && (
                         <SingleMatchDisplayLarge />
                     )}

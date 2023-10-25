@@ -11,21 +11,21 @@
         <style>
             @font-face {
                 font-family: "Conthrax";
-                src: url("conthrax-rg.otf") format("opentype");
+                src: url("assets/conthrax-rg.otf") format("opentype");
                 font-style: normal;
                 font-weight: 100 400;
             }
 
             @font-face {
                 font-family: "Conthrax-Bold";
-                src: url("conthrax-hv.otf") format("opentype");
+                src: url("assets/conthrax-hv.otf") format("opentype");
                 font-style: normal;
                 font-weight: 500 900;
             }
 
             @font-face {
                 font-family: "Inter";
-                src: url("Inter-VariableFont_slnt,wght.ttf") format("truetype");
+                src: url("assets/Inter-VariableFont_slnt,wght.ttf") format("truetype");
             }
 
             :root {
@@ -53,20 +53,17 @@
         <script type="importmap">
             {
                 "imports": {
-                    "@titan-reactor-runtime/ui": "./runtime.tsx",
-                    "react": "https://cdn.skypack.dev/pin/react@v17.0.1-yH0aYV1FOvoIPeKBbHxg/mode=imports,min/optimized/react.js",
-                    "react/jsx-runtime": "https://cdn.skypack.dev/pin/react@v17.0.1-yH0aYV1FOvoIPeKBbHxg/mode=imports,min/unoptimized/jsx-runtime.js",
-                    "react-dom": "https://cdn.skypack.dev/pin/react-dom@v17.0.1-oZ1BXZ5opQ1DbTh7nu9r/mode=imports,min/optimized/react-dom.js",
-                    "react-dom/client": "https://cdn.skypack.dev/pin/react-dom@v17.0.1-oZ1BXZ5opQ1DbTh7nu9r/mode=raw,min/client",
-                    "react-dom/test-utils": "https://cdn.skypack.dev/pin/react-dom@v17.0.1-oZ1BXZ5opQ1DbTh7nu9r/mode=imports,min/unoptimized/test-utils.js",
-                    "zustand": "https://cdn.skypack.dev/pin/zustand@v3.7.1-mEclQ0TBZsR5pwn7Ov2F/mode=imports,min/optimized/zustand.js"
+                    "@titan-reactor-runtime/ui": "./runtime.js",
+                    "react": "https://esm.sh/react@18.2.0",
+                    "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+                    "react-dom": "https://esm.sh/react-dom@18.2.0",
+                    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+                    "react-dom/test-utils": "https://esm.sh/react-dom@18.2.0/test-utils",
+                    "zustand": "https://esm.sh/zustand@4.1.1"
                 }
             }
         </script>
-        <script type="module" src="https://cdn.skypack.dev/react@18.2.0"></script>
-        <script type="module" src="https://cdn.skypack.dev/react-dom@18.2.0"></script>
-        <script type="module" src="https://cdn.skypack.dev/zustand@3.7.1"></script>
-        <script type="module" src="runtime.tsx"></script>
+        <script type="module" src="runtime.js"></script>
     </head>
 
     <body></body>

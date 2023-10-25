@@ -32,7 +32,6 @@ import { supabase } from "common/supabase";
 performance.mark( "start" );
 
 useSettingsStore.subscribe( ( payload ) => {
-    console.log( payload )
     mixer.setVolumes( payload.data.audio );
 } );
 
@@ -200,10 +199,12 @@ window.addEventListener( "wheel", ( evt ) => evt.preventDefault(), { passive: fa
 
 window.addEventListener( "message", ( event ) => {
     if ( event.data.type === "connect" ) {
-        console.log( "connecting" )
-        useGameStore.setState( { configurationWindow: event.source as Window } )
+        useGameStore.setState( { configurationWindow: event.source as Window } );
         gameStore().configurationWindow!.deps = { useSettingsStore };
-        event.source!.postMessage( { type: "connected" }, { targetOrigin: event.origin } );
+        event.source!.postMessage(
+            { type: "connected" },
+            { targetOrigin: event.origin }
+        );
     }
 } );
 
@@ -212,7 +213,6 @@ window.document.title = "Titan Reactor";
 window.addEventListener( "keypress", ( event ) => {
     if ( event.code === "KeyO" && event.shiftKey ) {
         event.preventDefault();
-        console.log( "opening config" )
         gameStore().openConfigurationWindow();
     }
 } );

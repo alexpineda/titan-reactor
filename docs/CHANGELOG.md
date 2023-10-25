@@ -9,15 +9,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 
-- New website http://titanreactor.imbateam.com/
-- Plugin API documentation in https://imbateam-gg.github.io/titan-reactor/
-- Drag and drop files to load them
-- Minimap Box
+-   Plugin API documentation in https://imbateam-gg.github.io/titan-reactor/
+-   Drag and drop file loading
+-   Replay Queue display ( Upcoming Matches )
+-   Minimap Box
 
 ## Removed
 
-- Plugin permission system
+-   Plugin permission system
 
+## Changed
+
+-   Moved off of electron, we are on the web baby!
+-   Plugins are now pre-built instead of transpiled on the fly
+-   Casclib is now replaced by an asset server via Cascbridge
 
 ## [0.6.9] - 2023-09-10
 
