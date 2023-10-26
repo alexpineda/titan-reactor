@@ -72,7 +72,7 @@
         "lodash.throttle": "^4.1.1",
         "node-fetch": "3.2.10",
         "pacote": "^14.0.0",
-        "postprocessing": "6.32.2",
+        "postprocessing": "6.33.2",
         "process-replay": "0.0.11",
         "random": "^3.0.6",
         "react": "^18.2.0",

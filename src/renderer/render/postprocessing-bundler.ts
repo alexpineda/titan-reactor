@@ -153,7 +153,7 @@ export class PostProcessingBundler {
         this.#bloomPass.enabled = this.options.bloom > 0;
     }
 
-    update(renderComposer: TitanRenderComposer) {
+    update( renderComposer: TitanRenderComposer ) {
         renderComposer.composer.multisampling = Math.min(
             this.options.antialias,
             renderComposer.getWebGLRenderer().capabilities.maxSamples

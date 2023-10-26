@@ -2,6 +2,7 @@ import {
     ClampToEdgeWrapping,
     DataTexture,
     LinearFilter,
+    LinearSRGBColorSpace,
     RedFormat,
     UnsignedByteType,
     Vector2,
@@ -35,6 +36,7 @@ export class FogOfWar {
         texture.wrapT = ClampToEdgeWrapping;
         texture.magFilter = LinearFilter;
         texture.minFilter = LinearFilter;
+        texture.colorSpace = LinearSRGBColorSpace;
 
         texture.needsUpdate = true;
 
@@ -49,8 +51,8 @@ export class FogOfWar {
         this.effect.fogUvTransform = new Vector4(
             0.5,
             0.5,
-            0.99 / this.texture.image.height,
-            0.99 / this.texture.image.width
+            1 / this.texture.image.height,
+            1 / this.texture.image.width
         );
     }
 

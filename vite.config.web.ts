@@ -16,7 +16,7 @@ export default defineConfig((env) => {
         // titan-reactor is the subfolder in the black-sheep-wall public dir
         base: env.command === "build" ? "/" : "/",
         define: {
-            __static: JSON.stringify(env.command === "build" ? "/" : "/bundled"),
+            __static: JSON.stringify(env.command === "build" ? "" : "/bundled"),
         },
         logLevel: "info",
         publicDir: "bundled",

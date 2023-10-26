@@ -27,8 +27,11 @@ vec3 computeWorldPosition(const in vec2 uv, const in float depth) {
 float sampleFog(const in vec2 uv) {
 
 	if (uv.x <= 0. || uv.y <= 0. || uv.x >= 1. || uv.y >= 1.) {
-		return 0.1;
-	}
+        vec2 clampedUV = clamp(uv, vec2(0.01, 0.01), vec2(0.99, 0.99));
+        float edgeValue = texture2D(fog, clampedUV).r;
+        float alpha = smoothstep(0.0, 0.1, length(uv - clampedUV));
+        return mix(edgeValue, 0.1, alpha);
+    }
 	return texture2D(fog, uv).r;
 
 }
@@ -61,9 +64,9 @@ void mainImage(const in vec4 inputColor, const in vec2 uv, const in float depth,
 
 	vec3 worldPosition = computeWorldPosition(uv, depth);
   vec2 fogUv = worldPosition.xz * fogUvTransform.wz + fogUvTransform.xy;
-	float fogValue = getFog(fogUv);
+	float fogValue = clamp(getFog(fogUv), 0., 1.);
 
-  outputColor = vec4(color, 1.-fogValue);
+  outputColor = vec4( vec3(fogValue), 1. );
 
 
 }

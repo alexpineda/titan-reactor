@@ -16,7 +16,7 @@ export class FogOfWarEffect extends Effect {
     constructor() {
         super( "FogOfWarEffect", fragmentShader, {
             attributes: EffectAttribute.DEPTH,
-            blendFunction: BlendFunction.ALPHA,
+            blendFunction: BlendFunction.SUBTRACT,
             uniforms: new Map( [
                 [ "fog", new Uniform( null ) ],
                 [ "fogResolution", new Uniform( null ) ],

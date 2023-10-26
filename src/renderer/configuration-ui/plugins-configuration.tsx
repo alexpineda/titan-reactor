@@ -4,13 +4,13 @@ import {
 } from "./leva-plugins/leva-utils";
 import { DetailSheet } from "./detail-sheet";
 import { PluginConfig, PluginMetaData } from "common/types";
-import { debounce } from "lodash";
+import debounce from "lodash.debounce";
 import { PluginButton } from "./plugin-button";
 import { Tab, Tabs } from "./tabs";
 import { useState } from "react";
 import { sendWindow } from "./send-window";
 import { useStore } from "zustand";
-import "./window-dep"
+import "./window-dep";
 
 const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
     sendWindow( "command-center-plugin-config-changed", {
@@ -22,8 +22,6 @@ const onChange = debounce( ( pluginId: string, config: PluginConfig ) => {
 const isDeprecated = ( plugin: PluginMetaData | undefined ) =>
     ( plugin?.keywords ?? [] ).includes( "deprecated" );
 
-    
-
 export const PluginsConfiguration = ( {
     setBanner,
 }: {
@@ -32,10 +30,7 @@ export const PluginsConfiguration = ( {
     const [ tabIndex, setTabIndex ] = useState( 0 );
     const settings = useStore( window.deps.useSettingsStore );
 
-    const {
-         activatedPlugins,
-          deactivatedPlugins,
-    } = settings;
+    const { activatedPlugins, deactivatedPlugins } = settings;
 
     const [ plugin, setSelectedPluginPackage ] = useState<PluginMetaData | undefined>(
         activatedPlugins[0] ?? deactivatedPlugins[0]
@@ -50,9 +45,7 @@ export const PluginsConfiguration = ( {
 
     const tryActivatePlugin = ( pluginId: string ) => {
         if ( confirm( "Do you wish to continue and activate this plugin?" ) ) {
-            const plugin = settings.deactivatedPlugins.find(
-                ( p ) => p.id === pluginId
-            );
+            const plugin = settings.deactivatedPlugins.find( ( p ) => p.id === pluginId );
             if ( plugin ) {
                 //todo change this to pluginId,  move into enablePlugin function as global event
                 sendWindow( "command-center-plugins-activated", [ plugin ] );
