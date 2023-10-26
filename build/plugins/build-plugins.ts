@@ -30,7 +30,7 @@ const build = async () => {
 
     console.log(packages.officialPackages.length, "official packages found");
 
-    const packageNames: string[] = [];
+    const packageNames = new Set<string>();
 
     await useTempDir(async (dir) => {
         for (const pkg of packages.officialPackages) {
@@ -83,7 +83,7 @@ const build = async () => {
                             path.join(outDir, folderName, "package.json")
                         );
 
-                        packageNames.push(folderName);
+                        packageNames.add(folderName);
                     } catch (error) {
                         console.log("error building", file.path, error);
                     }
@@ -91,7 +91,7 @@ const build = async () => {
             }
         }
 
-        writeFileSync(path.join(outDir, "index.json"), JSON.stringify(packageNames));
+        writeFileSync(path.join(outDir, "index.json"), JSON.stringify([...packageNames]));
     });
 
     //todo: convert to vite build

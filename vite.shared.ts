@@ -1,5 +1,5 @@
 import aliases from "./build/aliases";
-import { ConfigEnv, UserConfigExport } from "vite";
+import { UserConfigExport } from "vite";
 import path from "path";
 import tsConfig from "./tsconfig.json";
 

@@ -9,17 +9,12 @@ import { MacrosPanel } from "./macros-ui/macros-panel";
 import { PluginsConfiguration } from "./plugins-configuration";
 import { Helmet } from "react-helmet";
 
-import "../../../bundled/assets/normalize.min.css";
-import "../../../bundled/assets/open-props.1.4.min.css";
-import "../../../bundled/assets/buttons.min.css";
-
 document.title = "Configuration";
 
 const s = document.createElement( "link" );
 s.rel = "stylesheet";
 s.href = "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap";
 document.head.appendChild( s );
-
 
 const CommandCenter = () => {
     const [ banner, setBanner ] = useState( "" );
@@ -67,7 +62,7 @@ const root = createRoot( container! );
 // root.render( <CommandCenter /> )
 
 window.opener.postMessage( {
-    type: "connect"
+    type: "connect",
 } );
 
 window.addEventListener( "message", ( event ) => {
@@ -76,6 +71,6 @@ window.addEventListener( "message", ( event ) => {
         window.deps.useSettingsStore.subscribe( ( state ) => {
             console.log( "state", state );
         } );
-        root.render( <CommandCenter /> )
+        root.render( <CommandCenter /> );
     }
 } );

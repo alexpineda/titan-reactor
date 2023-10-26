@@ -13,9 +13,9 @@ import {
     Vector4,
 } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import "../../../../bundled/assets/open-props.1.4.min.css";
-import "../../../../bundled/assets/normalize.min.css";
-import "../pre-home-scene/styles.css";
+// import "../../../../bundled/assets/open-props.1.4.min.css";
+// import "../../../../bundled/assets/normalize.min.css";
+// import "../pre-home-scene/styles.css";
 
 import App from "./components/app";
 import { Surface } from "@image/canvas/surface";
@@ -41,15 +41,14 @@ import { IScriptImage } from "./iscript-sprite";
 import { getDirection32 } from "@utils/camera-utils";
 
 const bootup = async () => {
-
-    await initializeAssets(  );
+    await initializeAssets();
 
     const janitor = new Janitor( "iscriptah-scene-loader" );
 
     const surface = new Surface();
     surface.setDimensions( 300, 300, window.devicePixelRatio );
 
-    const renderComposer = new TitanRenderComposer(surface);
+    const renderComposer = new TitanRenderComposer( surface );
 
     const scene = new Scene();
     janitor.mop( scene, "scene" );
@@ -156,7 +155,7 @@ const bootup = async () => {
     const renderPass = new RenderPass( scene, cameras[0] );
 
     const postProcessingBundle = {
-        passes: [renderPass],
+        passes: [ renderPass ],
     };
 
     renderComposer.setBundlePasses( postProcessingBundle );
@@ -186,7 +185,7 @@ const bootup = async () => {
         const preload = async () => {
             const { header } = block;
 
-            const atlas = await loadImageAtlasDirect( block.image.index )// true );
+            const atlas = await loadImageAtlasDirect( block.image.index ); // true );
 
             const image = isGltfAtlas( atlas )
                 ? new Image3D( atlas )

@@ -6,20 +6,17 @@ import tsConfig from "./tsconfig.json";
 import { sharedViteConfig } from "./vite.shared";
 // import mkcert from 'vite-plugin-mkcert'
 
-const OUT_DIR = "dist/web";
+const OUT_DIR = "dist/titan-reactor";
 const TARGET = tsConfig.compilerOptions.target;
 
 // https://vitejs.dev/config/
 export default defineConfig((env) => {
-    console.log(env);
     return {
         ...sharedViteConfig(),
         // titan-reactor is the subfolder in the black-sheep-wall public dir
-        base: env.command === "build" ? "/titan-reactor" : "/",
+        base: env.command === "build" ? "/" : "/",
         define: {
-            __static: JSON.stringify(
-                env.command === "build" ? "/resources/bundled" : "/bundled"
-            ),
+            __static: JSON.stringify(env.command === "build" ? "/" : "/bundled"),
         },
         logLevel: "info",
         publicDir: "bundled",
