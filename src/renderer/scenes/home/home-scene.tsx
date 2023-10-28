@@ -2,6 +2,8 @@ import { useSceneStore } from "@stores/scene-store";
 import discordLogo from "@image/assets/discord.png";
 import youtubeLogo from "@image/assets/youtube.png";
 import githubLogo from "@image/assets/github.png";
+import patreonLogo from "@image/assets/patreon.png";
+import paypalLogo from "@image/assets/paypal.png";
 import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
 import { GlobalErrorState } from "../error-state";
 import packageJSON from "../../../../package.json";
@@ -101,51 +103,67 @@ const ConfigButton = ( props: JSX.IntrinsicAttributes & SVGProps<SVGSVGElement> 
     </svg>
 );
 
+const IconLink = ( {
+    href,
+    style = {},
+    imageUrl,
+}: {
+    href: string;
+    style: React.CSSProperties;
+    imageUrl: string;
+} ) => {
+    const [ isHovered, setIsHovered ] = useState( false );
+    return (
+        <a
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+            onMouseEnter={() => setIsHovered( true )}
+            onMouseLeave={() => setIsHovered( false )}>
+            <img
+                src={imageUrl}
+                style={{ ...iconStyle, ...style, opacity: isHovered ? "0.4" : "0.2" }}
+            />
+        </a>
+    );
+};
+
 const Socials = () => (
     <div
         style={{
             display: "flex",
             justifyContent: "space-between",
-            opacity: "0.2",
             width: "100%",
         }}>
-        <a
+        <IconLink
             href="https://github.com/alexpineda/titan-reactor"
-            target="_blank"
-            rel="noreferrer">
-            <img
-                src={githubLogo}
-                style={{
-                    ...iconStyle,
-                    filter: "grayscale(1) invert(1)",
-                }}
-            />
-        </a>
-        <a
+            imageUrl={githubLogo}
+            style={{ filter: "grayscale(1) invert(1)" }}
+        />
+        <IconLink
             href="https://www.youtube.com/channel/UCj7TSQvBRYebRDIL0FW1MBQ"
-            target="_blank"
-            rel="noreferrer">
-            <img
-                src={youtubeLogo}
-                style={{
-                    ...iconStyle,
-                    filter: "grayscale(1) invert(1) brightness(1.2)",
-                }}
-            />
-        </a>
-        <a href="https://discord.gg/MKb8E2DFMa" target="_blank" rel="noreferrer">
-            <img
-                style={{
-                    ...iconStyle,
-                    filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)",
-                }}
-                src={discordLogo}
-            />
-        </a>
+            imageUrl={youtubeLogo}
+            style={{ filter: "grayscale(1) invert(1) brightness(1.2)" }}
+        />
+        <IconLink
+            href="https://discord.gg/MKb8E2DFMa"
+            imageUrl={discordLogo}
+            style={{ filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)" }}
+        />
+        <IconLink
+            href="https://patreon.com/imbateam"
+            imageUrl={patreonLogo}
+            style={{}}
+        />
+        <IconLink
+            href="https://paypal.me/alexpineda86?country.x=CA&locale.x=en_US"
+            imageUrl={paypalLogo}
+            style={{ filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)" }}
+        />
     </div>
 );
 
-const AppVersion = () => (
+const SocialsAndAppVersion = () => (
     <div
         style={{
             position: "absolute",
@@ -157,7 +175,7 @@ const AppVersion = () => (
             gap: "16px",
             padding: "8px",
             alignItems: "center",
-            width: "var(--size-13)",
+            width: "var(--size-14)",
         }}>
         <Socials />
         <p>Titan Reactor v{packageJSON.version}</p>
@@ -477,7 +495,7 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                 <OpenFileButton style={buttonIconStyle} />
             </div>
 
-            <AppVersion />
+            <SocialsAndAppVersion />
         </div>
     );
 };
