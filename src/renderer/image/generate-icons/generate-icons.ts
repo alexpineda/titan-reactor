@@ -8,9 +8,9 @@ import { renderComposer } from "@render/render-composer";
 import { RepeatWrapping } from "three";
 import { b2ba } from "@utils/bin-utils";
 import { setAsset } from "@stores/game-store";
-import { range } from "lodash";
 
 import { generateWireframes } from "./generate-wireframes";
+import range from "common/utils/range";
 
 const createOffScreenCanvas = () => {
     const canvas = document.createElement( "canvas" );
@@ -79,7 +79,7 @@ export const generateCursorIcons = async ( readFile: ReadFile ) => {
 };
 
 export const generateUIIcons = async ( readFile: ReadFile ) => {
-    const r = ( f: string ) => readFile( f )
+    const r = ( f: string ) => readFile( f );
 
     generateWireframeOffscreen( readFile );
 

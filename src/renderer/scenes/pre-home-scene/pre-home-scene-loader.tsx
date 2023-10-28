@@ -26,9 +26,6 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     const settings = await settingsStore().init();
 
-    // load after settings is initialized please
-    gameStore().openConfigurationWindow();
-
     root.render( <PreHomeScene assetServerUrl={assetServerUrl} /> );
 
     const _int = setInterval( async () => {

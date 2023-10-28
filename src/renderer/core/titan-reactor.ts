@@ -1,6 +1,3 @@
-import "../reset.css";
-import "../../../bundled/assets/open-props.1.4.min.css";
-
 import { Buffer as BufferPolyfill } from "buffer";
 globalThis.Buffer = BufferPolyfill;
 
@@ -24,7 +21,7 @@ import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
 import { settingsStore, useGameStore, useReplayAndMapStore } from "../stores";
 import gameStore from "@stores/game-store";
 import { mixer } from "@audio";
-import { supabase } from "common/supabase";
+// import { supabase } from "common/supabase";
 /**
  * ENTRY POINT FOR TITAN REACTOR VIEWER APP
  */
@@ -82,7 +79,7 @@ export const loadQueuedReplay = async () => {
     );
 };
 
-globalEvents.on( "queue-files", async ( { files, append } ) => {
+globalEvents.on( "queue-files", async ( { files } ) => {
     if ( files.length === 0 ) {
         return;
     }
@@ -109,15 +106,13 @@ globalEvents.on( "queue-files", async ( { files, append } ) => {
     // if we're appending just let the current replay finish
     // otherwise load the next replay or show the replay list if its the first time loading replays
     // this allows the user to start from a replay in the middle if they want to watch a specific one
-    if ( !append ) {
-        useReplayAndMapStore.getState().queueUpNextReplay( replays[0] );
-        await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
-        if (
-            useReplayAndMapStore.getState().replayQueue.length === 1 ||
-            settingsStore().data.utilities.autoPlayReplayQueue
-        ) {
-            loadQueuedReplay();
-        }
+    useReplayAndMapStore.getState().queueUpNextReplay( replays[0] );
+    await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
+    if (
+        useReplayAndMapStore.getState().replayQueue.length === 1 ||
+        settingsStore().data.utilities.autoPlayReplayQueue
+    ) {
+        loadQueuedReplay();
     }
 } );
 
@@ -158,41 +153,41 @@ logCapabilities();
 lockdown_();
 
 ( async function bootup() {
-    supabase.auth.startAutoRefresh();
+    // supabase.auth.startAutoRefresh();
 
-    const {
-        data: { session },
-        error: sessionError,
-    } = await supabase.auth.getSession();
+    // const {
+    //     data: { session },
+    //     error: sessionError,
+    // } = await supabase.auth.getSession();
 
-    if ( sessionError || session === null ) {
-        if ( process.env.NODE_ENV === "development" ) {
-            const email = prompt( "Enter your blacksheepwall.tv username" )!;
-            const password = prompt( "Enter your blacksheepwall.tv password" )!;
+    // if ( sessionError || session === null ) {
+    //     if ( process.env.NODE_ENV === "development" ) {
+    //         const email = prompt( "Enter your blacksheepwall.tv username" )!;
+    //         const password = prompt( "Enter your blacksheepwall.tv password" )!;
 
-            const res = await supabase.auth.signInWithPassword( {
-                email,
-                password,
-            } );
+    //         const res = await supabase.auth.signInWithPassword( {
+    //             email,
+    //             password,
+    //         } );
 
-            if ( res.error ) {
-                alert( res.error.message );
-                return;
-            }
+    //         if ( res.error ) {
+    //             alert( res.error.message );
+    //             return;
+    //         }
 
-            if ( res.data.session ) {
-                alert( "Login successful!" );
-            }
-        }
-    } else {
-        await sceneStore().execSceneLoader( preHomeSceneLoader, "@loading" );
+    //         if ( res.data.session ) {
+    //             alert( "Login successful!" );
+    //         }
+    //     }
+    // } else {
+    await sceneStore().execSceneLoader( preHomeSceneLoader, "@loading" );
 
-        await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
+    await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
 
-        await waitForTruthy( () => useGameStore.getState().assets?.remaining === 0 );
+    await waitForTruthy( () => useGameStore.getState().assets?.remaining === 0 );
 
-        log.debug( `startup in ${performance.measure( "start" ).duration}ms` );
-    }
+    log.debug( `startup in ${performance.measure( "start" ).duration}ms` );
+    // }
 } )();
 
 window.addEventListener( "wheel", ( evt ) => evt.preventDefault(), { passive: false } );
