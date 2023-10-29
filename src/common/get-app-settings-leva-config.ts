@@ -38,6 +38,7 @@ export const getAppSettingsInLevaFormat = (
     maxAntiAlias = 1
 ) => ( {
     ...getGraphicsConfig( settings.graphics, maxPixelRatio ),
+    ...getReplayQueueConfig( settings.replayQueue ),
     ...getUtilConfig( settings.utilities ),
     ...getSessionSettingsInLevaFormat( settings, plugins, maxAnisotropy, maxAntiAlias ),
 } );
@@ -178,10 +179,29 @@ const getUtilConfig = ( util: SettingsMeta["data"]["utilities"] ): UtilConfig =>
         min: 10,
         max: 100,
     },
-    "utilities.autoPlayReplayQueue": {
+} );
+
+type ReplayQueueConfig = {
+    [key in `replayQueue.${keyof SettingsMeta["data"]["replayQueue"]}`]?: any;
+};
+
+const getReplayQueueConfig = (
+    replayQueue: SettingsMeta["data"]["replayQueue"]
+): ReplayQueueConfig => ( {
+    "replayQueue.enabled": {
+        label: "Enable Replay Queue",
+        value: replayQueue.enabled,
+    },
+
+    "replayQueue.autoplay": {
         label: "Autoplay Replay Queue",
-        value: util.autoPlayReplayQueue
-    }
+        value: replayQueue.autoplay,
+    },
+
+    "replayQueue.show": {
+        label: "Show Replay Queue",
+        value: replayQueue.show,
+    },
 } );
 
 type MinimapConfig = {

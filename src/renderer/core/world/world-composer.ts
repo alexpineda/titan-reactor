@@ -247,7 +247,6 @@ export const createWorldComposer = async (
             events.emit( "dispose" );
             apiSession.dispose();
             janitor.dispose();
-            surfaceComposer.gameSurface.hide();
         },
 
         /**

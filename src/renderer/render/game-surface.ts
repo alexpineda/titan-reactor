@@ -131,6 +131,7 @@ export class GameSurface extends Surface {
 
     show() {
         this.canvas.style.display = "block";
+        return this.canvas;
     }
 
     hide() {

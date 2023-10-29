@@ -27,7 +27,6 @@ document.addEventListener( "drop", ( event ) => {
     if ( event.dataTransfer && event.dataTransfer.files.length ) {
         globalEvents.emit( "queue-files", {
             files: [ ...event.dataTransfer.files ],
-            append: event.shiftKey,
         } );
     }
 } );

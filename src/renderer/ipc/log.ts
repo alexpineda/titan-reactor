@@ -43,7 +43,7 @@ export const logServer = ( message: string, level: LogLevel = "info" ) => {
     }
 
     //todo: log to server
-    console.log(message)
+    // console.log(message)
 
 };
 

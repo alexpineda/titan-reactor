@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Plugin API documentation in https://imbateam-gg.github.io/titan-reactor/
 -   Drag and drop file loading
--   Replay Queue display ( Upcoming Matches )
+-   Replay Queue system with UI
 -   Minimap Box
 
 ## Removed
@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Moved off of electron, we are on the web baby!
 -   Plugins are now pre-built instead of transpiled on the fly
 -   Casclib is now replaced by an asset server via Cascbridge
+-   Using esm.sh instead of skypack.dev for UI assets
 
 ## [0.6.9] - 2023-09-10
 

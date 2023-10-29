@@ -98,7 +98,7 @@ export const initializeAssets = async () => {
 
     processStore().increment();
 
-    generateUIIcons( readCascFile ).then( ( icons ) => {
+    await generateUIIcons( readCascFile ).then( ( icons ) => {
         setAsset( "gameIcons", icons.gameIcons );
         setAsset( "cmdIcons", icons.cmdIcons );
         setAsset( "raceInsetIcons", icons.raceInsetIcons );

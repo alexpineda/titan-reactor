@@ -1,4 +1,4 @@
-const DEFAULT_FAR = 512;
+const DEFAULT_FAR = 256;
 const POLAR_MAX = ( 10 * Math.PI ) / 64;
 const POLAR_MIN = ( 2 * Math.PI ) / 64;
 // const POV_COMMANDS = [0x0c, 0x14, 0x15, 0x60, 0x61];
@@ -27,7 +27,7 @@ export default class PluginAddon extends SceneController {
         orbit.camera.updateProjectionMatrix();
         orbit.dollyToCursor = true;
         orbit.verticalDragToForward = true;
-        orbit.maxDistance = 128;
+        orbit.maxDistance = 256;
         orbit.minDistance = 20;
         orbit.maxPolarAngle = POLAR_MAX;
         orbit.minPolarAngle = POLAR_MIN + THREE.MathUtils.degToRad( 5 );

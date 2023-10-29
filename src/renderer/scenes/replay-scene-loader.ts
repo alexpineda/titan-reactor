@@ -25,7 +25,7 @@ import { GameTypes } from "common/enums";
 import { log } from "@ipc/log";
 import { settingsStore } from "@stores/settings-store";
 import processStore from "@stores/process-store";
-import { makeGameScene } from "./game-scene/game-scene";
+import { makeGameScene } from "./game-scene/game-scene-loader";
 import { Janitor } from "three-janitor";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 // import { cleanMapTitles  } from "@utils/chk-utils";

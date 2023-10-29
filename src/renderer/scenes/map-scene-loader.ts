@@ -7,7 +7,7 @@ import { waitForTruthy } from "@utils/wait-for";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import gameStore from "@stores/game-store";
 import { Janitor } from "three-janitor";
-import { makeGameScene } from "./game-scene/game-scene";
+import { makeGameScene } from "./game-scene/game-scene-loader";
 import { SceneState } from "./scene";
 import { settingsStore } from "@stores/settings-store";
 import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
@@ -30,6 +30,7 @@ const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;
 };
 export const mapSceneLoader = async ( file: File ): Promise<SceneState> => {
+    console.log( file );
     await gameStore().assets?.openCascStorage();
     gameStore().assets?.resetImagesCache();
 

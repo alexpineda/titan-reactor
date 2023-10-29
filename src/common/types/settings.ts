@@ -95,7 +95,11 @@ export interface SettingsV6 {
         alertDesynced: boolean;
         alertDesyncedThreshold: number;
         logLevel: LogLevel;
-        autoPlayReplayQueue: boolean;
+    };
+    replayQueue: {
+        enabled: boolean;
+        autoplay: boolean;
+        show: boolean;
     };
     postprocessing: {
         anisotropy: number;

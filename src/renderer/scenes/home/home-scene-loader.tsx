@@ -7,9 +7,9 @@ import { mixer } from "@audio/main-mixer";
 
 export async function homeSceneLoader(): Promise<SceneState> {
     const janitor = new Janitor( "home-scene-loader" );
-    
-    const wraithScene = janitor.mop(await createWraithScene());
-    setTimeout( () => wraithScene.resize(), 500);
+
+    const wraithScene = janitor.mop( await createWraithScene() );
+    setTimeout( () => wraithScene.resize(), 500 );
 
     const swoosh = mixer.context.createBufferSource();
     swoosh.buffer = await mixer.loadAudioBuffer(
@@ -25,18 +25,15 @@ export async function homeSceneLoader(): Promise<SceneState> {
             }
             root.render( <Home surface={getSurface().canvas} /> );
         },
-        dispose: (newId) => {
-            if (newId !== "@replay" && newId !== "@map") {
+        dispose: ( newId ) => {
+            if ( newId !== "@replay" && newId !== "@map" ) {
                 janitor.dispose();
-                root.render( null );
             }
         },
-        beforeNext(newId) {
-            if (newId === "@replay" || newId === "@map") {
+        beforeNext( newId ) {
+            if ( newId === "@replay" || newId === "@map" ) {
                 janitor.dispose();
-                root.render( null );
             }
-
-        }
+        },
     };
 }

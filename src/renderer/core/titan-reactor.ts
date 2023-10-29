@@ -8,151 +8,100 @@ import "../scenes/home/home-scene";
 import { preHomeSceneLoader } from "../scenes/pre-home-scene/pre-home-scene-loader";
 import { homeSceneLoader } from "../scenes/home/home-scene-loader";
 import { globalEvents } from "./global-events";
-import { mapSceneLoader } from "../scenes/map-scene-loader";
-import {
-    ValidatedReplay,
-    loadAndValidateReplay,
-    replaySceneLoader,
-} from "../scenes/replay-scene-loader";
-import { interstitialSceneLoader } from "../scenes/interstitial-scene/interstitial-scene-loader";
+import { ValidatedReplay, loadAndValidateReplay } from "../scenes/replay-scene-loader";
+
 import { useSettingsStore } from "@stores/settings-store";
 import { log, logBoth, logClient } from "@ipc/log";
-import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
+import { waitForTruthy } from "@utils/wait-for";
+
 import { settingsStore, useGameStore, useReplayAndMapStore } from "../stores";
 import gameStore from "@stores/game-store";
 import { mixer } from "@audio";
+import { renderIngGameMenuScene } from "../scenes/in-game-menu/ingame-menu-scene";
 // import { supabase } from "common/supabase";
 /**
  * ENTRY POINT FOR TITAN REACTOR VIEWER APP
  */
 
-performance.mark( "start" );
+performance.mark("start");
 
-useSettingsStore.subscribe( ( payload ) => {
-    mixer.setVolumes( payload.data.audio );
-} );
+useSettingsStore.subscribe((payload) => {
+    mixer.setVolumes(payload.data.audio);
+});
 
-globalEvents.on( "log-message", ( { message, level, server } ) =>
-    server ? logBoth( message, level ) : logClient( message, level )
+globalEvents.on("log-message", ({ message, level, server }) =>
+    server ? logBoth(message, level) : logClient(message, level)
 );
 
-//todo: change this to validatedmap
-const loadMapFile = async ( file: File ) => {
-    await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
-
-    useReplayAndMapStore.getState().clearReplayQueue();
-
-    void sceneStore().execSceneLoader( () => mapSceneLoader( file ), "@map", {
-        errorHandler: {
-            loader: interstitialSceneLoader,
-            id: "@interstitial",
-        },
-    } );
-};
-
-//todo add option to autoload file or show map/player list
-export const loadQueuedReplay = async () => {
-    if (
-        useReplayAndMapStore.getState().replayQueue.length === 0 ||
-        useReplayAndMapStore.getState().nextReplay === undefined
-    ) {
-        return;
-    }
-
-    await sceneStore().execSceneLoader( homeSceneLoader, "@home", {
-        ignoreSameScene: true,
-    } );
-
-    if ( useReplayAndMapStore.getState().replayQueue.length > 1 ) {
-        await waitForSeconds( 10 );
-    }
-
-    void sceneStore().execSceneLoader(
-        () => replaySceneLoader( useReplayAndMapStore.getState().nextReplay! ),
-        "@replay",
-        {
-            errorHandler: {
-                loader: interstitialSceneLoader,
-                id: "@interstitial",
-            },
-        }
-    );
-};
-
-globalEvents.on( "queue-files", async ( { files } ) => {
-    if ( files.length === 0 ) {
+globalEvents.on("queue-files", async ({ files }) => {
+    if (files.length === 0) {
         return;
     }
     //todo map stuff here
-    if ( files[0].name.endsWith( ".scx" ) || files[0].name.endsWith( ".scm" ) ) {
-        loadMapFile( files[0] );
+    if (files[0].name.endsWith(".scx") || files[0].name.endsWith(".scm")) {
+        useReplayAndMapStore.getState().loadMap(files[0]);
+
         return;
     }
 
     const replays: ValidatedReplay[] = [];
-    for ( const file of files ) {
+    for (const file of files) {
         try {
-            replays.push( await loadAndValidateReplay( file ) );
-        } catch ( e ) {
-            console.error( e );
+            replays.push(await loadAndValidateReplay(file));
+        } catch (e) {
+            console.error(e);
         }
     }
 
-    // if (!append ) {
-    //     useReplayAndMapStore.getState().flushWatchedReplays();
-    // }
-    useReplayAndMapStore.getState().addReplaysToQueue( replays );
-
-    // if we're appending just let the current replay finish
-    // otherwise load the next replay or show the replay list if its the first time loading replays
-    // this allows the user to start from a replay in the middle if they want to watch a specific one
-    useReplayAndMapStore.getState().queueUpNextReplay( replays[0] );
-    await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
-    if (
-        useReplayAndMapStore.getState().replayQueue.length === 1 ||
-        settingsStore().data.utilities.autoPlayReplayQueue
-    ) {
-        loadQueuedReplay();
+    if (!settingsStore().data.replayQueue.enabled) {
+        useReplayAndMapStore.getState().clearReplayQueue();
+        useReplayAndMapStore.getState().addReplayToQueue(replays[0]);
+        useReplayAndMapStore.getState().loadNextReplay();
+        return;
     }
-} );
+
+    useReplayAndMapStore.getState().addReplaysToQueue(replays);
+
+    //todo: if we're in a game do we load?
+    await sceneStore().execSceneLoader(homeSceneLoader, "@home", {
+        ignoreSameScene: true,
+    });
+
+    useReplayAndMapStore.getState().loadNextReplay();
+});
 
 // manage total replay watch time
 let _startReplayTime: number | null = 0;
 
-globalEvents.on( "replay-ready", () => {
-    if ( _startReplayTime ) {
+globalEvents.on("replay-ready", () => {
+    if (_startReplayTime) {
         const duration = performance.now() - _startReplayTime;
-        useReplayAndMapStore.getState().addToTotalGameTime( duration );
+        useReplayAndMapStore.getState().addToTotalGameTime(duration);
     }
     _startReplayTime = performance.now();
-} );
+});
 
-globalEvents.on( "replay-complete", ( replay ) => {
+globalEvents.on("replay-complete", async () => {
     const duration = performance.now() - _startReplayTime!;
-    useReplayAndMapStore.getState().addToTotalGameTime( duration );
+    useReplayAndMapStore.getState().addToTotalGameTime(duration);
     _startReplayTime = null;
-    setTimeout( async () => {
-        await queueNextReplay( replay );
-        if ( settingsStore().data.utilities.autoPlayReplayQueue ) {
-            loadQueuedReplay();
-        }
-        //todo show UI to stay on replay or go back to home
-    }, 3000 );
-} );
 
-const queueNextReplay = ( prevReplay: ValidatedReplay ) => {
-    const rIndex = useReplayAndMapStore
-        .getState()
-        .replayQueue.findIndex( ( r ) => r === prevReplay );
-    const nextReplay = useReplayAndMapStore.getState().replayQueue[rIndex + 1];
-    useReplayAndMapStore.getState().queueUpNextReplay( nextReplay );
-    return sceneStore().execSceneLoader( homeSceneLoader, "@home" );
-};
+
+    if (
+        settingsStore().data.replayQueue.enabled &&
+        settingsStore().data.replayQueue.autoplay
+    ) {
+        await sceneStore().execSceneLoader(homeSceneLoader, "@home");
+        useReplayAndMapStore.getState().loadNextReplay();
+    } else {
+        renderIngGameMenuScene(true);
+    }
+}); 
 
 logCapabilities();
 lockdown_();
 
-( async function bootup() {
+(async function bootup() {
     // supabase.auth.startAutoRefresh();
 
     // const {
@@ -180,40 +129,33 @@ lockdown_();
     //         }
     //     }
     // } else {
-    await sceneStore().execSceneLoader( preHomeSceneLoader, "@loading" );
+    await sceneStore().execSceneLoader(preHomeSceneLoader, "@loading");
 
-    await sceneStore().execSceneLoader( homeSceneLoader, "@home" );
+    await sceneStore().execSceneLoader(homeSceneLoader, "@home");
 
-    await waitForTruthy( () => useGameStore.getState().assets?.remaining === 0 );
+    await waitForTruthy(() => useGameStore.getState().assets?.remaining === 0);
 
-    log.debug( `startup in ${performance.measure( "start" ).duration}ms` );
+    log.debug(`startup in ${performance.measure("start").duration}ms`);
     // }
-} )();
+})();
 
-window.addEventListener( "wheel", ( evt ) => evt.preventDefault(), { passive: false } );
+window.addEventListener("wheel", (evt) => evt.preventDefault(), { passive: false });
 
-window.addEventListener( "message", ( event ) => {
-    if ( event.data.type === "connect" ) {
-        useGameStore.setState( { configurationWindow: event.source as Window } );
+window.addEventListener("message", (event) => {
+    if (event.data.type === "connect") {
+        useGameStore.setState({ configurationWindow: event.source as Window });
         gameStore().configurationWindow!.deps = { useSettingsStore };
         event.source!.postMessage(
             { type: "connected" },
             { targetOrigin: event.origin }
         );
     }
-} );
+});
 
 window.document.title = "Titan Reactor";
 
-window.addEventListener( "keypress", ( event ) => {
-    if ( event.code === "KeyO" && event.shiftKey ) {
-        event.preventDefault();
-        gameStore().openConfigurationWindow();
-    }
-} );
-
-window.addEventListener( "beforeunload", () => {
-    if ( gameStore().configurationWindow ) {
+window.addEventListener("beforeunload", () => {
+    if (gameStore().configurationWindow) {
         gameStore().configurationWindow!.close();
     }
-} );
+});

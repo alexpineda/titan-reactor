@@ -12,7 +12,7 @@ export interface GlobalEvents {
     "command-center-plugin-deactivated": string;
     "unsafe-open-url": string;
     "load-iscriptah": string;
-    "queue-files": { files: File[]; append?: boolean };
+    "queue-files": { files: File[] };
     "log-message": { message: string; level: LogLevel; server?: boolean };
     "reload-all-plugins": undefined;
     "exec-macro": string;

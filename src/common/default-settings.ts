@@ -57,7 +57,11 @@ export const defaultSettingsV6: SettingsV6 = {
         alertDesynced: true,
         alertDesyncedThreshold: 10,
         logLevel: "info",
-        autoPlayReplayQueue: false,
+    },
+    replayQueue: {
+        autoplay: true,
+        enabled: true,
+        show: true,
     },
     graphics: {
         pixelRatio: 1,

@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import { GlobalSettingsConfiguration } from "./global-settings-configuration";
 import { Tab, Tabs } from "./tabs";
 
-import { MacrosPanel } from "./macros-ui/macros-panel";
+// import { MacrosPanel } from "./macros-ui/macros-panel";
 import { PluginsConfiguration } from "./plugins-configuration";
 import { Helmet } from "react-helmet";
 
@@ -48,9 +48,9 @@ const CommandCenter = () => {
                     <Tab label="Plugins">
                         <PluginsConfiguration setBanner={setBanner} />
                     </Tab>
-                    <Tab label="Macros">
+                    {/* <Tab label="Macros">
                         <MacrosPanel />
-                    </Tab>
+                    </Tab> */}
                 </Tabs>
             </div>
         </>
@@ -59,7 +59,6 @@ const CommandCenter = () => {
 
 const container = document.getElementById( "app" );
 const root = createRoot( container! );
-// root.render( <CommandCenter /> )
 
 window.opener.postMessage( {
     type: "connect",
