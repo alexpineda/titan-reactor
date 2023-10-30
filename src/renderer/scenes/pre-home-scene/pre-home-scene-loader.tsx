@@ -26,37 +26,25 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     const settings = await settingsStore().init();
 
-    root.render( <PreHomeScene assetServerUrl={assetServerUrl} /> );
+    root.render( <PreHomeScene assetServerUrl={assetServerUrl} pluginsReady={false} /> );
 
-    const _int = setInterval( async () => {
+    await waitForTruthy( async () => {
         const ok = await openCascStorageRemote( assetServerUrl );
         if ( ok ) {
             localStorage.setItem( "assetServerUrl", assetServerUrl );
             useGameStore.setState( { assetServerUrl } );
         }
-    }, 5_000 );
-    await waitForTruthy( () => {
         return gameStore().assetServerUrl;
-    } );
-    clearInterval( _int );
+    }, 5000 );
 
-    await waitForTruthy( () => {
-        // wait until there are no errors
-        const errors = settingsStore().errors;
-        if ( errors.length ) {
-            const message = errors.join( ", " );
-            // if there are errors, but the message is different from the last one
-            // log it and notify the scene store in order to display it
-            if ( message !== _lastErrorMessage ) {
-                log.error( message );
-                sceneStore().setError( new Error( message ) );
-                _lastErrorMessage = message;
-            }
-        } else {
-            sceneStore().clearError();
-        }
-        return settingsStore().errors.length === 0;
-    } );
+    await waitForTruthy( async () => {
+
+        return await fetch(gameStore().uiRuntimeUrl, { method: "HEAD" }).then( ( res ) => res.ok );
+
+    }, 5000);
+
+    root.render( <PreHomeScene assetServerUrl={assetServerUrl} pluginsReady={true} /> );
+
 
     await initializeAssets();
 

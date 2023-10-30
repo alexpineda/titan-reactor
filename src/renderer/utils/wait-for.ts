@@ -5,14 +5,14 @@ export function waitForTruthy(
     fn: ( ...args: any[] ) => unknown,
     polling = 100
 ): Promise<void> {
-    return new Promise( ( res ) => {
-        const r = fn();
+    return new Promise( async ( res ) => {
+        const r = await fn();
         if ( r ) {
             res();
             return;
         }
-        const _t = setInterval( () => {
-            const r = fn();
+        const _t = setInterval( async () => {
+            const r = await fn();
             if ( r ) {
                 res();
                 clearInterval( _t );

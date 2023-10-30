@@ -91,8 +91,8 @@ export class SettingsRepository {
         return this.plugins.getAllPlugins().filter( ( p ) => !p.config._enabled.value );
     }
 
+    //todo: deprecate this
     getMeta(): SettingsMeta {
-        const errors: string[] = [];
 
         const macros = sanitizeMacros( this.#settings.macros, {
             data: this.#settings,
@@ -101,7 +101,6 @@ export class SettingsRepository {
 
         return {
             data: { ...this.#settings, macros },
-            errors,
             activatedPlugins: this.enabledPlugins,
             deactivatedPlugins: this.disabledPlugins,
         };

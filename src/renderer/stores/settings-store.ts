@@ -19,8 +19,6 @@ export type SettingsStore = SettingsMeta & {
 
 export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
     data: { ...defaultSettings },
-    phrases: {},
-    errors: [],
     get activatedPlugins() {
         return settingsRepository.enabledPlugins;
     },

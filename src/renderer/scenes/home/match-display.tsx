@@ -12,7 +12,6 @@ export const MatchDisplay = () => {
     );
     const { map, replay, replayQueue, getNextReplay } = useReplayAndMapStore();
     const showReplayQueue = replayQueueSettings.enabled && replayQueueSettings.show && replayQueue.length > 0;
-    console.log(showReplayQueue)
 
     return (
         <div

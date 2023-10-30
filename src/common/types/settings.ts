@@ -134,7 +134,6 @@ export type Settings = SettingsV6;
 
 export interface SettingsMeta {
     data: Settings;
-    errors: string[];
     activatedPlugins: PluginMetaData[];
     deactivatedPlugins: PluginMetaData[];
 }

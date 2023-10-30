@@ -20,7 +20,7 @@ const styleCenterText = {
     flexDirection: "column",
 };
 
-export const PreHomeScene = ( { assetServerUrl }: { assetServerUrl: string } ) => {
+export const PreHomeScene = ( { assetServerUrl, pluginsReady }: { assetServerUrl: string, pluginsReady: boolean } ) => {
     const error = useSceneStore( ( state ) => state.error );
 
     const validatedAssertServerUrl = useGameStore( ( state ) => state.assetServerUrl );
@@ -76,6 +76,7 @@ export const PreHomeScene = ( { assetServerUrl }: { assetServerUrl: string } ) =
                             <p>{assetServerUrl}</p>
                         </>
                     )}
+                    {!pluginsReady && <p>Waiting for plugin server</p>}
                 </div>
             )}
         </div>
