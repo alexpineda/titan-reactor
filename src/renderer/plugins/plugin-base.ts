@@ -56,6 +56,7 @@ export class PluginBase {
 
         this.#config[key].value = value;
         if ( persist ) {
+            //todo: persist
             // savePluginsConfig( this.id, this.#config );
         }
     }

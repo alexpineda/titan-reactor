@@ -11,6 +11,7 @@ import { TypeEmitter } from "@utils/type-emitter";
 import { createDeepStore } from "@stores/deep-store";
 import { createOperatableStore, MutationVariable } from "@stores/operatable-store";
 import { SourceOfTruth } from "@stores/source-of-truth";
+import { pluginsStore } from "@stores/plugins-store";
 
 type ValidAppSessionPath = `${keyof SessionSettingsData}.`;
 const validAppSettingsPaths: ValidAppSessionPath[] = [
@@ -69,7 +70,7 @@ export const createSettingsSessionStore = ( events: TypeEmitter<WorldEvents> ) =
         ( path, state ) =>
             getSessionSettingsPropertyInLevaFormat(
                 state,
-                settingsStore().activatedPlugins,
+                pluginsStore().enabledPlugins,
                 path
             )
     );
@@ -84,7 +85,7 @@ export const createSettingsSessionStore = ( events: TypeEmitter<WorldEvents> ) =
 
     const sessionSettingsConfig = getSessionSettingsInLevaFormat(
         settingsStore().data,
-        settingsStore().activatedPlugins
+        pluginsStore().enabledPlugins
     );
 
     const vars = Object.keys( sessionSettingsConfig ).reduce( ( acc, key ) => {

@@ -11,22 +11,22 @@ import { Helmet } from "react-helmet";
 
 document.title = "Configuration";
 
-const s = document.createElement( "link" );
+const s = document.createElement("link");
 s.rel = "stylesheet";
 s.href = "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap";
-document.head.appendChild( s );
+document.head.appendChild(s);
 
 const CommandCenter = () => {
-    const [ banner, setBanner ] = useState( "" );
+    const [banner, setBanner] = useState("");
 
-    const [ mainTabIndex, setMainTabIndex ] = useState( 0 );
+    const [mainTabIndex, setMainTabIndex] = useState(0);
 
-    useEffect( () => {
-        if ( banner ) {
-            const t = setTimeout( () => setBanner( "" ), 5000 );
-            return () => clearTimeout( t );
+    useEffect(() => {
+        if (banner) {
+            const t = setTimeout(() => setBanner(""), 5000);
+            return () => clearTimeout(t);
         }
-    }, [ banner ] );
+    }, [banner]);
 
     return (
         <>
@@ -37,10 +37,12 @@ const CommandCenter = () => {
                 />
             </Helmet>
             <div style={{ width: "100%", display: "flex", flexDirection: "column" }}>
-                <p style={{ fontSize: "32px" }}>Titan Reactor - Configuration</p>
+                <p style={{ fontSize: "32px", paddingInline: "16px" }}>
+                    Titan Reactor - Control Panel
+                </p>
                 {banner && <p className="mui--bg-accent mui--text-light">{banner}</p>}
                 <Tabs
-                    onChange={( index: number ) => setMainTabIndex( index )}
+                    onChange={(index: number) => setMainTabIndex(index)}
                     selectedIndex={mainTabIndex}>
                     <Tab label="Global Settings">
                         <GlobalSettingsConfiguration />
@@ -57,19 +59,22 @@ const CommandCenter = () => {
     );
 };
 
-const container = document.getElementById( "app" );
-const root = createRoot( container! );
+const container = document.getElementById("app");
+const root = createRoot(container!);
 
-window.opener.postMessage( {
+window.opener.postMessage({
     type: "connect",
-} );
+});
 
-window.addEventListener( "message", ( event ) => {
-    if ( event.data.type === "connected" ) {
-        console.log( "connected", window.deps.useSettingsStore.getState() );
-        window.deps.useSettingsStore.subscribe( ( state ) => {
-            console.log( "state", state );
-        } );
-        root.render( <CommandCenter /> );
+window.addEventListener("message", (event) => {
+    if (event.data.type === "connected") {
+        console.log("connected", window.deps.useSettingsStore.getState());
+        window.deps.useSettingsStore.subscribe((state) => {
+            console.log("state", state);
+        });
+        window.deps.usePluginsStore.subscribe((state) => {
+            console.log("plugins", state);
+        });
+        root.render(<CommandCenter />);
     }
-} );
+});

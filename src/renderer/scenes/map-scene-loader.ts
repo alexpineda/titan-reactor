@@ -23,6 +23,7 @@ import { music } from "@audio/music";
 import { ChkDowngrader, CommandsStream } from "process-replay";
 import Chk from "bw-chk";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
+import { pluginsStore } from "@stores/plugins-store";
 // import loadScm from "@utils/load-scm";
 // import { openFile } from "@ipc/files";
 
@@ -50,6 +51,7 @@ export const mapSceneLoader = async ( file: File ): Promise<SceneState> => {
 
     useReplayAndMapStore.setState( { map, mapImage: await createMapImage( map ) } );
     settingsStore().initSessionData( "map" );
+    pluginsStore().setSessionPlugins( "replay" );
     globalEvents.emit( "map-ready", { map } );
 
     janitor.mop( () => useReplayAndMapStore.getState().reset(), "reset replayMapStore" );

@@ -1,4 +1,3 @@
-import sceneStore from "@stores/scene-store";
 import { settingsStore } from "@stores/settings-store";
 import { initializeAssets } from "@image/assets";
 import { log } from "@ipc/log";
@@ -11,8 +10,7 @@ import { SceneState } from "../scene";
 import processStore from "@stores/process-store";
 import gameStore, { useGameStore } from "@stores/game-store";
 import { openCascStorageRemote } from "@ipc/casclib";
-
-let _lastErrorMessage = "";
+import { pluginsStore } from "@stores/plugins-store";
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
     processStore().create( "pre-home-scene", 7 );
@@ -24,7 +22,8 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
         localStorage.getItem( "assetServerUrl" ) ??
         "http://localhost:8080";
 
-    const settings = await settingsStore().init();
+    await settingsStore().init();
+    await pluginsStore().init();
 
     root.render( <PreHomeScene assetServerUrl={assetServerUrl} pluginsReady={false} /> );
 
@@ -52,7 +51,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     log.debug( "Loading intro" );
 
-    mixer.setVolumes( settings.data.audio );
+    mixer.setVolumes( settingsStore().data.audio );
 
     const dropYourSocks = mixer.context.createBufferSource();
     dropYourSocks.buffer = await mixer.loadAudioBuffer(

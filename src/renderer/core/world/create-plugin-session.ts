@@ -7,7 +7,6 @@ import {
 } from "@plugins/events";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
-import { settingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import { createPluginSessionStore } from "@core/world/plugin-session-store";
 import { createCompartment } from "@utils/ses-util";
@@ -16,6 +15,7 @@ import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import TestController from "@plugins/built-in/default-camera-controller?raw";
+import { pluginsStore } from "@stores/plugins-store";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
@@ -27,7 +27,7 @@ export const createPluginSession = async (
 
     const events = janitor.mop( new TypeEmitterProxy( _events ) );
 
-    const pluginPackages = settingsStore().activatedPlugins;
+    const pluginPackages = pluginsStore().sessionPlugins;
     const uiPlugins = janitor.mop(
         new PluginSystemUI( openBW, pluginPackages ),
         "uiPlugins"
@@ -98,7 +98,7 @@ export const createPluginSession = async (
     );
 
     janitor.mop(
-        globalEvents.on( "command-center-plugin-deactivated", ( pluginId ) => {
+        globalEvents.on( "plugin-deactivated", ( pluginId ) => {
             nativePlugins.deactivatePlugin( pluginId );
             uiPlugins.deactivatePlugin( pluginId );
         } ),
@@ -106,7 +106,7 @@ export const createPluginSession = async (
     );
 
     janitor.mop(
-        globalEvents.on( "command-center-plugins-activated", ( plugins ) => {
+        globalEvents.on( "plugin-activated", ( plugins ) => {
             uiPlugins.activatePlugins( plugins );
             nativePlugins.activateAdditionalPlugins( plugins, createCompartment );
         } ),

@@ -7,7 +7,7 @@ import { TreeList } from "./treelist";
 import { useStore } from "zustand";
 
 export const MacrosPanel = () => {
-    const settings = useStore( window.deps.useSettingsStore );
+    const plugins = useStore( window.deps.usePluginsStore );
     
     const {
         macros: { macros },
@@ -39,7 +39,7 @@ export const MacrosPanel = () => {
                             <MacroPanel
                                 key={selectedMacroId}
                                 macro={macros.find( ( m ) => m.id === selectedMacroId )!}
-                                pluginsMetadata={settings.activatedPlugins}
+                                pluginsMetadata={plugins.enabledPlugins}
                             />
                         )}
                     </main>

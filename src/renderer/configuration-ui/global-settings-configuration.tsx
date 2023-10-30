@@ -24,12 +24,13 @@ renderer.dispose();
  * Global App Settings UI
  */
 export const GlobalSettingsConfiguration = () => {
-    const settings = useStore( window.deps.useSettingsStore )
+    const settings = useStore( window.deps.useSettingsStore );
+    const plugins = useStore( window.deps.usePluginsStore );
 
     const [ state, setState ] = useState(
         getAppSettingsInLevaFormat(
             settings.data,
-            settings.activatedPlugins,
+            plugins.plugins,
             maxAnisotropy,
             window.devicePixelRatio,
             maxSamples

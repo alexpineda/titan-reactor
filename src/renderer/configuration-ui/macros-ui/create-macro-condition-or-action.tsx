@@ -1,4 +1,3 @@
-import { PluginMetaData } from "common/types";
 
 export function CreateMacroConditionOrAction( {
     onCreate,
@@ -6,7 +5,6 @@ export function CreateMacroConditionOrAction( {
 }: {
     label: string;
     onCreate: () => void;
-    pluginsMetadata: PluginMetaData[];
 } ) {
     return (
         <button

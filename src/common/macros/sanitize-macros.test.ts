@@ -4,9 +4,10 @@ import {
     MacroActionSequence,
     MacroDTO,
     Operator,
+    PluginMetaData,
+    Settings,
     TriggerType,
 } from "common/types";
-import type { SettingsAndPluginsMeta } from "./field-utilities";
 import * as fieldUtilities from "./field-utilities";
 import { sanitizeMacros, sanitizeActionable } from "./sanitize-macros";
 
@@ -52,7 +53,8 @@ describe( "sanitizeMacros", () => {
                 macros: [ macro ],
                 revision: 0,
             },
-            {} as SettingsAndPluginsMeta
+            {} as Settings,
+            []
         );
 
         expect( macro.error ).toBeUndefined();
@@ -66,7 +68,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":function" ],
             } );
 
-            sanitizeActionable( action, {} as SettingsAndPluginsMeta );
+            sanitizeActionable( action, {} as Settings, [] );
 
             expect( action.value ).toEqual( "" );
         } );
@@ -76,7 +78,7 @@ describe( "sanitizeActionable", () => {
         it( "should set path if invalid field", () => {
             const action = util.createAction();
 
-            sanitizeActionable( action, {} as SettingsAndPluginsMeta );
+            sanitizeActionable( action, {} as Settings, [] );
 
             expect( action.path ).toEqual( [ ":app", "audio", "music" ] );
         } );
@@ -89,7 +91,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":app", "my", "path" ],
             } );
 
-            sanitizeActionable( action, {} as SettingsAndPluginsMeta );
+            sanitizeActionable( action, {} as Settings, [] );
 
             expect( action.path ).toEqual( [ ":app", "my", "path" ] );
         } );
@@ -104,7 +106,7 @@ describe( "sanitizeActionable", () => {
                 operator: Operator.SetToDefault,
             } );
 
-            sanitizeActionable( action, {} as SettingsAndPluginsMeta );
+            sanitizeActionable( action, {} as Settings, [] );
 
             expect( action.value ).toEqual( undefined );
 
@@ -112,7 +114,7 @@ describe( "sanitizeActionable", () => {
                 operator: Operator.Set,
             } );
 
-            sanitizeActionable( patched, {} as SettingsAndPluginsMeta );
+            sanitizeActionable( patched, {} as Settings, [] );
 
             expect( patched.value ).toEqual( "foo" );
         } );
@@ -129,7 +131,7 @@ describe( "sanitizeActionable", () => {
                 value: "cray",
             } );
 
-            sanitizeActionable( patched, {} as SettingsAndPluginsMeta );
+            sanitizeActionable( patched, {} as Settings, [] );
 
             expect( patched.value ).toEqual( "foo" );
         } );
@@ -142,9 +144,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin" ],
             } );
 
-            sanitizeActionable( action, {
-                activatedPlugins: [],
-            } as unknown as SettingsAndPluginsMeta );
+            sanitizeActionable( action, {} as Settings, [] );
 
             expect( action.error ).toBeDefined();
         } );
@@ -155,35 +155,31 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin" ],
             } );
 
-            sanitizeActionable( action, {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: [],
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta );
+            sanitizeActionable( action, {} as Settings,[
+                {
+                    name: "test-plugin",
+                },
+            ] as unknown as PluginMetaData[] );
 
             expect( action.path ).toEqual( [ ":plugin", "test-plugin" ] );
         } );
 
         it( "should set path to config if invalid", () => {
+            
             const action = util.createAction( {
                 operator: Operator.SetToDefault,
                 path: [ ":plugin" ],
             } );
 
-            sanitizeActionable( action, {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: [],
-                        config: {
-                            foo: "bar",
-                        },
+            sanitizeActionable( action, {} as Settings, [
+                {
+                    name: "test-plugin",
+                    config: {
+                        // @ts-expect-error
+                        foo: "bar",
                     },
-                ],
-            } as unknown as SettingsAndPluginsMeta );
+                },
+            ] );
 
             expect( action.path ).toEqual( [ ":plugin", "test-plugin", "foo" ] );
         } );
@@ -197,14 +193,11 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
-            sanitizeActionable( action, {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: [],
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta );
+            sanitizeActionable( action, {} as unknown as Settings, [
+                {
+                    name: "test-plugin",
+                },
+            ] as unknown as PluginMetaData[] );
 
             expect( action.path ).toEqual( [ ":plugin", "test-plugin", "foo" ] );
         } );
@@ -218,20 +211,20 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
-            const settings = {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: [],
-                        config: {
-                            foo: {
-                                value: "bar",
-                            },
+            const plugins = [
+                {
+                    name: "test-plugin",
+                    config: {
+                        foo: {
+                            value: "bar",
                         },
                     },
-                ],
-            } as unknown as SettingsAndPluginsMeta;
-            sanitizeActionable( action, settings );
+                },
+            ] as unknown as PluginMetaData[]
+
+            const settings = {
+            } as unknown as Settings;
+            sanitizeActionable( action, settings, plugins);
 
             expect( action.value ).toEqual( undefined );
 
@@ -240,7 +233,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
-            sanitizeActionable( patched, settings );
+            sanitizeActionable( patched, settings, plugins );
 
             expect( patched.value ).toEqual( "bar" );
         } );
@@ -249,20 +242,18 @@ describe( "sanitizeActionable", () => {
             //@ts-expect-error
             fieldUtilities.getPluginFieldDefinition = jest.fn().mockReturnValue( true );
 
-            const settings = {
-                activatedPlugins: [
-                    {
-                        name: "test-plugin",
-                        externMethods: [],
-                        config: {
-                            foo: {
-                                value: "bar",
-                                options: [ "bar", "baz" ],
-                            },
+            const settings = {} as unknown as Settings;
+            const plugins = [
+                {
+                    name: "test-plugin",
+                    config: {
+                        foo: {
+                            value: "bar",
+                            options: [ "bar", "baz" ],
                         },
                     },
-                ],
-            } as unknown as SettingsAndPluginsMeta;
+                },
+            ] as unknown as PluginMetaData[]
 
             const patched = util.createAction( {
                 operator: Operator.Set,
@@ -270,7 +261,7 @@ describe( "sanitizeActionable", () => {
                 value: "cray",
             } );
 
-            sanitizeActionable( patched, settings );
+            sanitizeActionable( patched, settings, plugins );
 
             expect( patched.value ).toEqual( "bar" );
         } );

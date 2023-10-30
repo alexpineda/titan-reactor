@@ -258,7 +258,6 @@ export const MacroPanel = ( {
                             comparator: ConditionComparator.Equals,
                         } );
                     }}
-                    pluginsMetadata={pluginsMetadata}
                 />
                 <CreateMacroConditionOrAction
                     label="Action"
@@ -270,7 +269,6 @@ export const MacroPanel = ( {
                             operator: Operator.Set,
                         } );
                     }}
-                    pluginsMetadata={pluginsMetadata}
                 />
             </div>
             <div>

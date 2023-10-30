@@ -38,6 +38,7 @@ import debounce from "lodash.debounce";
 import { music } from "@audio/music";
 import { openFile } from "@ipc/files";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
+import { pluginsStore } from "@stores/plugins-store";
 // import { writeFileSync } from "fs";
 
 // const createNarrative = (commands: CommandsStream) => {
@@ -168,6 +169,7 @@ export const replaySceneLoader = async (
     useReplayAndMapStore.setState( { replay, map, mapImage: await createMapImage( map ) } );
     useReplayAndMapStore.setState( { replay, map } );
     settingsStore().initSessionData( "replay" );
+    pluginsStore().setSessionPlugins( "replay" );
     globalEvents.emit( "replay-ready", { replay, map } );
 
     janitor.mop(

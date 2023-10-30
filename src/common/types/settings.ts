@@ -1,6 +1,5 @@
 import { LogLevel } from "common/logging";
 import { MacrosDTO } from "common/types";
-import type { PluginMetaData } from "./plugin";
 
 export interface SettingsV5 {
     version: 5;
@@ -50,7 +49,7 @@ export interface SettingsV6 {
     version: 6;
     language: string;
     session: {
-        type: "replay" | "live" | "map";
+        type: "replay" | "map";
         sandbox: boolean;
         audioListenerDistance: number;
     };
@@ -131,12 +130,6 @@ export interface SettingsV6 {
 }
 
 export type Settings = SettingsV6;
-
-export interface SettingsMeta {
-    data: Settings;
-    activatedPlugins: PluginMetaData[];
-    deactivatedPlugins: PluginMetaData[];
-}
 
 export type SessionSettingsData = Pick<
     Settings,

@@ -1,4 +1,4 @@
-import { PluginMetaData, PluginPackage } from "common/types";
+import { PluginConfig, PluginMetaData, PluginPackage } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { getPluginAPIVersion } from "common/utils/api-version";
 
@@ -6,20 +6,78 @@ const log = console;
 
 import semver from "semver";
 import { HostApiVersion } from "common/utils/api-version";
+import { StorageAdapter } from "./storage-adapters/settings-adapter";
+import gameStore from "./game-store";
 
+import deepMerge from "deepmerge";
+import { arrayOverwriteMerge } from "@utils/object-utils";
+
+const defaultMapPlugins = [
+    "@titan-reactor-plugins/camera-standard",
+    "@titan-reactor-plugins/camera-overview",
+    "@titan-reactor-plugins/camera-battle",
+    "@titan-reactor-plugins/sandbox-tools",
+    
+]
+
+const defaultReplayPlugins = [
+    "@titan-reactor-plugins/camera-standard",
+    "@titan-reactor-plugins/camera-overview",
+    "@titan-reactor-plugins/camera-battle",
+    "@titan-reactor-plugins/clock",
+    "@titan-reactor-plugins/player-colors",
+    "@titan-reactor-plugins/players-bar",
+    "@titan-reactor-plugins/unit-selection-display",
+    "@titan-reactor-plugins/production-bar",
+    "@titan-reactor-plugins/unit-sounds",
+    "@titan-reactor-plugins/narrative-maker"
+]
 /**
  * Interfaces with NPM packages and the file system to load plugins.
  */
 export class PluginsRepository {
     #pluginPackages: PluginMetaData[] = [];
+    #storage: StorageAdapter;
     repositoryUrl = "";
+    #pluginSettings: Record<string, PluginConfig> = {};
 
-    getAllPlugins() {
+    get plugins() {
         return this.#pluginPackages;
     }
 
     get hasAnyPlugins() {
-        return this.#pluginPackages.length > 0;
+        return this.plugins.length > 0;
+    }
+
+    constructor( storage: StorageAdapter ) {
+        this.#storage = storage;
+    }
+
+    async init() {
+        await this.#fetch( gameStore().pluginRepositoryUrl );
+
+         // todo: deprecate plugin.config
+         for ( const plugin of this.plugins ) {
+            const userConfig = await this.#storage.loadPluginSettings( plugin.name );
+
+            if (userConfig === undefined) {
+                if (defaultMapPlugins.includes(plugin.name)) {
+                    plugin.config._map.value = true;
+                    plugin.config._enabled.value = true;
+                }
+                if (defaultReplayPlugins.includes(plugin.name)) {
+                    plugin.config._replay.value = true;
+                    plugin.config._enabled.value = true;
+                }
+            }
+
+            this.#pluginSettings[plugin.name] = Object.assign(
+                plugin.config,
+                userConfig
+            );
+
+            this.#storage.savePluginSettings( plugin.name, plugin.config );
+        }
     }
 
     #isPluginIncompatible( plugin: Partial<PluginPackage> ) {
@@ -133,7 +191,7 @@ export class PluginsRepository {
     }
 
     //todo: deprecate once we move configs and values to separate containers
-    createEnabledOption( value: boolean ) {
+    #createEnabledOption( value: boolean ) {
         return {
             value,
             label: "Enabled",
@@ -141,7 +199,7 @@ export class PluginsRepository {
         };
     }
 
-    async fetch( rootUrl: string ) {
+    async #fetch( rootUrl: string ) {
         this.repositoryUrl = rootUrl;
         this.#pluginPackages = [];
 
@@ -159,6 +217,71 @@ export class PluginsRepository {
                 this.#sanitizeConfig( pluginPackage );
                 this.#pluginPackages.push( pluginPackage );
             }
+        }
+    }
+
+    get mapPlugins() {
+        return this.enabledPlugins.filter( ( p ) => p.config._map.value );
+    }
+
+    get replayPlugins() {
+        return this.enabledPlugins.filter( ( p ) => p.config._replay.value );
+    }
+
+    get enabledPlugins() {
+        return this.plugins.filter( ( p ) => p.config._enabled.value );
+    }
+
+    get disabledPlugins() {
+        return this.plugins.filter( ( p ) => !p.config._enabled.value );
+    }
+
+    async disablePlugins( pluginIds: string[] ) {
+        const plugins = this.enabledPlugins.filter( ( p ) => pluginIds.includes( p.id ) );
+
+        if ( plugins.length ) {
+            for ( const plugin of plugins ) {
+                await this.savePluginConfig( plugin.id, { ...plugin.config, _enabled: this.#createEnabledOption( false ) } );
+            }
+            return plugins;
+        }
+    }
+
+    async enablePlugins( pluginIds: string[] ) {
+        const plugins = this.disabledPlugins.filter( ( p ) => pluginIds.includes( p.id ) );
+
+        if ( plugins.length ) {
+            for ( const plugin of plugins ) {
+                await this.savePluginConfig( plugin.id, { ...plugin.config, _enabled: this.#createEnabledOption( true ) } );
+            }
+            return plugins;
+        }
+    }
+
+    async savePluginConfig( pluginId: string, config: PluginConfig ) {
+        const plugin = this.plugins.find( ( p ) => p.id === pluginId );
+        if ( !plugin ) {
+            log.error(
+                `@settings/load-plugins: Could not find plugin with id ${pluginId}`
+            );
+            return;
+        }
+
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            plugin.config = deepMerge( plugin.config, config, {
+                arrayMerge: arrayOverwriteMerge,
+            } );
+
+            await this.#storage.savePluginSettings( plugin.name, plugin.config );
+        } catch ( e ) {
+            log.error(
+                withErrorMessage(
+                    e,
+                    "@save-plugins-config: Error writing plugin package.json"
+                )
+            );
+            return;
         }
     }
 }

@@ -3,11 +3,10 @@ import {
     FieldDefinition,
     ConditionComparator,
     Operator,
-    SettingsMeta,
     TargetedPath,
+    Settings,
+    PluginMetaData,
 } from "common/types";
-
-export type SettingsAndPluginsMeta = Pick<SettingsMeta, "data" | "activatedPlugins">;
 
 export const getAvailableOperationsForTypeOfField = ( valueType: TypeOfField ) => {
     if ( valueType === "boolean" ) {
@@ -46,12 +45,13 @@ export const getAvailableComparatorsForTypeOfField = ( valueType: TypeOfField ) 
 };
 
 export const getAppFieldDefinition = (
-    settings: SettingsAndPluginsMeta,
+    settings: Settings,
+    plugins: PluginMetaData[],
     path: TargetedPath<":app">
 ) => {
     const field = getAppSettingsPropertyInLevaFormat(
-        settings.data,
-        settings.activatedPlugins,
+        settings,
+        plugins,
         path.slice( 1 )
     );
 
@@ -63,10 +63,10 @@ export const getAppFieldDefinition = (
 };
 
 export const getPluginFieldDefinition = (
-    settings: SettingsAndPluginsMeta,
+    plugins: PluginMetaData[],
     path: TargetedPath<":plugin">
 ) => {
-    const plugin = settings.activatedPlugins.find( ( p ) => p.name === path[1] );
+    const plugin = plugins.find( ( p ) => p.name === path[1] );
 
     if ( plugin === undefined ) {
         return null;

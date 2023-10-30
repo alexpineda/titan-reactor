@@ -4,9 +4,10 @@ import {
     MacroAction,
     MacroCondition,
     Operator,
+    PluginMetaData,
+    Settings,
 } from "common/types";
 import { ActionablePanelProps } from "./actionable-pane-props";
-import { SettingsStore  } from "@stores";
 import {
     getAvailableOperationsForAction,
     getMacroConditionValidComparators,
@@ -14,17 +15,18 @@ import {
 import { useMacroStore } from "../use-macros-store";
 import { useStore } from "zustand";
 
-const getValidOps = ( action: MacroAction | MacroCondition, settings: SettingsStore ) => {
+const getValidOps = ( action: MacroAction | MacroCondition, settings: Settings, plugins: PluginMetaData[] ) => {
     return action.type === "action"
-        ? getAvailableOperationsForAction( action, settings )
-        : getMacroConditionValidComparators( action, settings );
+        ? getAvailableOperationsForAction( action, settings, plugins )
+        : getMacroConditionValidComparators( action, settings, plugins );
 };
 
 export const ActionableOpsSelector = ( { action, macro }: ActionablePanelProps ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { updateActionable } = useMacroStore();
     const settings = useStore( window.deps.useSettingsStore );
-    const validInstructions = getValidOps( action, settings );
+    const plugins = useStore( window.deps.usePluginsStore );
+    const validInstructions = getValidOps( action, settings.data, plugins.enabledPlugins );
 
     return (
         <select

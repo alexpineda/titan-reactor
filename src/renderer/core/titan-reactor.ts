@@ -18,6 +18,7 @@ import { settingsStore, useGameStore, useReplayAndMapStore } from "../stores";
 import gameStore from "@stores/game-store";
 import { mixer } from "@audio";
 import { renderIngGameMenuScene } from "../scenes/in-game-menu/ingame-menu-scene";
+import { usePluginsStore } from "@stores/plugins-store";
 // import { supabase } from "common/supabase";
 /**
  * ENTRY POINT FOR TITAN REACTOR VIEWER APP
@@ -144,7 +145,7 @@ window.addEventListener("wheel", (evt) => evt.preventDefault(), { passive: false
 window.addEventListener("message", (event) => {
     if (event.data.type === "connect") {
         useGameStore.setState({ configurationWindow: event.source as Window });
-        gameStore().configurationWindow!.deps = { useSettingsStore };
+        gameStore().configurationWindow!.deps = { useSettingsStore, usePluginsStore };
         event.source!.postMessage(
             { type: "connected" },
             { targetOrigin: event.origin }

@@ -3,9 +3,9 @@ import {
     getFieldDefinitionDisplayValue,
     getPluginFieldDefinition,
     getTypeOfField,
-    SettingsAndPluginsMeta,
 } from "./field-utilities";
 import * as levaConfig from "common/get-app-settings-leva-config";
+import { PluginMetaData, Settings } from "common/types";
 
 jest.mock( "common/get-app-settings-leva-config" );
 
@@ -35,7 +35,7 @@ describe( "getAppFieldDefinition", () => {
             undefined
         );
 
-        const result = getAppFieldDefinition( {} as SettingsAndPluginsMeta, [":app"] );
+        const result = getAppFieldDefinition( {} as Settings, [], [":app"] );
 
         expect( result ).toBe( null );
     } );
@@ -47,7 +47,7 @@ describe( "getAppFieldDefinition", () => {
             testField
         );
 
-        const result = getAppFieldDefinition( {} as SettingsAndPluginsMeta, [":app"] );
+        const result = getAppFieldDefinition( {} as Settings, [], [":app"] );
 
         expect( result ).toBe( testField );
     } );
@@ -56,13 +56,9 @@ describe( "getAppFieldDefinition", () => {
 describe( "getPluginFieldDefinition", () => {
     it( "should return null if there is no plugin", () => {
         const result = getPluginFieldDefinition(
-            {
-                activatedPlugins: [
-                    {
-                        name: "foo",
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta,
+            [{
+                name: "foo",
+            }] as PluginMetaData[],
             [":plugin", "bar"]
         );
 
@@ -71,13 +67,9 @@ describe( "getPluginFieldDefinition", () => {
 
     it( "should return null if there is no field definition", () => {
         const result = getPluginFieldDefinition(
-            {
-                activatedPlugins: [
-                    {
-                        name: "foo",
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta,
+            [{
+                name: "foo",
+            }] as PluginMetaData[],
             [":plugin", "foo"]
         );
 
@@ -88,16 +80,12 @@ describe( "getPluginFieldDefinition", () => {
         const testField = { value: "test" };
 
         const result = getPluginFieldDefinition(
-            {
-                activatedPlugins: [
-                    {
-                        name: "foo",
-                        config: {
-                            testField,
-                        },
-                    },
-                ],
-            } as unknown as SettingsAndPluginsMeta,
+            [{
+                name: "foo",
+                config: {
+                    testField,
+                },
+            }] as unknown as PluginMetaData[],
             [":plugin", "foo", "testField"]
         );
 

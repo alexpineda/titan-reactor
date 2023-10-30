@@ -39,7 +39,7 @@ export const InGameMenuScene = () => {
                     background="var(--gray-5)"
                     color="var(--gray-9)"
                     onClick={() => gameStore().openConfigurationWindow()}>
-                    Options
+                    Control Panel
                 </InGameMenuButton>
                 <InGameMenuButton
                     background="var(--gray-5)"

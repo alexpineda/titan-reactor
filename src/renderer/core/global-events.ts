@@ -8,8 +8,8 @@ export interface GlobalEvents {
     "webglcontextlost": undefined;
     "webglcontextrestored": undefined;
     "command-center-plugin-config-changed": { pluginId: string; config: PluginConfig };
-    "command-center-plugins-activated": PluginMetaData[];
-    "command-center-plugin-deactivated": string;
+    "plugin-activated": PluginMetaData[];
+    "plugin-deactivated": string;
     "unsafe-open-url": string;
     "load-iscriptah": string;
     "queue-files": { files: File[] };
@@ -30,8 +30,8 @@ export const globalEventKeys: ( keyof GlobalEvents )[] = [
     "webglcontextlost",
     "webglcontextrestored",
     "command-center-plugin-config-changed",
-    "command-center-plugins-activated",
-    "command-center-plugin-deactivated",
+    "plugin-activated",
+    "plugin-deactivated",
     "unsafe-open-url",
     "load-iscriptah",
     "queue-files",

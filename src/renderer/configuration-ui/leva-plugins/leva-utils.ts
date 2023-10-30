@@ -75,7 +75,7 @@ export const attachOnChangeAndGroupByFolder = ( userOptions: AttachParams ) => {
     const values = [];
     for ( const k in config ) {
         const field = config[k];
-        if ( k !== "system" && typeof field === "object" && "value" in field ) {
+        if ( typeof field === "object" && "value" in field ) {
             if ( isAppConfiguration( field ) && field.hidden && !includeHidden ) {
                 continue;
             }

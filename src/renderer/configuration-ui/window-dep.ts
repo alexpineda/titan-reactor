@@ -1,4 +1,5 @@
 // import { globalEvents } from "@core/global-events"
+import { usePluginsStore } from "@stores/plugins-store"
 import { useSettingsStore } from "@stores/settings-store"
 
 // the main window attaches a deps object to the configuration window
@@ -8,6 +9,7 @@ declare global {
     interface Window {
         deps: {
             useSettingsStore: typeof useSettingsStore,
+            usePluginsStore: typeof usePluginsStore,
             // globalEvents: typeof globalEvents,
         }
     }

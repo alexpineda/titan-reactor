@@ -6,12 +6,13 @@ import {
     ConditionComparator,
     MacrosDTO,
     TargetedPath,
+    Settings,
+    PluginMetaData,
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { FieldDefinition, Operator } from "../types/fields";
 import {
     getAppFieldDefinition,
-    SettingsAndPluginsMeta,
     getTypeOfField,
     getPluginFieldDefinition,
     getAvailableOperationsForTypeOfField,
@@ -20,7 +21,8 @@ import {
 
 export const sanitizeMacros = (
     macros: MacrosDTO,
-    settings: SettingsAndPluginsMeta,
+    settings: Settings,
+    plugins: PluginMetaData[],
     logger?: Logger
 ) => {
     for ( const macro of macros.macros ) {
@@ -30,14 +32,14 @@ export const sanitizeMacros = (
             try {
                 delete action.error;
 
-                patchMutationInstruction( action, settings );
+                patchMutationInstruction( action, settings, plugins );
 
                 if ( action.group === undefined ) {
                     action.group =
                         Math.max( ...macro.actions.map( ( a ) => a.group ?? 0 ), 0 ) + 1;
                 }
 
-                sanitizeActionable( action, settings );
+                sanitizeActionable( action, settings, plugins );
             } catch ( e ) {
                 logger &&
                     logger.error(
@@ -58,9 +60,9 @@ export const sanitizeMacros = (
             try {
                 delete condition.error;
 
-                patchConditionComparator( condition, settings );
+                patchConditionComparator( condition, settings, plugins );
 
-                sanitizeActionable( condition, settings );
+                sanitizeActionable( condition, settings, plugins );
             } catch ( e ) {
                 logger &&
                     logger.error(
@@ -107,9 +109,10 @@ const patchValue = ( action: MacroAction | MacroCondition, field: FieldDefinitio
 
 const patchMutationInstruction = (
     action: MacroAction,
-    settings: SettingsAndPluginsMeta
+    settings: Settings,
+    plugins: PluginMetaData[]
 ) => {
-    const validInstructions = getAvailableOperationsForAction( action, settings );
+    const validInstructions = getAvailableOperationsForAction( action, settings, plugins );
 
     if ( !validInstructions.includes( action.operator ) ) {
         action.operator = validInstructions[0];
@@ -118,9 +121,10 @@ const patchMutationInstruction = (
 
 const patchConditionComparator = (
     condition: MacroCondition,
-    settings: SettingsAndPluginsMeta
+    settings: Settings,
+    plugins: PluginMetaData[]
 ) => {
-    const validComparators = getMacroConditionValidComparators( condition, settings );
+    const validComparators = getMacroConditionValidComparators( condition, settings, plugins );
 
     if ( !validComparators.includes( condition.comparator ) ) {
         condition.comparator = validComparators[0];
@@ -129,7 +133,8 @@ const patchConditionComparator = (
 
 export const getAvailableOperationsForAction = (
     action: MacroAction,
-    settings: SettingsAndPluginsMeta
+    settings: Settings,
+    plugins: PluginMetaData[]
 ): Operator[] => {
     if ( action.path[0] === ":function" ) {
         return [ Operator.Execute ];
@@ -143,9 +148,9 @@ export const getAvailableOperationsForAction = (
     } else {
         const typeOfField = getTypeOfField(
             action.path[0] === ":app"
-                ? getAppFieldDefinition( settings, action.path as TargetedPath<":app"> )
+                ? getAppFieldDefinition( settings, plugins, action.path as TargetedPath<":app"> )
                 : getPluginFieldDefinition(
-                      settings,
+                      plugins,
                       action.path as TargetedPath<":plugin">
                   )
         );
@@ -160,7 +165,8 @@ export const getAvailableOperationsForAction = (
 
 export const getMacroConditionValidComparators = (
     condition: MacroCondition,
-    settings: SettingsAndPluginsMeta
+    settings: Settings,
+    plugins: PluginMetaData[]
 ): ConditionComparator[] => {
     if ( condition.path[0] === ":function" ) {
         return getAvailableComparatorsForTypeOfField( "number" );
@@ -171,10 +177,11 @@ export const getMacroConditionValidComparators = (
             condition.path[0] === ":app"
                 ? getAppFieldDefinition(
                       settings,
+                      plugins,
                       condition.path as TargetedPath<":app">
                   )
                 : getPluginFieldDefinition(
-                      settings,
+                      plugins,
                       condition.path as TargetedPath<":plugin">
                   )
         );
@@ -189,7 +196,8 @@ export const getMacroConditionValidComparators = (
 
 export function sanitizeActionable<T extends MacroAction | MacroCondition>(
     action: T,
-    settings: SettingsAndPluginsMeta
+    settings: Settings,
+    plugins: PluginMetaData[]
 ) {
     if ( action.path.length === 0 ) {
         action.path = [ ":app" ];
@@ -198,6 +206,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
     if ( action.path[0] === ":app" ) {
         let field = getAppFieldDefinition(
             settings,
+            plugins,
             action.path as TargetedPath<":app">
         );
 
@@ -206,6 +215,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
 
             field = getAppFieldDefinition(
                 settings,
+                plugins,
                 action.path as TargetedPath<":app">
             )!;
         }
@@ -217,8 +227,8 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         const [ , pluginName ] = action.path;
 
         const plugin =
-            settings.activatedPlugins.find( ( p ) => p.name === pluginName ) ??
-            settings.activatedPlugins[0];
+            plugins.find( ( p ) => p.name === pluginName ) ??
+            plugins[0];
 
         if ( !plugin ) {
             action.error = {
@@ -230,7 +240,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         }
 
         const field = getPluginFieldDefinition(
-            settings,
+            plugins,
             action.path as TargetedPath<":plugin">
         );
 
@@ -265,7 +275,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         }
     } else if ( action.path[0] === ":macro" ) {
         if ( action.path.length > 1 ) {
-            if ( !settings.data.macros.macros.find( ( m ) => m.id === action.path[1] ) ) {
+            if ( !settings.macros.macros.find( ( m ) => m.id === action.path[1] ) ) {
                 action.error = {
                     type: MacroActionConfigurationErrorType.InvalidMacro,
                     message: "The macro originally targeted does not exist",
@@ -276,8 +286,8 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         }
 
         if ( action.path.length === 1 ) {
-            if ( settings.data.macros.macros[0] ) {
-                action.path.push( settings.data.macros.macros[0].id );
+            if ( settings.macros.macros[0] ) {
+                action.path.push( settings.macros.macros[0].id );
             }
         }
 

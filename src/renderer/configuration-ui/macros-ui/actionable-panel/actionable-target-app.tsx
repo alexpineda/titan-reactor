@@ -10,12 +10,14 @@ import { useStore } from "zustand";
 
 export const ActionableTargetApp = ( props: ActionablePanelProps ) => {
     const settings = useStore( window.deps.useSettingsStore );
+    const plugins = useStore( window.deps.usePluginsStore );
     const { action, macro } = props;
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { updateActionable } = useMacroStore();
 
     const levaConfig = getAppFieldDefinition(
-        settings,
+        settings.data,
+        plugins.enabledPlugins,
         action.path as TargetedPath<":app">
     );
 

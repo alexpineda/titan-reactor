@@ -17,6 +17,7 @@ import { sanitizeActionable } from "common/macros/sanitize-macros";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { log } from "@ipc/log";
 import { WritableDraft } from "immer/dist/internal";
+import { pluginsStore } from "@stores/plugins-store";
 export interface MacroStore {
     macros: MacrosDTO;
     persist(): Promise<Settings | undefined>;
@@ -141,7 +142,7 @@ export const createMacroStore = ( settingsStore = () =>  window.deps.useSettings
             },
 
             createActionable( { id }: MacroDTO, action: MacroAction | MacroCondition ) {
-                const saneActionable = sanitizeActionable( action, settingsStore() );
+                const saneActionable = sanitizeActionable( action, settingsStore().data, pluginsStore().enabledPlugins );
 
                 set( ( state ) => {
                     const macro = state.macros.macros.find( ( m ) => m.id === id );
@@ -163,7 +164,7 @@ export const createMacroStore = ( settingsStore = () =>  window.deps.useSettings
             },
 
             updateActionable( { id }: MacroDTO, _actionable: Actionable ) {
-                const actionable = sanitizeActionable( _actionable, settingsStore() );
+                const actionable = sanitizeActionable( _actionable, settingsStore().data, pluginsStore().enabledPlugins );
 
                 set( ( state ) => {
                     const macro = state.macros.macros.find( ( m ) => m.id === id );

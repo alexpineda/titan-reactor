@@ -17,10 +17,11 @@ export const SessionSettingsDropDown = ( {
     onlyConditional,
 }: Props ) => {
     const settings = useStore( window.deps.useSettingsStore );
+    const plugins = useStore( window.deps.usePluginsStore );
     
     const config = getSessionSettingsInLevaFormat(
         settings.data,
-        settings.activatedPlugins
+        plugins.enabledPlugins
     );
 
     return (

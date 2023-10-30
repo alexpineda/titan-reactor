@@ -2,7 +2,7 @@ import {
     FieldDefinition,
     PluginMetaData,
     SessionSettingsData,
-    SettingsMeta,
+    Settings,
 } from "common/types";
 import lSet from "lodash.set";
 
@@ -18,8 +18,8 @@ export const generateAppSettingsFromLevaFormat = (
 };
 
 export const getAppSettingsPropertyInLevaFormat = (
-    settings: SettingsMeta["data"],
-    plugins: SettingsMeta["activatedPlugins"],
+    settings: Settings,
+    plugins: PluginMetaData[],
     fields: string[]
 ): FieldDefinition | undefined => {
     if ( [ ":app", ":plugin", ":function", ":macro" ].includes( fields[0] ) ) {
@@ -31,8 +31,8 @@ export const getAppSettingsPropertyInLevaFormat = (
 };
 
 export const getAppSettingsInLevaFormat = (
-    settings: SettingsMeta["data"],
-    plugins: SettingsMeta["activatedPlugins"],
+    settings: Settings,
+    plugins: PluginMetaData[],
     maxAnisotropy = 2,
     maxPixelRatio = 1,
     maxAntiAlias = 1
@@ -45,7 +45,7 @@ export const getAppSettingsInLevaFormat = (
 
 export const getSessionSettingsPropertyInLevaFormat = (
     settings: SessionSettingsData,
-    plugins: SettingsMeta["activatedPlugins"],
+    plugins: PluginMetaData[],
     fields: string[]
 ): FieldDefinition | undefined => {
     if ( [ ":app", ":plugin", ":function", ":macro" ].includes( fields[0] ) ) {
@@ -58,7 +58,7 @@ export const getSessionSettingsPropertyInLevaFormat = (
 
 export const getSessionSettingsInLevaFormat = (
     settings: SessionSettingsData,
-    plugins: SettingsMeta["activatedPlugins"],
+    plugins: PluginMetaData[],
     maxAnisotropy = 2,
     maxAntiAlias = 1
 ) => ( {
@@ -81,7 +81,7 @@ type GlobalConfig = {
     [key in `session.${string}`]: any;
 };
 
-const getGlobalConfig = ( config: SettingsMeta["data"]["session"] ): GlobalConfig => ( {
+const getGlobalConfig = ( config: Settings["session"] ): GlobalConfig => ( {
     "session.type": {
         label: "SessionType",
         value: config.type,
@@ -113,7 +113,7 @@ type GraphicsConfig = {
 };
 
 const getGraphicsConfig = (
-    graphics: SettingsMeta["data"]["graphics"],
+    graphics: Settings["graphics"],
     maxPixelRatio = 1
 ): GraphicsConfig => ( {
     "graphics.pixelRatio": {
@@ -146,10 +146,10 @@ const getGraphicsConfig = (
 } );
 
 type UtilConfig = {
-    [key in `utilities.${keyof SettingsMeta["data"]["utilities"]}`]?: any;
+    [key in `utilities.${keyof Settings["utilities"]}`]?: any;
 };
 
-const getUtilConfig = ( util: SettingsMeta["data"]["utilities"] ): UtilConfig => ( {
+const getUtilConfig = ( util: Settings["utilities"] ): UtilConfig => ( {
     "utilities.debugMode": {
         label: "Debug Mode",
         value: util.debugMode,
@@ -182,11 +182,11 @@ const getUtilConfig = ( util: SettingsMeta["data"]["utilities"] ): UtilConfig =>
 } );
 
 type ReplayQueueConfig = {
-    [key in `replayQueue.${keyof SettingsMeta["data"]["replayQueue"]}`]?: any;
+    [key in `replayQueue.${keyof Settings["replayQueue"]}`]?: any;
 };
 
 const getReplayQueueConfig = (
-    replayQueue: SettingsMeta["data"]["replayQueue"]
+    replayQueue: Settings["replayQueue"]
 ): ReplayQueueConfig => ( {
     "replayQueue.enabled": {
         label: "Enable Replay Queue",
@@ -205,10 +205,10 @@ const getReplayQueueConfig = (
 } );
 
 type MinimapConfig = {
-    [key in `minimap.${keyof SettingsMeta["data"]["minimap"]}`]?: any;
+    [key in `minimap.${keyof Settings["minimap"]}`]?: any;
 };
 
-const getMinimapConfig = ( minimap: SettingsMeta["data"]["minimap"] ): MinimapConfig => ( {
+const getMinimapConfig = ( minimap: Settings["minimap"] ): MinimapConfig => ( {
     "minimap.enabled": {
         label: "Minimap Visible",
         value: minimap.enabled,
@@ -248,11 +248,11 @@ const getMinimapConfig = ( minimap: SettingsMeta["data"]["minimap"] ): MinimapCo
 } );
 
 type InputConfig = {
-    [key in `input.${keyof SettingsMeta["data"]["input"]}`]?: any;
+    [key in `input.${keyof Settings["input"]}`]?: any;
 };
 
 const getInputConfig = (
-    input: SettingsMeta["data"]["input"],
+    input: Settings["input"],
     sceneControllers: PluginMetaData[]
 ): InputConfig => ( {
     "input.sceneController": {
@@ -299,10 +299,10 @@ const getInputConfig = (
 } );
 
 type AudioConfig = {
-    [key in `audio.${keyof SettingsMeta["data"]["audio"]}`]?: any;
+    [key in `audio.${keyof Settings["audio"]}`]?: any;
 };
 
-const getAudioConfig = ( audio: SettingsMeta["data"]["audio"] ): AudioConfig => ( {
+const getAudioConfig = ( audio: Settings["audio"] ): AudioConfig => ( {
     "audio.global": {
         label: "Global Volume",
         value: audio.global,
@@ -331,11 +331,11 @@ const getAudioConfig = ( audio: SettingsMeta["data"]["audio"] ): AudioConfig => 
 } );
 
 type PostProcessingConfig = {
-    [key in `postprocessing.${keyof SettingsMeta["data"]["postprocessing"]}`]?: any;
+    [key in `postprocessing.${keyof Settings["postprocessing"]}`]?: any;
 };
 
 export const getPostProcessingConfig = (
-    postprocessing: SettingsMeta["data"]["postprocessing"],
+    postprocessing: Settings["postprocessing"],
     maxAnisotropy: number,
     maxAntiAlias: number
 ): PostProcessingConfig => ( {
@@ -385,11 +385,11 @@ export const getPostProcessingConfig = (
 } );
 
 type PostProcessingConfig3D = {
-    [key in `postprocessing3d.${keyof SettingsMeta["data"]["postprocessing3d"]}`]?: any;
+    [key in `postprocessing3d.${keyof Settings["postprocessing3d"]}`]?: any;
 };
 
 const getPostProcessing3DConfig = (
-    postprocessing3d: SettingsMeta["data"]["postprocessing3d"],
+    postprocessing3d: Settings["postprocessing3d"],
     maxAnisotropy: number,
     maxAntiAlias: number
 ): PostProcessingConfig3D => ( {

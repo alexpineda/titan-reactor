@@ -1,58 +1,55 @@
 import create from "zustand";
 import lSet from "lodash.set";
 
-import { Settings, SettingsMeta } from "common/types";
+import { Settings } from "common/types";
 import { defaultSettings } from "common/default-settings";
-import { SettingsRepository } from "@stores/settings-repository";
 import { LocalStorageAdapter } from "./storage-adapters/localstorage";
+import { applySettingsMigrations } from "./migrations/settings/settings-migrations";
 
-const settingsRepository = new SettingsRepository( new LocalStorageAdapter() );
+const storage = new LocalStorageAdapter();
 
-export type SettingsStore = SettingsMeta & {
+export type SettingsStore = {
+    data: Settings;
     save: ( data: Partial<Settings> ) => Promise<Settings>;
     set: ( data: Partial<Settings> ) => void;
     lset: ( path: string, value: any ) => void;
-    init: () => Promise<SettingsMeta>;
+    init: () => Promise<Settings>;
     initSessionData( type: "replay" | "map", sandbox?: boolean ): void;
-    enablePlugins( pluginIds: string[] ): void;
-    disablePlugins( pluginIds: string[] ): void;
 };
 
 
 export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
     data: { ...defaultSettings },
-    get activatedPlugins() {
-        return settingsRepository.enabledPlugins;
-    },
-    get deactivatedPlugins() {
-        return settingsRepository.disabledPlugins;
-    },
-    enablePlugins: ( pluginIds: string[] ) => {
-        settingsRepository.enablePlugins( pluginIds );
-    },
-    disablePlugins: ( pluginIds: string[] ) => {
-        settingsRepository.disablePlugins( pluginIds )
-    },
     set: ( settings ) => {
         set( ( state ) => ( { data: { ...state.data, ...settings } } ) );
     },
     lset: ( path: string, value: any ) => {
         set( ( state ) => ( { data: lSet( state.data, path, value ) } ) );
     },
-    initSessionData( type: SettingsMeta["data"]["session"]["type"], sandbox = false ) {
+    initSessionData( type: Settings["session"]["type"], sandbox = false ) {
         set( {
             data: { ...get().data, session: { ...get().data.session, type, sandbox } },
         } );
     },
-    save: async ( settings ) => {
-        await settingsRepository.save( { ...get().data, ...settings } );
-        get().set( settings );
-        return get().data;
+    save: async ( _settings: Partial<Settings> = {} ) => {
+        const data =  Object.assign( {}, get().data, _settings );
+        
+        //todo: reimplement
+        // const macros = sanitizeMacros( this.#settings.macros, {
+        //     data,
+        //     activatedPlugins: this.enabledPlugins,
+        // } );
+
+        await storage.saveSettings( data );
+
+        get().set( data );
+
+        return data;
     },
     init: async () => {
-        const settings = await settingsRepository.init();
-        set( settings );
-        return settings;
+        const settings = applySettingsMigrations( await storage.loadSettings() );
+        await get().save(settings);
+        return get().data;
     },
 } ) );
 
