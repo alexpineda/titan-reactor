@@ -42,37 +42,40 @@ export const createPluginSession = async (
     } );
 
     const nativePlugins = janitor.mop(
-        new PluginSystemNative(
-            pluginPackages,
-            ( pluginId: string, message: unknown ) =>
-                uiPlugins.sendMessage( {
-                    type: UI_SYSTEM_CUSTOM_MESSAGE,
-                    payload: {
-                        pluginId,
-                        message,
-                    },
-                } ),
-            createCompartment
-        ),
+        new PluginSystemNative(),
         "nativePlugins"
     );
 
-    nativePlugins.activateAdditionalPlugins(
-        [
-            {
-                apiVersion: "2.0.0",
-                id: "test-controller",
-                indexFile: "",
-                isSceneController: true,
-                name: "test-controller",
-                path: "",
-                version: "1.0.0",
-                nativeSource: TestController,
-                config: {},
-            },
-        ],
+    await nativePlugins.init(
+        pluginPackages.filter( ( p ) => p.nativeSource ),
+        ( pluginId: string, message: unknown ) =>
+            uiPlugins.sendMessage( {
+                type: UI_SYSTEM_CUSTOM_MESSAGE,
+                payload: {
+                    pluginId,
+                    message,
+                },
+            } ),
         createCompartment
-    );
+    )
+
+    // nativePlugins.activateAdditionalPlugins(
+    //     [
+    //         {
+    //             apiVersion: "2.0.0",
+    //             id: "test-controller",
+    //             indexFile: "",
+    //             isSceneController: true,
+    //             name: "test-controller",
+    //             path: "",
+    //             version: "1.0.0",
+    //             nativeSource: TestController,
+    //             config: {},
+    //             url: ""
+    //         },
+    //     ],
+    //     createCompartment
+    // );
 
     // available to macros and sandbox only
     const store = janitor.mop(

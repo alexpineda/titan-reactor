@@ -28,3 +28,8 @@ export function isEmoji( s: string ) {
 export function stripEmojis( s: string ) {
     return s.replace( /\p{Emoji}/gu, "" );
 }
+
+export const urlJoin = ( ...parts: string[] ) => {
+    const url = parts.join( "/" );
+    return url.replace( /([^:]\/)\/+/g, "$1" );
+}

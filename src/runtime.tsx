@@ -25,9 +25,7 @@ export interface Component {
     order: number | undefined;
     messageHandler: EventTarget;
     JSXElement: React.FC<any>;
-    //TODO: stronger types
     snap: string;
-    screen: string;
 }
 
 interface Plugin {
@@ -685,13 +683,6 @@ const App = ( { components }: { components: Component[] } ) => {
         }
     }, [ screen ] );
 
-    const appLoaded = screen !== "@loading";
-
-    const screenFilter = ( component: Component ) =>
-        appLoaded &&
-        [ "@replay", "@map" ].includes( screen as string ) &&
-        ( component.screen ?? "" ).includes( screen as string );
-
     const renderComponent = ( component: Component ) => (
         <PluginContext.Provider value={component}>
             <PluginComponent key={component.id} JSXElement={component.JSXElement} />
@@ -745,7 +736,6 @@ const App = ( { components }: { components: Component[] } ) => {
                         }}>
                         {components
                             .filter( ( c ) => c.snap === "top-left" )
-                            .filter( screenFilter )
                             .sort( orderSort )
                             .map( renderComponent )}
                     </div>
@@ -757,7 +747,6 @@ const App = ( { components }: { components: Component[] } ) => {
                         }}>
                         {components
                             .filter( ( c ) => c.snap === "top" )
-                            .filter( screenFilter )
                             .sort( orderSort )
                             .map( renderComponent )}
                     </div>
@@ -769,7 +758,6 @@ const App = ( { components }: { components: Component[] } ) => {
                         }}>
                         {components
                             .filter( ( c ) => c.snap === "top-right" )
-                            .filter( screenFilter )
                             .sort( orderSort )
                             .map( renderComponent )}
                     </div>
@@ -791,7 +779,6 @@ const App = ( { components }: { components: Component[] } ) => {
                         }}>
                         {components
                             .filter( ( c ) => c.snap === "left" )
-                            .filter( screenFilter )
                             .sort( orderSort )
                             .map( renderComponent )}
                     </div>
@@ -812,7 +799,6 @@ const App = ( { components }: { components: Component[] } ) => {
                             }}>
                             {components
                                 .filter( ( c ) => c.snap === "center" )
-                                .filter( screenFilter )
                                 .sort( orderSort )
                                 .map( renderComponent )}
                         </div>
@@ -823,7 +809,6 @@ const App = ( { components }: { components: Component[] } ) => {
                             }}>
                             {components
                                 .filter( ( c ) => c.snap === "bottom" )
-                                .filter( screenFilter )
                                 .sort( orderSort )
                                 .map( renderComponent )}
                         </div>
@@ -833,7 +818,6 @@ const App = ( { components }: { components: Component[] } ) => {
                         style={{ display: "flex", flexDirection: "column-reverse" }}>
                         {components
                             .filter( ( c ) => c.snap === "right" )
-                            .filter( screenFilter )
                             .sort( orderSort )
                             .map( renderComponent )}
                     </div>
@@ -841,7 +825,6 @@ const App = ( { components }: { components: Component[] } ) => {
 
                 {components
                     .filter( ( c ) => c.snap === "loose" )
-                    .filter( screenFilter )
                     .sort( orderSort )
                     .map( renderComponent )}
             </div>

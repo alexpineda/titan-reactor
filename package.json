@@ -16,7 +16,7 @@
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
         "generate:api-types": "ts-node -T .\\build\\api-types\\index.ts",
         "generate:plugin-api-docs": "typedoc --out docs/host --tsconfig tsconfig.host-api.json build/api-types/host/index.d.ts && typedoc --out docs/ui --tsconfig tsconfig.ui-api.json build/api-types/ui/index.d.ts",
-        "build:plugins": "ts-node -T ./esbuild.runtime.ts && ts-node -T .\\build\\plugins\\build-plugins.ts",
+        "build:plugins": "ts-node -T ./esbuild.runtime.ts && ts-node -T .\\build\\plugins\\index.ts",
         "serve:plugins": "http-server .\\dist\\plugins -p 8090 --cors",
         "web": "vite -c vite.config.web.ts",
         "build:web": "vite build -c vite.config.web.ts",

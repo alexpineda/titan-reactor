@@ -34,13 +34,14 @@ const build = async () => {
 
     await useTempDir(async (dir) => {
         for (const pkg of packages.officialPackages) {
-            const manifest = await pacote.manifest(pkg.name);
-            const folderName = sanitizeFilename(manifest.name.replace("/", "_"));
+            const packageName = pkg.name;
+            const isDeprecated = (await pacote.manifest(packageName)).deprecated;
+            const folderName = sanitizeFilename(packageName.replace("/", "_"));
             const sourceFolderPath = path.join(dir, folderName);
 
-            await pacote.extract(pkg.name, sourceFolderPath);
+            await pacote.extract(packageName, sourceFolderPath);
 
-            if (manifest.deprecated) {
+            if (isDeprecated) {
                 continue;
             }
 
@@ -73,7 +74,7 @@ const build = async () => {
                             banner: {
                                 js:
                                     file.type === "ui"
-                                        ? `import { _rc } from "@titan-reactor-runtime/ui"; const registerComponent = (...args) => _rc("${pkg.name}", ...args);`
+                                        ? `import { _rc } from "@titan-reactor-runtime/ui"; const registerComponent = (...args) => _rc("${packageName}", ...args);`
                                         : "",
                             },
                         });
@@ -94,31 +95,6 @@ const build = async () => {
         writeFileSync(path.join(outDir, "index.json"), JSON.stringify([...packageNames]));
     });
 
-    //todo: convert to vite build
-
-    const copyFiles = [
-        // path.join("bundled", "assets", "conthrax-rg.otf"),
-        // path.join("bundled", "assets", "conthrax-hv.otf"),
-        // path.join("bundled", "assets", "Inter-VariableFont_slnt,wght.ttf"),
-        // path.join("src", "renderer", "plugins", "ui-runtime", "runtime.html"),
-    ];
-
-    for (const file of copyFiles) {
-        copyFileSync(path.join(cwd, file), path.join(outDir, path.basename(file)));
-    }
-
-    // const js = await esbuild.transform(readFileSync(path.join(cwd, "src", "renderer", "plugins", "ui-runtime", "runtime.tsx"), "utf8"));
-    // writeFileSync(path.join(outDir, "runtime.js"), js.code);
-
-    // await esbuild.build({
-    //     entryPoints: [
-    //         path.join(cwd, "src", "renderer", "plugins", "ui-runtime", "runtime.tsx"),
-    //     ],
-    //     bundle: true,
-    //     format: "esm",
-    //     outfile: path.join(outDir, "runtime.js"),
-    //     external,
-    // });
 };
 
 build();

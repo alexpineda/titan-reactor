@@ -39,6 +39,7 @@ export interface PluginMetaData extends PluginPackage {
     indexFile: string;
     isSceneController: boolean;
     apiVersion: string;
+    url: string;
     config: PluginConfig;
 }
 

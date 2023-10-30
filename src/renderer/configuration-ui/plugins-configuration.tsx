@@ -38,13 +38,17 @@ export const PluginsConfiguration = ({
     const [ tabIndex, setTabIndex ] = useState( 0 );
     const plugins = useStore( window.deps.usePluginsStore );
 
-
-
     const [ plugin, setSelectedPluginPackage ] = useState<PluginMetaData | undefined>(
         plugins.plugins[0]
     );
 
     const oldConfig = useRef( plugin?.config );
+    const prevId = useRef( plugin?.id );
+
+    if ( prevId.current !== plugin?.id ) {
+        oldConfig.current = plugin?.config;
+        prevId.current = plugin?.id;
+    }
 
 
     const localPluginButton = ( local: PluginMetaData, isDisabled: boolean ) => (

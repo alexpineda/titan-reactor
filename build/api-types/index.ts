@@ -7,7 +7,7 @@ const doThing = async () => {
     console.log("building runtime types");
     const runtimeTypes = await unrollTypes({
         tsConfigFilePath: fn("./tsconfig.json"),
-        inFiles: ["./src/main/plugins/runtime.tsx"],
+        inFiles: ["./src/runtime.tsx"],
         defaultInternal: true,
     });
     writeFile(
@@ -24,8 +24,18 @@ const doThing = async () => {
         compilerOptions: {
             allowJs: false,
         },
-        prefix: `/// <reference types="node" />`,
+        prefix: `/// <reference types="node" />
+import { Janitor } from "three-janitor";
+`,
         wrapInGlobal: ["PluginBase", "SceneController", "enums", "context"],
+        globalExternals: [
+            `var THREE: typeof import("three");`,
+            `var postprocessing: typeof import("postprocessing");`,
+            `var CameraControls: typeof import("camera-controls");`,
+            //todo properly type common/enums
+            `var enums: any;`,
+            `var Janitor: typeof Janitor;`,
+        ]
     });
     writeFile(
         fn("./build/api-types/host/unrolled.json"),
