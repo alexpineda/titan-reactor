@@ -1,4 +1,5 @@
 import create from "zustand";
+import lSet from "lodash.set";
 
 import { Settings, SettingsMeta } from "common/types";
 import { defaultSettings } from "common/default-settings";
@@ -10,6 +11,7 @@ const settingsRepository = new SettingsRepository( new LocalStorageAdapter() );
 export type SettingsStore = SettingsMeta & {
     save: ( data: Partial<Settings> ) => Promise<Settings>;
     set: ( data: Partial<Settings> ) => void;
+    lset: ( path: string, value: any ) => void;
     init: () => Promise<SettingsMeta>;
     initSessionData( type: "replay" | "map", sandbox?: boolean ): void;
     enablePlugins( pluginIds: string[] ): void;
@@ -33,6 +35,9 @@ export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
     },
     set: ( settings ) => {
         set( ( state ) => ( { data: { ...state.data, ...settings } } ) );
+    },
+    lset: ( path: string, value: any ) => {
+        set( ( state ) => ( { data: lSet( state.data, path, value ) } ) );
     },
     initSessionData( type: SettingsMeta["data"]["session"]["type"], sandbox = false ) {
         set( {

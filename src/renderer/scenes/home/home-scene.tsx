@@ -13,6 +13,7 @@ import { Socials } from "./socials";
 import { ConfigButton } from "./config-button";
 
 import { MatchDisplay } from "./match-display";
+import { MuteIntroSoundButton } from "./mute-intro-sound-button";
 
 /**
  * React UI for Home Scene
@@ -58,6 +59,7 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                 }}>
                 <ConfigButton onClick={() => gameStore().openConfigurationWindow()} />
                 <OpenFileButton />
+                <MuteIntroSoundButton />
             </div>
 
             <div
