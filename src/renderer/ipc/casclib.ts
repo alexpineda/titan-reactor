@@ -14,6 +14,8 @@ import {
 
 let _cascurl = "";
 
+export const getCascUrl = () => _cascurl;
+
 export const openCascStorageRemote = async ( url = _cascurl ) => {
     _cascurl = url;
     return await fetch( `${_cascurl}?open=true` )

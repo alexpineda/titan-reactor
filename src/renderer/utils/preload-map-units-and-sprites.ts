@@ -8,9 +8,10 @@ import {
 import type Chk from "bw-chk";
 import { techTree } from "common/enums";
 import { CMDS, CommandsStream, Replay } from "process-replay";
+import { waitForTruthy } from "./wait-for";
 
 export const preloadMapUnitsAndSpriteFiles = async (
-    assets: Pick<Assets, "bwDat" | "loadImageAtlasAsync">,
+    assets: Assets,
     map: Pick<Chk, "units" | "sprites">,
     replay?: Pick<Replay, "rawCmds" | "stormPlayerToGamePlayer">
 ) => {
@@ -49,13 +50,14 @@ export const preloadMapUnitsAndSpriteFiles = async (
 
     const preload = processStore().create( "preload", allImages.length );
 
-    await Promise.all(
-        allImages.map( ( imageId ) =>
-            assets
-                .loadImageAtlasAsync( imageId )//, assets.bwDat )
-                .then( () => preload.increment() )
-        )
-    );
+    for (const imageId of allImages) {
+        assets.loadImageAtlas(imageId);
+    }
+
+    // await waitForTruthy( () => assets.loader.currentDownloads === 0 );
+
+    preload.increment();
+    
 };
 
 export const calculateImagesFromTechTreeUnits = (

@@ -61,7 +61,8 @@ export interface SettingsV6 {
     };
     graphics: {
         pixelRatio: number;
-        useHD2: "auto" | "ignore" | "force";
+        useHD: boolean;
+        use3D: boolean;
         preload: boolean;
         cursorSize: number;
     };

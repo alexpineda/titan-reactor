@@ -44,9 +44,9 @@ const createBasePlugin = ( _package?: Partial<PluginMetaData> ) => {
     };
 
     const plugins = new PluginSystemNative(
-        [pluginPackage as unknown as PluginMetaData],
-        () => {},
-        () => {}
+        // [pluginPackage as unknown as PluginMetaData],
+        // () => {},
+        // () => {}
     );
 
     return {

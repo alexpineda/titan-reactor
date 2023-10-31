@@ -39,6 +39,7 @@ import { ImageHD } from "@core/image-hd";
 import { IScriptState } from "./iscript-state";
 import { IScriptImage } from "./iscript-sprite";
 import { getDirection32 } from "@utils/camera-utils";
+import { AnimAtlas } from "@image/index";
 
 const bootup = async () => {
     await initializeAssets();
@@ -185,7 +186,7 @@ const bootup = async () => {
         const preload = async () => {
             const { header } = block;
 
-            const atlas = await loadImageAtlasDirect( block.image.index ); // true );
+            const atlas = await loadImageAtlasDirect( block.image.index ) as unknown as AnimAtlas; // true );
 
             const image = isGltfAtlas( atlas )
                 ? new Image3D( atlas )

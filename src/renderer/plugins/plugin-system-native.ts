@@ -1,7 +1,6 @@
 import {
     PluginMetaData,
     FieldDefinition,
-    PluginPackage,
     PluginConfig,
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";

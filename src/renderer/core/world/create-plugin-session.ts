@@ -14,7 +14,6 @@ import { globalEvents } from "@core/global-events";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import { normalizePluginConfiguration } from "@utils/function-utils";
-import TestController from "@plugins/built-in/default-camera-controller?raw";
 import { pluginsStore } from "@stores/plugins-store";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;

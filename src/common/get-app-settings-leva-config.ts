@@ -123,14 +123,9 @@ const getGraphicsConfig = (
         max: maxPixelRatio,
         step: 0.1,
     },
-    "graphics.useHD2": {
-        label: "Use HD2 (50% HD)",
-        value: graphics.useHD2,
-        options: {
-            "As Mipmap (Highest Quality)": "auto",
-            "Never. Only HD.": "ignore",
-            "Exclusively (Lower Memory)": "force",
-        },
+    "graphics.useHD": {
+        label: "Use HD",
+        value: graphics.useHD,
     },
     "graphics.preload": {
         label: "Preload Assets",
