@@ -47,7 +47,7 @@ export default async function readFolder(
         }) as ReadFolderResult[];
 }
 
-export async function useTempDir(cb: (dir: string) => Promise<void>) {
+export async function useTempDir(cb?: (dir: string) => Promise<void>) {
     let dir = "";
 
     try {
@@ -58,15 +58,23 @@ export async function useTempDir(cb: (dir: string) => Promise<void>) {
         }
     }
 
-    try {
-        await cb(dir);
-    } catch (e) {}
-
-    try {
-        fsPromises.rm(dir, { recursive: true, force: true });
-    } catch (e) {
-        console.log("useTempDir failed to cleanup", e);
+    const rmDir = () => {
+        try {
+            fsPromises.rm(dir, { recursive: true, force: true });
+        } catch (e) {
+            console.log("useTempDir failed to cleanup", e);
+        }
     }
+
+    if (cb) {
+        try {
+            await cb(dir);
+        } catch (e) {}
+        rmDir();
+    }
+
+    return { dir, cleanup: rmDir };
+    
 }
 
 export const foldersExist = async (rootDirectory: string, directories: string[]) => {
