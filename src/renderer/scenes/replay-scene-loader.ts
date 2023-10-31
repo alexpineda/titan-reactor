@@ -180,8 +180,8 @@ export const replaySceneLoader = async (
     // wait for initial assets to load
     await waitForTruthy( () => gameStore().assets?.remaining === 0 );
 
-    if ( settingsStore().data.graphics.preload ) {
-        await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map, replay );
+    if ( settingsStore().data.graphics.preloadMapSprites ) {
+        await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map );
     }
 
     loadProcess.increment();

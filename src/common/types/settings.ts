@@ -63,7 +63,8 @@ export interface SettingsV6 {
         pixelRatio: number;
         useHD: boolean;
         use3D: boolean;
-        preload: boolean;
+        cacheLocally: boolean;
+        preloadMapSprites: boolean;
         cursorSize: number;
     };
     minimap: {

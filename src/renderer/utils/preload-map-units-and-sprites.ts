@@ -7,54 +7,27 @@ import {
 } from "@utils/images-from-iscript";
 import type Chk from "bw-chk";
 import { techTree } from "common/enums";
-import { CMDS, CommandsStream, Replay } from "process-replay";
-import { waitForTruthy } from "./wait-for";
 
 export const preloadMapUnitsAndSpriteFiles = async (
     assets: Assets,
     map: Pick<Chk, "units" | "sprites">,
-    replay?: Pick<Replay, "rawCmds" | "stormPlayerToGamePlayer">
 ) => {
     const preloadCommandUnits = new Set<number>();
-
-    if ( replay ) {
-        const preloadCommands = new CommandsStream(
-            replay.rawCmds,
-            replay.stormPlayerToGamePlayer
-        );
-        const preloadCommandTypes = [
-            CMDS.TRAIN.id,
-            CMDS.UNIT_MORPH.id,
-            CMDS.BUILDING_MORPH.id,
-            CMDS.BUILD.id,
-        ];
-
-        for ( const command of preloadCommands.generate() ) {
-            if ( typeof command !== "number" ) {
-                if ( preloadCommandTypes.includes( command.id ) ) {
-                    preloadCommandUnits.add( command.unitTypeId! );
-                }
-            }
-        }
-    }
 
     const unitSprites = new Set(
         map.units.map( ( u ) => u.sprite ).filter( ( s ) => Number.isInteger( s ) ) as number[]
     );
     const allSprites = [
-        ...preloadCommandUnits,
         ...unitSprites,
         ...new Set( map.sprites.map( ( s ) => s.spriteId ) ),
     ];
-    const allImages = calculateImagesFromSpritesIscript( assets.bwDat, allSprites );
+    const allImages = [ ...calculateImagesFromSpritesIscript( assets.bwDat, allSprites ), ...preloadCommandUnits];
 
     const preload = processStore().create( "preload", allImages.length );
 
     for (const imageId of allImages) {
         assets.loadImageAtlas(imageId);
     }
-
-    // await waitForTruthy( () => assets.loader.currentDownloads === 0 );
 
     preload.increment();
     

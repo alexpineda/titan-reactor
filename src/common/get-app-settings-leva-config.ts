@@ -127,9 +127,13 @@ const getGraphicsConfig = (
         label: "Use HD",
         value: graphics.useHD,
     },
-    "graphics.preload": {
-        label: "Preload Assets",
-        value: graphics.preload,
+    "graphics.preloadMapSprites": {
+        label: "Preload Map Sprites",
+        value: graphics.preloadMapSprites,
+    },
+    "graphics.cacheLocally": {
+        label: "Cache Images Locally",
+        value: graphics.cacheLocally,
     },
     "graphics.cursorSize": {
         label: "Cursor Size",

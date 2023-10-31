@@ -64,7 +64,7 @@ export const mapSceneLoader = async ( file: File ): Promise<SceneState> => {
 
     process.increment();
 
-    if ( settingsStore().data.graphics.preload ) {
+    if ( settingsStore().data.graphics.preloadMapSprites ) {
         await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map );
     }
 

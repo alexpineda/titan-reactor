@@ -97,6 +97,8 @@ export const initializeAssets = async () => {
     };
 
     const imageLoaderManager = new ImageLoaderManager(refId);
+    await imageLoaderManager.init();
+   
 
     const loader = new CubeTextureLoader();
     const rootPath = __static + "/skybox/sparse/";
@@ -124,13 +126,13 @@ export const initializeAssets = async () => {
         loader: imageLoaderManager,
         loadImageAtlas(imageId: number) {
             imageLoaderManager.loadImage(imageId);
-            return this.getImageAtlas(imageId);
+            return imageLoaderManager.getImage(imageId);
         },
         getImageAtlas(imageId: number): AnimAtlas | null {
             return imageLoaderManager.getImage(imageId);
         },
         hasImageAtlas(imageId: number): boolean {
-            return !!this.getImageAtlas(imageId);
+            return !!imageLoaderManager.exists(imageId);
         },
         loadImageAtlasAsync(imageId: number) {
             return imageLoaderManager.loadImageImmediate(imageId);
@@ -156,5 +158,5 @@ export const loadImageAtlasDirect = async (imageId: number) => {
 
     const imageLoaderManager = new ImageLoaderManager((x) => assets.refId(x));
 
-    return imageLoaderManager.loadImage(imageId, false, UnitTileScale.HD);
+    return imageLoaderManager.loadImageImmediate(imageId);
 };

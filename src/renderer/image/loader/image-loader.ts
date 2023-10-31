@@ -10,6 +10,8 @@ import {
 } from "../atlas";
 import { ResourceLoaderStatus } from "./resource-loader-status";
 import { ResourceLoader } from "./resource-loader";
+import { settingsStore } from "@stores/settings-store";
+import { IndexedDBCache } from "./indexed-db-cache";
 
 const genFileName = ( i: number, prefix = "" ) =>
     `${prefix}anim/main_${`00${i}`.slice( -3 )}.anim`;
@@ -49,9 +51,9 @@ export class ImageLoader {
     priority = 3;
     status: ResourceLoaderStatus = "idle";
 
-    constructor(url: string, imageId: number) {
+    constructor(url: string, imageId: number, cache: IndexedDBCache) {
         this.imageId = imageId;
-        this.loader = new ResourceIncrementalLoader(`${getCascUrl()}/${url}`);
+        this.loader = new ResourceIncrementalLoader(`${getCascUrl()}/${url}`, cache);
         this.loader.onStatusChange = ( status ) => {
             this.status = status;
             if (status === "loaded") {
@@ -69,9 +71,23 @@ export class ImageLoaderManager {
     currentDownloads = 0;
     imageLoaders = new Map<number, ImageLoader>();
     #refId: ( id: number ) => number;
+    #cache = new IndexedDBCache( "image-cache" );
 
     constructor( refId: ( id: number ) => number ) {
         this.#refId = refId;
+    }
+
+    async init() {
+        await this.#cache.init();
+        this.#cache.enabled = settingsStore().data.graphics.cacheLocally;
+        if (!settingsStore().data.graphics.cacheLocally) {
+            this.#cache.clear();
+        }   
+    }
+
+    exists( imageId: number ) {
+        const refId = this.#refId( imageId );
+        return this.imageLoaders.has( refId );
     }
 
     getImage( imageId: number, useRefId = true ): AnimAtlas | null {
@@ -87,7 +103,7 @@ export class ImageLoaderManager {
             return;
         }
 
-        const loader = new ImageLoader(genFileName( refId, "HD2/" ), imageId);
+        const loader = new ImageLoader(genFileName( refId, "HD2/" ), imageId, this.#cache);
         // const loader = new ImageLoader(genFileName( refId, res === UnitTileScale.HD2 ? "HD2/" : ""));
 
         this.imageLoaders.set( refId, loader );
@@ -101,7 +117,7 @@ export class ImageLoaderManager {
             return this.imageLoaders.get( refId )?.atlas ?? null;
         }
 
-        const imageLoader = new ImageLoader(genFileName( refId, "HD2/" ), imageId);
+        const imageLoader = new ImageLoader(genFileName( refId, "HD2/" ), imageId, this.#cache);
         this.imageLoaders.set( refId, imageLoader );
         await imageLoader.loader.fetch();
         return imageLoader.atlas;

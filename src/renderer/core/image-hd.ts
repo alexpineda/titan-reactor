@@ -125,7 +125,7 @@ export class ImageHD
         this.atlas = atlas;
         this.material.map = atlas.diffuse;
         this.material.teamMask = atlas.teammask;
-        this.material.warpInFlashGRP = gameStore().assets?.getImageAtlas(210);
+        this.material.warpInFlashGRP = gameStore().assets?.getImageAtlas(210)!;
 
         this.material.alphaTest = 0.01;
         this.scale.set( atlas.spriteWidth / 128, atlas.spriteHeight / 128, 1 );

@@ -65,10 +65,11 @@ export const defaultSettingsV6: SettingsV6 = {
     },
     graphics: {
         pixelRatio: 1,
-        preload: true,
+        preloadMapSprites: true,
         cursorSize: 3,
         use3D: false,
         useHD: false,
+        cacheLocally: true,
     },
     postprocessing: {
         anisotropy: 0,

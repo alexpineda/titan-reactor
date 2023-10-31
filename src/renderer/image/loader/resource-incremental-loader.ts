@@ -33,6 +33,14 @@ export class ResourceIncrementalLoader extends ResourceLoader {
         try {
             this.status = "loading";
             this.buffer = null;
+            if (this.cache.enabled) {
+                const buffer = await this.cache.getValue(this.url);
+                if (buffer !== null) {
+                    this.buffer = buffer;
+                    this.status = "loaded";
+                    return this.buffer;
+                }
+            }
             this.#abortController = new AbortController();
             const headers = await fetch(this.url, {
                 method: "HEAD",
@@ -79,6 +87,9 @@ export class ResourceIncrementalLoader extends ResourceLoader {
                 this.buffer = concatenateArrayBuffers(this.#buffers);
                 this.#buffers.length = 0;
                 this.status = "loaded";
+                if (this.cache.enabled) {
+                    await this.cache.setValue({ id: this.url, buffer: this.buffer.buffer });
+                }
                 return this.buffer;
             } else {
                 return this.#fetchChunk(this.start, this.end);
