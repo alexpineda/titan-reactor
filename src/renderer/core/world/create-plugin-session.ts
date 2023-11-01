@@ -58,24 +58,6 @@ export const createPluginSession = async (
         createCompartment
     )
 
-    // nativePlugins.activateAdditionalPlugins(
-    //     [
-    //         {
-    //             apiVersion: "2.0.0",
-    //             id: "test-controller",
-    //             indexFile: "",
-    //             isSceneController: true,
-    //             name: "test-controller",
-    //             path: "",
-    //             version: "1.0.0",
-    //             nativeSource: TestController,
-    //             config: {},
-    //             url: ""
-    //         },
-    //     ],
-    //     createCompartment
-    // );
-
     // available to macros and sandbox only
     const store = janitor.mop(
         createPluginSessionStore( nativePlugins, uiPlugins ),

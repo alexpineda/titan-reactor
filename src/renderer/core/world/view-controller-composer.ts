@@ -9,6 +9,7 @@ import { SceneController } from "@plugins/scene-controller";
 import { easeInCubic } from "@utils/function-utils";
 import range from "common/utils/range";
 import { mixer } from "@audio/main-mixer";
+import { WebXRGameViewPort } from "../../camera/xr-viewport";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {
@@ -44,9 +45,9 @@ export const createViewControllerComposer = (
 ) => {
     let activating = false;
 
-    const viewports: GameViewPort[] = []
+    const viewports: (GameViewPort | WebXRGameViewPort)[] = []
 
-    const createViewports = () => range( 0, 4 ).map( i => new GameViewPort( gameSurface, i === 0 ) );
+    const createViewports = (n = 4) => range( 0, n ).map( i => new GameViewPort( gameSurface, i === 0 ) );
 
     let sceneController: SceneController | null = null;
 
@@ -84,9 +85,6 @@ export const createViewControllerComposer = (
                 return;
             }
 
-            // TODO: Refactor this.
-            // The scene controller should have access to the audio position itself so it can update on update() call back.
-            // The scene controller may not even want to use the viewport1 position here, so this current solution is not great.
             sceneController.viewport.orbit.getTarget( _target );
             sceneController.viewport.orbit.getPosition( _position );
 
@@ -116,26 +114,19 @@ export const createViewControllerComposer = (
          * Resets all viewports.
          * 
          * @param newController 
-         * @param firstRunData 
+         * @param globalData 
          * @returns 
          */
         async activate(
-            newController: SceneController | null | undefined,
-            firstRunData?: Vector3
+            newController: SceneController,
+            globalData: { target: Vector3, position?: undefined },
+            isWebXR?: boolean
         ) {
-            if ( newController === null ) {
-                sceneController = null;
-                return;
-            }
-            if ( newController === undefined ) {
-                log.warn( "GameViewportsDirector.activate: inputHandler is undefined" );
-                return;
-            }
             if ( activating ) {
                 return;
             }
             activating = true;
-            let prevData = firstRunData ?? this.generatePrevData();
+            let prevData = { ...globalData, ...this.generatePrevData() };
 
             if ( sceneController?.onExitScene ) {
                 try {
@@ -154,11 +145,15 @@ export const createViewControllerComposer = (
             }
 
             viewports.length = 0;
-            viewports.push(...createViewports());
+            if ( isWebXR ) {
+                viewports[0] = new WebXRGameViewPort(gameSurface, true);
+            } else {
+                viewports.push(...createViewports(newController.viewportsCount));
+            }
 
             await newController.onEnterScene( prevData );
             sceneController = newController;
-
+        
             world.events.emit( "scene-controller-enter", newController.name );
 
             activating = false;

@@ -24,6 +24,8 @@ export interface GlobalEvents {
     "replay-ready": { replay: ValidatedReplay; map: Chk };
     "replay-complete": ValidatedReplay;
     "map-ready": { map: Chk };
+    "xr-session-start": void;
+    "xr-session-end": void;
 }
 
 export const globalEventKeys: ( keyof GlobalEvents )[] = [
@@ -46,6 +48,8 @@ export const globalEventKeys: ( keyof GlobalEvents )[] = [
     "replay-ready",
     "replay-complete",
     "map-ready",
+    "xr-session-start",
+    "xr-session-end",
 ];
 
 /**

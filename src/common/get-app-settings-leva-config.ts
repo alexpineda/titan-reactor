@@ -178,6 +178,16 @@ const getUtilConfig = ( util: Settings["utilities"] ): UtilConfig => ( {
         min: 10,
         max: 100,
     },
+    "utilities.logLevel": {
+        label: "Logging",
+        value: util.logLevel,
+        options: [
+            "error",
+            "warn",
+            "info",
+            "debug",
+        ]
+    },
 } );
 
 type ReplayQueueConfig = {
@@ -255,8 +265,17 @@ const getInputConfig = (
     sceneControllers: PluginMetaData[]
 ): InputConfig => ( {
     "input.sceneController": {
-        label: "Scene Controller (Default)",
+        label: "Default Scene Controller",
         value: input.sceneController,
+        options: sceneControllers.reduce(
+            ( m, p ) => ( { ...m, [p.description ?? p.name]: p.name } ),
+            {}
+        ),
+    },
+    "input.vrController": {
+        label: "VR Controller",
+        value: input.vrController,
+        // todo: finer filter
         options: sceneControllers.reduce(
             ( m, p ) => ( { ...m, [p.description ?? p.name]: p.name } ),
             {}

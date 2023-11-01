@@ -133,7 +133,7 @@ export class GameViewPort extends Sizeable {
 
         this.viewport.copy(this.getActualSize());
         this.#direction32 = this.rotateSprites
-            ? getDirection32( this.projectedView.center, this.camera.position )
+            ? getDirection32( this.projectedView.center, this.camera.getWorldPosition( _target ))
             : 0;
 
         this.orbit.dampingFactor = MathUtils.damp(

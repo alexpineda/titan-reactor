@@ -79,7 +79,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         })   
 
     const playerWithStartLocation = world.players.find(p => p.startLocation);
-    const initialStartLocation = playerWithStartLocation ? playerWithStartLocation.startLocation : startLocations[0] ?? new Vector3();
+    const initialStartLocation = playerWithStartLocation ? playerWithStartLocation.startLocation ?? new Vector3() : startLocations[0] ?? new Vector3();
 
     const _world = borrow( world );
 

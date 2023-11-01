@@ -27,6 +27,7 @@ import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { mixer } from "@audio/main-mixer";
 import { CommandsStream } from "process-replay";
+import { WebXRGameViewPort } from "renderer/camera/xr-viewport";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 
@@ -99,24 +100,19 @@ export const createWorldComposer = async (
 
     events.on( "settings-changed", ( { settings } ) => mixer.setVolumes( settings.audio ) );
 
-    const _setSceneController = async ( controllername: string  ) => {
+    const _setSceneController = async ( controllername: string, isWebXR: boolean  ) => {
         const sceneController = apiSession.native
             .getAllSceneControllers()
-            .find( ( handler ) => handler.name === controllername );
+            .find( ( handler ) => handler.name === controllername && handler.isWebXR === isWebXR );
 
         if ( sceneController ) {
             apiSession.native.activateSceneController( sceneController );
-            await viewControllerComposer.activate( sceneController, sceneComposer.api.initialStartLocation );
+            await viewControllerComposer.activate( sceneController, { target: sceneComposer.api.initialStartLocation } );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
-        } else {
-            const sceneController = apiSession.native
-                .getAllSceneControllers()
-                .find( ( handler ) => handler.isSceneController );
-            apiSession.native.activateSceneController( sceneController );
-            await viewControllerComposer.activate( sceneController, sceneComposer.api.initialStartLocation );
-            inputsComposer.unitSelectionBox.camera =
-                viewControllerComposer.primaryCamera!;
+            if ( isWebXR ) {
+                sceneComposer.scene.add( (viewControllerComposer.sceneController!.viewport as WebXRGameViewPort).user )
+            }
         }
     };
 
@@ -130,14 +126,44 @@ export const createWorldComposer = async (
             rhs.input?.sceneController &&
             rhs.input.sceneController !== viewControllerComposer.sceneController?.name
         ) {
+            if ( !viewControllerComposer.sceneController?.isWebXR) {
+                postProcessingComposer.startTransition( () => {
+                    setTimeout(
+                        () => _setSceneController( settings.input.sceneController, false ),
+                        0
+                    );
+                } );
+            }
+        }
+
+        if (
+            rhs.input?.vrController &&
+            rhs.input.vrController !== viewControllerComposer.sceneController?.name
+        ) {
+            if ( viewControllerComposer.sceneController?.isWebXR ) {
+                _setSceneController( settings.input.vrController, true )
+            }
+        }
+    } );
+
+    janitor.mop(
+        globalEvents.on( "xr-session-start", async () => {
+            console.log("xr-session-start")
+            _setSceneController( settingsStore().data.input.vrController, true );
+        } )
+    );
+
+    janitor.mop(
+        globalEvents.on( "xr-session-end",  () => {
             postProcessingComposer.startTransition( () => {
                 setTimeout(
-                    () => _setSceneController( settings.input.sceneController ),
+                    () => _setSceneController( settingsStore().data.input.sceneController, false ),
                     0
                 );
             } );
-        }
-    } );
+        } )
+    )
+
 
     const simpleText = janitor.mop( new SimpleText(), "simple-text" );
 
@@ -174,6 +200,7 @@ export const createWorldComposer = async (
     ) as GameTimeApi;
 
 
+
     return {
         world,
 
@@ -188,9 +215,11 @@ export const createWorldComposer = async (
             janitor.mop(
                 globalEvents.on( "reload-all-plugins", async () => {
                     await settingsStore().init();
-                    this.activate( true, settings.getState().input.sceneController );
+                    this.activate( true );
                 } )
             );
+
+            
 
             await apiSession.activate( world, gameTimeApi );
         },
@@ -199,12 +228,9 @@ export const createWorldComposer = async (
          * Activate the world and start the game loop.
          *
          * @param reloadPlugins
-         * @param sceneController
-         * @param targetData
          */
         async activate(
-            reloadPlugins: boolean,
-            sceneController: string
+            reloadPlugins: boolean
         ) {
             openBW.setGameSpeed( 1 );
             openBW.setPaused( false );
@@ -220,7 +246,7 @@ export const createWorldComposer = async (
                 await apiSession.activate( world, gameTimeApi );
             }
 
-            await _setSceneController( sceneController );
+            await _setSceneController( settingsStore().data.input.sceneController, false );
 
             openBwComposer.precompile();
             postProcessingComposer.precompile( viewControllerComposer.primaryCamera );

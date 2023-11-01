@@ -89,17 +89,11 @@ export class TitanRenderComposer {
         });
 
         renderer.xr.addEventListener("sessionstart", () => {
-            // this.composer.dispose();
+            globalEvents.emit("xr-session-start");
         });
 
         renderer.xr.addEventListener("sessionend", () => {
-            // this.composer = new EffectComposer(undefined, {
-            //     frameBufferType: HalfFloatType,
-            //     multisampling: 0,
-            //     stencilBuffer: false,
-            //     alpha: true,
-            //     depthBuffer: true,
-            // });
+            globalEvents.emit("xr-session-end");
         });
     }
 

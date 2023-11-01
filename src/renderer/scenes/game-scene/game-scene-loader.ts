@@ -4,7 +4,6 @@ import { BasePlayer } from "@core";
 import { getOpenBW } from "@openbw";
 import { Janitor } from "three-janitor";
 import gameStore from "@stores/game-store";
-import { settingsStore } from "@stores/settings-store";
 import { WorldComposer, createWorldComposer } from "@core/world/world-composer";
 import { readCascFileRemote as readCascFile } from "@ipc/casclib";
 import processStore from "@stores/process-store";
@@ -38,9 +37,7 @@ export async function makeGameScene(
 
     if ( onWorldInitialized ) await onWorldInitialized( worldComposer );
 
-    await worldComposer.activate( false, settingsStore().data.input.sceneController, {
-        target: worldComposer.sceneComposer.api.initialStartLocation,
-    } );
+    await worldComposer.activate( false  );
 
     processStore().clearAll();
 

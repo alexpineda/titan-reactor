@@ -79,6 +79,7 @@ export interface SettingsV6 {
     };
     input: {
         sceneController: string;
+        vrController: string;
         dampingFactor: number;
         movementSpeed: number;
         rotateSpeed: number;

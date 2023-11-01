@@ -18,6 +18,7 @@ const defaultMapPlugins = [
     "@titan-reactor-plugins/camera-overview",
     "@titan-reactor-plugins/camera-battle",
     "@titan-reactor-plugins/sandbox-tools",
+    "@titan-reactor-plugins/vr-controller",
 ];
 
 const defaultReplayPlugins = [
@@ -31,6 +32,7 @@ const defaultReplayPlugins = [
     "@titan-reactor-plugins/production-bar",
     "@titan-reactor-plugins/unit-sounds",
     "@titan-reactor-plugins/narrative-maker",
+    "@titan-reactor-plugins/vr-controller",
 ];
 /**
  * Interfaces with NPM packages and the file system to load plugins.

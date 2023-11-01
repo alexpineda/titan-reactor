@@ -230,16 +230,10 @@ export const createPostProcessingComposer = (
                     elapsed,
                     world.settings.getState().input.cameraShakeStrength
                 );
-                if (renderComposer.glRenderer.xr.isPresenting) {
-               console.log(v.camera.position)
-                }
+                
                 renderComposer.render( delta, scene, v.camera, v.viewport, postProcessingBundle );
                 v.shakeEnd();
                 
-                // only one vr viewport
-                if (v.vrSupported ) {
-                    break;
-                }
             }
 
         },

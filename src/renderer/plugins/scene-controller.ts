@@ -76,6 +76,8 @@ const _va = new Vector3(),
  */
 export class SceneController extends PluginBase implements SceneController {
     override isSceneController = true;
+    isWebXR = false;
+    viewportsCount = 1;
 
     override onEnterScene( prevData: unknown ) {
         return Promise.resolve( prevData );

@@ -41,6 +41,7 @@ export const defaultSettingsV6: SettingsV6 = {
     },
     input: {
         sceneController: "@titan-reactor-plugins/camera-standard",
+        vrController: "@titan-reactor-plugins/vr-controller",
         dampingFactor: 0.1,
         cameraShakeStrength: 1,
         movementSpeed: 1.15,
