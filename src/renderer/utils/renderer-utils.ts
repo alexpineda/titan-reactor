@@ -1,5 +1,5 @@
 import { version } from "../../../package.json";
-import { getWebGLRenderer } from "@render/render-composer";
+import { useWebGLRenderer } from "@render/render-composer";
 import { log } from "@ipc/log";
 
 export const logCapabilities = () => {
@@ -7,7 +7,7 @@ export const logCapabilities = () => {
     // log.info( `@init: chrome ${process.versions.chrome}` );
     log.info( `@init: resolution ${window.innerWidth}x${window.innerHeight}` );
 
-    getWebGLRenderer( ( r ) => {
+    useWebGLRenderer( ( r ) => {
         log.debug( "@init: webgl capabilities" );
         for ( const prop of Object.getOwnPropertyNames( r.capabilities ) ) {
             const value = r.capabilities[prop as keyof typeof r.capabilities];

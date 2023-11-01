@@ -19,7 +19,7 @@ export const createGameLoopComposer = ( world: World ) => {
 
     world.events.on( "dispose", () => {
         log.debug( "dispose game loop" );
-        renderComposer.getWebGLRenderer().setAnimationLoop( null );
+        renderComposer.setAnimationLoop( null );
     } );
 
     return {
@@ -27,10 +27,10 @@ export const createGameLoopComposer = ( world: World ) => {
             return delta;
         },
         start() {
-            renderComposer.getWebGLRenderer().setAnimationLoop( GAME_LOOP );
+            renderComposer.setAnimationLoop( GAME_LOOP );
         },
         stop() {
-            renderComposer.getWebGLRenderer().setAnimationLoop( null );
+            renderComposer.setAnimationLoop( null );
         },
         onUpdate( val: ( delta: number, elapsed: number ) => void ) {
             _onUpdate = val;

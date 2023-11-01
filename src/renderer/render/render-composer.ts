@@ -41,7 +41,7 @@ export const createWebGLRenderer = () => {
     return renderer;
 };
 
-export const getWebGLRenderer = async (fn: (renderer: WebGLRenderer) => any) => {
+export const useWebGLRenderer = async (fn: (renderer: WebGLRenderer) => any) => {
     const renderer = createWebGLRenderer();
     await fn(renderer);
     renderer.dispose();
@@ -51,12 +51,10 @@ export const getWebGLRenderer = async (fn: (renderer: WebGLRenderer) => any) => 
  * Manages rendering using post processing.
  */
 export class TitanRenderComposer {
-    #renderer?: WebGLRenderer;
+    #renderer!: WebGLRenderer;
     #surfaceRef = new WeakRef( new Surface() );
-    // small optimization
     #prevBundle: any = null;
 
-    onRestoreContext?: () => void;
     composer = new EffectComposer( undefined, {
         frameBufferType: HalfFloatType,
         multisampling: 0,
@@ -66,17 +64,13 @@ export class TitanRenderComposer {
     } );
 
     constructor(surface?: Surface) {
-        this.getWebGLRenderer();
+        this.init();
         if (surface) {
-            this.targetSurface = surface;
+            this.dstSurface = surface;
         }
     }
 
-    // TODO don't get another renderer if context is lost
-    getWebGLRenderer() {
-        if ( this.#renderer ) {
-            return this.#renderer;
-        }
+    init() {
         const renderer = ( this.#renderer = createWebGLRenderer() );
 
         this.composer.setRenderer( renderer );
@@ -85,14 +79,23 @@ export class TitanRenderComposer {
         renderer.domElement.addEventListener( "webglcontextlost", ( evt ) => {
             evt.preventDefault();
             globalEvents.emit( "webglcontextlost" );
-            this.#renderer = undefined;
         } );
 
         renderer.domElement.addEventListener( "webglcontextrestored", () => {
             globalEvents.emit( "webglcontextrestored" );
         } );
+    }
 
-        return renderer;
+    get glRenderer() {
+        return this.#renderer;
+    }
+
+    get bufferCanvas() {
+        return this.#renderer.domElement;
+    }
+
+    setAnimationLoop( fn: Parameters<WebGLRenderer["setAnimationLoop"]>[0] ) {
+        this.#renderer.setAnimationLoop( fn );
     }
 
     setBundlePasses( bundle: { passes: Pass[] } ) {
@@ -113,7 +116,7 @@ export class TitanRenderComposer {
         lastPass.renderToScreen = true;
     }
 
-    set targetSurface( surface: Surface ) {
+    set dstSurface( surface: Surface ) {
         this.#surfaceRef = new WeakRef( surface );
         this.#renderer?.setViewport(
             new Vector4( 0, 0, surface.bufferWidth, surface.bufferHeight )
@@ -126,13 +129,11 @@ export class TitanRenderComposer {
      * If a viewport is provided, only that part of the screen will be rendered to.
      */
     render( delta: number, viewport?: Vector4 ) {
-        const renderer = this.getWebGLRenderer();
-
         // If a viewport is provided, we need to enable the scissor test so that only that part of the screen is rendered to.
         if ( viewport ) {
-            renderer.setScissorTest( true );
-            renderer.setViewport( viewport );
-            renderer.setScissor( viewport );
+            this.#renderer!.setScissorTest( true );
+            this.#renderer!.setViewport( viewport );
+            this.#renderer!.setScissor( viewport );
         }
 
         // Render the scene using the post-processing pipeline.
@@ -140,7 +141,7 @@ export class TitanRenderComposer {
 
         // If a viewport is provided, we need to disable the scissor test so that the rest of the screen is rendered to as well.
         if ( viewport ) {
-            renderer.setScissorTest( false );
+            this.#renderer!.setScissorTest( false );
         }
     }
 
@@ -148,17 +149,16 @@ export class TitanRenderComposer {
      * Copies the contents of the renderer to the target surface.
      */
     drawBuffer() {
-        const renderer = this.getWebGLRenderer();
         const surface = this.#surfaceRef.deref();
 
-        if ( surface?.canvas === renderer.domElement ) {
+        if ( surface?.canvas === this.#renderer!.domElement ) {
             return;
         }
 
         surface!.ctx!.drawImage(
-            renderer.domElement,
+            this.#renderer!.domElement,
             0,
-            renderer.domElement.height - surface!.bufferHeight,
+            this.#renderer!.domElement.height - surface!.bufferHeight,
             surface!.bufferWidth,
             surface!.bufferHeight,
             0,
@@ -173,24 +173,20 @@ export class TitanRenderComposer {
     }
 
     dispose() {
-        if ( this.#renderer ) {
-            this.#renderer.setAnimationLoop( null );
-            this.#renderer.dispose();
-            this.#renderer = undefined;
-        }
-
+        this.#renderer.setAnimationLoop( null );
+        this.#renderer.dispose();
         this.composer.dispose();
     }
 
     // for rendering atlases ahead of time like terrain textures, icons, etc.
     preprocessStart() {
-        this.getWebGLRenderer().autoClear = false;
-        this.getWebGLRenderer().outputColorSpace = LinearSRGBColorSpace;
+        this.#renderer!.autoClear = false;
+        this.#renderer!.outputColorSpace = LinearSRGBColorSpace;
     }
 
     preprocessEnd() {
-        this.getWebGLRenderer().autoClear = false;
-        this.getWebGLRenderer().outputColorSpace = SRGBColorSpace;
+        this.#renderer!.autoClear = false;
+        this.#renderer!.outputColorSpace = SRGBColorSpace;
     }
 }
 

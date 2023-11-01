@@ -161,7 +161,7 @@ const bootup = async () => {
 
     renderComposer.setBundlePasses( postProcessingBundle );
     janitor.mop(
-        () => renderComposer.getWebGLRenderer().setAnimationLoop( null ),
+        () => renderComposer.setAnimationLoop( null ),
         "renderLoop"
     );
 
@@ -267,7 +267,7 @@ const bootup = async () => {
         controls.update();
     };
 
-    renderComposer.getWebGLRenderer().setAnimationLoop( ISCRIPTAH_LOOP );
+    renderComposer.setAnimationLoop( ISCRIPTAH_LOOP );
 
     root.render( <App surface={surface} /> );
 };

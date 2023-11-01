@@ -156,7 +156,7 @@ export class PostProcessingBundler {
     update( renderComposer: TitanRenderComposer ) {
         renderComposer.composer.multisampling = Math.min(
             this.options.antialias,
-            renderComposer.getWebGLRenderer().capabilities.maxSamples
+            renderComposer.glRenderer.capabilities.maxSamples
         );
 
         this.#fogOfWarEffect.opacity = this.options.fogOfWar;
@@ -171,7 +171,7 @@ export class PostProcessingBundler {
         this.#tonemappingPass.enabled = isPostProcessing3D( this.options );
 
         if ( isPostProcessing3D( this.options ) ) {
-            renderComposer.getWebGLRenderer().toneMappingExposure =
+            renderComposer.glRenderer.toneMappingExposure =
                 this.options3d!.toneMapping;
         }
     }

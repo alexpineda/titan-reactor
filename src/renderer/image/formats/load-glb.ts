@@ -12,10 +12,10 @@ import {
 import { GLTF, GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 import { MeshoptDecoder } from "./mesh-opt-decoder";
 import { KTX2Loader } from "three/examples/jsm/loaders/KTX2Loader";
-import { getWebGLRenderer } from "@render/render-composer";
+import { useWebGLRenderer } from "@render/render-composer";
 
 const ktx2Loader = new KTX2Loader();
-getWebGLRenderer(renderer => {
+useWebGLRenderer(renderer => {
     ktx2Loader.setTranscoderPath(  __static + "/basis/" );
     ktx2Loader.detectSupport( renderer );
 })

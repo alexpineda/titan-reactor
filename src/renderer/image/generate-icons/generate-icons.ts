@@ -96,7 +96,7 @@ export const generateUIIcons = async ( readFile: ReadFile ) => {
     };
 
     renderComposer.preprocessStart();
-    const renderer = renderComposer.getWebGLRenderer();
+    const renderer = renderComposer.glRenderer;
 
     const gameIcons = await generateResourceIcons(
         renderer,

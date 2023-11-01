@@ -126,7 +126,7 @@ export async function createWraithScene() {
             window.innerHeight,
             devicePixelRatio
         );
-        renderComposer.targetSurface = introSurface;
+        renderComposer.dstCanvas = introSurface;
         camera.get().aspect = introSurface.width / introSurface.height;
         camera.get().updateProjectionMatrix();
     };
@@ -228,7 +228,7 @@ export async function createWraithScene() {
         ] ),
     } );
 
-    renderComposer.getWebGLRenderer().setAnimationLoop( ( elapsed: number ) => {
+    renderComposer.setAnimationLoop( ( elapsed: number ) => {
         const delta = elapsed - _lastElapsed;
         _lastElapsed = elapsed;
 
@@ -270,7 +270,7 @@ export async function createWraithScene() {
 
     _sceneResizeHandler();
 
-    document.body.appendChild( VRButton.createButton( renderComposer.getWebGLRenderer() ) );
+    document.body.appendChild( VRButton.createButton( renderComposer.glRenderer ) );
 
     return {
         dispose: () => janitor.dispose(),

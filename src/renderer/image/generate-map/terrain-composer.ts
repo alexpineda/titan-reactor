@@ -51,7 +51,7 @@ export async function terrainComposer(
 
     genProcess.increment();
 
-    const renderer = renderComposer.getWebGLRenderer();
+    const renderer = renderComposer.glRenderer;
 
     const heightMaps = doHeightMapEffect( {
         palette: td.palette,
@@ -136,7 +136,7 @@ const generateCreepDiffuse = async (
               td.hdTiles,
               td.tilegroupsCV5,
               textureResolution,
-              renderComposer.getWebGLRenderer()
+              renderComposer.glRenderer
           );
 
     const creepEdgesTexture = isLowRes
@@ -144,7 +144,7 @@ const generateCreepDiffuse = async (
         : hd.ddsToCreepEdgesTexture(
               td.creepGrpHD,
               textureResolution,
-              renderComposer.getWebGLRenderer()
+              renderComposer.glRenderer
           );
 
     return {
@@ -176,7 +176,7 @@ const generateMapDiffuseQuartiles = (
               lookupBitmaps.mapTilesData,
               textureResolution,
               effectTextures,
-              renderComposer.getWebGLRenderer()
+              renderComposer.glRenderer
           );
 
     return {
