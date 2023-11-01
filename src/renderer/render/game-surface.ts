@@ -16,7 +16,7 @@ export class GameSurface extends Surface {
     #shouldHavePointerLock = false;
 
     constructor( mapWidth: number, mapHeight: number, canvas: HTMLCanvasElement ) {
-        super( canvas, false );
+        super( canvas );
         this.#mapHeight = mapHeight;
         this.#mapWidth = mapWidth;
 

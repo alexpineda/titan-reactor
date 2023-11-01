@@ -18,7 +18,7 @@ export const createSurfaceComposer = ( world: World ) => {
     const gameSurface = janitor.mop(
         new GameSurface(
             ...world.map.size,
-            renderComposer.bufferCanvas
+            renderComposer.srcCanvas
         ),
         "GameSurface"
     );
@@ -30,7 +30,7 @@ export const createSurfaceComposer = ( world: World ) => {
         settingsStore().data.graphics.pixelRatio
     );
 
-    renderComposer.dstSurface = gameSurface;
+    renderComposer.dstCanvas = gameSurface.canvas;
 
     const _sceneResizeHandler = () => {
         gameSurface.setDimensions(
@@ -38,8 +38,6 @@ export const createSurfaceComposer = ( world: World ) => {
             window.innerHeight,
             settingsStore().data.graphics.pixelRatio
         );
-
-        renderComposer.setSize( gameSurface.bufferWidth, gameSurface.bufferHeight );
 
         world.events.emit( "resize", gameSurface );
     };

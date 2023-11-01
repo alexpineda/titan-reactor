@@ -11,6 +11,10 @@ export const createGameLoopComposer = ( world: World ) => {
     let _onUpdate: ( delta: number, elapsed: number ) => void = () => {};
 
     const GAME_LOOP = ( elapsed: number ) => {
+        if (elapsed < 0) { 
+            console.error( "Negative elapsed time detected. Skipping frame." );
+            return;
+        }
         delta = elapsed - lastElapsed;
         lastElapsed = elapsed;
 

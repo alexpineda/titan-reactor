@@ -121,7 +121,7 @@ export const createViewControllerComposer = (
          */
         async activate(
             newController: SceneController | null | undefined,
-            firstRunData?: any
+            firstRunData?: Vector3
         ) {
             if ( newController === null ) {
                 sceneController = null;
@@ -135,7 +135,7 @@ export const createViewControllerComposer = (
                 return;
             }
             activating = true;
-            let prevData: unknown = firstRunData ?? this.generatePrevData();
+            let prevData = firstRunData ?? this.generatePrevData();
 
             if ( sceneController?.onExitScene ) {
                 try {

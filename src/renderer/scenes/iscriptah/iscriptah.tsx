@@ -49,7 +49,7 @@ const bootup = async () => {
     const surface = new Surface();
     surface.setDimensions( 300, 300, window.devicePixelRatio );
 
-    const renderComposer = new TitanRenderComposer( surface );
+    const renderComposer = new TitanRenderComposer( surface.canvas );
 
     const scene = new Scene();
     janitor.mop( scene, "scene" );
@@ -148,7 +148,6 @@ const bootup = async () => {
         viewports[2].set( w2, h2, w2, h2 );
         viewports[3].set( w2, 0, w2, h2 );
 
-        renderComposer.setSize( surface.bufferWidth, surface.bufferHeight );
     };
     janitor.addEventListener( window, "resize", "resize", resizeHandler );
     resizeHandler();
@@ -159,7 +158,6 @@ const bootup = async () => {
         passes: [ renderPass ],
     };
 
-    renderComposer.setBundlePasses( postProcessingBundle );
     janitor.mop(
         () => renderComposer.setAnimationLoop( null ),
         "renderLoop"
@@ -259,10 +257,7 @@ const bootup = async () => {
                 }
             }
 
-            //@ts-expect-error
-            renderPass.camera = cameras[i];
-            renderComposer.render( delta, viewports[i] );
-            renderComposer.drawBuffer();
+            renderComposer.render( delta, scene, cameras[i], viewports[i], postProcessingBundle );
         }
         controls.update();
     };

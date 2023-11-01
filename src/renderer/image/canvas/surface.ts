@@ -1,5 +1,4 @@
 export class Surface {
-    ctx?: CanvasRenderingContext2D;
     canvas: HTMLCanvasElement;
     #pixelRatio = 1;
     #width = 0;
@@ -9,7 +8,6 @@ export class Surface {
 
     constructor(
         canvas = document.createElement( "canvas" ),
-        useContext = true,
         styles?: Partial<ElementCSSInlineStyle["style"]>
     ) {
         if ( styles ) {
@@ -18,13 +16,7 @@ export class Surface {
         canvas.addEventListener( "contextmenu", ( e ) => {
             e.preventDefault();
         } );
-        if ( useContext ) {
-            const ctx = canvas.getContext( "2d" );
-            if ( !ctx ) {
-                throw new Error( "Could not get canvas context" );
-            }
-            this.ctx = ctx;
-        }
+        
         this.canvas = canvas;
     }
 

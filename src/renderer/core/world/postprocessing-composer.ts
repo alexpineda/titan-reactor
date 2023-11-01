@@ -19,6 +19,7 @@ import { ViewControllerComposer } from "@core/world/view-controller-composer";
 import { World } from "./world";
 import { isImageHd, isMesh } from "@utils/image-utils";
 import { createTransition } from "./transition";
+import { VRButton } from "@render/vr/vr-button";
 
 //tank base, minerals
 const ignoreRecieveShadow = [ 250, 253, 347, 349, 351 ];
@@ -150,16 +151,15 @@ export const createPostProcessingComposer = (
 
     world.events.on( "dispose", () => janitor.dispose() );
 
+    document.body.appendChild( janitor.mop(VRButton.createButton( renderComposer.glRenderer )) );
+
+
     return {
         precompile( camera: PerspectiveCamera | OrthographicCamera ) {
             _changeRenderMode( false );
-            renderComposer.setBundlePasses( postProcessingBundle );
-            renderComposer.composer.setMainScene( scene );
-            renderComposer.composer.setMainCamera( camera );
-
             sceneComposer.onFrame( 0, 0, false );
 
-            renderComposer.render( 0 );
+            renderComposer.glRenderer.compile( scene, camera );
         },
         api: {
             changeRenderMode( renderMode3D?: boolean ) {
@@ -230,15 +230,18 @@ export const createPostProcessingComposer = (
                     elapsed,
                     world.settings.getState().input.cameraShakeStrength
                 );
-                renderComposer.setBundlePasses( postProcessingBundle );
-                renderComposer.composer.setMainCamera( v.camera );
-                renderComposer.composer.setMainScene( scene );
-
-                renderComposer.render( delta, v.viewport );
+                if (renderComposer.glRenderer.xr.isPresenting) {
+               console.log(v.camera.position)
+                }
+                renderComposer.render( delta, scene, v.camera, v.viewport, postProcessingBundle );
                 v.shakeEnd();
+                
+                // only one vr viewport
+                if (v.vrSupported ) {
+                    break;
+                }
             }
 
-            renderComposer.drawBuffer();
         },
     };
 };

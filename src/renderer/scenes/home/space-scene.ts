@@ -109,7 +109,7 @@ export async function createWraithScene() {
     }
 
     const janitor = new Janitor( "intro" );
-    const renderComposer = new TitanRenderComposer( introSurface );
+    const renderComposer = new TitanRenderComposer( introSurface.canvas );
 
     _noiseInstance = janitor.mop( createWraithNoise() );
     _noiseInstance.start();
@@ -126,7 +126,7 @@ export async function createWraithScene() {
             window.innerHeight,
             devicePixelRatio
         );
-        renderComposer.dstCanvas = introSurface;
+        renderComposer.dstCanvas = introSurface.canvas;
         camera.get().aspect = introSurface.width / introSurface.height;
         camera.get().updateProjectionMatrix();
     };
@@ -209,7 +209,7 @@ export async function createWraithScene() {
         darkness: 0.55,
     } );
 
-    renderComposer.setBundlePasses( {
+    const bundlePasses = {
         passes: janitor.mop( [
             renderPass,
             new EffectPass(
@@ -226,9 +226,13 @@ export async function createWraithScene() {
             ),
             glitchPass,
         ] ),
-    } );
+    };
 
     renderComposer.setAnimationLoop( ( elapsed: number ) => {
+        if ( elapsed < 0) {
+            console.error( "Negative elapsed time detected. Skipping frame." );
+            return;
+        }
         const delta = elapsed - _lastElapsed;
         _lastElapsed = elapsed;
 
@@ -262,15 +266,14 @@ export async function createWraithScene() {
         _noiseInstance.value =
             camera.cameraState === CameraState.RotateAroundWraiths ? rear : 0;
 
-        renderComposer.render( delta );
-        renderComposer.drawBuffer();
+        renderComposer.render( delta, scene, camera.get(), null, bundlePasses );
     } );
 
     janitor.mop( renderComposer );
 
     _sceneResizeHandler();
 
-    document.body.appendChild( VRButton.createButton( renderComposer.glRenderer ) );
+    document.body.appendChild( janitor.mop(VRButton.createButton( renderComposer.glRenderer )) );
 
     return {
         dispose: () => janitor.dispose(),

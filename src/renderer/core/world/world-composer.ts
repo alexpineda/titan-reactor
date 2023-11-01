@@ -99,14 +99,14 @@ export const createWorldComposer = async (
 
     events.on( "settings-changed", ( { settings } ) => mixer.setVolumes( settings.audio ) );
 
-    const _setSceneController = async ( controllername: string, defaultData?: any ) => {
+    const _setSceneController = async ( controllername: string  ) => {
         const sceneController = apiSession.native
             .getAllSceneControllers()
             .find( ( handler ) => handler.name === controllername );
 
         if ( sceneController ) {
             apiSession.native.activateSceneController( sceneController );
-            await viewControllerComposer.activate( sceneController, defaultData );
+            await viewControllerComposer.activate( sceneController, sceneComposer.api.initialStartLocation );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
         } else {
@@ -114,7 +114,7 @@ export const createWorldComposer = async (
                 .getAllSceneControllers()
                 .find( ( handler ) => handler.isSceneController );
             apiSession.native.activateSceneController( sceneController );
-            await viewControllerComposer.activate( sceneController, defaultData );
+            await viewControllerComposer.activate( sceneController, sceneComposer.api.initialStartLocation );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
         }
@@ -173,6 +173,7 @@ export const createWorldComposer = async (
         gameLoopComposer.api
     ) as GameTimeApi;
 
+
     return {
         world,
 
@@ -203,8 +204,7 @@ export const createWorldComposer = async (
          */
         async activate(
             reloadPlugins: boolean,
-            sceneController: string,
-            targetData?: any
+            sceneController: string
         ) {
             openBW.setGameSpeed( 1 );
             openBW.setPaused( false );
@@ -220,7 +220,7 @@ export const createWorldComposer = async (
                 await apiSession.activate( world, gameTimeApi );
             }
 
-            await _setSceneController( sceneController, targetData );
+            await _setSceneController( sceneController );
 
             openBwComposer.precompile();
             postProcessingComposer.precompile( viewControllerComposer.primaryCamera );
@@ -299,7 +299,7 @@ export const createWorldComposer = async (
                 );
             }
 
-            this.onRender( delta, elapsed );
+            postProcessingComposer.render( delta, elapsed );
 
             inputsComposer.reset();
         },
@@ -323,12 +323,5 @@ export const createWorldComposer = async (
             world.events.emit( "pre-run:complete" );
         },
 
-        onRender: ( delta: number, elapsed: number ) => {
-            // world.events.emit( "render:before");
-
-            postProcessingComposer.render( delta, elapsed );
-
-            // world.events.emit( "render");
-        },
     };
 };
