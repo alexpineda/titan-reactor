@@ -3,14 +3,16 @@ import { ResourceLoaderStatus } from "./resource-loader-status";
 
 export class ResourceLoader {
     url = "";
+    key = "";
     #status: ResourceLoaderStatus = "idle";
     buffer: Buffer | null = null;
     onStatusChange: (status: ResourceLoaderStatus) => void = () => {};
     #abortController: AbortController | null = null;
     protected cache: IndexedDBCache;
 
-    constructor(url: string, cache: IndexedDBCache) {
+    constructor(url: string, cache: IndexedDBCache, key = url) {
         this.url = url;
+        this.key = key;
         this.cache = cache;
     }
 
@@ -30,13 +32,11 @@ export class ResourceLoader {
         try {   
             this.status = "loading";
             this.buffer = null;
-            if (this.cache.enabled) {
-                const buffer = await this.cache.getValue(this.url);
-                if (buffer !== null) {
-                    this.buffer = buffer;
-                    this.status = "loaded";
-                    return this.buffer;
-                }
+            const buffer = await this.cache.getValue(this.key);
+            if (buffer !== null) {
+                this.buffer = buffer;
+                this.status = "loaded";
+                return this.buffer;
             }
             this.#abortController = new AbortController();
             const arrayBuffer = await fetch(this.url, {
@@ -44,9 +44,7 @@ export class ResourceLoader {
             }).then((res) => res.arrayBuffer());
             this.buffer = Buffer.from(arrayBuffer);
             this.status = "loaded";
-            if (this.cache.enabled) {
-                await this.cache.setValue({ id: this.url, buffer: arrayBuffer });
-            }
+            await this.cache.setValue({ id: this.key, buffer: arrayBuffer });
             return this.buffer;
         } catch (e) {
             if ((e as Error).name === "AbortError") {

@@ -25,7 +25,7 @@ export class SoundChannels {
     async _load( typeId: number ) {
         this.#loading.set( typeId, true );
 
-        const buffer = await this.#mixer.loadAudioBuffer( typeId );
+        const buffer = await this.#mixer.loadCascAudioById( typeId );
 
         this.#lastPlayed.set( buffer, 0 );
         this.#loading.delete( typeId );

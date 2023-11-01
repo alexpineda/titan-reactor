@@ -33,7 +33,7 @@ export const defaultSettingsV6: SettingsV6 = {
         mode: "3d",
         position: [ -3, 2 ],
         scale: 1.5,
-        opacity: 0.5,
+        opacity: 0.9,
         rotation: [ -0.7, 0, 0 ],
         softEdges: true,
         interactive: true,
@@ -50,6 +50,7 @@ export const defaultSettingsV6: SettingsV6 = {
         cursorVisible: true,
     },
     utilities: {
+        cacheLocally: true,
         sanityCheckReplayCommands: false,
         debugMode: false,
         detectMeleeObservers: false,
@@ -69,7 +70,6 @@ export const defaultSettingsV6: SettingsV6 = {
         cursorSize: 3,
         use3D: false,
         useHD: false,
-        cacheLocally: true,
     },
     postprocessing: {
         anisotropy: 0,

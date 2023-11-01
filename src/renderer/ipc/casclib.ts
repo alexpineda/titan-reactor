@@ -1,39 +1,36 @@
-// import { ipcRenderer } from "electron";
+import { IndexedDBCache } from "@image/loader/indexed-db-cache";
+import { useSettingsStore } from "@stores/settings-store";
 
-// import {
-//     OPEN_CASCLIB_REMOTE,
-//     OPEN_CASCLIB_FILE_REMOTE,
-//     OPEN_CASCLIB_BATCH_REMOTE,
-//     CLOSE_CASCLIB_REMOTE,
-// } from "common/ipc-handle-names";
-import {
-    // FindCascFiles,
-    ReadCascFile,
-    // ReadCascFileBatch,
-} from "common/types";
+const generalCascCache = new IndexedDBCache("general-casc-cache");
+
+useSettingsStore.subscribe((settings) => {
+    generalCascCache.enabled = settings.data.utilities.cacheLocally;
+});
 
 let _cascurl = "";
 
 export const getCascUrl = () => _cascurl;
 
-export const openCascStorageRemote = async ( url = _cascurl ) => {
+export const openCascStorageRemote = async (url = _cascurl) => {
     _cascurl = url;
-    return await fetch( `${_cascurl}?open=true` )
-        .then( ( res ) => res.ok )
-        .catch( () => false );
+    return await fetch(`${_cascurl}?open=true`)
+        .then((res) => res.ok)
+        .catch(() => false);
 };
 
 export const closeCascStorageRemote = async () => {
-    await fetch( `${_cascurl}?close=true` );
+    await fetch(`${_cascurl}?close=true`);
 };
 
-export const readCascFileRemote: ReadCascFile = async (
-    filepath: string
-    // encoding?: BufferEncoding
-) => {
-    // const arrayBuffer = await ipcRenderer.invoke( OPEN_CASCLIB_FILE_REMOTE, filepath, encoding );
-    // return Buffer.from(arrayBuffer.buffer);
-    // return Buffer.from(arrayBuffer);
-    const res = await fetch( `${_cascurl}/${filepath}` );
-    return Buffer.from( await res.arrayBuffer() );
+export const readCascFileRemote = async (filepath: string) => {
+    const url = `${_cascurl}/${filepath}`;
+    const buffer = await generalCascCache.getValue(filepath);
+    if (buffer !== null) {
+        return buffer;
+    }
+    
+    const res = await fetch(url).then((r) => r.arrayBuffer());
+    await generalCascCache.setValue({ id: filepath, buffer: res });
+    return Buffer.from(res);
+    
 };

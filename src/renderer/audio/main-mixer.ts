@@ -126,27 +126,22 @@ export class Mixer {
         return { source, gain };
     }
 
-    async loadAudioBuffer( filenameOrId: string | number ): Promise<AudioBuffer> {
-        if ( typeof filenameOrId === "number" ) {
-            const assets = gameStore().assets!;
-            const buffer = (
-                await readCascFile( `sound/${assets.bwDat.sounds[filenameOrId].file}` )
-            ).buffer;
-            return await this.context.decodeAudioData( buffer.slice( 0 ) );
-        } else if (
-            typeof filenameOrId === "string" &&
-            filenameOrId.startsWith( "casc:" )
-        ) {
-            const filename = filenameOrId.replace( "casc:", "" );
-            const buffer = ( await readCascFile( filename ) ).buffer;
-            return await this.context.decodeAudioData( buffer.slice( 0 ) );
-        } else {
-            // const buffer = ( await fs.readFile( filenameOrId ) ).buffer;
-            // return await this.context.decodeAudioData( buffer.slice( 0 ) );
+    async loadCascAudio(filename: string) {
+        const buffer = ( await readCascFile( filename ) ).buffer;
+        return await this.context.decodeAudioData( buffer.slice( 0 ) );
+    }
 
-            //todo change this to fetch request for audio files
-            return await this.context.decodeAudioData( await fetch( filenameOrId ).then( ( r ) => r.arrayBuffer() ) );
-        }
+    async loadCascAudioById( id: number ) {
+        const assets = gameStore().assets!;
+        const buffer = (
+            await readCascFile( `sound/${assets.bwDat.sounds[id].file}` )
+        ).buffer;
+        return await this.context.decodeAudioData( buffer.slice( 0 ) );
+    }
+
+
+    async loadAudioBuffer( url: string ): Promise<AudioBuffer> {
+            return await this.context.decodeAudioData( await fetch( url ).then( ( r ) => r.arrayBuffer() ) );
     }
 
     connect( ...args: AudioNode[] ) {

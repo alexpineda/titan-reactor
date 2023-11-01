@@ -30,7 +30,7 @@ class Music {
             this.#audio.stop();
         }
 
-        const buffer = await mixer.loadAudioBuffer( `casc:${filepath}` );
+        const buffer = await mixer.loadCascAudio( filepath );
 
         this.#audio.setBuffer( buffer );
         this.#audio.play();

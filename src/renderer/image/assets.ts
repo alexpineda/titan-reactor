@@ -97,8 +97,6 @@ export const initializeAssets = async () => {
     };
 
     const imageLoaderManager = new ImageLoaderManager(refId);
-    await imageLoaderManager.init();
-   
 
     const loader = new CubeTextureLoader();
     const rootPath = __static + "/skybox/sparse/";

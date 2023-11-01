@@ -131,10 +131,6 @@ const getGraphicsConfig = (
         label: "Preload Map Sprites",
         value: graphics.preloadMapSprites,
     },
-    "graphics.cacheLocally": {
-        label: "Cache Images Locally",
-        value: graphics.cacheLocally,
-    },
     "graphics.cursorSize": {
         label: "Cursor Size",
         value: graphics.cursorSize,
@@ -149,6 +145,10 @@ type UtilConfig = {
 };
 
 const getUtilConfig = ( util: Settings["utilities"] ): UtilConfig => ( {
+    "utilities.cacheLocally": {
+        label: "Cache SCR Assets Locally",
+        value: util.cacheLocally,
+    },
     "utilities.debugMode": {
         label: "Debug Mode",
         value: util.debugMode,

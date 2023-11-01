@@ -63,7 +63,6 @@ export interface SettingsV6 {
         pixelRatio: number;
         useHD: boolean;
         use3D: boolean;
-        cacheLocally: boolean;
         preloadMapSprites: boolean;
         cursorSize: number;
     };
@@ -89,6 +88,7 @@ export interface SettingsV6 {
         cursorVisible: boolean;
     };
     utilities: {
+        cacheLocally: boolean;
         sanityCheckReplayCommands: boolean;
         debugMode: boolean;
         detectMeleeObservers: boolean;

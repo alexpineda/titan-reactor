@@ -82,11 +82,11 @@ const _wraithSounds = [
     "tphpss03.wav",
     "tphpss05.wav",
     "tphpss06.wav",
-].map( ( s ) => `casc:sound\\terran\\phoenix\\${s}` );
+].map( ( s ) => `sound\\terran\\phoenix\\${s}` );
 
 export const playWraithComms = async ( rear: number ) => {
     const sound = mixer.context.createBufferSource();
-    sound.buffer = await mixer.loadAudioBuffer(
+    sound.buffer = await mixer.loadCascAudio(
         _wraithSounds[MathUtils.randInt( 0, _wraithSounds.length - 1 )]
     );
     sound.detune.value = -200 * rear;

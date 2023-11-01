@@ -19,6 +19,7 @@ import gameStore from "@stores/game-store";
 import { mixer } from "@audio";
 import { renderIngGameMenuScene } from "../scenes/in-game-menu/ingame-menu-scene";
 import { usePluginsStore } from "@stores/plugins-store";
+import { initCacheDB } from "@image/loader/indexed-db-cache";
 // import { supabase } from "common/supabase";
 /**
  * ENTRY POINT FOR TITAN REACTOR VIEWER APP
@@ -130,6 +131,9 @@ lockdown_();
     //         }
     //     }
     // } else {
+
+    await initCacheDB();
+    
     await sceneStore().execSceneLoader(preHomeSceneLoader, "@loading");
 
     await sceneStore().execSceneLoader(homeSceneLoader, "@home");

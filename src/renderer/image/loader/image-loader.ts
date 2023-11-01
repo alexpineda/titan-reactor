@@ -53,7 +53,7 @@ export class ImageLoader {
 
     constructor(url: string, imageId: number, cache: IndexedDBCache) {
         this.imageId = imageId;
-        this.loader = new ResourceIncrementalLoader(`${getCascUrl()}/${url}`, cache);
+        this.loader = new ResourceIncrementalLoader(`${getCascUrl()}/${url}`, cache, url);
         this.loader.onStatusChange = ( status ) => {
             this.status = status;
             if (status === "loaded") {
@@ -75,14 +75,7 @@ export class ImageLoaderManager {
 
     constructor( refId: ( id: number ) => number ) {
         this.#refId = refId;
-    }
-
-    async init() {
-        await this.#cache.init();
-        this.#cache.enabled = settingsStore().data.graphics.cacheLocally;
-        if (!settingsStore().data.graphics.cacheLocally) {
-            this.#cache.clear();
-        }   
+        this.#cache.enabled = settingsStore().data.utilities.cacheLocally;
     }
 
     exists( imageId: number ) {

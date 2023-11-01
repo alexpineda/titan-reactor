@@ -12,8 +12,8 @@ export async function homeSceneLoader(): Promise<SceneState> {
     setTimeout( () => wraithScene.resize(), 500 );
 
     const swoosh = mixer.context.createBufferSource();
-    swoosh.buffer = await mixer.loadAudioBuffer(
-        "casc:Interstitials\\sounds\\scHD_Interstitials_Terran_TR3010.wav"
+    swoosh.buffer = await mixer.loadCascAudio(
+        "Interstitials\\sounds\\scHD_Interstitials_Terran_TR3010.wav"
     );
     janitor.mop( mixer.connect( swoosh, mixer.createGain( 0.1 ), mixer.intro ), "swoosh" );
 
