@@ -31,10 +31,18 @@ type Repository = () => Promise<{
     cleanup?: () => void;
 }>;
 
+type IndexedPackage = {
+    rootUrl: string;
+    name: string;
+    version: string;
+    description: string;
+    files: string[];
+};
+
 export const build = async (repository: Repository) => {
     const { packages, cleanup } = await repository();
 
-    const packageNames = new Set<string>();
+    const index = new Map<string, IndexedPackage>();
 
     for (const { sourceFolderPath, manifest, folderName } of packages) {
         if (manifest.deprecated) {
@@ -42,11 +50,13 @@ export const build = async (repository: Repository) => {
         }
         const hostFilePath = path.join(sourceFolderPath, "host", "index.ts");
         const uiFilePath = path.join(sourceFolderPath, "ui", "index");
+        const readmeFilePath = path.join(sourceFolderPath, "readme.md");
 
         const files = [
-            { path: hostFilePath, type: "host" },
-            { path: uiFilePath + ".tsx", type: "ui" },
-            { path: uiFilePath + ".jsx", type: "ui" },
+            { path: hostFilePath, type: "host.js" },
+            { path: uiFilePath + ".tsx", type: "ui.js" },
+            { path: uiFilePath + ".jsx", type: "ui.js" },
+            { path: readmeFilePath, type: "readme.md" },
         ];
 
         for (const file of files) {
@@ -54,28 +64,40 @@ export const build = async (repository: Repository) => {
                 console.log(file.type + " file found", file);
 
                 try {
-                    const outfile = path.join(outDir, folderName, `${file.type}.js`);
+                    const outfile = path.join(outDir, folderName, file.type);
 
-                    await esbuild.build({
-                        entryPoints: [file.path],
-                        bundle: true,
-                        format: "esm",
-                        outfile,
-                        external,
-                        banner: {
-                            js:
-                                file.type === "ui"
-                                    ? `import { _rc } from "@titan-reactor-runtime/ui"; const registerComponent = (...args) => _rc("${manifest.name}", ...args);`
-                                    : "",
-                        },
-                    });
+                    if (file.type === "readme.md") {
+                        copyFileSync(file.path, outfile);
+                    } else {
+                        await esbuild.build({
+                            entryPoints: [file.path],
+                            bundle: true,
+                            format: "esm",
+                            outfile,
+                            external,
+                            banner: {
+                                js:
+                                    file.type === "ui.js"
+                                        ? `import { _rc } from "@titan-reactor-runtime/ui"; const registerComponent = (...args) => _rc("${manifest.name}", ...args);`
+                                        : "",
+                            },
+                        });
+                    }
 
                     copyFileSync(
                         path.join(sourceFolderPath, "package.json"),
                         path.join(outDir, folderName, "package.json")
                     );
 
-                    packageNames.add(folderName);
+                    const idx = index.get(manifest.name) ?? {
+                        name: manifest.name,
+                        version: manifest.version,
+                        description: manifest.description,
+                        rootUrl: folderName,
+                        files: [],
+                    };
+                    idx.files.push(file.type);
+                    index.set(manifest.name, idx);
                 } catch (error) {
                     console.log("error building", file.path, error);
                 }
@@ -87,5 +109,5 @@ export const build = async (repository: Repository) => {
         cleanup();
     }
 
-    writeFileSync(path.join(outDir, "index.json"), JSON.stringify([...packageNames]));
+    writeFileSync(path.join(outDir, "index.json"), JSON.stringify([...index.values()]));
 };

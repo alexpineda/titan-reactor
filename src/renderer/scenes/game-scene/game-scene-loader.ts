@@ -43,7 +43,6 @@ export async function makeGameScene(
 
     janitor.addEventListener( window, "keydown", "keydown:esc", ( evt: KeyboardEvent ) => {
         if ( evt.key === "Escape" && document.pointerLockElement === null ) {
-            console.log( "escape" );
             renderIngGameMenuScene(document.getElementById("in-game-menu") === null);
         }
     } );

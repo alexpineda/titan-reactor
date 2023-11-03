@@ -60,33 +60,13 @@ export class PluginSystemNative {
         });
 
         try {
-            let plugin = new PluginBase(pluginPackage);
+            const Plugin = await import( urlJoin(pluginPackage.url, "host.js"));
 
-            // if (pluginPackage.nativeSource) {
-            //     const Constructor = compartment.globalThis.Function(
-            //         pluginPackage.nativeSource.replace("export default", "return")
-            //     )();
-            //     if (
-            //         typeof Constructor === "function" &&
-            //         Constructor.prototype instanceof PluginBase
-            //     ) {
-            //         plugin = new (Constructor as new (p: PluginPackage) => PluginBase)(
-            //             pluginPackage
-            //         );
-            //     } else {
-            //         throw new Error("Plugin constructor must extend PluginBase");
-            //     }
-            // } else {
-                const Plugin = await import( urlJoin(pluginPackage.url, "host.js"));
+            if (!Plugin) {
+                throw new Error("Plugin constructor must extend PluginBase");
+            }
 
-                if (!Plugin) {
-                    throw new Error("Plugin constructor must extend PluginBase");
-                }
-
-                plugin = new Plugin.default(pluginPackage);
-            // }
-
-            // new PluginBase( pluginPackage );
+            const plugin = new Plugin.default(pluginPackage);
 
             plugin.isSceneController = pluginPackage.isSceneController;
 
@@ -98,7 +78,7 @@ export class PluginSystemNative {
                 { leading: true, trailing: false }
             );
 
-            log.debug(`@plugin-system-native: activated plugin "${plugin.name}"`);
+            log.debug(`@plugin-system-native: activated plugin "${plugin.name}" - ${plugin.isSceneController ? "scene controller" : "regular"}`);
 
             this.#compartments.set(plugin, compartment);
 
@@ -118,6 +98,8 @@ export class PluginSystemNative {
         msg: (id: string, message: any) => void,
         createCompartment: (env: any) => any
     ) {
+
+        log.debug(`@plugin-system-native: init`);
         for (const pkg of pluginPackages) {
             const plugin = await this.activatePlugin(pkg, createCompartment);
             if (plugin) {
@@ -157,6 +139,7 @@ export class PluginSystemNative {
     }
 
     getAllSceneControllers() {
+        console.log("getAllSceneControllers", this.#plugins)
         return this.#plugins.filter((p) => p.isSceneController) as SceneController[];
     }
 

@@ -27,7 +27,7 @@ import { createSelectionDisplayComposer } from "@core/selection-objects";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { mixer } from "@audio/main-mixer";
 import { CommandsStream } from "process-replay";
-import { WebXRGameViewPort } from "renderer/camera/xr-viewport";
+import { log } from "@ipc/log";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 
@@ -38,6 +38,7 @@ export const createWorldComposer = async (
     basePlayers: BasePlayer[],
     commands: CommandsStream
 ) => {
+    log.info( "creating world" );
     const janitor = new Janitor( "WorldComposer" );
     const events = janitor.mop( new TypeEmitter<WorldEvents>(), "events" );
     const settings = janitor.mop( createSettingsSessionStore( events ) );
@@ -63,6 +64,8 @@ export const createWorldComposer = async (
         },
     };
     let frameResetRequested = false;
+
+    log.info( "creating composers" );
 
     const gameLoopComposer = createGameLoopComposer( world );
     const surfaceComposer = createSurfaceComposer( world );
@@ -107,12 +110,9 @@ export const createWorldComposer = async (
 
         if ( sceneController ) {
             apiSession.native.activateSceneController( sceneController );
-            await viewControllerComposer.activate( sceneController, { target: sceneComposer.api.initialStartLocation } );
+            await viewControllerComposer.activate( sceneController, { target: sceneComposer.api.initialStartLocation }, isWebXR );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
-            if ( isWebXR ) {
-                sceneComposer.scene.add( (viewControllerComposer.sceneController!.viewport as WebXRGameViewPort).user )
-            }
         }
     };
 
@@ -167,6 +167,8 @@ export const createWorldComposer = async (
 
     const simpleText = janitor.mop( new SimpleText(), "simple-text" );
 
+    log.info( "creating GameTimeApi" );
+
     /**
      * The api that is passed to the plugins and macros.
      */
@@ -199,7 +201,7 @@ export const createWorldComposer = async (
         gameLoopComposer.api
     ) as GameTimeApi;
 
-
+    log.info( "world created" );
 
     return {
         world,

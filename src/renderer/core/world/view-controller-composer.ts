@@ -45,7 +45,10 @@ export const createViewControllerComposer = (
 ) => {
     let activating = false;
 
-    const viewports: (GameViewPort | WebXRGameViewPort)[] = []
+    // for when no scene controller is loaded initially
+    const initViewport = new GameViewPort( gameSurface, true );
+    initViewport.fullScreen();
+    const viewports: (GameViewPort | WebXRGameViewPort)[] = [initViewport]
 
     const createViewports = (n = 4) => range( 0, n ).map( i => new GameViewPort( gameSurface, i === 0 ) );
 
@@ -120,7 +123,7 @@ export const createViewControllerComposer = (
         async activate(
             newController: SceneController,
             globalData: { target: Vector3, position?: undefined },
-            isWebXR?: boolean
+            isWebXR: boolean
         ) {
             if ( activating ) {
                 return;

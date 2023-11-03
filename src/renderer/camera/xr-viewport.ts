@@ -1,10 +1,10 @@
-import { Group, Vector3  } from "three";
+import { renderComposer } from "@render/render-composer";
+import { Group } from "three";
 import { GameViewPort } from "./game-viewport";
 
 // import { XRControllerModelFactory } from 'three/examples/jsm/webxr/XRControllerModelFactory';
 // import { XRHandModelFactory } from 'three/examples/jsm/webxr/XRHandModelFactory';
 
-const _target = new Vector3();
 
 /**
  * @public
@@ -13,19 +13,20 @@ const _target = new Vector3();
 export class WebXRGameViewPort extends GameViewPort {
 
     user = new Group();
-    override name = "WebXRGameViewPort";
+    get xr(){
+        return renderComposer.glRenderer.xr;
+    }
 
     constructor( ...args: ConstructorParameters<typeof GameViewPort>) {
+
+        console.log("WebXRGameViewPort")
         super(...args);
+        this.orbit.enabled = false;
+
     }
 
     override update( targetDamping: number, delta: number ) {
         super.update( targetDamping, delta );
-
-        this.projectedView.update(
-            this.camera,
-            this.orbit.getTarget( _target )
-        );
     }
 
     override dispose(): void {

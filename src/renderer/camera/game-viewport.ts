@@ -20,7 +20,6 @@ const _target = new Vector3();
  */
 export class GameViewPort extends Sizeable {
     #enabled = false;
-    name = "GameViewPort";
     camera: PerspectiveCamera | OrthographicCamera;
     projectedView = new ProjectedCameraView();
     orbit!: CameraControls;
@@ -32,7 +31,7 @@ export class GameViewPort extends Sizeable {
         strength: new Vector3(),
         needsUpdate: false,
     };
-    #surface: Surface;
+    protected surface: Surface;
 
     constrainToAspect = true;
     #renderMode3D = false;
@@ -63,7 +62,7 @@ export class GameViewPort extends Sizeable {
 
     constructor( surface: Surface, enabled = false ) {
         super( surface );
-        this.#surface = surface;
+        this.surface = surface;
         this.camera = new PerspectiveCamera(
             15,
             surface.aspect,
@@ -76,7 +75,7 @@ export class GameViewPort extends Sizeable {
     }
 
     #bindOrbitControls() {
-        this.orbit = new CameraControls( this.camera, this.#surface.canvas );
+        this.orbit = new CameraControls( this.camera, this.surface.canvas );
         this.orbit.mouseButtons.left = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.right = CameraControls.ACTION.NONE;
         this.orbit.mouseButtons.middle = CameraControls.ACTION.NONE;
@@ -87,7 +86,7 @@ export class GameViewPort extends Sizeable {
         this.camera = (
             value
                 ? new OrthographicCamera()
-                : new PerspectiveCamera( 15, this.#surface.aspect, 0.1, 500 )
+                : new PerspectiveCamera( 15, this.surface.aspect, 0.1, 500 )
         );
         this.constrainToAspect = !value;
         this.orbit.dispose();

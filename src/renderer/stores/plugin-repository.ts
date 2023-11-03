@@ -34,6 +34,15 @@ const defaultReplayPlugins = [
     "@titan-reactor-plugins/narrative-maker",
     "@titan-reactor-plugins/vr-controller",
 ];
+
+type IndexedPackage = {
+    rootUrl: string;
+    name: string;
+    version: string;
+    description: string;
+    files: string[];
+};
+
 /**
  * Interfaces with NPM packages and the file system to load plugins.
  */
@@ -56,6 +65,7 @@ export class PluginsRepository {
     }
 
     async init() {
+        this.#pluginPackages = [];
         await this.#fetch(gameStore().pluginRepositoryUrl);
 
         // todo: deprecate plugin.config
@@ -79,6 +89,8 @@ export class PluginsRepository {
             );
 
             this.#storage.savePluginSettings(plugin.name, plugin.config);
+
+            console.log("plugin found", plugin.name, plugin.version);
         }
     }
 
@@ -90,8 +102,8 @@ export class PluginsRepository {
 
     //todo: do this at build time
     async #loadPluginPackage(
+        plugin: IndexedPackage,
         pluginRootUrl: string,
-        sanitizedFolderLabel: string
     ): Promise<null | PluginMetaData> {
         const packageJSON = await fetch(urlJoin(pluginRootUrl, "package.json"))
             .then((r) => r.json() as Partial<PluginPackage>)
@@ -99,7 +111,7 @@ export class PluginsRepository {
                 log.error(
                     withErrorMessage(
                         e,
-                        `@load-plugins/load-plugin-packages: Could not load package.json - ${sanitizedFolderLabel}`
+                        `@load-plugins/load-plugin-packages: Could not load package.json - ${plugin.name}`
                     )
                 );
                 return null;
@@ -111,42 +123,47 @@ export class PluginsRepository {
 
         if (packageJSON.name === undefined) {
             log.error(
-                `@load-plugins/load-configs: Undefined plugin name - ${sanitizedFolderLabel}`
+                `@load-plugins/load-configs: Undefined plugin name - ${plugin.name}`
             );
             return null;
         }
 
         if (packageJSON.version === undefined) {
             log.error(
-                `@load-plugins/load-configs: Undefined plugin version - ${sanitizedFolderLabel}`
+                `@load-plugins/load-configs: Undefined plugin version - ${plugin.name}`
             );
             return null;
         }
 
         if (this.#isPluginIncompatible(packageJSON)) {
             log.error(
-                `@load-plugins/load-configs: Plugin ${sanitizedFolderLabel} is incompatible with this version.`
+                `@load-plugins/load-configs: Plugin ${plugin.name} is incompatible with this version.`
             );
             return null;
         }
 
-        const pluginNative = await fetch(`${pluginRootUrl}/host.js`)
-            .then((r) => r.text())
-            .catch(() => null);
+        let isSceneController = false;
 
-        const indexFile = await fetch(`${pluginRootUrl}/ui.js`)
+        const pluginNative = plugin.files.includes("host.js") ? await fetch(`${pluginRootUrl}/host.js`)
+            .then(async (r) => {
+                isSceneController = (await r.text()).includes("onEnterScene");
+                return "host.js";
+            })
+            .catch(() => null) : null;
+
+        const indexFile = plugin.files.includes("ui.js") ? await fetch(`${pluginRootUrl}/ui.js`)
             .then(() => "ui.js")
-            .catch(() => "");
+            .catch(() => "") : "";
 
-        const readme = await fetch(`${pluginRootUrl}/readme.md`)
+        const readme = plugin.files.includes("readme.md") ? await fetch(`${pluginRootUrl}/readme.md`)
             .then((r) => r.text())
-            .catch(() => undefined);
+            .catch(() => undefined): undefined;
 
         const config = packageJSON.config ?? {};
 
         if (!indexFile && !pluginNative) {
             log.error(
-                `@load-plugins/load-plugin-package: Plugin ${sanitizedFolderLabel} has no host or ui plugin files`
+                `@load-plugins/load-plugin-package: Plugin ${plugin.name} has no host or ui plugin files`
             );
             return null;
         }
@@ -160,11 +177,11 @@ export class PluginsRepository {
             repository: packageJSON.repository,
             keywords: packageJSON.keywords ?? [],
             apiVersion: getPluginAPIVersion(packageJSON),
-            path: sanitizedFolderLabel,
+            path: plugin.rootUrl,
             config,
             nativeSource: pluginNative,
             indexFile,
-            isSceneController: (pluginNative ?? "").includes("onEnterScene"),
+            isSceneController,
             readme,
             url: pluginRootUrl,
         };
@@ -204,17 +221,16 @@ export class PluginsRepository {
 
     async #fetch(rootUrl: string) {
         this.repositoryUrl = rootUrl;
-        this.#pluginPackages = [];
 
         //todo: load plugins
         const plugins = await fetch(urlJoin(rootUrl, "index.json"))
-            .then((r) => r.json() as Promise<string[]>)
+            .then((r) => r.json() as Promise<IndexedPackage[]>)
             .catch(() => []);
 
         for (const plugin of plugins) {
             const pluginPackage = await this.#loadPluginPackage(
-                urlJoin(rootUrl, plugin),
-                plugin
+                plugin,
+                urlJoin(rootUrl, plugin.rootUrl)
             );
             if (pluginPackage) {
                 this.#sanitizeConfig(pluginPackage);

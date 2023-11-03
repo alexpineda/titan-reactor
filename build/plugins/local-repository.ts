@@ -16,7 +16,7 @@ export const getLocalRepositoryManifests = async () => {
 
         let manifest: any;
         try {
-            manifest = readFileSync(path.join(pkg.path, "package.json"), "utf-8") as any;
+            manifest = JSON.parse( readFileSync(path.join(pkg.path, "package.json"), "utf-8") as any );
         } catch (error) {
             console.log("error reading package.json", pkg.path, error);
             continue;
