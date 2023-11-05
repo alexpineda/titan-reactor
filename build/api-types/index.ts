@@ -9,6 +9,9 @@ const doThing = async () => {
         tsConfigFilePath: fn("./tsconfig.json"),
         inFiles: ["./src/runtime.tsx"],
         defaultInternal: true,
+        globalExternals: [
+            `var registerComponent: ( component: Partial<Pick<Component, "order" | "snap" | "screen">>, JSXElement: React.FC<any> ) => void;`,
+        ]
     });
     writeFile(
         fn("./build/api-types/ui/unrolled.json"),
