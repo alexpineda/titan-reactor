@@ -25,7 +25,7 @@ jobs:
           cache: 'yarn'
 
       - name: Install dependencies 👨🏻‍💻
-        run: npm ci
+        run: yarn install
 
       - name: Run build
         run: yarn build
