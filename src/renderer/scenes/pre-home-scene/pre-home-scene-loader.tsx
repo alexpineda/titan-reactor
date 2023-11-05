@@ -2,7 +2,6 @@ import { settingsStore } from "@stores/settings-store";
 import { initializeAssets } from "@image/assets";
 import { log } from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
-import { root } from "@render/root";
 import { PreHomeScene } from "./pre-home-scene";
 import { waitForTruthy } from "@utils/wait-for";
 import { Filter, mixer } from "@audio";
@@ -11,6 +10,7 @@ import processStore from "@stores/process-store";
 import { useGameStore } from "@stores/game-store";
 import { openCascStorageRemote } from "@ipc/casclib";
 import { pluginsStore } from "@stores/plugins-store";
+import { renderAppUI } from "../app";
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
     processStore().create( "pre-home-scene", 7 );
@@ -25,7 +25,12 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     await settingsStore().init();
     await pluginsStore().init();
 
-    root.render( <PreHomeScene  pluginsReady={false} assetServerReady={false} /> );
+    renderAppUI( 
+        {
+            key: "@preload",
+            scene: <PreHomeScene  pluginsReady={false} assetServerReady={false} />,
+        });
+        
 
     await waitForTruthy( async () => {
         const assetServerReady = !!useGameStore.getState().assetServerUrl;
@@ -41,7 +46,11 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
         const pluginsReady = await fetch(import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL, { method: "HEAD" }).then( ( res ) => res.ok );
         console.log( "pluginsReady", import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL, pluginsReady )
 
-        root.render( <PreHomeScene  pluginsReady={pluginsReady} assetServerReady={assetServerReady} /> );
+        renderAppUI( 
+            {
+                key: "@preload",
+                scene: <PreHomeScene  pluginsReady={pluginsReady} assetServerReady={assetServerReady} />,
+            });
 
         return pluginsReady && assetServerReady;//gameStore().assetServerUrl;
     }, 5000 );

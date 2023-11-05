@@ -60,8 +60,6 @@ export const mapSceneLoader = async ( file: File ): Promise<SceneState> => {
 
     log.debug( "initializing scene" );
 
-    await waitForTruthy( () => gameStore().assets?.remaining === 0 );
-
     process.increment();
 
     if ( settingsStore().data.graphics.preloadMapSprites ) {

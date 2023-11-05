@@ -32,40 +32,12 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import { SceneState } from "./scene";
 import gameStore from "@stores/game-store";
-import { waitForSeconds, waitForTruthy } from "@utils/wait-for";
+import { waitForSeconds } from "@utils/wait-for";
 import { globalEvents } from "@core/global-events";
 import debounce from "lodash.debounce";
 import { music } from "@audio/music";
-import { openFile } from "@ipc/files";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { pluginsStore } from "@stores/plugins-store";
-// import { writeFileSync } from "fs";
-
-// const createNarrative = (commands: CommandsStream) => {
-//     const o = commands.copy();
-//     let s = "Frame,Command_Type,X,Y,Unit_Type_ID,Hotkey_Type,Group,Order,Value,Units\n";
-//     for (const c of o.generate()) {
-//         if (typeof c === "number") {
-
-//         } else {
-
-//             const unitTags = [c.unit].filter( ( x ) => x !== undefined ).concat( c.unitTags ?? [] );
-
-//             s = s + [
-//                 c.frame ?? "",
-//                 c.id  ?? "",
-//                 c.x ?? "",
-//                 c.y ?? "",
-//                 c.unitTypeId ? `0x${c.unitTypeId.toString(16)}` : "",
-//                 c.hotkeyType ?? "",
-//                 c.group ?? "",
-//                 c.order ? `0x${c.order.toString(16)}` : "",
-//                 c.value ?? "",
-//                 unitTags?.join(":")].join(",") + "\n";
-//         }
-//     }
-//     writeFileSync( "G:\\commands.txt", s );
-// }
 export type ValidatedReplay = Replay & {
     buffer: Buffer;
     uid: number;

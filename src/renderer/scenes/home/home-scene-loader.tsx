@@ -2,8 +2,8 @@ import { SceneState, SceneStateID } from "../scene";
 import { Home } from "./home-scene";
 import { createWraithScene, getSurface } from "./space-scene";
 import { Janitor } from "three-janitor";
-import { root } from "@render/root";
 import { mixer } from "@audio/main-mixer";
+import { renderAppUI } from "../app";
 
 export async function homeSceneLoader(): Promise<SceneState> {
     const janitor = new Janitor( "home-scene-loader" );
@@ -23,17 +23,17 @@ export async function homeSceneLoader(): Promise<SceneState> {
             if ( prevID !== "@loading" ) {
                 swoosh.start();
             }
-            root.render( <Home surface={getSurface().canvas} /> );
+            renderAppUI(
+                {
+                    key: "@home",
+                    scene: <Home />,
+                    surface: getSurface().canvas,
+                });
         },
-        dispose: ( newId ) => {
-            if ( newId !== "@replay" && newId !== "@map" ) {
-                janitor.dispose();
-            }
+        dispose: ( ) => {
         },
         beforeNext( newId ) {
-            if ( newId === "@replay" || newId === "@map" ) {
-                janitor.dispose();
-            }
+            janitor.dispose();
         },
     };
 }

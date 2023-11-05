@@ -1,22 +1,22 @@
 import { RealtimeChannel, Session } from "@supabase/supabase-js";
 import { TypeEmitter } from "@utils/type-emitter";
 import { supabase } from "common/supabase";
+import { uniq } from "lodash";
 import create from "zustand";
-
-export type MetaverseRoom = {
-    name: string;
-};
 
 export type MetaverseStore = {
     events: TypeEmitter<MetaverseEvents>;
-    room: MetaverseRoom |  null;
+    room: string |  null;
     username: string |  null;
-    usericon: string |  null;
+    isOwner: boolean;
     online: [];
     session: Session | null;
     channel: RealtimeChannel | null;
     init: () => {}
     setSession: (session: Session | null) => void;
+    createWatchParty: () => void;
+    joinWatchParty: () => void;
+    track: (opts: TrackOpts) => void;
 };
 
 type MetaverseEvents = {
@@ -34,11 +34,14 @@ function generateUID() {
     return ("000" + firstPart.toString(36)).slice(-3) + ("000" + secondPart.toString(36)).slice(-3);
 }
 
+export type TrackOpts = {
+}
+
 export const useMetaverse = create<MetaverseStore>( ( set, get ) => ( {
     events: new TypeEmitter<MetaverseEvents>(),
     username: null,
-    usericon: null,
     room: null,
+    isOwner: false,
     online: [],
     session: null,
     channel: null,
@@ -51,11 +54,11 @@ export const useMetaverse = create<MetaverseStore>( ( set, get ) => ( {
     joinWatchParty: async () => {
 
     },
-    track: async () => {
+    track: async (opts: TrackOpts) => {
         if (get().channel) {
             get().channel!.track({
                 username: get().username,
-                replays: [],
+                ...opts
             });
         }
     },
@@ -65,6 +68,8 @@ export const useMetaverse = create<MetaverseStore>( ( set, get ) => ( {
         if (!session) {
             return;
         }
+
+        set( { username: session.user!.email! });
 
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -80,10 +85,16 @@ export const useMetaverse = create<MetaverseStore>( ( set, get ) => ( {
         const channel = supabase.channel(room!);
         channel.on('presence', { event: 'sync' }, () => {
             const newState = channel.presenceState()
-                console.log('sync', newState)
+                console.log('sync', newState );
+
+                const keys = uniq(Object.keys(newState));
+
+                if (keys.length ===1) {
+                    set({ isOwner: true });
+                }
             })
             .on('presence', { event: 'join' }, ({ key, newPresences }) => {
-                console.log('join', key, newPresences)
+                console.log('join', key, newPresences )
             })
             .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
                 console.log('leave', key, leftPresences)
@@ -96,8 +107,10 @@ export const useMetaverse = create<MetaverseStore>( ( set, get ) => ( {
                 get().events.emit( "load-replay", evt.payload );
             })
             .on("broadcast", {event: "replay-status-change", }, ( payload ) => {
+                get().events.emit( "replay-status-change", payload );
             })
             .on("broadcast", {event: "replay-position-sync", }, ( payload ) => {
+                get().events.emit( "replay-position-sync", payload );
             })
             .subscribe((status) => {
                 // Wait for successful connection
@@ -105,15 +118,11 @@ export const useMetaverse = create<MetaverseStore>( ( set, get ) => ( {
                     console.error( `supabased failed to connect to channel ${room} ${status}`);
                     return null
                 }
-    
-                channel.track({
-                    username: session.user.email!
-                }).then( ( res ) => console.log( res ) );
 
+                get().track({});
+    
                 set( { channel });
-                set({ room: {
-                    name: room!
-                }})
+                set({ room })
             });
 
     },

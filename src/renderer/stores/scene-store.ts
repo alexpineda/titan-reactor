@@ -51,7 +51,8 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
         };
 
         if (_loading) {
-            throw new Error("Scene is already loading");
+            console.error("Scene is already loading");
+            return;
         }
         if (_lastLoadId === id && !ignoreSameScene) {
             return;

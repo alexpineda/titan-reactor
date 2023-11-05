@@ -4,7 +4,6 @@ import { useSceneStore } from "@stores/scene-store";
 import { useEffect } from "react";
 import titanReactorLogo from "@image/assets/logo.png";
 import { LoadBar } from "./load-bar";
-import { GlobalErrorState } from "../error-state";
 
 const styleCenterText = {
     position: "absolute",
@@ -39,10 +38,6 @@ const styleCenterText = {
 export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsReady: boolean, assetServerReady: boolean } ) => {
     const error = useSceneStore( ( state ) => state.error );
 
-    const action = null;
-
-    
-
     useEffect( () => {
         return useProcessStore.subscribe( ( store ) => {
             const b = ( 1 - store.getTotalProgress() ) * 0.2;
@@ -71,9 +66,6 @@ export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsRead
                 display: "flex",
                 flexDirection: "column",
             }}>
-            {error  && (
-                <GlobalErrorState error={error} action={action} />
-            )}
             {!error && (
                 //@ts-expect-error
                 <div style={styleCenterText}>

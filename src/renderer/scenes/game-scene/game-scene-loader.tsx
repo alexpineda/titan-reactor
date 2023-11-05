@@ -8,8 +8,8 @@ import { WorldComposer, createWorldComposer } from "@core/world/world-composer";
 import { readCascFileRemote as readCascFile } from "@ipc/casclib";
 import processStore from "@stores/process-store";
 import { CommandsStream } from "process-replay";
-import { root } from "@render/root";
-import { renderIngGameMenuScene } from "../in-game-menu/ingame-menu-scene";
+import { renderAppUI } from "../app";
+import { GameScene } from "./game-scene";
 
 export async function makeGameScene(
     janitor: Janitor,
@@ -41,19 +41,22 @@ export async function makeGameScene(
 
     processStore().clearAll();
 
-    janitor.addEventListener( window, "keydown", "keydown:esc", ( evt: KeyboardEvent ) => {
-        if ( evt.key === "Escape" && document.pointerLockElement === null ) {
-            renderIngGameMenuScene(document.getElementById("in-game-menu") === null);
-        }
-    } );
+   
     return {
         start() {
-            root.render( null );
-            worldComposer.surfaceComposer.mount();
+            worldComposer.surfaceComposer.gameSurface.show();
+            renderAppUI(
+                {
+                    key: "@game",
+                    scene: <GameScene />,
+                    surface: worldComposer.surfaceComposer.gameSurface.canvas,
+                }
+            )
+            // worldComposer.surfaceComposer.mount();
         },
         beforeNext() {
             // since we are not using root render ( and just mounting the canvas )
-            worldComposer.surfaceComposer.gameSurface.hide();
+            // worldComposer.surfaceComposer.gameSurface.hide();
         },
         dispose() {
             janitor.dispose();

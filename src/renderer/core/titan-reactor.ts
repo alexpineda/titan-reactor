@@ -14,7 +14,6 @@ import { log } from "@ipc/log";
 import { settingsStore, useGameStore, useReplayAndMapStore } from "../stores";
 import gameStore from "@stores/game-store";
 import { mixer } from "@audio";
-import { renderIngGameMenuScene } from "../scenes/in-game-menu/ingame-menu-scene";
 import { usePluginsStore } from "@stores/plugins-store";
 import { initCacheDB } from "@image/loader/indexed-db-cache";
 import { supabase, SUPABASE_REPLAY_BUCKET } from "common/supabase";
@@ -33,6 +32,7 @@ useSettingsStore.subscribe((payload) => {
 metaVerse().events.on("load-replay", async (payload) => {
     console.log("preparing to load replay");
     const fileBuffer = await fetch(SUPABASE_REPLAY_BUCKET + payload.path).then((res) => res.arrayBuffer());
+    settingsStore().lset("replayQueue.enabled", false);
 
     const replay = await loadAndValidateReplay(fileBuffer);
 
@@ -51,17 +51,17 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
 
     const files: File[] = [];
 
-    if (metaVerse().channel) {
+    if (metaVerse().channel && metaVerse().isOwner) {
         if (_files[0].name.endsWith(".scx") || _files[0].name.endsWith(".scm")) {
             console.warn("maps not supported yet");
             return;
         }
         settingsStore().lset("replayQueue.enabled", false);
         const file = _files[0];
-        console.log(metaVerse().room?.name + "/" + file.name)
+        console.log(metaVerse().room + "/" + file.name)
         const { data, error } = await supabase.storage
         .from('replays')
-        .upload(metaVerse().room?.name + "/" + file.name, file, {upsert: true} );
+        .upload(metaVerse().room + "/" + file.name, file, {upsert: true} );
 
         if (data) {
             files.push(file);
@@ -76,6 +76,8 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
         } else if (error) {
             console.error(error);
         }
+    } else {
+        files.push(..._files);
     }
 
     if (files.length === 0) {
@@ -138,50 +140,48 @@ globalEvents.on("replay-complete", async () => {
     ) {
         await sceneStore().execSceneLoader(homeSceneLoader, "@home");
         useReplayAndMapStore.getState().loadNextReplay();
-    } else {
-        renderIngGameMenuScene(true);
     }
 });
 
 logCapabilities();
 
 (async function bootup() {
-    supabase.auth.startAutoRefresh();
+    // supabase.auth.startAutoRefresh();
 
-    const {
-        data: { session },
-        error: sessionError,
-    } = await supabase.auth.getSession();
+    // const {
+    //     data: { session },
+    //     error: sessionError,
+    // } = await supabase.auth.getSession();
 
-    if (sessionError) {
-        log.error(sessionError);
-    }
+    // if (sessionError) {
+    //     log.error(sessionError);
+    // }
 
-    if (!session) {
-        console.log("no session");
-        const email = prompt("Enter your blacksheepwall.tv username")!;
+    // if (!session) {
+    //     console.log("no session");
+    //     const email = prompt("Enter your blacksheepwall.tv username")!;
 
-        if (email) {
-            const res = await supabase.auth.signInWithOtp({
-                email,
-                options: {
-                    emailRedirectTo: import.meta.env.BASE_URL
-                }
-            });
+    //     if (email) {
+    //         const res = await supabase.auth.signInWithOtp({
+    //             email,
+    //             options: {
+    //                 emailRedirectTo: import.meta.env.BASE_URL
+    //             }
+    //         });
 
-            if (res.error) {
-                alert(res.error.message);
-                return;
-            }
+    //         if (res.error) {
+    //             alert(res.error.message);
+    //             return;
+    //         }
 
-            if (res.data.session) {
-                alert("Check your email for a login link");
-            }
-        }
-    } else {
-        console.log("session found");
-    }
-    metaVerse().setSession(session);
+    //         if (res.data.session) {
+    //             alert("Check your email for a login link");
+    //         }
+    //     }
+    // } else {
+    //     console.log("session found");
+    // }
+    // metaVerse().setSession(session);
 
     await initCacheDB();
 

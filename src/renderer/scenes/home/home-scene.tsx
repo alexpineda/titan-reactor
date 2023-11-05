@@ -1,11 +1,5 @@
 import { useSceneStore } from "@stores/scene-store";
-
-import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
-import { GlobalErrorState } from "../error-state";
 import packageJSON from "../../../../package.json";
-import { LoadBar, LoadRing } from "../pre-home-scene/load-bar";
-import { useReplayAndMapStore } from "@stores/replay-and-map-store";
-import { useProcessStore } from "@stores/process-store";
 import gameStore from "@stores/game-store";
 
 import { OpenFileButton } from "./open-file-button";
@@ -18,11 +12,8 @@ import { MuteIntroSoundButton } from "./mute-intro-sound-button";
 /**
  * React UI for Home Scene
  */
-export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
+export const Home = (  ) => {
     const error = useSceneStore( ( state ) => state.error );
-    const { map, replay } = useReplayAndMapStore();
-
-    const progress = useProcessStore( ( state ) => state.getTotalProgress() );
 
     return (
         <div
@@ -35,18 +26,6 @@ export const Home = ( { surface }: { surface: HTMLCanvasElement } ) => {
                 display: "flex",
                 flexDirection: "column",
             }}>
-            {error && <GlobalErrorState error={error} action={null} />}
-
-            <WrappedCanvas canvas={surface} style={{ zIndex: "-1" }} />
-            <LoadBar
-                color="#64c857"
-                thickness={5}
-                style={{
-                    marginBottom: "var(--size-10)",
-                    visibility: progress ? "visible" : "hidden",
-                }}
-            />
-            {!error && !!progress && ( replay || map ) && <LoadRing />}
             {!error && <MatchDisplay />}
             <div
                 style={{

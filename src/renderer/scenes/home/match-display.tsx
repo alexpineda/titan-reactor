@@ -3,7 +3,7 @@ import { SingleMatchDisplayLarge } from "./single-match-display-large";
 import { useSettingsStore } from "@stores/settings-store";
 import shallow from "zustand/shallow";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
-import { InGameMenuButton } from "../in-game-menu/ingame-menu-button";
+import { InGameMenuButton } from "../game-scene/ingame-menu-button";
 
 export const MatchDisplay = () => {
     const replayQueueSettings = useSettingsStore(

@@ -7,7 +7,7 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { useProcessStore } from "@stores/process-store";
 import { root } from "@render/root";
 
-export const App = ( { surface, scene }: { surface?: HTMLCanvasElement, scene: React.ReactNode } ) => {
+export const App = ( { surface, scene, showCursor }: { surface?: HTMLCanvasElement, scene: React.ReactNode, showCursor?: boolean } ) => {
     const error = useSceneStore( ( state ) => state.error );
     const { map, replay } = useReplayAndMapStore();
 
@@ -23,6 +23,7 @@ export const App = ( { surface, scene }: { surface?: HTMLCanvasElement, scene: R
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
+                cursor: showCursor ? "default" : "none",
             }}>
             {error && <GlobalErrorState error={error} action={null} />}
 
@@ -41,6 +42,12 @@ export const App = ( { surface, scene }: { surface?: HTMLCanvasElement, scene: R
     );
 };
 
-export const renderAppUI = ( scene: React.ReactNode, surface?: HTMLCanvasElement  ) => {
-    root.render( <App scene={scene} surface={surface} /> );
+type SceneRenderOptions = {
+    surface?: HTMLCanvasElement;
+    key: string;
+    scene: React.ReactNode;
+    showCursor?: boolean;
+}
+export const renderAppUI = ( { surface, key, scene, showCursor }: SceneRenderOptions   ) => {
+    root.render( <App scene={scene} surface={surface} key={key} showCursor={showCursor ?? true} /> );
 };

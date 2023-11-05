@@ -1,17 +1,17 @@
-import { root } from "@render/root";
 import gameStore from "@stores/game-store";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import sceneStore from "@stores/scene-store";
 import { homeSceneLoader } from "../home/home-scene-loader";
+import { OpenFileButton } from "../home/open-file-button";
 import { InGameMenuButton } from "./ingame-menu-button";
 
 
-export const InGameMenuScene = () => {
+export const InGameMenuScene = ({ onClose }: { onClose:  () => void }) => {
     const queued = useReplayAndMapStore( ( store ) => store.getNextReplay() );
     return (
         <div
             id="in-game-menu"
-            onClick={() => root.render( null )}
+            onClick={() => onClose}
             style={{
                 position: "absolute",
                 left: 0,
@@ -35,6 +35,7 @@ export const InGameMenuScene = () => {
                         Play Next
                     </InGameMenuButton>
                 )}
+                <OpenFileButton />
                 <InGameMenuButton
                     background="var(--gray-5)"
                     color="var(--gray-9)"
@@ -52,8 +53,4 @@ export const InGameMenuScene = () => {
             </div>
         </div>
     );
-};
-
-export const renderIngGameMenuScene = (show: boolean) => {
-    root.render( show ? <InGameMenuScene /> : null );
 };
