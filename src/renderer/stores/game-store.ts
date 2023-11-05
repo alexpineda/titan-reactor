@@ -6,6 +6,7 @@ import { waitForTruthy } from "@utils/wait-for";
 export interface GameStore {
     assetServerUrl: string;
     pluginRepositoryUrls: string[];
+    runtimeUrl: string;
     assets: Assets | null;
     dimensions: MinimapDimensions;
     setAssets: ( assets: Assets | null ) => void;
@@ -13,9 +14,15 @@ export interface GameStore {
     configurationWindow: Window | null;
     openConfigurationWindow: () => void;
 }
+
+const urlParams = new URLSearchParams(window.location.search);
+const officialPluginsUrl =  urlParams.get('plugins') ?? import.meta.env.VITE_OFFICIAL_PLUGINS_SERVER_URL;
+const runtimeUrl = urlParams.get('runtime') ?? import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL;
+
 export const useGameStore = create<GameStore>( ( set, get ) => ( {
     assetServerUrl: "",
-    pluginRepositoryUrls: [ import.meta.env.VITE_OFFICIAL_PLUGINS_SERVER_URL ],
+    pluginRepositoryUrls: [ officialPluginsUrl ],
+    runtimeUrl: runtimeUrl,
     assets: null,
     configurationWindow: null,
     configurationWindowDeps: null,

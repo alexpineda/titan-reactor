@@ -72,7 +72,7 @@ export const createWorldComposer = async (
     const sceneComposer = await createSceneComposer( world, assets );
     const commandsComposer = createCommandsComposer( world, commands );
     const inputsComposer = createInputComposer( world, sceneComposer );
-    const viewControllerComposer = createViewControllerComposer( world, surfaceComposer );
+    const viewControllerComposer = createViewControllerComposer( world, surfaceComposer, sceneComposer.api.initialStartLocation );
     const sandboxApi = createSandboxApi( world, sceneComposer.pxToWorldInverse );
     const openBwComposer = createOpenBWComposer(
         world,
@@ -110,7 +110,7 @@ export const createWorldComposer = async (
 
         if ( sceneController ) {
             apiSession.native.activateSceneController( sceneController );
-            await viewControllerComposer.activate( sceneController, { target: sceneComposer.api.initialStartLocation }, isWebXR );
+            await viewControllerComposer.activate( sceneController,  isWebXR );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
         }

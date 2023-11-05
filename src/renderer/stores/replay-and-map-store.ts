@@ -26,21 +26,21 @@ export interface ReplayAndMapStore {
     flushWatchedReplays: () => void;
     updateNextReplay: () => void;
     loadNextReplay: () => Promise<void>;
-    loadMap: ( file: File ) => Promise<void>;
+    loadMap: ( fileBuffer: ArrayBuffer ) => Promise<void>;
 }
 
 export const useReplayAndMapStore = create<ReplayAndMapStore>( ( set, get ) => ( {
     totalGameTime: 0,
     replayQueue: [],
     replayIndex: -1,
-    async loadMap( file: File ) {
+    async loadMap( fileBuffer: ArrayBuffer ) {
         await sceneStore().execSceneLoader( homeSceneLoader, "@home", {
             ignoreSameScene: true,
         } );
 
         get().clearReplayQueue();
 
-        void sceneStore().execSceneLoader( () => mapSceneLoader( file ), "@map", {
+        void sceneStore().execSceneLoader( () => mapSceneLoader( fileBuffer ), "@map", {
             errorHandler: {
                 loader: homeSceneLoader,
                 id: "@home",

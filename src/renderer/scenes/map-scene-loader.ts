@@ -3,7 +3,6 @@ import { log } from "@ipc/log";
 import processStore from "@stores/process-store";
 import { OpenBW } from "@openbw/openbw";
 
-import { waitForTruthy } from "@utils/wait-for";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import gameStore from "@stores/game-store";
 import { Janitor } from "three-janitor";
@@ -30,8 +29,7 @@ import { pluginsStore } from "@stores/plugins-store";
 const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;
 };
-export const mapSceneLoader = async ( file: File ): Promise<SceneState> => {
-    console.log( file );
+export const mapSceneLoader = async ( fileBuffer: ArrayBuffer ): Promise<SceneState> => {
     await gameStore().assets?.openCascStorage();
     gameStore().assets?.resetImagesCache();
 
@@ -40,7 +38,7 @@ export const mapSceneLoader = async ( file: File ): Promise<SceneState> => {
     log.debug( "loading chk" );
 
     const janitor = new Janitor( "MapSceneLoader" );
-    const chkBuffer = {} as Buffer; // await loadScm( Buffer.from(await openFile( file ) ));
+    const chkBuffer = {} as Buffer; // await loadScm( Buffer.from(fileBuffer ));
 
     const chkDowngrader = new ChkDowngrader();
     const dBuffer = chkDowngrader.downgrade( chkBuffer );

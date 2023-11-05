@@ -1,4 +1,5 @@
 import { globalEvents } from "@core/global-events";
+import { openFile } from "@ipc/files";
 import { SVGProps, useRef } from "react";
 
 export const OpenFileButton = (
@@ -42,11 +43,18 @@ export const OpenFileButton = (
                 style={{ position: "absolute", left: "-10000px" }}
                 multiple
                 accept=".rep,.scm,.scx"
-                onChange={( evt ) => {
+                onChange={async ( evt ) => {
                     evt.preventDefault();
                     if ( evt.target.files ) {
+                        const files = [];
+                        for ( const file of evt.target.files ) {
+                            files.push({
+                                name: file.name,
+                                buffer: await openFile(file),
+                            })
+                        }
                         globalEvents.emit( "queue-files", {
-                            files: [ ...evt.target.files ],
+                            files,
                         } );
                     }
                 }}

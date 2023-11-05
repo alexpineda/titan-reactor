@@ -41,13 +41,15 @@ export type ViewControllerComposerApi = ViewControllerComposer["api"];
  */
 export const createViewControllerComposer = (
     world: World,
-    { gameSurface }: SurfaceComposer
+    { gameSurface }: SurfaceComposer,
+    initialStartLocation: Vector3
 ) => {
     let activating = false;
 
     // for when no scene controller is loaded initially
     const initViewport = new GameViewPort( gameSurface, true );
     initViewport.fullScreen();
+    initViewport.orbit.setTarget(initialStartLocation.x, initialStartLocation.y, initialStartLocation.z);
     const viewports: (GameViewPort | WebXRGameViewPort)[] = [initViewport]
 
     const createViewports = (n = 4) => range( 0, n ).map( i => new GameViewPort( gameSurface, i === 0 ) );
@@ -122,14 +124,14 @@ export const createViewControllerComposer = (
          */
         async activate(
             newController: SceneController,
-            globalData: { target: Vector3, position?: undefined },
             isWebXR: boolean
         ) {
             if ( activating ) {
                 return;
             }
             activating = true;
-            let prevData = { ...globalData, ...this.generatePrevData() };
+
+            let prevData = this.generatePrevData() 
 
             if ( sceneController?.onExitScene ) {
                 try {
@@ -195,7 +197,7 @@ export const createViewControllerComposer = (
         },
 
         generatePrevData() {
-            return this.viewports.length ? viewports[0].generatePrevData() : null;
+            return  viewports[0].generatePrevData();
         },
 
         doShakeCalculation(

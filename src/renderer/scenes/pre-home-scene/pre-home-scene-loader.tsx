@@ -7,7 +7,7 @@ import { waitForTruthy } from "@utils/wait-for";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
 import processStore from "@stores/process-store";
-import { useGameStore } from "@stores/game-store";
+import gameStore, { useGameStore } from "@stores/game-store";
 import { openCascStorageRemote } from "@ipc/casclib";
 import { pluginsStore } from "@stores/plugins-store";
 import { renderAppUI } from "../app";
@@ -31,20 +31,30 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
             scene: <PreHomeScene  pluginsReady={false} assetServerReady={false} />,
         });
         
-
     await waitForTruthy( async () => {
         const assetServerReady = !!useGameStore.getState().assetServerUrl;
         if (!assetServerReady) {
             const ok = await openCascStorageRemote( assetServerUrl );
-            console.log( "assetServerUrl", assetServerUrl, ok );
+            console.log( "assetServerUrl", assetServerUrl );
             if ( ok ) {
                 localStorage.setItem( "assetServerUrl", assetServerUrl );
                 useGameStore.setState( { assetServerUrl } );
             }
         }
 
-        const pluginsReady = await fetch(import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL, { method: "HEAD" }).then( ( res ) => res.ok );
-        console.log( "pluginsReady", import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL, pluginsReady )
+        let pluginsReady = false;
+
+        try {
+            pluginsReady = await fetch(gameStore().runtimeUrl, { method: "HEAD" }).then( ( res ) => res.ok );
+            for (const url of gameStore().pluginRepositoryUrls) {
+                pluginsReady = pluginsReady && await fetch(url + "index.json", { method: "HEAD" }).then( ( res ) => res.ok );
+                console.log( "pluginsReady", url )
+
+            }
+            console.log( "runtimeReady", gameStore().runtimeUrl, pluginsReady )
+        } catch ( err ) {
+            console.error( err );
+        }
 
         renderAppUI( 
             {

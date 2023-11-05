@@ -18,7 +18,7 @@ import { usePluginsStore } from "@stores/plugins-store";
 import { initCacheDB } from "@image/loader/indexed-db-cache";
 import { supabase, SUPABASE_REPLAY_BUCKET } from "common/supabase";
 import { metaVerse } from "@stores/metaverse-store";
-import { openFile } from "@ipc/files";
+import { PreProcessFile } from "@ipc/files";
 /**
  * ENTRY POINT FOR TITAN REACTOR
  */
@@ -44,12 +44,14 @@ metaVerse().events.on("load-replay", async (payload) => {
     }
 });
 
+
+
 globalEvents.on("queue-files", async ({ files: _files }) => {
     if (_files.length === 0) {
         return;
     }
 
-    const files: File[] = [];
+    const files: PreProcessFile[] = [];
 
     if (metaVerse().channel && metaVerse().isOwner) {
         if (_files[0].name.endsWith(".scx") || _files[0].name.endsWith(".scm")) {
@@ -61,7 +63,7 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
         console.log(metaVerse().room + "/" + file.name)
         const { data, error } = await supabase.storage
         .from('replays')
-        .upload(metaVerse().room + "/" + file.name, file, {upsert: true} );
+        .upload(metaVerse().room + "/" + file.name, file.buffer, {upsert: true} );
 
         if (data) {
             files.push(file);
@@ -87,7 +89,7 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
     
     //todo map stuff here
     if (files[0].name.endsWith(".scx") || files[0].name.endsWith(".scm")) {
-        useReplayAndMapStore.getState().loadMap(files[0]);
+        useReplayAndMapStore.getState().loadMap(files[0].buffer);
 
         return;
     }
@@ -95,7 +97,7 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
     const replays: ValidatedReplay[] = [];
     for (const file of files) {
         try {
-            replays.push(await loadAndValidateReplay(await openFile( file )));
+            replays.push(await loadAndValidateReplay(file.buffer));
         } catch (e) {
             console.error(e);
         }
@@ -190,6 +192,24 @@ logCapabilities();
     await sceneStore().execSceneLoader(homeSceneLoader, "@home");
 
     log.debug(`startup in ${performance.measure("start").duration}ms`);
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get("replays")) {
+        const replays = urlParams.get("replays")!.split(",");
+
+        const files = [];
+        for ( const file of replays ) {
+            files.push({
+                name: file,
+                buffer: await fetch(file).then((res) => res.arrayBuffer()),
+            })
+        }
+        globalEvents.emit( "queue-files", {
+            files,
+        } );
+    }
+
+
 })();
 
 window.addEventListener("wheel", (evt) => evt.preventDefault(), { passive: false });

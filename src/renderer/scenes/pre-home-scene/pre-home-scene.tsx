@@ -69,8 +69,6 @@ export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsRead
             {!error && (
                 //@ts-expect-error
                 <div style={styleCenterText}>
-                    {/* <div>{imbateamLogo}</div> */}
-                    {/* <img src={dmLogo} style={{ width: "200px" }} /> */}
                     {assetServerReady && pluginsReady && (
                         <LoadBar
                             color="#ffffff"

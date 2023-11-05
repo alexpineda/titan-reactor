@@ -32,7 +32,7 @@ export async function homeSceneLoader(): Promise<SceneState> {
         },
         dispose: ( ) => {
         },
-        beforeNext( newId ) {
+        beforeNext(  ) {
             janitor.dispose();
         },
     };

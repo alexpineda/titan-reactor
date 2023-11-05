@@ -13,3 +13,8 @@ export const openFile = ( file: File ) => {
         reader.readAsArrayBuffer( file );
     } );
 };
+
+export type PreProcessFile = {
+    name: string;
+    buffer: ArrayBuffer;
+}

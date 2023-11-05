@@ -35,9 +35,6 @@ jobs:
       - name: Run build
         run: yarn build
 
-      - name: List directory contents
-        run: ls -R ./dist
-
       - name: Publish Titan Reactor
         uses: cloudflare/pages-action@1
         with:

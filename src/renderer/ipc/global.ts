@@ -5,6 +5,7 @@ import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { globalEventKeys, GlobalEvents, globalEvents } from "../core/global-events";
 import { log } from "@ipc/log";
+import { openFile } from "./files";
 
 window.addEventListener(
     "message",
@@ -20,13 +21,20 @@ document.addEventListener( "dragover", ( e ) => {
     e.stopPropagation();
 } );
 
-document.addEventListener( "drop", ( event ) => {
+document.addEventListener( "drop", async ( event ) => {
     event.preventDefault();
     event.stopPropagation();
 
     if ( event.dataTransfer && event.dataTransfer.files.length ) {
+        const files = [];
+        for ( const file of event.dataTransfer.files ) {
+            files.push({
+                name: file.name,
+                buffer: await openFile(file),
+            })
+        }
         globalEvents.emit( "queue-files", {
-            files: [ ...event.dataTransfer.files ],
+            files,
         } );
     }
 } );

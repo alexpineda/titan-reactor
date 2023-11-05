@@ -236,7 +236,7 @@ export class PluginSystemUI {
             // const settings = settingsStore().data;
 
             // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
-            this.#iframe.src = import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL;
+            this.#iframe.src = gameStore().runtimeUrl;
         };
 
         this.#janitor.mop(

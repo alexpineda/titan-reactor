@@ -1,3 +1,4 @@
+import { PreProcessFile } from "@ipc/files";
 import { TypeEmitter } from "@utils/type-emitter";
 import type Chk from "bw-chk";
 import type { MacroAction, PluginConfig, PluginMetaData } from "common/types";
@@ -11,7 +12,7 @@ export interface GlobalEvents {
     "plugin-deactivated": string;
     "unsafe-open-url": string;
     "load-iscriptah": string;
-    "queue-files": { files: File[] };
+    "queue-files": { files: PreProcessFile[] };
     "reload-all-plugins": undefined;
     "exec-macro": string;
     "reset-macro-actions": string;

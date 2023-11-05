@@ -107,10 +107,10 @@ export const useMetaverse = create<MetaverseStore>( ( set, get ) => ( {
                 get().events.emit( "load-replay", evt.payload );
             })
             .on("broadcast", {event: "replay-status-change", }, ( payload ) => {
-                get().events.emit( "replay-status-change", payload );
+                // get().events.emit( "replay-status-change", payload );
             })
             .on("broadcast", {event: "replay-position-sync", }, ( payload ) => {
-                get().events.emit( "replay-position-sync", payload );
+                // get().events.emit( "replay-position-sync", payload );
             })
             .subscribe((status) => {
                 // Wait for successful connection
