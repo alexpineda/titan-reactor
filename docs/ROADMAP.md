@@ -3,7 +3,7 @@ ROADMAP
 
 | v0.7 | v0.8      | v0.9           | v1.0 |
 | ---- | --------- | -------------- | ---- |
-| Browser & VR   | 3D Models & Animation Editor | Shield Battery |  Cleaned up / Stable    |
+| Browser   | VR | Social / 3D Models |  Realtime? Stable release.    |
 
 ✅ Available Now
 ☑️ Partially Available
@@ -94,22 +94,12 @@ ROADMAP
 - File Browser / Replay Previews
 - Additional tools for “movie making”
 - Move materials to NodeMaterials
-- WebGPU + Deno?
 - Box type for model configurations
 - League of Legends Layout
 - Improve Memory Consumption
-- strip registerComponent, import “titan-reactor/register-component” or declare it as global
 - Plugin UI positioning & order to system level like _visible
-- Re-implement shake
-- intro gpu particles
-- plugins enabling/disabling
-- resetting values after running scripts
-- Macros (copy, copy action)
 - Export / tweak terrain
-- Story maker plugin
-- Youtube music plugin
 
-https://github.com/mrdoob/three.js/pull/23321/files
 
 **OpenBW**
 
@@ -118,8 +108,6 @@ https://github.com/mrdoob/three.js/pull/23321/files
 - Fix Butter v1.4 replays (Butter v2.0 works)
 
 Shield Battery integration
-
-5 Minute StarCraft Fights - Automated
 
 Replay battles with different
 	- upgrades
