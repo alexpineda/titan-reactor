@@ -22,7 +22,7 @@ jobs:
 
       - name: Checkout LFS objects
         run: git lfs checkout
-        
+
       - name: Setup node env 🏗
         uses: actions/setup-node@v3
         with:
@@ -34,6 +34,9 @@ jobs:
 
       - name: Run build
         run: yarn build
+
+      - name: List directory contents
+        run: ls -R ./dist
 
       - name: Publish Titan Reactor
         uses: cloudflare/pages-action@1
