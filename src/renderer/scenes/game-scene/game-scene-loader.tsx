@@ -50,6 +50,7 @@ export async function makeGameScene(
                     key: "@game",
                     scene: <GameScene />,
                     surface: worldComposer.surfaceComposer.gameSurface.canvas,
+                    showCursor: false,
                 }
             )
             // worldComposer.surfaceComposer.mount();

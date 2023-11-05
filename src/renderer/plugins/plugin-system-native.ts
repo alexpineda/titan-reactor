@@ -58,7 +58,7 @@ export class PluginSystemNative {
         });
 
         try {
-            const Plugin = await import( pluginPackage.urls.host! );
+            const Plugin = await import(/* @vite-ignore */ pluginPackage.urls.host! );
 
             if (!Plugin) {
                 throw new Error("Plugin constructor must extend PluginBase");

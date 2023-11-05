@@ -16,13 +16,11 @@
         "postinstall": "git apply -v --stat --directory=node_modules/scm-extractor build/patches/scm-extractor.patch",
         "generate:api-types": "ts-node -T .\\build\\api-types\\index.ts",
         "generate:plugin-api-docs": "typedoc --out docs/host --tsconfig tsconfig.host-api.json build/api-types/host/index.d.ts && typedoc --out docs/ui --tsconfig tsconfig.ui-api.json build/api-types/ui/index.d.ts",
-        "build:plugins": "ts-node -T .\\build\\plugins\\index.ts",
         "serve:plugins": "http-server .\\dist\\plugins -p 8091 --cors",
         "build:runtime": "ts-node -T ./esbuild.runtime.ts",
         "serve:runtime": "http-server .\\dist\\runtime -p 8090 --cors",
         "web": "vite -c vite.config.web.ts",
         "build:web": "vite build -c vite.config.web.ts",
-        "plugins": "yarn build:plugins && yarn serve:plugins",
         "runtime": "yarn build:runtime && yarn serve:runtime",
         "build": "yarn build:web && yarn build:plugins"
     },
@@ -65,7 +63,6 @@
         "express": "^4.17.3",
         "immer": "^9.0.15",
         "leva": "^0.9.23",
-        "libnpmsearch": "^5.0.0",
         "lodash.debounce": "^4.0.8",
         "lodash.get": "^4.4.2",
         "lodash.groupby": "^4.6.0",
@@ -73,8 +70,6 @@
         "lodash.set": "^4.3.2",
         "lodash.shuffle": "^4.2.0",
         "lodash.throttle": "^4.1.1",
-        "node-fetch": "3.2.10",
-        "pacote": "^14.0.0",
         "postprocessing": "6.33.2",
         "process-replay": "0.0.11",
         "random": "^3.0.6",
@@ -90,7 +85,6 @@
         "three-instanced-uniforms-mesh": "^0.46.0",
         "three-janitor": "^2.0.1",
         "typescript": "^4.8.4",
-        "winreg": "^1.2.4",
         "zustand": "4.1.1"
     },
     "devDependencies": {
@@ -149,10 +143,6 @@
         "ts-node": "^10.9.1",
         "typedoc": "^0.25.1",
         "vite": "^3.1.3",
-        "vite-plugin-electron": "^0.9.3",
-        "vite-plugin-esmodule": "^1.4.2",
-        "vite-plugin-mkcert": "^1.16.0",
-        "vite-plugin-node-polyfills": "^0.15.0",
         "webgl-lint": "^1.9.3"
     },
     "config": {
