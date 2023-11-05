@@ -114,9 +114,8 @@ export const initializeAssets = async () => {
         selectionCircles,
         minimapConsole,
         loader: imageLoaderManager,
-        loadImageAtlas(imageId: number) {
-            imageLoaderManager.loadImage(imageId);
-            return imageLoaderManager.getImage(imageId);
+        loadImageAtlas(imageId: number, priority = 3) {
+            return imageLoaderManager.loadImage(imageId, priority);
         },
         getImageAtlas(imageId: number): AnimAtlas | null {
             return imageLoaderManager.getImage(imageId);
@@ -124,7 +123,7 @@ export const initializeAssets = async () => {
         hasImageAtlas(imageId: number): boolean {
             return !!imageLoaderManager.exists(imageId);
         },
-        loadImageAtlasAsync(imageId: number) {
+        loadImageImmediate(imageId: number) {
             return imageLoaderManager.loadImageImmediate(imageId);
         },
         skyBox,

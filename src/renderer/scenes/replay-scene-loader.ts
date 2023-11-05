@@ -5,7 +5,7 @@
 // import CommandsStream from "@process-replay/commands/commands-stream";
 // import ChkDowngrader from "@process-replay/chk/chk-downgrader";
 
-import type { Replay } from "process-replay";
+import { CMDS, Replay } from "process-replay";
 import {
     ChkDowngrader,
     CommandsStream,
@@ -38,6 +38,8 @@ import debounce from "lodash.debounce";
 import { music } from "@audio/music";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { pluginsStore } from "@stores/plugins-store";
+import { calculateImagesFromUnitsIscript } from "@utils/images-from-iscript";
+import e from "express";
 export type ValidatedReplay = Replay & {
     buffer: Buffer;
     uid: number;
@@ -119,7 +121,8 @@ export const replaySceneLoader = async (
     log.info( `@replay-scene-loader/init: ${replay.header.gameName}` );
 
     await gameStore().assets?.openCascStorage();
-    gameStore().assets?.resetImagesCache();
+    //todo: can we keep images?
+    // gameStore().assets?.resetImagesCache();
 
     const janitor = new Janitor( "ReplaySceneLoader" );
 
@@ -147,8 +150,52 @@ export const replaySceneLoader = async (
         "reset replay and map store"
     );
 
+    
     if ( settingsStore().data.graphics.preloadMapSprites ) {
-        preloadMapUnitsAndSpriteFiles( gameStore().assets!, map );
+
+        const preloadCommandUnits = new Set<number>();
+        const postLoad = new Set<number>();
+
+        if ( replay ) {
+            const preloadCommands = new CommandsStream(
+                replay.rawCmds,
+                replay.stormPlayerToGamePlayer
+            );
+            const preloadCommandTypes = [
+                CMDS.TRAIN.id,
+                CMDS.UNIT_MORPH.id,
+                CMDS.BUILDING_MORPH.id,
+                CMDS.BUILD.id,
+            ];
+
+            let preOrPost = 0;
+
+            for ( const command of preloadCommands.generate() ) {
+                if ( typeof command !== "number" ) {
+                    if ( preloadCommandTypes.includes( command.id ) ) {
+                        for (const imageId of calculateImagesFromUnitsIscript( gameStore().assets!.bwDat, [command.unitTypeId!] ) ) {
+                            if (preOrPost === 0) {
+                                preloadCommandUnits.add( imageId );
+                            } else {
+                                postLoad.add( imageId );
+                            }
+                        }
+                    }
+                } else {
+                    // preload up to 2 minutes of commands
+                    if (command > 2 * 24 * 60) {
+                        preOrPost = 1;
+                    }
+                }
+            }
+        }
+        
+        await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map, [...preloadCommandUnits] );
+
+        for (const imageId of postLoad) {
+            gameStore().assets!
+            .loadImageAtlas( imageId, 2 )//, assets.bwDat )
+        }
     }
 
     loadProcess.increment();

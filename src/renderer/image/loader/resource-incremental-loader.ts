@@ -33,8 +33,8 @@ export class ResourceIncrementalLoader extends ResourceLoader {
         try {
             this.status = "loading";
             this.buffer = null;
-            const buffer = await this.cache.getValue(this.key);
-            if (buffer !== null) {
+            const buffer = await this.cache?.getValue(this.key);
+            if (buffer) {
                 this.buffer = buffer;
                 this.status = "loaded";
                 return this.buffer;
@@ -84,8 +84,8 @@ export class ResourceIncrementalLoader extends ResourceLoader {
             if (this.start >= this.resourceSize) {
                 this.buffer = concatenateArrayBuffers(this.#buffers);
                 this.#buffers.length = 0;
+                await this.cache?.setValue({ id: this.key, buffer: this.buffer.buffer });
                 this.status = "loaded";
-                await this.cache.setValue({ id: this.key, buffer: this.buffer.buffer });
                 return this.buffer;
             } else {
                 return this.#fetchChunk(this.start, this.end);

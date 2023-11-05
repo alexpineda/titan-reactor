@@ -8,9 +8,9 @@ export class ResourceLoader {
     buffer: Buffer | null = null;
     onStatusChange: (status: ResourceLoaderStatus) => void = () => {};
     #abortController: AbortController | null = null;
-    protected cache: IndexedDBCache;
+    protected cache?: IndexedDBCache;
 
-    constructor(url: string, cache: IndexedDBCache, key = url) {
+    constructor(url: string, key = url, cache?: IndexedDBCache) {
         this.url = url;
         this.key = key;
         this.cache = cache;
@@ -32,8 +32,8 @@ export class ResourceLoader {
         try {   
             this.status = "loading";
             this.buffer = null;
-            const buffer = await this.cache.getValue(this.key);
-            if (buffer !== null) {
+            const buffer = await this.cache?.getValue(this.key);
+            if (buffer) {
                 this.buffer = buffer;
                 this.status = "loaded";
                 return this.buffer;
@@ -44,7 +44,7 @@ export class ResourceLoader {
             }).then((res) => res.arrayBuffer());
             this.buffer = Buffer.from(arrayBuffer);
             this.status = "loaded";
-            await this.cache.setValue({ id: this.key, buffer: arrayBuffer });
+            await this.cache?.setValue({ id: this.key, buffer: arrayBuffer });
             return this.buffer;
         } catch (e) {
             if ((e as Error).name === "AbortError") {

@@ -1,5 +1,6 @@
 import type { Assets } from "@image/assets";
 import gameStore from "@stores/game-store";
+import processStore from "@stores/process-store";
 import {
     calculateImagesFromSpritesIscript,
     calculateImagesFromUnitsIscript,
@@ -7,24 +8,29 @@ import {
 import type Chk from "bw-chk";
 import { techTree } from "common/enums";
 
-export const preloadMapUnitsAndSpriteFiles = (
+export const preloadMapUnitsAndSpriteFiles = async (
     assets: Assets,
     map: Pick<Chk, "units" | "sprites">,
+    extraImages: number[] = []
 ) => {
-    const preloadCommandUnits = new Set<number>();
 
     const unitSprites = new Set(
         map.units.map( ( u ) => u.sprite ).filter( ( s ) => Number.isInteger( s ) ) as number[]
     );
     const allSprites = [
-        ...unitSprites,
-        ...new Set( map.sprites.map( ( s ) => s.spriteId ) ),
+        ...new Set( [...unitSprites, ...map.sprites.map( ( s ) => s.spriteId )] ),
     ];
-    const allImages = [ ...calculateImagesFromSpritesIscript( assets.bwDat, allSprites ), ...preloadCommandUnits];
+    const allImages = [ ...calculateImagesFromSpritesIscript( assets.bwDat, allSprites ), ...extraImages];
 
-    for (const imageId of allImages) {
-        assets.loadImageAtlas(imageId);
-    }
+    const preload = processStore().create( "preload", allImages.length );
+
+    await Promise.all(
+        allImages.map( ( imageId ) =>
+            assets
+                .loadImageImmediate( imageId )//, assets.bwDat )
+                .then( () => preload.increment() )
+        )
+    );
 
 };
 

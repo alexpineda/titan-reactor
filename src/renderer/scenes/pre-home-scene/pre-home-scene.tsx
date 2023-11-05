@@ -55,6 +55,10 @@ export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsRead
         };
     }, [] );
 
+    const waitingFor = [];
+    if (!assetServerReady) waitingFor.push("local asset server");
+    if (!pluginsReady) waitingFor.push("plugin server");
+
     return (
         <div
             style={{
@@ -69,16 +73,16 @@ export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsRead
             {!error && (
                 //@ts-expect-error
                 <div style={styleCenterText}>
-                    {assetServerReady && pluginsReady && (
+                    {waitingFor.length === 0 && (
                         <LoadBar
                             color="#ffffff"
                             thickness={20}
                             style={{ marginTop: "30px" }}
                         />
                     )}
-                    {(!assetServerReady || !pluginsReady) && (
+                    {(waitingFor.length > 0) && (
                         <>
-                            <p>Waiting for: {assetServerReady ? "" : "asset server"} {pluginsReady ? "" : "plugin server"}</p>
+                            <p>Waiting for: {waitingFor.join(", ")}</p>
                         </>
                     )}
                 </div>

@@ -12,6 +12,7 @@ import { ResourceLoaderStatus } from "./resource-loader-status";
 import { ResourceLoader } from "./resource-loader";
 import { settingsStore } from "@stores/settings-store";
 import { IndexedDBCache } from "./indexed-db-cache";
+import { renderComposer } from "@render/index";
 
 const genFileName = ( i: number, prefix = "" ) =>
     `${prefix}anim/main_${`00${i}`.slice( -3 )}.anim`;
@@ -50,15 +51,21 @@ export class ImageLoader {
     imageId = 0;
     priority = 3;
     status: ResourceLoaderStatus = "idle";
+    onLoaded = () => {};
 
     constructor(url: string, imageId: number, cache: IndexedDBCache) {
         this.imageId = imageId;
-        this.loader = new ResourceIncrementalLoader(`${getCascUrl()}/${url}`, cache, url);
+        this.loader = new ResourceIncrementalLoader(`${getCascUrl()}/${url}`, url, cache);
         this.loader.onStatusChange = ( status ) => {
             this.status = status;
             if (status === "loaded") {
                 this.atlas = loadAnimAtlas( this.loader.buffer!, this.imageId, UnitTileScale.HD2 );
+                renderComposer.glRenderer.initTexture( this.atlas.diffuse );
+                this.atlas.teammask && renderComposer.glRenderer.initTexture( this.atlas.teammask );
+                this.atlas.hdLayers.emissive && renderComposer.glRenderer.initTexture( this.atlas.hdLayers.emissive );
+                this.loader.buffer = null;
                 this.priority--;
+                this.onLoaded();
                 //todo: if load 3d, load 3d
             }
         }
@@ -88,19 +95,24 @@ export class ImageLoaderManager {
         return this.imageLoaders.get( refId )?.atlas ?? null;
     }
 
-    loadImage( imageId: number  ) {
+    loadImage( imageId: number, priority = 3  ) {
         const refId = this.#refId( imageId );
 
-        if ( this.imageLoaders.has( refId ) ) {
+        if ( this.imageLoaders.has( refId )) {
             this.processQueue();
             return;
         }
 
         const loader = new ImageLoader(genFileName( refId, "HD2/" ), imageId, this.#cache);
+        loader.priority = priority;
         // const loader = new ImageLoader(genFileName( refId, res === UnitTileScale.HD2 ? "HD2/" : ""));
 
         this.imageLoaders.set( refId, loader );
         this.processQueue();
+
+        return new Promise<void>( ( resolve ) => loader.onLoaded = () => {
+            resolve();
+        } );
     }
 
     async loadImageImmediate( imageId: number ) {
@@ -124,7 +136,7 @@ export class ImageLoaderManager {
 
         const imageLoaders = Array.from( this.imageLoaders.values() )
             .filter( ( loader ) => loader.status === "idle" )
-            .sort( ( a, b ) => a.priority - b.priority );
+            .sort( ( a, b ) => b.priority - a.priority );
 
         for ( const image of imageLoaders ) {
             this.currentDownloads++;

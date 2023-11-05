@@ -1,7 +1,8 @@
 import { AudioContext, Quaternion, Vector3 } from "three";
-import { readCascFileRemote as readCascFile } from "@ipc/casclib";
+import { getCascUrl, readCascFileRemote as readCascFile } from "@ipc/casclib";
 import gameStore from "@stores/game-store";
 import { Settings } from "common/types";
+import { ResourceIncrementalLoader } from "@image/loader/resource-incremental-loader";
 const MUSIC_REDUCTION_RATIO = 0.1;
 const _position = new Vector3(),
     _orientation = new Vector3();
@@ -127,16 +128,18 @@ export class Mixer {
     }
 
     async loadCascAudio(filename: string) {
-        const buffer = ( await readCascFile( filename ) ).buffer;
+        const loader = new ResourceIncrementalLoader(`${getCascUrl()}/${filename}`, filename);
+        const buffer = ( await loader.fetch() )!.buffer;
         return await this.context.decodeAudioData( buffer.slice( 0 ) );
     }
 
     async loadCascAudioById( id: number ) {
         const assets = gameStore().assets!;
-        const buffer = (
-            await readCascFile( `sound/${assets.bwDat.sounds[id].file}` )
-        ).buffer;
-        return await this.context.decodeAudioData( buffer.slice( 0 ) );
+        return this.loadCascAudio( `sound/${assets.bwDat.sounds[id].file}` );
+        // const buffer = (
+        //     await readCascFile( `sound/${assets.bwDat.sounds[id].file}` )
+        // ).buffer;
+        // return await this.context.decodeAudioData( buffer.slice( 0 ) );
     }
 
     async loadAudioBuffer( url: string ): Promise<AudioBuffer> {
