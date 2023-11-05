@@ -12,7 +12,6 @@
     - [Hooks](#hooks)
     - [Scene Controller Plugins](#scene-controller-plugins)
     - [Communicating between Game and your UI component](#communicating-between-game-and-your-ui-component)
-  - [Special Permissions](#special-permissions)
   - [Additional Information](#additional-information)
     - [README.md](#readmemd)
     - [Deprecating Your Plugin](#deprecating-your-plugin)
@@ -42,8 +41,8 @@ You'll first need a `package.json` file under your plugin folder with at least a
     "version": "1.0.0",
     "keywords": ["titan-reactor-plugin"],
     "peerDependencies": {
-        "titan-reactor-runtime": "2.0.0",
-        "titan-reactor-host": "2.0.0"
+        "titan-reactor-runtime/ui": "2.0.0",
+        "titan-reactor-runtime/host": "2.0.0"
     }
 }
 ```
@@ -54,12 +53,17 @@ You'll first need a `package.json` file under your plugin folder with at least a
 
 Aside from the `package.json` file, there may also be either `index.tsx` or `plugin.ts` or both.
 
--   **(React Plugin)** The `index.tsx` file is for UI components, which live in an iframe with other plugins in a separate UI process.
--   **(Host Plugin)** The `plugin.ts` file is for processing & communicating additional data to your UI if needed.
 
-> Your React plugin will be treated by the browser as an ES6 module, meaning you have full access to the ES6 module system. You are free to import additional packages from services such as skypack, however it is recommended that you include files locally eg `import "./my-lib.js"`. Only mouse clicks events (`onClick`) will be available for listening to any of your react components.
+![image](https://github.com/alexpineda/titan-reactor/assets/586716/903f309b-e2c1-438a-a301-44d0d3a86a06)
+An example plugin directory structure.
 
-> Your Host plugin will be in a strict container since it's in the same process as the game . Core dependencies are provided in the environment already such as `THREE`, `postprocessing`, and more. If you need other dependencies it would be best to build them in using a 3rd party bundler
+
+-   **(Host Plugin)** The `index.ts` file is runs in the same process as the game loop and is for sophisticated logic.
+-   **(React Plugin)** The `components/index.tsx` file is for primarily for your UI components, which live in an iframe with other plugins in a separate UI process.
+
+> Your React plugin will be treated by the browser as an ES6 module, meaning you have full access to the ES6 module system. You are free to import additional packages from services such as [skypack](https://esm.sh/) or have them bundled with `titan-plugin-cli`. Only mouse clicks events (`onClick`) will be available for listening to any of your react components.
+
+> For your host plugin, core dependencies are provided in the globalThis object such as `THREE`, `postprocessing`, and more.
 
 ### Allowing For User Configuration
 
@@ -80,9 +84,6 @@ We use the `config` value in `package.json` to define user configuration options
     "config": {
         "userName": {
             "value": "this value will be modifiable by the user since I have a value property!"
-        },
-        "system": {
-            "foo": "anything in the system object does not get shown to users and does not need a value field"
         }
     }
 }
@@ -96,7 +97,7 @@ Once we've got our basic `package.json` we can start with `index.tsx`:
 
 ```jsx
 import React from "react";
-import { usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor/runtime";
+import { usePluginConfig, useFrame, getFriendlyTime } from "titan-reactor-runtime/ui";
 
 const MyComponent = () => {
 
@@ -108,10 +109,10 @@ const MyComponent = () => {
     return <h1>Hello { config.userName }. Game time is {getFriendlyTime(frame) </h1>
 };
 
-registerComponent({ screen: "@replay", snap: "left" }, MyComponent);
+registerComponent({ snap: "left" }, MyComponent);
 ```
 
-> Calling `registerComponent` lets Titan Reactor know about our new React Component. The screen rule causes the component to mount or unmount it according to the screen which can be either `@replay` or `@map`.
+> Calling `registerComponent` lets Titan Reactor know about our new React Component.
 
 ### registerComponent()
 
@@ -120,15 +121,12 @@ Example:
 ```js
 registerComponent(
     {
-        screen: "@replay/ready",
         snap: "center",
         order: 0,
     },
     MyElement
 );
 ```
-
-**screen** = `@replay` | `@map`
 
 **snap** _(optional)_
 
@@ -180,6 +178,7 @@ import { PluginBase } from "titan-reactor-host";
 // THREE - three.js
 // STDLIB - additional three.js objects
 // postprocessing - from the `postprocessing` npm package
+// enums - several Starcraft constants and enums like unitTypes and orderTypes
 
 // your plugin must return an object with keynames matching hook names that you want to listen to
 export default class Plugin extends PluginBase {
@@ -214,9 +213,6 @@ A scene controller is a special plugin that responds to user input in order to c
 > Unlike regular plugins, hooks won't be executed unless the scene is active, including the regular plugin hooks.
 
 ```ts
-import { SceneController } from "titan-reactor-host";
-
-
 export default class PluginAddon extends SceneController implements SceneController {
 
 // REQUIRED.
