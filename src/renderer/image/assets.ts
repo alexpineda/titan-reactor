@@ -17,7 +17,7 @@ import {
 } from ".";
 
 import gameStore, { setAsset } from "@stores/game-store";
-import { generateCursorIcons, generateUIIcons } from "./generate-icons/generate-icons";
+import { generateCursorIcons  } from "./generate-icons/generate-icons";
 import { log } from "@ipc/log";
 import { imageTypes } from "common/enums";
 // import { modelSetFileRefIds } from "@core/model-effects-configuration";
@@ -37,7 +37,7 @@ export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture;
     bwDat: BwDAT;
     wireframeIcons?: Blob[];
-} & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
+}
 
 export const initializeAssets = async () => {
     const bwDat = await loadDATFiles(readCascFileRemote);
@@ -76,16 +76,9 @@ export const initializeAssets = async () => {
     log.debug(`@load-assets/envmap: ${envMapFilename}`);
     loadEnvironmentMap(envMapFilename, (tex) => {
         setAsset("envMap", tex);
-    });
+    })
 
     processStore().increment();
-
-    await generateUIIcons(readCascFile).then((icons) => {
-        setAsset("gameIcons", icons.gameIcons);
-        setAsset("cmdIcons", icons.cmdIcons);
-        setAsset("raceInsetIcons", icons.raceInsetIcons);
-        setAsset("workerIcons", icons.workerIcons);
-    });
 
     const cursorIcons = await generateCursorIcons(readCascFile);
 
@@ -117,7 +110,6 @@ export const initializeAssets = async () => {
         openCascStorage,
         closeCascStorage,
         readCascFile,
-        remaining: 7,
         ...cursorIcons,
         selectionCircles,
         minimapConsole,

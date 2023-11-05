@@ -4,30 +4,32 @@ const { rmSync, readFileSync, writeFileSync, createReadStream } = require("fs");
 const path = require("path");
 const { createHash } = require("crypto");
 
-rmSync("dist/plugins", { recursive: true, force: true });
+const OUTDIR = "dist/runtime";
+
+rmSync(OUTDIR, { recursive: true, force: true });
 
 (async () => {
     await esbuild.build({
         entryPoints: ["src/runtime.tsx"],
-        outdir: "dist/plugins",
+        outdir: OUTDIR,
         keepNames: true,
         minify: false,
         format: "esm",
     });
 
     // copy assets
-    await copy("bundled/assets", "dist/plugins/assets");
-    await copy("src/runtime.html", "dist/plugins/runtime.html");
+    await copy("bundled/assets", `${OUTDIR}/assets`);
+    await copy("src/runtime.html", `${OUTDIR}/runtime.html`);
 
     // make file hash for cache busting
     const fileHash = (
-        (await generateFileHash("dist/plugins/runtime.js")) as string
+        (await generateFileHash(`${OUTDIR}/runtime.js`)) as string
     ).substring(0, 8);
 
     const newFileName = `runtime.${fileHash}.js`;
-    await move("dist/plugins/runtime.js", `dist/plugins/${newFileName}`);
+    await move(`${OUTDIR}/runtime.js`, `${OUTDIR}/${newFileName}`);
 
-    const htmlPath = path.join(__dirname, "dist", "plugins", "runtime.html");
+    const htmlPath = path.join(__dirname, "dist", "runtime", "runtime.html");
     const content = readFileSync(htmlPath, "utf8").replace(/runtime.js/g, newFileName);
     writeFileSync(htmlPath, content, "utf8");
 })();

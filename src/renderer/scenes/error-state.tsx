@@ -40,7 +40,7 @@ export const GlobalErrorState = ( {
                     fontFamily: "Inter, sans-serif",
                 }}>
                 {error.message}
-                {process.env.NODE_ENV === "development" && error.stack}
+                {import.meta.env.DEV && error.stack}
             </p>
             {action}
         </div>

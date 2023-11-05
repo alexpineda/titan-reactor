@@ -2,23 +2,19 @@ import { ReadFile } from "common/types";
 
 import { parseDdsGrp } from "../formats/parse-dds-grp";
 import { generateCursors } from "./generate-cursors";
-import { generateRaceIcons } from "./generate-races";
-import { generateResourceIcons } from "./generate-resources";
-import { renderComposer } from "@render/render-composer";
 import { RepeatWrapping } from "three";
 import { b2ba } from "@utils/bin-utils";
 import { setAsset } from "@stores/game-store";
 
 import { generateWireframes } from "./generate-wireframes";
-import range from "common/utils/range";
 
 const createOffScreenCanvas = () => {
     const canvas = document.createElement( "canvas" );
     return canvas.transferControlToOffscreen();
 };
 
-// somewhat expensive (~1second), so we do it w/ fancy web workers
-const generateWireframeOffscreen = async ( readFile: ReadFile ) => {
+// somewhat expensive (~1second), so we do it w/ web workers
+export const generateWireframeOffscreen = async ( readFile: ReadFile ) => {
     const c1 = createOffScreenCanvas(),
         c2 = createOffScreenCanvas();
     const worker = new Worker( new URL( "./icons.worker.ts", import.meta.url ), {
@@ -75,45 +71,5 @@ export const generateCursorIcons = async ( readFile: ReadFile ) => {
         arrowIconsGPU,
         hoverIconsGPU,
         dragIconsGPU,
-    };
-};
-
-export const generateUIIcons = async ( readFile: ReadFile ) => {
-    const r = ( f: string ) => readFile( f );
-
-    generateWireframeOffscreen( readFile );
-
-    const cmdIcons: ArrayBuffer[] = [];
-    for ( const i of range( 0, 389 ) ) {
-        cmdIcons[i] = await r( `webui\\dist\\lib\\images\\cmdicons.${i}.png` );
-    }
-
-    const workerIcons = {
-        apm: await r( "webui/dist/lib/images/icon_apm.png" ),
-        terran: await r( "webui/dist/lib/images/icon_worker_terran.png" ),
-        zerg: await r( "webui/dist/lib/images/icon_worker_zerg.png" ),
-        protoss: await r( "webui/dist/lib/images/icon_worker_protoss.png" ),
-    };
-
-    renderComposer.preprocessStart();
-    const renderer = renderComposer.glRenderer;
-
-    const gameIcons = await generateResourceIcons(
-        renderer,
-        parseDdsGrp( await readFile( "game/icons.dds.grp" ) )
-    );
-
-    const raceInsetIcons = await generateRaceIcons(
-        renderer,
-        parseDdsGrp( await readFile( "glue/scoretd/iScore.dds.grp" ) )
-    );
-
-    renderComposer.preprocessEnd();
-
-    return {
-        cmdIcons,
-        gameIcons,
-        raceInsetIcons,
-        workerIcons,
     };
 };

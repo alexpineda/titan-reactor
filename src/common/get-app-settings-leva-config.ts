@@ -6,7 +6,7 @@ import {
 } from "common/types";
 import lSet from "lodash.set";
 
-const isProd = process.env.NODE_ENV !== "development";
+const isProd = import.meta.env.PROD;
 
 export const generateAppSettingsFromLevaFormat = (
     settings: Record<string, { value: any }>

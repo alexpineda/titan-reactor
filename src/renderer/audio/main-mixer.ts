@@ -139,7 +139,6 @@ export class Mixer {
         return await this.context.decodeAudioData( buffer.slice( 0 ) );
     }
 
-
     async loadAudioBuffer( url: string ): Promise<AudioBuffer> {
             return await this.context.decodeAudioData( await fetch( url ).then( ( r ) => r.arrayBuffer() ) );
     }

@@ -46,7 +46,7 @@ export const createPluginSession = async (
     );
 
     await nativePlugins.init(
-        pluginPackages.filter( ( p ) => p.nativeSource ),
+        pluginPackages.filter( ( p ) => p.urls.host ),
         ( pluginId: string, message: unknown ) =>
             uiPlugins.sendMessage( {
                 type: UI_SYSTEM_CUSTOM_MESSAGE,

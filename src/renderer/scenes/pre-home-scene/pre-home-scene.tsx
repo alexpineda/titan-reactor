@@ -3,10 +3,8 @@ import { useProcessStore } from "@stores/process-store";
 import { useSceneStore } from "@stores/scene-store";
 import { useEffect } from "react";
 import titanReactorLogo from "@image/assets/logo.png";
-import dmLogo from "@image/assets/dm.png";
 import { LoadBar } from "./load-bar";
 import { GlobalErrorState } from "../error-state";
-import { useGameStore } from "@stores/game-store";
 
 const styleCenterText = {
     position: "absolute",
@@ -20,12 +18,30 @@ const styleCenterText = {
     flexDirection: "column",
 };
 
-export const PreHomeScene = ( { assetServerUrl, pluginsReady }: { assetServerUrl: string, pluginsReady: boolean } ) => {
+// const requestLogin = async () => {
+//     const res = await supabase.auth.signInWithOtp({
+//         email,
+//         options: {
+//             emailRedirectTo: import.meta.env.BASE_URL
+//         }
+//     });
+
+//     if (res.error) {
+//         alert(res.error.message);
+//         return;
+//     }
+
+//     if (res.data.session) {
+//         alert("Check your email for a login link");
+//     }
+// }
+
+export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsReady: boolean, assetServerReady: boolean } ) => {
     const error = useSceneStore( ( state ) => state.error );
 
-    const validatedAssertServerUrl = useGameStore( ( state ) => state.assetServerUrl );
-
     const action = null;
+
+    
 
     useEffect( () => {
         return useProcessStore.subscribe( ( store ) => {
@@ -62,21 +78,19 @@ export const PreHomeScene = ( { assetServerUrl, pluginsReady }: { assetServerUrl
                 //@ts-expect-error
                 <div style={styleCenterText}>
                     {/* <div>{imbateamLogo}</div> */}
-                    <img src={dmLogo} style={{ width: "200px" }} />
-                    {!!validatedAssertServerUrl && (
+                    {/* <img src={dmLogo} style={{ width: "200px" }} /> */}
+                    {assetServerReady && pluginsReady && (
                         <LoadBar
                             color="#ffffff"
                             thickness={20}
                             style={{ marginTop: "30px" }}
                         />
                     )}
-                    {!validatedAssertServerUrl && (
+                    {(!assetServerReady || !pluginsReady) && (
                         <>
-                            <p>Waiting for assets</p>
-                            <p>{assetServerUrl}</p>
+                            <p>Waiting for: {assetServerReady ? "" : "asset server"} {pluginsReady ? "" : "plugin server"}</p>
                         </>
                     )}
-                    {!pluginsReady && <p>Waiting for plugin server</p>}
                 </div>
             )}
         </div>

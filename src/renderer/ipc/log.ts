@@ -13,44 +13,29 @@ const isActiveLevel = ( level: LogLevel ): boolean => {
 export const log = {
     error( msg: string | Error | unknown ) {
         if ( typeof msg === "string" ) {
-            logBoth( msg, "error" );
+            logClient( msg, "error" );
         } else {
-            logBoth( ( msg as Error ).message, "error" );
+            logClient( ( msg as Error ).message, "error" );
         }
     },
 
     warn( msg: string ) {
-        logBoth( msg, "warn" );
+        logClient( msg, "warn" );
     },
 
     info( msg: string ) {
-        logBoth( msg, "info" );
+        logClient( msg, "info" );
     },
 
     debug( msg: string ) {
-        logBoth( msg, "debug" );
+        logClient( msg, "debug" );
     },
-};
-
-export const logBoth = ( message: string, level: LogLevel = "info" ) => {
-    logClient( message, level );
-    logServer( message, level );
-};
-
-export const logServer = ( message: string, level: LogLevel = "info" ) => {
-    if ( !isActiveLevel( level ) ) {
-        return;
-    }
-
-    //todo: log to server
-    // console.log(message)
-
 };
 
 export const logClient = ( message: string, level: LogLevel = "info" ) => {
     if (
         !isActiveLevel( level ) &&
-        !( level === "error" && process.env.NODE_ENV === "development" )
+        !( level === "error" && import.meta.env.DEV )
     ) {
         return;
     }

@@ -63,6 +63,12 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
             processes: [ ...processes, process ],
         } ) );
 
+        setTimeout(() => {
+            if (get().processes.includes(process)) {
+                log.warn(`@process/stuck: ${label}`);
+            }
+        }, 10_000);
+
         return get()._createProcessWrapper( id, process );
     },
     addOrCreate: ( max: number ) => {

@@ -48,7 +48,7 @@ describe( "SceneStore", () => {
                 loader.mock.invocationCallOrder[0]!
         ).toBe( true );
 
-        expect( sceneStore().state ).toBe( state );
+        expect( sceneStore().scene ).toBe( state );
     } );
 
     it( "should sync execute scene loader, sync start, then assign state", async () => {
@@ -62,7 +62,7 @@ describe( "SceneStore", () => {
                 loader.mock.invocationCallOrder[0]!
         ).toBe( true );
 
-        expect( sceneStore().state ).toBe( state );
+        expect( sceneStore().scene ).toBe( state );
     } );
 
     it( "should call dispose on old state before loading next scene", async () => {

@@ -32,15 +32,17 @@ export interface PluginPackage {
  * A plugin's metadata based off it's package.json file and surrounding plugin files.
  */
 export interface PluginMetaData extends PluginPackage {
-    nativeSource?: string | null;
     path: string;
     date?: Date;
     readme?: string;
-    indexFile: string;
     isSceneController: boolean;
     apiVersion: string;
     url: string;
     config: PluginConfig;
+    urls: {
+        host: string | null,
+        ui: string | null,
+    }
 }
 
 /**

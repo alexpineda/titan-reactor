@@ -4,7 +4,7 @@ import { withErrorMessage } from "common/utils/with-error-message";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { globalEventKeys, GlobalEvents, globalEvents } from "../core/global-events";
-// import { setStorageIsCasc, setStoragePath } from "common/casclib";
+import { log } from "@ipc/log";
 
 window.addEventListener(
     "message",
@@ -38,10 +38,7 @@ window.onerror = (
     colno?: number,
     error?: Error
 ) => {
-    globalEvents.emit( "log-message", {
-        message: withErrorMessage( error, `${lineno!}:${colno!} - ${source!}` ),
-        level: "error",
-    } );
+    log.error(withErrorMessage( error, `${lineno!}:${colno!} - ${source!}` ));
 };
 
 document.addEventListener(

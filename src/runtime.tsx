@@ -287,7 +287,8 @@ const _removePlugin = ( pluginId: string ) => {
 };
 
 const _addPlugin = ( plugin: PluginMetaData ) => {
-    if ( !plugin.indexFile ) {
+    console.log("@runtime/loading-plugin", plugin.name);
+    if ( !plugin.urls.ui ) {
         return;
     }
 
@@ -295,7 +296,7 @@ const _addPlugin = ( plugin: PluginMetaData ) => {
     const script = document.createElement( "script" );
     script.type = "module";
     script.async = true;
-    script.src = `${plugin.path}/${plugin.indexFile}`;
+    script.src = plugin.urls.ui;
     document.head.appendChild( script );
 
     _plugins[plugin.id] = {
@@ -312,8 +313,7 @@ const _addPlugin = ( plugin: PluginMetaData ) => {
  * @public
  * Images and game data.
  */
-export type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat"> &
-    ReturnType<typeof convertIcons>;
+export type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat">;
 /**
  * @public
  * Images and game data.
@@ -501,46 +501,6 @@ const updateDimensionsCss = ( dimensions: MinimapDimensions ) => {
       }`
     );
 };
-
-/**
- * @internal
- */
-export function convertIcons( {
-    cmdIcons,
-    gameIcons,
-    raceInsetIcons,
-    wireframeIcons,
-    workerIcons,
-}: Required<SystemReadyMessage["assets"]> ) {
-    const b = ( data: ArrayBuffer ) =>
-        URL.createObjectURL( new Blob( [ data ], { type: "octet/stream" } ) );
-
-    return {
-        cmdIcons: cmdIcons.map( b ),
-        wireframeIcons: wireframeIcons.map( ( i ) => URL.createObjectURL( i ) ),
-        raceInsetIcons: {
-            protoss: URL.createObjectURL( raceInsetIcons.protoss ),
-            terran: URL.createObjectURL( raceInsetIcons.terran ),
-            zerg: URL.createObjectURL( raceInsetIcons.zerg ),
-        },
-        workerIcons: {
-            protoss: b( workerIcons.protoss ),
-            terran: b( workerIcons.terran ),
-            zerg: b( workerIcons.zerg ),
-            apm: b( workerIcons.apm ),
-        },
-        gameIcons: {
-            energy: URL.createObjectURL( gameIcons.energy ),
-            minerals: URL.createObjectURL( gameIcons.minerals ),
-            protoss: URL.createObjectURL( gameIcons.protoss ),
-            terran: URL.createObjectURL( gameIcons.terran ),
-            zerg: URL.createObjectURL( gameIcons.zerg ),
-            vespeneProtoss: URL.createObjectURL( gameIcons.vespeneProtoss ),
-            vespeneTerran: URL.createObjectURL( gameIcons.vespeneTerran ),
-            vespeneZerg: URL.createObjectURL( gameIcons.vespeneZerg ),
-        },
-    };
-}
 
 const PluginContext = createContext<Component | null>( null );
 
@@ -899,11 +859,6 @@ window.addEventListener( "message", function ( event: MessageEvent ) {
             updateDimensionsCss( payload.initialStore.dimensions );
 
             Object.assign( assets, payload.assets );
-
-            Object.assign(
-                assets,
-                convertIcons( payload.assets as Required<SystemReadyMessage["assets"]> )
-            );
 
             Object.assign( enums, event.data.payload.enums );
 

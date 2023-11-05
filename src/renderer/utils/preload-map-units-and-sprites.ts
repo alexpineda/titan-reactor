@@ -1,6 +1,5 @@
 import type { Assets } from "@image/assets";
 import gameStore from "@stores/game-store";
-import processStore from "@stores/process-store";
 import {
     calculateImagesFromSpritesIscript,
     calculateImagesFromUnitsIscript,
@@ -8,7 +7,7 @@ import {
 import type Chk from "bw-chk";
 import { techTree } from "common/enums";
 
-export const preloadMapUnitsAndSpriteFiles = async (
+export const preloadMapUnitsAndSpriteFiles = (
     assets: Assets,
     map: Pick<Chk, "units" | "sprites">,
 ) => {
@@ -23,14 +22,10 @@ export const preloadMapUnitsAndSpriteFiles = async (
     ];
     const allImages = [ ...calculateImagesFromSpritesIscript( assets.bwDat, allSprites ), ...preloadCommandUnits];
 
-    const preload = processStore().create( "preload", allImages.length );
-
     for (const imageId of allImages) {
         assets.loadImageAtlas(imageId);
     }
 
-    preload.increment();
-    
 };
 
 export const calculateImagesFromTechTreeUnits = (

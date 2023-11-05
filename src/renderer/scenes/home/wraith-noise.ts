@@ -26,8 +26,7 @@ export const createWraithNoise = () => {
             mixer.createDistortion( 50 ),
             mixer.createGain( 0.5 ),
             mixer.intro
-        ),
-        "connect"
+        )
     );
 
     gain.connect( highGain.gain );

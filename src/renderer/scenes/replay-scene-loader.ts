@@ -70,10 +70,11 @@ export type ValidatedReplay = Replay & {
     buffer: Buffer;
     uid: number;
 };
-export const loadAndValidateReplay = async ( file: File ) => {
+
+export const loadAndValidateReplay = async ( fileBuffer: ArrayBuffer ) => {
     const settings = settingsStore().data;
 
-    let replayBuffer = await openFile( file );
+    let replayBuffer = fileBuffer;
     let replay = await parseReplay( Buffer.from( replayBuffer ) );
 
     if ( replay.header.players.some( ( player ) => player.isComputer ) ) {
@@ -131,12 +132,9 @@ export const loadAndValidateReplay = async ( file: File ) => {
         );
     }
 
-    // if ( process.env.NODE_ENV === "development" ) {
-    //     writeFileSync( "G:\\last_replay.rep", replayBuffer );
-    // }
-
     ( replay as ValidatedReplay ).buffer = Buffer.from( replayBuffer );
     ( replay as ValidatedReplay ).uid = Math.random();
+
     return replay as ValidatedReplay;
 };
 
@@ -177,11 +175,8 @@ export const replaySceneLoader = async (
         "reset replay and map store"
     );
 
-    // wait for initial assets to load
-    await waitForTruthy( () => gameStore().assets?.remaining === 0 );
-
     if ( settingsStore().data.graphics.preloadMapSprites ) {
-        await preloadMapUnitsAndSpriteFiles( gameStore().assets!, map );
+        preloadMapUnitsAndSpriteFiles( gameStore().assets!, map );
     }
 
     loadProcess.increment();

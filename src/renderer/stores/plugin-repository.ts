@@ -43,13 +43,18 @@ type IndexedPackage = {
     files: string[];
 };
 
+type IndexJson = {
+    indexVersion: number;
+    buildVersion: number;
+    packages: IndexedPackage[];
+};
+
 /**
  * Interfaces with NPM packages and the file system to load plugins.
  */
 export class PluginsRepository {
     #pluginPackages: PluginMetaData[] = [];
     #storage: StorageAdapter;
-    repositoryUrl = "";
     #pluginSettings: Record<string, PluginConfig> = {};
 
     get plugins() {
@@ -66,7 +71,18 @@ export class PluginsRepository {
 
     async init() {
         this.#pluginPackages = [];
-        await this.#fetch(gameStore().pluginRepositoryUrl);
+        for (const repositoryUrl of gameStore().pluginRepositoryUrls) {
+            try {
+                await this.#fetch(repositoryUrl);
+            } catch (e) {
+                log.error(
+                    withErrorMessage(
+                        e,
+                        `@load-plugins: Could not load plugins from ${repositoryUrl}`
+                    )
+                );
+            }
+        }
 
         // todo: deprecate plugin.config
         for (const plugin of this.plugins) {
@@ -90,7 +106,7 @@ export class PluginsRepository {
 
             this.#storage.savePluginSettings(plugin.name, plugin.config);
 
-            console.log("plugin found", plugin.name, plugin.version);
+            log.info("plugin found", plugin.name, plugin.version);
         }
     }
 
@@ -103,7 +119,7 @@ export class PluginsRepository {
     //todo: do this at build time
     async #loadPluginPackage(
         plugin: IndexedPackage,
-        pluginRootUrl: string,
+        pluginRootUrl: string
     ): Promise<null | PluginMetaData> {
         const packageJSON = await fetch(urlJoin(pluginRootUrl, "package.json"))
             .then((r) => r.json() as Partial<PluginPackage>)
@@ -144,24 +160,30 @@ export class PluginsRepository {
 
         let isSceneController = false;
 
-        const pluginNative = plugin.files.includes("host.js") ? await fetch(`${pluginRootUrl}/host.js`)
-            .then(async (r) => {
-                isSceneController = (await r.text()).includes("onEnterScene");
-                return "host.js";
-            })
-            .catch(() => null) : null;
+        const hostFile = plugin.files.includes("host.js")
+            ? await fetch(`${pluginRootUrl}/dist/host.js`)
+                  .then(async (r) => {
+                      isSceneController = (await r.text()).includes("onEnterScene");
+                      return true;
+                  })
+                  .catch(() => false)
+            : null;
 
-        const indexFile = plugin.files.includes("ui.js") ? await fetch(`${pluginRootUrl}/ui.js`)
-            .then(() => "ui.js")
-            .catch(() => "") : "";
+        const uiFile = plugin.files.includes("ui.js")
+            ? await fetch(`${pluginRootUrl}/dist/ui.js`)
+                  .then(() => true)
+                  .catch(() => false)
+            : "";
 
-        const readme = plugin.files.includes("readme.md") ? await fetch(`${pluginRootUrl}/readme.md`)
-            .then((r) => r.text())
-            .catch(() => undefined): undefined;
+        const readme = plugin.files.includes("readme.md")
+            ? await fetch(`${pluginRootUrl}/readme.md`)
+                  .then((r) => r.text())
+                  .catch(() => undefined)
+            : undefined;
 
         const config = packageJSON.config ?? {};
 
-        if (!indexFile && !pluginNative) {
+        if (!uiFile && !hostFile) {
             log.error(
                 `@load-plugins/load-plugin-package: Plugin ${plugin.name} has no host or ui plugin files`
             );
@@ -179,8 +201,10 @@ export class PluginsRepository {
             apiVersion: getPluginAPIVersion(packageJSON),
             path: plugin.rootUrl,
             config,
-            nativeSource: pluginNative,
-            indexFile,
+            urls: {
+                host: hostFile ? urlJoin(pluginRootUrl, "dist", "host.js") : null,
+                ui:  uiFile ? urlJoin(pluginRootUrl, "dist", "ui.js") : null
+            },
             isSceneController,
             readme,
             url: pluginRootUrl,
@@ -220,14 +244,23 @@ export class PluginsRepository {
     }
 
     async #fetch(rootUrl: string) {
-        this.repositoryUrl = rootUrl;
+        const indexJson = await fetch(urlJoin(rootUrl, "index.json"))
+            .then((r) => r.json() as Promise<IndexJson>)
+            .catch(() => null);
 
-        //todo: load plugins
-        const plugins = await fetch(urlJoin(rootUrl, "index.json"))
-            .then((r) => r.json() as Promise<IndexedPackage[]>)
-            .catch(() => []);
-
-        for (const plugin of plugins) {
+        if (!indexJson) {
+            throw new Error(
+                `@load-plugins: Could not load index.json from ${rootUrl}`
+            );
+        }
+        
+        for (const plugin of indexJson.packages) {
+            if (this.#pluginPackages.find((p) => p.name === plugin.name)) {
+                log.warn(
+                    `@load-plugins: Duplicate plugin found, skipping ${plugin.name}`
+                );
+                continue;
+            }
             const pluginPackage = await this.#loadPluginPackage(
                 plugin,
                 urlJoin(rootUrl, plugin.rootUrl)

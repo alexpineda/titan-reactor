@@ -6,7 +6,7 @@ import { SceneState, SceneStateID } from "../scenes/scene";
 export type SceneLoader = (prevData?: any) => Promise<SceneState> | SceneState;
 
 export interface SceneStore {
-    state: SceneState | null;
+    scene: SceneState | null;
     execSceneLoader: (
         loader: SceneLoader,
         id: SceneStateID,
@@ -37,7 +37,7 @@ let _loading = false;
  * When a scene is loaded, the previous one gets disposed.
  */
 export const useSceneStore = create<SceneStore>((set, get) => ({
-    state: null,
+    scene: null,
     error: null,
     execSceneLoader: async (
         loader: SceneLoader,
@@ -62,7 +62,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
             get().clearError();
         }
 
-        const oldState = get().state;
+        const oldState = get().scene;
         let prevData: any = undefined;
         if (oldState) {
             try {
@@ -82,7 +82,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
                 window.gc();
             }
             state.start(oldState?.id);
-            set({ state });
+            set({ scene: state });
         } catch (err: any) {
             if (err instanceof Error) {
                 log.error(err.stack);
@@ -102,7 +102,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
         _loading = false;
     },
     reset() {
-        set({ state: null });
+        set({ scene: null });
     },
     setError: (error: Error) => {
         log.error(error.message);

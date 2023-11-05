@@ -1,6 +1,5 @@
 import { TypeEmitter } from "@utils/type-emitter";
 import type Chk from "bw-chk";
-import type { LogLevel } from "common/logging";
 import type { MacroAction, PluginConfig, PluginMetaData } from "common/types";
 import type { ValidatedReplay } from "../scenes/replay-scene-loader";
 
@@ -13,7 +12,6 @@ export interface GlobalEvents {
     "unsafe-open-url": string;
     "load-iscriptah": string;
     "queue-files": { files: File[] };
-    "log-message": { message: string; level: LogLevel; server?: boolean };
     "reload-all-plugins": undefined;
     "exec-macro": string;
     "reset-macro-actions": string;
@@ -26,6 +24,7 @@ export interface GlobalEvents {
     "map-ready": { map: Chk };
     "xr-session-start": void;
     "xr-session-end": void;
+    "metaverse-presence": { presence: any };
 }
 
 export const globalEventKeys: ( keyof GlobalEvents )[] = [
@@ -37,7 +36,6 @@ export const globalEventKeys: ( keyof GlobalEvents )[] = [
     "unsafe-open-url",
     "load-iscriptah",
     "queue-files",
-    "log-message",
     "reload-all-plugins",
     "exec-macro",
     "reset-macro-actions",

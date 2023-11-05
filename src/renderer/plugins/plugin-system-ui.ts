@@ -22,7 +22,6 @@ import {
     UI_SYSTEM_PLUGINS_ENABLED,
     UI_STATE_EVENT_PRODUCTION,
 } from "./events";
-import { waitForTruthy } from "@utils/wait-for";
 import { DumpedUnit, Unit } from "@core/unit";
 import { StdVector } from "../openbw/structs/std-vector";
 import * as enums from "common/enums";
@@ -38,7 +37,7 @@ const screenChanged = ( screen: SceneStore ) => {
     return {
         type: UI_STATE_EVENT_SCREEN_CHANGED,
         payload: {
-            screen: screen.state?.id,
+            screen: screen.scene?.id,
             error: screen.error?.message,
         },
     };
@@ -150,12 +149,10 @@ export interface SystemReadyMessage {
     assets: Pick<
         Assets,
         | "bwDat"
-        | "gameIcons"
-        | "cmdIcons"
-        | "raceInsetIcons"
-        | "workerIcons"
-        | "wireframeIcons"
-    >;
+    > & {
+        url: string;
+        imagesUrl: string;
+    }
     enums: any;
 }
 
@@ -210,7 +207,6 @@ export class PluginSystemUI {
 
             setInteractivity( false );
 
-            await waitForTruthy( () => gameStore().assets?.remaining === 0 );
             const assets = gameStore().assets!;
 
             const payload: SystemReadyMessage = {
@@ -221,11 +217,8 @@ export class PluginSystemUI {
                 initialStore: initialStore(),
                 assets: {
                     bwDat: assets.bwDat,
-                    gameIcons: assets.gameIcons,
-                    cmdIcons: assets.cmdIcons,
-                    raceInsetIcons: assets.raceInsetIcons,
-                    workerIcons: assets.workerIcons,
-                    wireframeIcons: assets.wireframeIcons,
+                    url: gameStore().assetServerUrl,
+                    imagesUrl: `${gameStore().assetServerUrl}/webui/dist/lib/images/` 
                 },
                 enums: { ...enums },
             };
@@ -243,7 +236,7 @@ export class PluginSystemUI {
             // const settings = settingsStore().data;
 
             // createMeta("localhost-csp", `child-src http://localhost:${settings.plugins.serverPort} http://embed-casts.imbateam.gg http://embed-casts-2.imbateam.gg https://www.youtube.com`);
-            this.#iframe.src = gameStore().uiRuntimeUrl;
+            this.#iframe.src = import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL;
         };
 
         this.#janitor.mop(

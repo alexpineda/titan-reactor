@@ -1,8 +1,7 @@
 import { omitCharacters } from "@utils/chk-utils";
 
-import { useGameStore } from "@stores/game-store";
+import gameStore  from "@stores/game-store";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
-import { useState } from "react";
 
 const MAX_REPLAYS_SHOWN = 7;
 
@@ -24,13 +23,7 @@ const UpNextIcon = () => (
 
 export const ReplayQueueList = () => {
     const { replayQueue, getNextReplay, replay: currentReplay  } = useReplayAndMapStore();
-    const rawIcons = useGameStore( ( state ) => state.assets!.raceInsetIcons! );
-    const [ icons ] = useState( {
-        protoss: URL.createObjectURL( rawIcons.protoss ),
-        terran: URL.createObjectURL( rawIcons.terran ),
-        zerg: URL.createObjectURL( rawIcons.zerg ),
-    } );
-
+    
     const idx = replayQueue.findIndex( ( replay ) => replay === getNextReplay() );
     let sliceIndexStart = Math.max( 0, idx - 2 );
 
@@ -92,11 +85,11 @@ export const ReplayQueueList = () => {
                             const icon1 =
                                 replay.header.players[0].race === "unknown"
                                     ? ""
-                                    : `url(${icons[replay.header.players[0].race]})`;
+                                    : `url(${gameStore().assetServerUrl}/webui/dist/lib/images/avatar_neutral_${replay.header.players[0].race}.jpg)`;
                             const icon2 =
                                 replay.header.players[1].race === "unknown"
                                     ? ""
-                                    : `url(${icons[replay.header.players[1].race]})`;
+                                    : `url(${gameStore().assetServerUrl}/webui/dist/lib/images/avatar_neutral_${replay.header.players[1].race}.jpg)`;
                             const playerNameStyle = {
                                 fontWeight: "500",
                                 opacity: "0.9",
@@ -133,6 +126,8 @@ export const ReplayQueueList = () => {
                                                     background: icon1,
                                                     display: "inline-block",
                                                     marginLeft: "16px",
+                                                    backgroundSize: "contain",
+                                                    backgroundRepeat: "no-repeat",
                                                 }}></div>
                                         </div>
                                     </td>
@@ -154,6 +149,8 @@ export const ReplayQueueList = () => {
                                                     background: icon2,
                                                     display: "inline-block",
                                                     marginLeft: "16px",
+                                                    backgroundSize: "contain",
+                                                    backgroundRepeat: "no-repeat",
                                                 }}></div>
                                         </div>
                                     </td>

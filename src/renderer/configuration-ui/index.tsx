@@ -63,11 +63,11 @@ const container = document.getElementById("app");
 const root = createRoot(container!);
 
 window.opener.postMessage({
-    type: "connect",
+    type: "control-panel:connect",
 });
 
 window.addEventListener("message", (event) => {
-    if (event.data.type === "connected") {
+    if (event.data.type === "control-panel:connected") {
         console.log("connected", window.deps.useSettingsStore.getState());
         window.deps.useSettingsStore.subscribe((state) => {
             console.log("state", state);

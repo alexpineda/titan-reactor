@@ -8,7 +8,7 @@ import { waitForTruthy } from "@utils/wait-for";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
 import processStore from "@stores/process-store";
-import gameStore, { useGameStore } from "@stores/game-store";
+import { useGameStore } from "@stores/game-store";
 import { openCascStorageRemote } from "@ipc/casclib";
 import { pluginsStore } from "@stores/plugins-store";
 
@@ -25,25 +25,26 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     await settingsStore().init();
     await pluginsStore().init();
 
-    root.render( <PreHomeScene assetServerUrl={assetServerUrl} pluginsReady={false} /> );
+    root.render( <PreHomeScene  pluginsReady={false} assetServerReady={false} /> );
 
     await waitForTruthy( async () => {
-        const ok = await openCascStorageRemote( assetServerUrl );
-        if ( ok ) {
-            localStorage.setItem( "assetServerUrl", assetServerUrl );
-            useGameStore.setState( { assetServerUrl } );
+        const assetServerReady = !!useGameStore.getState().assetServerUrl;
+        if (!assetServerReady) {
+            const ok = await openCascStorageRemote( assetServerUrl );
+            console.log( "assetServerUrl", assetServerUrl, ok );
+            if ( ok ) {
+                localStorage.setItem( "assetServerUrl", assetServerUrl );
+                useGameStore.setState( { assetServerUrl } );
+            }
         }
-        return gameStore().assetServerUrl;
+
+        const pluginsReady = await fetch(import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL, { method: "HEAD" }).then( ( res ) => res.ok );
+        console.log( "pluginsReady", import.meta.env.VITE_PLUGINS_RUNTIME_ENTRY_URL, pluginsReady )
+
+        root.render( <PreHomeScene  pluginsReady={pluginsReady} assetServerReady={assetServerReady} /> );
+
+        return pluginsReady && assetServerReady;//gameStore().assetServerUrl;
     }, 5000 );
-
-    await waitForTruthy( async () => {
-
-        return await fetch(gameStore().uiRuntimeUrl, { method: "HEAD" }).then( ( res ) => res.ok );
-
-    }, 5000);
-
-    root.render( <PreHomeScene assetServerUrl={assetServerUrl} pluginsReady={true} /> );
-
 
     await initializeAssets();
 

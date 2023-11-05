@@ -12,7 +12,6 @@ import { log } from "@ipc/log";
 import { PluginBase } from "./plugin-base";
 import { SceneController } from "./scene-controller";
 import lSet from "lodash.set";
-import { urlJoin } from "@utils/string-utils";
 
 type PluginsConfigSnapshot = Record<
     string,
@@ -53,14 +52,13 @@ export class PluginSystemNative {
         }
     ) {
 
-        
         const compartment = createCompartment({
             PluginBase,
             SceneController,
         });
 
         try {
-            const Plugin = await import( urlJoin(pluginPackage.url, "host.js"));
+            const Plugin = await import( pluginPackage.urls.host! );
 
             if (!Plugin) {
                 throw new Error("Plugin constructor must extend PluginBase");
@@ -139,7 +137,6 @@ export class PluginSystemNative {
     }
 
     getAllSceneControllers() {
-        console.log("getAllSceneControllers", this.#plugins)
         return this.#plugins.filter((p) => p.isSceneController) as SceneController[];
     }
 
@@ -272,7 +269,7 @@ export class PluginSystemNative {
     sessionInit() {
         for (const plugin of this.#plugins) {
             try {
-                log.debug(`init plugin ${plugin.name} ${!!plugin.init}`);
+                log.debug(`plugin session start ${plugin.name}.init()`);
                 plugin.init && plugin.init();
             } catch (e) {
                 this.deactivatePlugin(plugin.id);

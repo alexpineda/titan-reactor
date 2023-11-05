@@ -1,12 +1,11 @@
-import create  from "zustand";
+import create from "zustand";
 import { MinimapDimensions } from "@render/minimap-dimensions";
 import { Assets } from "@image/assets";
 import { waitForTruthy } from "@utils/wait-for";
 
 export interface GameStore {
     assetServerUrl: string;
-    pluginRepositoryUrl: string;
-    uiRuntimeUrl: string;
+    pluginRepositoryUrls: string[];
     assets: Assets | null;
     dimensions: MinimapDimensions;
     setAssets: ( assets: Assets | null ) => void;
@@ -14,15 +13,9 @@ export interface GameStore {
     configurationWindow: Window | null;
     openConfigurationWindow: () => void;
 }
-const pluginUrl =
-    process.env.NODE_ENV === "development"
-        ? "http://localhost:8090/"
-        : "https://plugins-o8a.pages.dev/";
-
 export const useGameStore = create<GameStore>( ( set, get ) => ( {
     assetServerUrl: "",
-    pluginRepositoryUrl: pluginUrl,
-    uiRuntimeUrl: pluginUrl + "runtime.html",
+    pluginRepositoryUrls: [ import.meta.env.VITE_OFFICIAL_PLUGINS_SERVER_URL ],
     assets: null,
     configurationWindow: null,
     configurationWindowDeps: null,
@@ -53,13 +46,9 @@ export async function setAsset<T extends keyof Assets>( key: T, asset: Assets[T]
         assets: {
             ...assets,
             [key]: asset,
-            remaining: assets.remaining - 1,
         },
     } );
 
-    if ( useGameStore.getState().assets!.remaining < 0 ) {
-        throw new Error( "Remaining assets is less than 0" );
-    }
 }
 
 export default () => useGameStore.getState();
