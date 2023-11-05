@@ -20,9 +20,8 @@
         "build:runtime": "ts-node -T ./esbuild.runtime.ts",
         "serve:runtime": "http-server .\\dist\\runtime -p 8090 --cors",
         "web": "vite -c vite.config.web.ts",
-        "build:web": "vite build -c vite.config.web.ts",
         "runtime": "yarn build:runtime && yarn serve:runtime",
-        "build": "yarn build:web && yarn build:plugins"
+        "build": "vite build -c vite.config.web.ts"
     },
     "repository": {
         "type": "git",
