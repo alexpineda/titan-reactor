@@ -2,15 +2,6 @@
 
 ![command_1](https://github.com/imbateam-gg/titan-reactor/assets/586716/9709ff59-8943-402f-a5a5-f57d64a5ed81)
 
-
-## Directory Paths
-- **StarCraft**:                Path to the StarCraft install directory or the extracted StarCraft CASC files directory.
-- **Maps**:                     The default directory for maps.
-- **Replays**:                  The default directory for replays.
-- **Assets**:                   Directory for 3d models.
-- **Plugins**:                  Path to directory containing third-party plugins.
-
-
 ## Audio Settings
 - **Global Volume**: Adjusts overall volume, range from 0 to 1.
 - **Music Volume**: Sets music volume, range from 0 to 1.
@@ -49,11 +40,6 @@
 - **Melee Observers Threshold**: Sets command threshold for observer detection, range from 1000 to 50000.
 - **Alert Desynced**: Enables desync detection before the game starts.
 - **Desynced Threshold**: Sets idle units threshold for desync alerts, range from 10 to 100.
-
-## Plugin Settings
-- **Server Port**: Specifies the plugin server port.
-- **Development Directory**: Optional directory for plugin development, uses a directory picker.
-- **Enabled Plugins**: List of enabled plugins.
 
 ## Postprocessing Settings
 - **Anisotropy**: Sets texture anisotropy level, range based on max settings.
