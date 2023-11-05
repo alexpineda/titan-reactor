@@ -273,7 +273,9 @@ export async function createWraithScene() {
 
     _sceneResizeHandler();
 
-    document.body.appendChild( janitor.mop(VRButton.createButton( renderComposer.glRenderer )) );
+    if (import.meta.env.DEV) {
+        document.body.appendChild( janitor.mop(VRButton.createButton( renderComposer.glRenderer )) );
+    }
 
     return {
         dispose: () => janitor.dispose(),
