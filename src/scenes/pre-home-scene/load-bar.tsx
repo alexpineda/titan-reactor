@@ -1,5 +1,5 @@
 import { useProcessStore } from "@stores/process-store";
-import { useLayoutEffect, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef } from "react";
 import { Color } from "three";
 
 interface LoadBarProps {
@@ -8,14 +8,16 @@ interface LoadBarProps {
     style?: object;
 }
 
-export const LoadRing = () => <div
-    className="lds-dual-ring"
-    style={{
-        position: "absolute",
-        bottom: "0",
-        right: "0",
-    }}
-/>
+export const LoadRing = () => (
+    <div
+        className="lds-dual-ring"
+        style={{
+            position: "absolute",
+            bottom: "0",
+            right: "0",
+        }}
+    ></div>
+);
 
 export const LoadBar = ({ color, thickness, style }: LoadBarProps) => {
     const divRef = useRef<HTMLDivElement>(null);
@@ -39,21 +41,23 @@ export const LoadBar = ({ color, thickness, style }: LoadBarProps) => {
         });
     }, []);
 
-    const c1 = new Color(color);
-    const hsl = {
-        h: 0,
-        s: 0,
-        l: 0,
-    };
-    c1.getHSL(hsl);
-    hsl.l -= 0.75;
-    c1.setHSL(hsl.h, hsl.s, hsl.l);
-
-    hsl.h += 0.1;
-    hsl.l -= 0.1;
-    const c2 = new Color().setHSL(hsl.h, hsl.s, hsl.l);
-    const gradient = c2.getHexString();
-
+    const gradient = useMemo(() => {
+        const c1 = new Color(color);
+        const hsl = {
+            h: 0,
+            s: 0,
+            l: 0,
+        };
+        c1.getHSL(hsl);
+        hsl.l -= 0.75;
+        c1.setHSL(hsl.h, hsl.s, hsl.l);
+    
+        hsl.h += 0.1;
+        hsl.l -= 0.1;
+        const c2 = new Color().setHSL(hsl.h, hsl.s, hsl.l);
+        return c2.getHexString();
+    }, [color]);
+    
     return (
         <div
             style={{

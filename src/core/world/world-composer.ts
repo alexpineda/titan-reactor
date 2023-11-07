@@ -28,7 +28,6 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { mixer } from "@audio/main-mixer";
 import { CommandsStream } from "process-replay";
 import { log } from "@ipc/log";
-// import processStore from "@stores/process-store";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 
@@ -39,7 +38,6 @@ export const createWorldComposer = async (
     basePlayers: BasePlayer[],
     commands: CommandsStream
 ) => {
-    // const process = processStore().create( "WorldComposer" );
     const janitor = new Janitor( "WorldComposer" );
     const events = janitor.mop( new TypeEmitter<WorldEvents>(), "events" );
     const settings = janitor.mop( createSettingsSessionStore( events ) );
@@ -206,6 +204,7 @@ export const createWorldComposer = async (
 
     return {
         world,
+        apiSession,
 
         /**
          * Must be called before any other calls on world composer.

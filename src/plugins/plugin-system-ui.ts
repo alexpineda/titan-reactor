@@ -270,8 +270,13 @@ export class PluginSystemUI {
 
         this.refresh();
 
+        this.#iframe.style.visibility = "hidden";
         document.body.appendChild( this.#iframe );
         this.#janitor.mop( () => this.#iframe.remove(), "iframe" );
+    }
+
+    show() {
+        this.#iframe.style.visibility = "visible";
     }
 
     isRunning() {

@@ -17,11 +17,15 @@ export async function makeGameScene(
     onOpenBWReady: ( openBW: OpenBW ) => BasePlayer[],
     onWorldInitialized?: ( worldComposer: WorldComposer ) => Promise<void> | void
 ) {
+    const process = processStore().create("openbw", 3)
     const openBW = await getOpenBW();
+    process.increment();
 
     await openBW.start( readCascFile );
+    process.increment();
 
     const basePlayers = onOpenBWReady( openBW );
+    process.complete();
 
     const worldComposer = janitor.mop(
         await createWorldComposer(
@@ -53,6 +57,7 @@ export async function makeGameScene(
                     showCursor: false,
                 }
             )
+            worldComposer.apiSession.ui.show();
             // worldComposer.surfaceComposer.mount();
         },
         beforeNext() {

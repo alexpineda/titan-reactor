@@ -3,7 +3,6 @@ import { useProcessStore } from "@stores/process-store";
 import { useSceneStore } from "@stores/scene-store";
 import { useEffect } from "react";
 import titanReactorLogo from "@image/assets/logo.png";
-import { LoadBar } from "./load-bar";
 
 const styleCenterText = {
     position: "absolute",
@@ -74,11 +73,7 @@ export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsRead
                 //@ts-expect-error
                 <div style={styleCenterText}>
                     {waitingFor.length === 0 && (
-                        <LoadBar
-                            color="#ffffff"
-                            thickness={20}
-                            style={{ marginTop: "30px" }}
-                        />
+                        <p>Preparing Your Journey</p>
                     )}
                     {(waitingFor.length > 0) && (
                         <>

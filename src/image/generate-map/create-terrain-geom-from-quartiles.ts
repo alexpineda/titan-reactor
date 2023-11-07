@@ -318,6 +318,8 @@ export const createTerrainGeometryFromQuartiles = (
         },
     };
 
+    genProcess.complete();
+    
     return terrain;
 };
 export default createTerrainGeometryFromQuartiles;

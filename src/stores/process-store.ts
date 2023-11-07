@@ -22,8 +22,10 @@ export interface ProcessStore {
     processes: IncrementalProcess[];
     create: ( label: string, max: number ) => ProcessProgressWrapper;
     increment: ( id: string, current?: number ) => void;
+    complete( id: string ): void;
     isComplete: ( id: string ) => boolean;
     isInProgress: ( id: string ) => boolean;
+    inProgress: () => IncrementalProcess[];
     getTotalProgress: () => number;
     clearCompleted: () => void;
     clearAll: () => void;
@@ -42,7 +44,7 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
             process.max += additional;
         },
         complete() {
-            get().increment( id, process.max );
+            get().complete( id );
         }
     } ),
     create: ( label: string, max = PROCESS_MAX ) => {
@@ -66,7 +68,7 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
             if (get().processes.includes(process)) {
                 log.warn(`@process/stuck: ${label}`);
             }
-        }, 10_000);
+        }, 30_000);
 
         return get()._createProcessWrapper( id, process );
     },
@@ -110,6 +112,7 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
         get().processes.some( ( p ) => p.id === id && p.current < p.max ),
     isComplete: ( id: string ) =>
         get().processes.some( ( p ) => p.id === id && p.current >= p.max ),
+    inProgress: () => get().processes.filter( ( p ) => p.current < p.max ),
     getTotalProgress: () => {
         let total = 0,
             process = 0;

@@ -115,7 +115,6 @@ export const replaySceneLoader = async (
     replay: ValidatedReplay
 ): Promise<SceneState> => {
     processStore().clearCompleted();
-    const loadProcess = processStore().create( "replay", 2 );
 
     log.info( `@replay-scene-loader/init: ${replay.header.gameName}` );
 
@@ -181,8 +180,8 @@ export const replaySceneLoader = async (
                         }
                     }
                 } else {
-                    // preload up to 2 minutes of commands
-                    if (command > 2 * 24 * 60) {
+                    // preload up to 1 minute of commands
+                    if (command > 1 * 24 * 60) {
                         preOrPost = 1;
                     }
                 }
@@ -193,11 +192,9 @@ export const replaySceneLoader = async (
 
         for (const imageId of postLoad) {
             gameStore().assets!
-            .loadImageAtlas( imageId, 2 )//, assets.bwDat )
+            .loadImageAtlas( imageId, 2 )
         }
     }
-
-    loadProcess.increment();
 
     const commands = new CommandsStream(
         replay.rawCmds as Buffer,
@@ -253,7 +250,6 @@ export const replaySceneLoader = async (
             // worldComposer.preRunComplete();
         }
     );
-    loadProcess.increment();
 
     document.title = `Titan Reactor - ${gameTitle}`;
 

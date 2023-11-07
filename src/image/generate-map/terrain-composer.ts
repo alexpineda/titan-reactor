@@ -86,7 +86,7 @@ export async function terrainComposer(
     //TODO: generate water mask
 
     renderComposer.preprocessEnd();
-    genProcess.increment();
+    genProcess.complete();
 
     const terrain = createTerrainGeometryFromQuartiles(
         mapWidth,
