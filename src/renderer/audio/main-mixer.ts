@@ -1,5 +1,5 @@
 import { AudioContext, Quaternion, Vector3 } from "three";
-import { getCascUrl, readCascFileRemote as readCascFile } from "@ipc/casclib";
+import { getCascUrl } from "@ipc/casclib";
 import gameStore from "@stores/game-store";
 import { Settings } from "common/types";
 import { ResourceIncrementalLoader } from "@image/loader/resource-incremental-loader";

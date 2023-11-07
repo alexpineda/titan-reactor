@@ -30,6 +30,8 @@ const updateWindowTitle = ( title: string ) => {
     document.title = `Titan Reactor - ${title}`;
 };
 export const mapSceneLoader = async ( fileBuffer: ArrayBuffer ): Promise<SceneState> => {
+    throw new Error( "Not implemented - need browser version of scm-extractor" );
+    console.log( fileBuffer )
     await gameStore().assets?.openCascStorage();
     gameStore().assets?.resetImagesCache();
 

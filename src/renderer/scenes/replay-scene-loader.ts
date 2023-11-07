@@ -39,7 +39,6 @@ import { music } from "@audio/music";
 import { cleanMapTitles, createMapImage } from "@utils/chk-utils";
 import { pluginsStore } from "@stores/plugins-store";
 import { calculateImagesFromUnitsIscript } from "@utils/images-from-iscript";
-import e from "express";
 export type ValidatedReplay = Replay & {
     buffer: Buffer;
     uid: number;

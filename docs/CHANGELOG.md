@@ -9,10 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Added
 
+-   New website www.blacksheepwall.tv
 -   Plugin API documentation in https://imbateam-gg.github.io/titan-reactor/
 -   Drag and drop file loading
 -   Replay Queue system with UI
 -   Minimap Box
+-   Replays can be loaded using the ?replays=URL query parameter
 
 ## Removed
 

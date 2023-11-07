@@ -13,65 +13,79 @@ import { pluginsStore } from "@stores/plugins-store";
 import { renderAppUI } from "../app";
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
-    processStore().create( "pre-home-scene", 7 );
+    processStore().create("pre-home-scene", 7);
 
-    const urlParams = new URLSearchParams( window.location.search );
-    const assetServerUrlParam = urlParams.get( "assetServerUrl" );
+    const urlParams = new URLSearchParams(window.location.search);
+    const assetServerUrlParam = urlParams.get("assetServerUrl");
     const assetServerUrl =
         assetServerUrlParam ??
-        localStorage.getItem( "assetServerUrl" ) ??
+        localStorage.getItem("assetServerUrl") ??
         "http://localhost:8080";
 
     await settingsStore().init();
-    await pluginsStore().init();
 
-    renderAppUI( 
-        {
-            key: "@preload",
-            scene: <PreHomeScene  pluginsReady={false} assetServerReady={false} />,
-        });
-        
-    await waitForTruthy( async () => {
+    renderAppUI({
+        key: "@preload",
+        scene: <PreHomeScene pluginsReady={false} assetServerReady={false} />,
+    });
+
+    await waitForTruthy(async () => {
         const assetServerReady = !!useGameStore.getState().assetServerUrl;
         if (!assetServerReady) {
-            const ok = await openCascStorageRemote( assetServerUrl );
-            console.log( "assetServerUrl", assetServerUrl );
-            if ( ok ) {
-                localStorage.setItem( "assetServerUrl", assetServerUrl );
-                useGameStore.setState( { assetServerUrl } );
+            try {
+                const ok = await openCascStorageRemote(assetServerUrl);
+                console.log("assetServerUrl", assetServerUrl);
+                if (ok) {
+                    localStorage.setItem("assetServerUrl", assetServerUrl);
+                    useGameStore.setState({ assetServerUrl });
+                }
+            } catch (err) {
+                console.error(err);
             }
         }
 
         let pluginsReady = false;
 
         try {
-            pluginsReady = await fetch(gameStore().runtimeUrl, { method: "HEAD" }).then( ( res ) => res.ok );
+            pluginsReady = await fetch(gameStore().runtimeUrl, { method: "HEAD" }).then(
+                (res) => res.ok
+            );
             for (const url of gameStore().pluginRepositoryUrls) {
-                pluginsReady = pluginsReady && await fetch(url + "index.json", { method: "HEAD" }).then( ( res ) => res.ok );
-                console.log( "pluginsReady", url )
-
+                pluginsReady =
+                    pluginsReady &&
+                    (await fetch(url + "index.json", { method: "HEAD" }).then(
+                        (res) => res.ok
+                    ));
+                console.log("pluginsReady", url);
             }
-            console.log( "runtimeReady", gameStore().runtimeUrl, pluginsReady )
-        } catch ( err ) {
-            console.error( err );
+            console.log("runtimeReady", gameStore().runtimeUrl, pluginsReady);
+        } catch (err) {
+            pluginsReady = false;
+            console.error(err);
         }
 
-        renderAppUI( 
-            {
-                key: "@preload",
-                scene: <PreHomeScene  pluginsReady={pluginsReady} assetServerReady={assetServerReady} />,
-            });
+        renderAppUI({
+            key: "@preload",
+            scene: (
+                <PreHomeScene
+                    pluginsReady={pluginsReady}
+                    assetServerReady={assetServerReady}
+                />
+            ),
+        });
 
-        return pluginsReady && assetServerReady;//gameStore().assetServerUrl;
-    }, 5000 );
+        return pluginsReady && assetServerReady; //gameStore().assetServerUrl;
+    }, 5000);
+
+    await pluginsStore().init();
 
     await initializeAssets();
 
     await preloadIntro();
 
-    log.debug( "Loading intro" );
+    log.debug("Loading intro");
 
-    mixer.setVolumes( settingsStore().data.audio );
+    mixer.setVolumes(settingsStore().data.audio);
 
     const dropYourSocks = mixer.context.createBufferSource();
     dropYourSocks.buffer = await mixer.loadAudioBuffer(
@@ -80,7 +94,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
 
     const _disconnect = mixer.connect(
         dropYourSocks,
-        new Filter( mixer, "bandpass", 50 ).node,
+        new Filter(mixer, "bandpass", 50).node,
         mixer.intro
     );
 
@@ -89,7 +103,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     return {
         id: "@loading",
         start: () => {
-            dropYourSocks.detune.setValueAtTime( -200, mixer.context.currentTime + 5 );
+            dropYourSocks.detune.setValueAtTime(-200, mixer.context.currentTime + 5);
             dropYourSocks.start();
         },
         dispose: () => {},
