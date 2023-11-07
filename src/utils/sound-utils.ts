@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import { SoundDAT } from "common/types";
 import gameStore from "@stores/game-store";
 import { SoundChannels, mixer } from "@audio";
-import { ProjectedCameraView } from "renderer/camera/projected-camera-view";
+import { ProjectedCameraView } from "../camera/projected-camera-view";
 import { PxToWorld } from "common/utils/conversions";
 import { GameViewPort } from "../camera/game-viewport";
 

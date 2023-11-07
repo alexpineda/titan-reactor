@@ -106,20 +106,5 @@ describe( "ProcessStore", () => {
         expect( processStore().processes ).toHaveLength( 1 );
     } );
 
-    it( "should add to an open processwhen asked", () => {
-        const wrapper = processStore().create( "test", 1 );
-        const other = processStore().addOrCreate( 1 );
-
-        expect( wrapper.id ).toBe( other.id );
-
-        expect( processStore().getTotalProgress() ).toBe( 0 );
-
-        wrapper.increment();
-
-        expect( processStore().getTotalProgress() ).toBe( 0.5 );
-
-        other.increment();
-
-        expect( processStore().getTotalProgress() ).toBe( 1 );
-    } );
+  
 } );

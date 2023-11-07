@@ -37,7 +37,7 @@ import { createBattleCruiser } from "./battlecruiser";
 import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
-import processStore from "@stores/process-store";
+import processStore  from "@stores/process-store";
 import { VRButton } from "@render/vr/vr-button";
 
 CameraControls.install( { THREE: THREE } );
@@ -70,6 +70,7 @@ const battleLights = createBattleLights();
 let fireTexture: Texture | undefined = undefined;
 
 export const preloadIntro = async () => {
+    const process = processStore().create( "Loading intro", 4 );
     if ( fireTexture === undefined ) {
         fireTexture = await new EXRLoader().loadAsync(
             __static + "/three/FireBall03_8x8.exr"
@@ -77,17 +78,17 @@ export const preloadIntro = async () => {
     }
 
     const envmap = loadEnvironmentMap( __static + "/three/envmap.hdr", () =>
-        processStore().increment()
+        process.increment()
     );
 
     // await asteroids.load( envmap );
-    processStore().increment();
+    process.increment();
 
     await wraiths.load( envmap, fireTexture );
-    processStore().increment();
+    process.increment();
 
     await battleCruiser.load( envmap, fireTexture );
-    processStore().increment();
+    process.complete();
 
     battleLights.load( fireTexture );
 };

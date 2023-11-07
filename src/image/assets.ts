@@ -40,6 +40,7 @@ export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
 }
 
 export const initializeAssets = async () => {
+    const process = processStore().create("Loading assets", 3);
     const bwDat = await loadDATFiles(readCascFileRemote);
     setAsset("bwDat", bwDat);
 
@@ -47,7 +48,7 @@ export const initializeAssets = async () => {
     const sdAnimBuf = await readCascFile("SD/mainSD.anim");
     const sdAnim = parseAnim(sdAnimBuf);
 
-    processStore().increment();
+    process.increment();
 
     log.debug("@load-assets/selection-circles");
     const selectionCircles: AnimAtlas[] = [];
@@ -78,7 +79,7 @@ export const initializeAssets = async () => {
         setAsset("envMap", tex);
     })
 
-    processStore().increment();
+    process.increment();
 
     const cursorIcons = await generateCursorIcons(readCascFile);
 
@@ -102,7 +103,7 @@ export const initializeAssets = async () => {
         )
     );
 
-    processStore().increment();
+    process.complete();
 
     imageLoaderManager.loadImage(imageTypes.warpInFlash);
 

@@ -1,5 +1,5 @@
 import { useSceneStore } from "@stores/scene-store";
-import packageJSON from "../../../../package.json";
+import packageJSON from "../../../package.json";
 import gameStore from "@stores/game-store";
 
 import { OpenFileButton } from "./open-file-button";
@@ -7,7 +7,7 @@ import { Socials } from "./socials";
 import { ConfigButton } from "./config-button";
 
 import { MatchDisplay } from "./match-display";
-import { MuteIntroSoundButton } from "./mute-intro-sound-button";
+import { FullScreenButton } from "./full-screen-button";
 
 /**
  * React UI for Home Scene
@@ -38,7 +38,9 @@ export const Home = (  ) => {
                 }}>
                 <ConfigButton onClick={() => gameStore().openConfigurationWindow()} />
                 <OpenFileButton />
-                <MuteIntroSoundButton />
+                <FullScreenButton onClick={() => document.body.requestFullscreen()} />
+
+                
             </div>
 
             <div

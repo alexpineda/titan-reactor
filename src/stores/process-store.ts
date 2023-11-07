@@ -11,26 +11,24 @@ export interface IncrementalProcess {
     current: number;
 }
 
-interface ProcessWrapper {
+export interface ProcessProgressWrapper {
     id: string;
     increment: () => void;
     add( additiona: number ): void;
+    complete(): void;
 }
 
 export interface ProcessStore {
     processes: IncrementalProcess[];
-    create: ( label: string, max: number ) => ProcessWrapper;
-    increment: ( id?: string, current?: number ) => void;
+    create: ( label: string, max: number ) => ProcessProgressWrapper;
+    increment: ( id: string, current?: number ) => void;
     isComplete: ( id: string ) => boolean;
     isInProgress: ( id: string ) => boolean;
     getTotalProgress: () => number;
     clearCompleted: () => void;
     clearAll: () => void;
-    addOrCreate: ( max: number ) => ProcessWrapper;
-    _createProcessWrapper: ( id: string, process: IncrementalProcess ) => ProcessWrapper;
+    _createProcessWrapper: ( id: string, process: IncrementalProcess ) => ProcessProgressWrapper;
 }
-
-let _mostRecent: string = "";
 
 /**
  * Loading processes store. Used to track progress of loading and displaying it to the user.
@@ -43,6 +41,9 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
         add: ( additional: number ) => {
             process.max += additional;
         },
+        complete() {
+            get().increment( id, process.max );
+        }
     } ),
     create: ( label: string, max = PROCESS_MAX ) => {
         const id = MathUtils.generateUUID();
@@ -57,8 +58,6 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
             max,
         };
 
-        _mostRecent = id;
-
         set( ( { processes } ) => ( {
             processes: [ ...processes, process ],
         } ) );
@@ -71,18 +70,8 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
 
         return get()._createProcessWrapper( id, process );
     },
-    addOrCreate: ( max: number ) => {
-        const process = get().processes.find( ( p ) => p.id === _mostRecent );
-        if ( process ) {
-            performance.mark( `process-${process.id}` );
-            process.max += max;
-            return get()._createProcessWrapper( process.id, process );
-        } else {
-            return get().create( _mostRecent, max );
-        }
-    },
 
-    increment: ( id: string = _mostRecent, step = 1 ) => {
+    increment: ( id: string, step = 1 ) => {
         requestAnimationFrame( () => {
             const process = get().processes.find( ( p ) => p.id === id );
 
@@ -96,7 +85,6 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
                 } ) );
 
                 if ( next === process.max ) {
-                    _mostRecent = "";
                     const perf = performance.measure( `process-${id}` );
                     performance.clearMarks( `process-${id}` );
                     performance.clearMeasures( `process-${id}` );
@@ -105,8 +93,10 @@ export const useProcessStore = create<ProcessStore>( ( set, get ) => ( {
             }
         } );
     },
+    complete(label: string) {
+        get().increment( label, PROCESS_MAX );
+    },
     clearAll: () => {
-        _mostRecent = "";
         set( {
             processes: [],
         } );

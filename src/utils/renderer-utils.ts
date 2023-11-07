@@ -1,4 +1,4 @@
-import { version } from "../../../package.json";
+import { version } from "../../package.json";
 import { useWebGLRenderer } from "@render/render-composer";
 import { log } from "@ipc/log";
 

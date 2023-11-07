@@ -1,5 +1,5 @@
-import { ImageDAT, BwDAT, opArgOne, UnitDAT } from "../../common/types";
-import uniq from "../../common/utils/uniq";
+import { ImageDAT, BwDAT, opArgOne, UnitDAT } from "common/types";
+import uniq from "common/utils/uniq";
 
 export const calculateImagesFromIScript = (
     bwDat: BwDAT,

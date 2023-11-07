@@ -1,20 +1,16 @@
 import { settingsStore } from "@stores/settings-store";
 import { initializeAssets } from "@image/assets";
-import { log } from "@ipc/log";
 import { preloadIntro } from "../home/space-scene";
 import { PreHomeScene } from "./pre-home-scene";
 import { waitForTruthy } from "@utils/wait-for";
 import { Filter, mixer } from "@audio";
 import { SceneState } from "../scene";
-import processStore from "@stores/process-store";
 import gameStore, { useGameStore } from "@stores/game-store";
 import { openCascStorageRemote } from "@ipc/casclib";
 import { pluginsStore } from "@stores/plugins-store";
 import { renderAppUI } from "../app";
 
 export async function preHomeSceneLoader(): Promise<SceneState> {
-    processStore().create("pre-home-scene", 7);
-
     const urlParams = new URLSearchParams(window.location.search);
     const assetServerUrlParam = urlParams.get("assetServerUrl");
     const assetServerUrl =
@@ -74,7 +70,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
             ),
         });
 
-        return pluginsReady && assetServerReady; //gameStore().assetServerUrl;
+        return pluginsReady && assetServerReady;
     }, 5000);
 
     await pluginsStore().init();
@@ -82,8 +78,6 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
     await initializeAssets();
 
     await preloadIntro();
-
-    log.debug("Loading intro");
 
     mixer.setVolumes(settingsStore().data.audio);
 
