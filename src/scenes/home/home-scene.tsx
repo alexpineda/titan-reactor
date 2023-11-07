@@ -37,7 +37,7 @@ export const Home = (  ) => {
                     gap: "24px",
                 }}>
                 <ConfigButton onClick={() => gameStore().openConfigurationWindow()} />
-                <OpenFileButton />
+                <OpenFileButton buttonType="icon" />
                 <FullScreenButton onClick={() => document.body.requestFullscreen()} />
 
                 

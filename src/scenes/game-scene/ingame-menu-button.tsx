@@ -21,6 +21,9 @@ export const InGameMenuButton = ( { children, background, color, onClick, style 
                 cursor: "pointer",
                 userSelect: "none",
                 pointerEvents: "all",
+                display: "flex",
+                gap: "8px",
+                alignItems: "center",
                 ...style,
             }}>
             {children}
