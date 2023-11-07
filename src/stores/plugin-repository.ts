@@ -151,13 +151,6 @@ export class PluginsRepository {
             return null;
         }
 
-        if (this.#isPluginIncompatible(packageJSON)) {
-            log.error(
-                `@load-plugins/load-configs: Plugin ${plugin.name} is incompatible with this version.`
-            );
-            return null;
-        }
-
         let isSceneController = false;
 
         const hostFile = plugin.files.includes("host.js")
