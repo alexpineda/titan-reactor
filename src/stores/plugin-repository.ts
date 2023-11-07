@@ -244,7 +244,7 @@ export class PluginsRepository {
     }
 
     async #fetch(rootUrl: string) {
-        const indexJson = await fetch(urlJoin(rootUrl, "index.json"))
+        const indexJson = await fetch(urlJoin(rootUrl, "index.json"), { cache: "no-cache" })
             .then((r) => r.json() as Promise<IndexJson>)
             .catch(() => null);
 

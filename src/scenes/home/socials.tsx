@@ -2,7 +2,7 @@ import discordLogo from "@image/assets/discord.png";
 import youtubeLogo from "@image/assets/youtube.png";
 import githubLogo from "@image/assets/github.png";
 import patreonLogo from "@image/assets/patreon.png";
-import paypalLogo from "@image/assets/paypal.png";
+import xLogo from "@image/assets/logo-white.png";
 import { useState } from "react";
 
 const iconStyle = {
@@ -60,14 +60,14 @@ export const Socials = () => (
             style={{ filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)" }}
         />
         <IconLink
-            href="https://patreon.com/imbateam"
-            imageUrl={patreonLogo}
+            href="https://twitter.com/alej_r_pineda"
+            imageUrl={xLogo}
             style={{}}
         />
         <IconLink
-            href="https://paypal.me/alexpineda86?country.x=CA&locale.x=en_US"
-            imageUrl={paypalLogo}
-            style={{ filter: "grayscale(1) contrast(2) invert(1) brightness(1.4)" }}
+            href="https://patreon.com/imbateam"
+            imageUrl={patreonLogo}
+            style={{}}
         />
     </div>
 );
