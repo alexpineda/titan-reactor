@@ -31,7 +31,7 @@ export const App = ({
                         (process) =>
                             process.label +
                             " " +
-                            Math.floor(process.current / process.max) +
+                            Math.floor((process.current / process.max) * 100) +
                             "%"
                     )
                     .join("\n");

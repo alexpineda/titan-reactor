@@ -4,7 +4,7 @@ import { useSceneStore } from "@stores/scene-store";
 import { useEffect } from "react";
 import titanReactorLogo from "@image/assets/logo.png";
 
-const styleCenterText = {
+const styleCenterText: React.CSSProperties = {
     position: "absolute",
     left: "50%",
     top: "50%",
@@ -14,6 +14,7 @@ const styleCenterText = {
     fontFamily: "Conthrax",
     display: "flex",
     flexDirection: "column",
+    textAlign: "center"
 };
 
 // const requestLogin = async () => {
@@ -70,7 +71,6 @@ export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsRead
                 flexDirection: "column",
             }}>
             {!error && (
-                //@ts-expect-error
                 <div style={styleCenterText}>
                     {waitingFor.length === 0 && (
                         <p>Preparing Your Journey</p>

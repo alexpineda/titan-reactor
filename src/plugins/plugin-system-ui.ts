@@ -270,9 +270,7 @@ export class PluginSystemUI {
 
         this.refresh();
 
-        this.#iframe.style.visibility = "hidden";
-        document.body.appendChild( this.#iframe );
-        this.#janitor.mop( () => this.#iframe.remove(), "iframe" );
+        
     }
 
     show() {
@@ -294,6 +292,10 @@ export class PluginSystemUI {
             };
 
             window.addEventListener( "message", _listener );
+
+            this.#iframe.style.visibility = "hidden";
+            document.body.appendChild( this.#iframe );
+            this.#janitor.mop( () => this.#iframe.remove(), "iframe" );
         } );
     }
 
