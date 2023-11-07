@@ -140,7 +140,7 @@ globalEvents.on("replay-complete", async () => {
         settingsStore().data.replayQueue.enabled &&
         settingsStore().data.replayQueue.autoplay
     ) {
-        await sceneStore().execSceneLoader(homeSceneLoader, "@home");
+        await sceneStore().execSceneLoader(homeSceneLoader, "@home", {ignoreSameScene: true});
         useReplayAndMapStore.getState().loadNextReplay();
     }
 });
@@ -231,4 +231,8 @@ window.addEventListener("beforeunload", () => {
     if (gameStore().configurationWindow) {
         gameStore().configurationWindow!.close();
     }
+});
+
+window.addEventListener("contextmenu", (evt) => {
+    evt.preventDefault();
 });
