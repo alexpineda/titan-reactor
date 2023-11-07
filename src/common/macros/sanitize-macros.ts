@@ -8,6 +8,7 @@ import {
     TargetedPath,
     Settings,
     PluginMetaData,
+    MacroDTO,
 } from "common/types";
 import { withErrorMessage } from "common/utils/with-error-message";
 import { FieldDefinition, Operator } from "../types/fields";
@@ -39,7 +40,7 @@ export const sanitizeMacros = (
                         Math.max( ...macro.actions.map( ( a ) => a.group ?? 0 ), 0 ) + 1;
                 }
 
-                sanitizeActionable( action, settings, plugins );
+                sanitizeActionable( action, settings, macros.macros, plugins );
             } catch ( e ) {
                 logger &&
                     logger.error(
@@ -62,7 +63,7 @@ export const sanitizeMacros = (
 
                 patchConditionComparator( condition, settings, plugins );
 
-                sanitizeActionable( condition, settings, plugins );
+                sanitizeActionable( condition, settings, macros.macros, plugins );
             } catch ( e ) {
                 logger &&
                     logger.error(
@@ -197,6 +198,7 @@ export const getMacroConditionValidComparators = (
 export function sanitizeActionable<T extends MacroAction | MacroCondition>(
     action: T,
     settings: Settings,
+    macros: MacroDTO[],
     plugins: PluginMetaData[]
 ) {
     if ( action.path.length === 0 ) {
@@ -275,7 +277,7 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         }
     } else if ( action.path[0] === ":macro" ) {
         if ( action.path.length > 1 ) {
-            if ( !settings.macros.macros.find( ( m ) => m.id === action.path[1] ) ) {
+            if ( !macros.find( ( m ) => m.id === action.path[1] ) ) {
                 action.error = {
                     type: MacroActionConfigurationErrorType.InvalidMacro,
                     message: "The macro originally targeted does not exist",
@@ -286,8 +288,8 @@ export function sanitizeActionable<T extends MacroAction | MacroCondition>(
         }
 
         if ( action.path.length === 1 ) {
-            if ( settings.macros.macros[0] ) {
-                action.path.push( settings.macros.macros[0].id );
+            if ( macros[0] ) {
+                action.path.push( macros[0].id );
             }
         }
 

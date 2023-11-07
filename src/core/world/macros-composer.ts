@@ -1,5 +1,5 @@
 import { Macros } from "@macros";
-import { settingsStore } from "@stores/settings-store";
+import {  useMacroStore } from "@stores/settings-store";
 import { SettingsSessionStore } from "./settings-session-store";
 import { Janitor } from "three-janitor";
 import { createCompartment } from "@utils/ses-util";
@@ -22,7 +22,7 @@ export const createMacrosComposer = ( settings: SettingsSessionStore ) => {
         getValue: ( path ) => settings.getValue( path.slice( 1 ) ),
     } );
 
-    const macros = new Macros( targets, settingsStore().data.macros );
+    const macros = new Macros( targets, useMacroStore.getState().macros );
 
     janitor.mop( macros.listenForKeyCombos(), "listenForKeyCombos" );
 

@@ -2,7 +2,6 @@ import { getAppFieldDefinition } from "common/macros/field-utilities";
 import { ConditionComparator, Operator, TargetedPath } from "common/types";
 import ErrorBoundary from "../../error-boundary";
 import { SessionSettingsDropDown } from "../app-settings-dropdown";
-import { useMacroStore } from "../use-macros-store";
 import { ActionableOpsSelector } from "./actionable-ops-selector";
 import { ActionableEditValue } from "./actionable-edit-value";
 import { ActionablePanelProps } from "./actionable-pane-props";
@@ -13,7 +12,7 @@ export const ActionableTargetApp = ( props: ActionablePanelProps ) => {
     const plugins = useStore( window.deps.usePluginsStore );
     const { action, macro } = props;
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { updateActionable } = useMacroStore();
+    const { updateActionable } = useStore(window.deps.useMacroStore);
 
     const levaConfig = getAppFieldDefinition(
         settings.data,

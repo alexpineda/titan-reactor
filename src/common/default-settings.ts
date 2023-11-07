@@ -1,5 +1,4 @@
-import { SettingsV6, MacroDTO } from "./types";
-import defaultMacros from "common/macros/default-macros.json";
+import { SettingsV6  } from "./types";
 
 export const DEFAULT_PLUGIN_PACKAGES: string[] = [
     "@titan-reactor-plugins/clock",
@@ -51,7 +50,7 @@ export const defaultSettingsV6: SettingsV6 = {
         cursorVisible: true,
     },
     utilities: {
-        cacheLocally: true,
+        cacheLocally: false,
         sanityCheckReplayCommands: false,
         debugMode: false,
         detectMeleeObservers: false,
@@ -97,11 +96,7 @@ export const defaultSettingsV6: SettingsV6 = {
         sunlightDirection: [ -70, 90, -90 ],
         sunlightIntensity: 9,
         shadowQuality: 4,
-    },
-    macros: {
-        revision: 0,
-        macros: defaultMacros as MacroDTO[],
-    },
+    }
 };
 
 export const defaultSettings = defaultSettingsV6;

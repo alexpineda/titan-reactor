@@ -3,17 +3,17 @@ import { createLevaPanel } from "../../create-leva-panel";
 import { wrapFieldConfigWithChangeListener } from "../../leva-plugins/leva-utils";
 import { ActionablePanelProps } from "./actionable-pane-props";
 import { FieldDefinition } from "common/types";
-import { useMacroStore } from "../use-macros-store";
 import { useContext } from "react";
 import { PreviewContext } from "../PreviewContext";
 import { Schema } from "leva/plugin";
 import { sendWindow } from "../../send-window";
+import { useStore } from "zustand";
 
 export const ActionableEditValue = (
     props: ActionablePanelProps & { config: FieldDefinition }
 ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { updateActionable } = useMacroStore();
+    const { updateActionable } = useStore(window.deps.useMacroStore);
     const activePreview = useContext( PreviewContext );
     const { action, config, macro } = props;
     const controls = {

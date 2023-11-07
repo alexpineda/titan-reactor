@@ -3,11 +3,11 @@ import { ActionableOpsSelector } from "./actionable-ops-selector";
 import { ActionableEditValue } from "./actionable-edit-value";
 import { ActionablePanelProps } from "./actionable-pane-props";
 import ErrorBoundary from "../../error-boundary";
-import { useMacroStore } from "../use-macros-store";
+import { useStore } from "zustand";
 
 export const ActionableTargetPlugin = ( props: ActionablePanelProps ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { updateActionable } = useMacroStore();
+    const { updateActionable } = useStore(window.deps.useMacroStore);
     const { action, pluginsMetadata, macro } = props;
 
     const pluginName = action.path[1];

@@ -1,4 +1,4 @@
-import { settingsStore } from "@stores/settings-store";
+import { settingsStore, useMacroStore } from "@stores/settings-store";
 import { initializeAssets } from "@image/assets";
 import { preloadIntro } from "../home/space-scene";
 import { PreHomeScene } from "./pre-home-scene";
@@ -19,6 +19,7 @@ export async function preHomeSceneLoader(): Promise<SceneState> {
         "http://localhost:8080";
 
     await settingsStore().init();
+    useMacroStore.getState().init();
 
     renderAppUI({
         key: "@preload",

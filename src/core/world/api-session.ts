@@ -4,7 +4,7 @@ import { createMacrosComposer, MacrosComposer } from "./macros-composer";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import { createPluginSession, PluginSession } from "./create-plugin-session";
-import { useSettingsStore } from "@stores/settings-store";
+import { useMacroStore, useSettingsStore } from "@stores/settings-store";
 
 import { WorldEventTrigger } from "@macros/world-event-trigger";
 import { Janitor } from "three-janitor";
@@ -45,9 +45,9 @@ export class ApiSession {
         this.#hookMacrosToWorldEvents();
 
         this.#janitor.add(
-            useSettingsStore.subscribe( ( settings ) => {
-                if ( settings.data.macros.revision !== this.#macros.macros.revision ) {
-                    this.#macros.macros.deserialize( settings.data.macros );
+            useMacroStore.subscribe( ( store ) => {
+                if ( store.macros.revision !== this.#macros.macros.revision ) {
+                    this.#macros.macros.deserialize( store.macros );
 
                     this.#hookMacrosToWorldEvents();
                 }

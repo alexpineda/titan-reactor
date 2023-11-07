@@ -5,7 +5,7 @@ import { createRoot } from "react-dom/client";
 import { GlobalSettingsConfiguration } from "./global-settings-configuration";
 import { Tab, Tabs } from "./tabs";
 
-// import { MacrosPanel } from "./macros-ui/macros-panel";
+import { MacrosPanel } from "./macros-ui/macros-panel";
 import { PluginsConfiguration } from "./plugins-configuration";
 import { Helmet } from "react-helmet";
 
@@ -50,9 +50,9 @@ const CommandCenter = () => {
                     <Tab label="Plugins">
                         <PluginsConfiguration setBanner={setBanner} />
                     </Tab>
-                    {/* <Tab label="Macros">
+                    <Tab label="Macros">
                         <MacrosPanel />
-                    </Tab> */}
+                    </Tab>
                 </Tabs>
             </div>
         </>
@@ -68,12 +68,16 @@ window.opener.postMessage({
 
 window.addEventListener("message", (event) => {
     if (event.data.type === "control-panel:connected") {
-        console.log("connected", window.deps.useSettingsStore.getState());
+        
+        console.log("connected", window.deps.useSettingsStore.getState(), window.deps.useMacroStore.getState());
         window.deps.useSettingsStore.subscribe((state) => {
             console.log("state", state);
         });
         window.deps.usePluginsStore.subscribe((state) => {
             console.log("plugins", state);
+        });
+        window.deps.useMacroStore.subscribe((state) => {
+            console.log("macros", state);
         });
         root.render(<CommandCenter />);
     }

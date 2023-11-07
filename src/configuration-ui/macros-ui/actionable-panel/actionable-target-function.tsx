@@ -1,14 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Actionable, MacroDTO } from "common/types";
-import { useMacroStore } from "../use-macros-store";
 import { ScriptInline } from "../../editor/script-inline";
 import debounce from "lodash.debounce";
 
-const debouncedUpdateActionable = debounce(
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    useMacroStore.getState().updateActionable,
-    500
-);
 
 export const ActionableTargetFunction = ( {
     macro,
@@ -19,6 +13,12 @@ export const ActionableTargetFunction = ( {
 } ) => {
     const [ value, setValue ] = useState( action.value );
 
+    const debouncedUpdateActionable =  useCallback(debounce(
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        window.deps.useMacroStore.getState().updateActionable,
+        500
+    ), [] );
+    
     return (
         <div
             style={{

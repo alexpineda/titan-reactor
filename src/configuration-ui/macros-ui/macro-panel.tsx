@@ -9,7 +9,6 @@ import {
 import { ActionablePanel } from "./actionable-panel/actionable-panel";
 import { CreateMacroConditionOrAction } from "./create-macro-condition-or-action";
 
-import { useMacroStore } from "./use-macros-store";
 import { MathUtils } from "three";
 import { ConfigureTrigger } from "./configure-trigger";
 import { spaceOutCapitalLetters } from "@utils/string-utils";
@@ -19,6 +18,7 @@ import { PreviewContext } from "./PreviewContext";
 import groupBy from "lodash.groupby";
 import { ActionableGroupPanel } from "./actionable-panel/actionable-group-panel";
 import { sendWindow } from "../send-window";
+import { useStore } from "zustand";
 
 export const MacroPanel = ( {
     macro,
@@ -28,7 +28,7 @@ export const MacroPanel = ( {
     pluginsMetadata: PluginMetaData[];
 } ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { updateMacro, createActionable, deleteMacro, macros } = useMacroStore();
+    const { updateMacro, createActionable, deleteMacro, macros } = useStore(window.deps.useMacroStore);
     const [ activePreview, setActivePreview ] = useState( false );
 
     const renameMacro = ( name: string | null ) => {

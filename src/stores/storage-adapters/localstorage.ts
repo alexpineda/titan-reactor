@@ -1,5 +1,6 @@
-import { PluginConfig, Settings } from "common/types";
+import { MacroDTO, MacrosDTO, PluginConfig, Settings } from "common/types";
 import { StorageAdapter, createDefaults } from "./settings-adapter";
+import defaultMacros from "common/macros/default-macros.json";
 
 export class LocalStorageAdapter implements StorageAdapter {
     loadSettings() {
@@ -35,4 +36,31 @@ export class LocalStorageAdapter implements StorageAdapter {
     savePluginSettings( id: string, data: PluginConfig ) {
         localStorage.setItem( `plugin:${id}`, JSON.stringify( data ) );
     }
+
+    loadMacros() {
+        try {
+            const macros = localStorage.getItem( "macros" );
+            if ( macros === null ) {
+                return {
+                    revision: 0,
+                    macros: defaultMacros as MacroDTO[],
+                };
+            }
+            return JSON.parse( macros ) as MacrosDTO;
+        } catch ( e ) {
+            return {
+                revision: 0,
+                macros: defaultMacros as MacroDTO[],
+            }
+        }
+    }
+
+    saveMacros( macrosDto: MacrosDTO ) {
+        try {
+            const macros  = JSON.stringify( macrosDto );
+            localStorage.setItem( "macros", macros);
+        } catch ( e ) {}
+        return macrosDto;
+    }
+
 }

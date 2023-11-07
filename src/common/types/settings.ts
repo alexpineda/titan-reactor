@@ -1,5 +1,4 @@
 import { LogLevel } from "common/logging";
-import { MacrosDTO } from "common/types";
 
 export interface SettingsV5 {
     version: 5;
@@ -42,7 +41,6 @@ export interface SettingsV5 {
         developmentDirectory?: string;
         enabled: string[];
     };
-    macros: MacrosDTO;
 }
 
 export interface SettingsV6 {
@@ -129,7 +127,6 @@ export interface SettingsV6 {
         sunlightIntensity: number;
         shadowQuality: number;
     };
-    macros: MacrosDTO;
 }
 
 export type Settings = SettingsV6;

@@ -9,7 +9,7 @@ import { homeSceneLoader } from "../scenes/home/home-scene-loader";
 import { globalEvents } from "./global-events";
 import { ValidatedReplay, loadAndValidateReplay } from "../scenes/replay-scene-loader";
 
-import { useSettingsStore } from "@stores/settings-store";
+import { useSettingsStore, useMacroStore} from "@stores/settings-store";
 import { log } from "@ipc/log";
 import { settingsStore, useGameStore, useReplayAndMapStore } from "../stores";
 import gameStore from "@stores/game-store";
@@ -217,7 +217,7 @@ window.addEventListener("wheel", (evt) => evt.preventDefault(), { passive: false
 window.addEventListener("message", (event) => {
     if (event.data.type === "control-panel:connect") {
         useGameStore.setState({ configurationWindow: event.source as Window });
-        gameStore().configurationWindow!.deps = { useSettingsStore, usePluginsStore };
+        gameStore().configurationWindow!.deps = { useSettingsStore, usePluginsStore, useMacroStore };
         event.source!.postMessage(
             { type: "control-panel:connected" },
             { targetOrigin: event.origin }

@@ -3,15 +3,15 @@ import { KeyboardEvent } from "react";
 import { KeyboardPreview } from "./keyboard-preview";
 import { worldEventsList } from "@core/world/world-events";
 import { MacroDTO, TriggerType } from "common/types";
-import { useMacroStore } from "./use-macros-store";
 
 import { HotkeyTrigger, HotkeyTriggerDTO } from "@macros/hotkey-trigger";
 import { WorldEventTrigger, WorldEventTriggerDTO } from "@macros/world-event-trigger";
 import { ManualTrigger } from "@macros/manual-trigger";
+import { useStore } from "zustand";
 
 export const ConfigureTrigger = ( { macro }: { macro: MacroDTO } ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { updateMacro } = useMacroStore();
+    const { updateMacro } = useStore(window.deps.useMacroStore)
 
     const hotkeyTrigger =
         macro.trigger.type === TriggerType.Hotkey

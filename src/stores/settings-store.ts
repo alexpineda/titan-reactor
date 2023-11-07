@@ -5,6 +5,7 @@ import { Settings } from "common/types";
 import { defaultSettings } from "common/default-settings";
 import { LocalStorageAdapter } from "./storage-adapters/localstorage";
 import { applySettingsMigrations } from "./migrations/settings/settings-migrations";
+import { createMacroStore } from "./macros-store";
 
 const storage = new LocalStorageAdapter();
 
@@ -16,7 +17,6 @@ export type SettingsStore = {
     init: () => Promise<Settings>;
     initSessionData( type: "replay" | "map", sandbox?: boolean ): void;
 };
-
 
 export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
     data: { ...defaultSettings },
@@ -34,11 +34,6 @@ export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
     save: async ( _settings: Partial<Settings> = {} ) => {
         const data =  Object.assign( {}, get().data, _settings );
         
-        //todo: reimplement
-        // const macros = sanitizeMacros( this.#settings.macros, {
-        //     data,
-        //     activatedPlugins: this.enabledPlugins,
-        // } );
 
         await storage.saveSettings( data );
 
@@ -54,3 +49,5 @@ export const useSettingsStore = create<SettingsStore>( ( set, get ) => ( {
 } ) );
 
 export const settingsStore = () => useSettingsStore.getState();
+export const useMacroStore = createMacroStore(settingsStore);
+

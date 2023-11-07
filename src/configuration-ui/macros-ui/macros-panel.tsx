@@ -2,7 +2,6 @@ import { useState } from "react";
 import ErrorBoundary from "../error-boundary";
 import { MacroPanel } from "./macro-panel";
 import { CreateMacro } from "./create-macro";
-import { useMacroStore } from "./use-macros-store";
 import { TreeList } from "./treelist";
 import { useStore } from "zustand";
 
@@ -11,13 +10,17 @@ export const MacrosPanel = () => {
     
     const {
         macros: { macros },
-    } = useMacroStore();
+    } = useStore(window.deps.useMacroStore);
     const [ selectedMacroId, selectMacroId ] = useState<string | null>(
         macros[0]?.id ?? null
     );
 
     return (
         <div>
+            <p style={{
+                color: "var(--yellow-7)",
+                padding: "var(--size-4)"
+            }}>Warning: The macro system is likely to change entirely in the near future.</p>
             <ErrorBoundary message="There was an error with Macros.">
                 <div
                     style={{

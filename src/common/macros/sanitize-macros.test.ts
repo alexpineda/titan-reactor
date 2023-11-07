@@ -68,7 +68,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":function" ],
             } );
 
-            sanitizeActionable( action, {} as Settings, [] );
+            sanitizeActionable( action, {} as Settings, [] as MacroDTO[], [] );
 
             expect( action.value ).toEqual( "" );
         } );
@@ -78,7 +78,7 @@ describe( "sanitizeActionable", () => {
         it( "should set path if invalid field", () => {
             const action = util.createAction();
 
-            sanitizeActionable( action, {} as Settings, [] );
+            sanitizeActionable( action, {} as Settings, [] as MacroDTO[], [] );
 
             expect( action.path ).toEqual( [ ":app", "audio", "music" ] );
         } );
@@ -91,7 +91,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":app", "my", "path" ],
             } );
 
-            sanitizeActionable( action, {} as Settings, [] );
+            sanitizeActionable( action, {} as Settings, [] as MacroDTO[], [] );
 
             expect( action.path ).toEqual( [ ":app", "my", "path" ] );
         } );
@@ -106,15 +106,15 @@ describe( "sanitizeActionable", () => {
                 operator: Operator.SetToDefault,
             } );
 
-            sanitizeActionable( action, {} as Settings, [] );
+            sanitizeActionable( action, {} as Settings, [] as MacroDTO[], [] );
 
             expect( action.value ).toEqual( undefined );
 
             const patched = util.createAction( {
                 operator: Operator.Set,
             } );
-
-            sanitizeActionable( patched, {} as Settings, [] );
+ 
+            sanitizeActionable( patched, {} as Settings, [] as MacroDTO[], [] );
 
             expect( patched.value ).toEqual( "foo" );
         } );
@@ -131,7 +131,7 @@ describe( "sanitizeActionable", () => {
                 value: "cray",
             } );
 
-            sanitizeActionable( patched, {} as Settings, [] );
+            sanitizeActionable( patched, {} as Settings, [] as MacroDTO[], [] );
 
             expect( patched.value ).toEqual( "foo" );
         } );
@@ -144,7 +144,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin" ],
             } );
 
-            sanitizeActionable( action, {} as Settings, [] );
+            sanitizeActionable( action, {} as Settings, [] as MacroDTO[], [] );
 
             expect( action.error ).toBeDefined();
         } );
@@ -155,7 +155,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin" ],
             } );
 
-            sanitizeActionable( action, {} as Settings,[
+            sanitizeActionable( action, {} as Settings, [] as MacroDTO[],[
                 {
                     name: "test-plugin",
                 },
@@ -171,7 +171,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin" ],
             } );
 
-            sanitizeActionable( action, {} as Settings, [
+            sanitizeActionable( action, {} as Settings, [] as MacroDTO[], [
                 {
                     name: "test-plugin",
                     config: {
@@ -193,7 +193,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
-            sanitizeActionable( action, {} as unknown as Settings, [
+            sanitizeActionable( action, {} as unknown as Settings, [] as MacroDTO[], [
                 {
                     name: "test-plugin",
                 },
@@ -224,7 +224,7 @@ describe( "sanitizeActionable", () => {
 
             const settings = {
             } as unknown as Settings;
-            sanitizeActionable( action, settings, plugins);
+            sanitizeActionable( action, settings, [] as MacroDTO[], plugins);
 
             expect( action.value ).toEqual( undefined );
 
@@ -233,7 +233,7 @@ describe( "sanitizeActionable", () => {
                 path: [ ":plugin", "test-plugin", "foo" ],
             } );
 
-            sanitizeActionable( patched, settings, plugins );
+            sanitizeActionable( patched, settings, [] as MacroDTO[], plugins );
 
             expect( patched.value ).toEqual( "bar" );
         } );
@@ -261,7 +261,7 @@ describe( "sanitizeActionable", () => {
                 value: "cray",
             } );
 
-            sanitizeActionable( patched, settings, plugins );
+            sanitizeActionable( patched, settings, [] as MacroDTO[], plugins );
 
             expect( patched.value ).toEqual( "bar" );
         } );

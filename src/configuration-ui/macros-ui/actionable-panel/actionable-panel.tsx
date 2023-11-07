@@ -3,9 +3,9 @@ import { ActionablePanelProps } from "./actionable-pane-props";
 import { ActionableTargetFunction } from "./actionable-target-function";
 import { ActionableTargetApp } from "./actionable-target-app";
 import { ActionableTargetPlugin } from "./actionable-target-plugin";
-import { useMacroStore } from "../use-macros-store";
 import { MacroAction, TargetType } from "common/types";
 import { ActionableTargetMacro } from "./actionable-target-macro";
+import { useStore } from "zustand";
 
 const isMacroAction = ( action: object ): action is MacroAction => {
     return "group" in action;
@@ -13,7 +13,7 @@ const isMacroAction = ( action: object ): action is MacroAction => {
 
 export const ActionablePanel = ( props: ActionablePanelProps & { index: number } ) => {
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { deleteActionable, updateActionable, reOrderAction } = useMacroStore();
+    const { deleteActionable, updateActionable, reOrderAction } = useStore(window.deps.useMacroStore);
     const { action, macro, index } = props;
 
     return (

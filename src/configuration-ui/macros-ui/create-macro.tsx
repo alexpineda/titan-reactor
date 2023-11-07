@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { WorldEventTrigger } from "@macros/world-event-trigger";
-import { useMacroStore } from "./use-macros-store";
+import { useStore } from "zustand";
 
 export const CreateMacro = ( { onCreated }: { onCreated: ( id: string ) => void } ) => {
     const [name, setName] = useState( "" );
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    const { createMacro } = useMacroStore();
+    const { createMacro } = useStore(window.deps.useMacroStore);
 
     return (
         <div
