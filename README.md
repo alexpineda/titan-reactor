@@ -51,7 +51,7 @@ This is Titan Reactor the WebGL renderer + plugin system. It consists of three p
 
 Using node 18+, yarn 1.x
 
-Clone this repo.
+Clone this repo. The development branch is `dev` and `main` is used for releases.
 
 In this repo:
 
