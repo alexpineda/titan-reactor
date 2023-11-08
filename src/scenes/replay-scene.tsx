@@ -134,9 +134,6 @@ export class ReplayScene implements TRScene {
                 ...preloadCommandUnits,
             ]);
 
-            for (const imageId of postLoad) {
-                gameStore().assets!.loadImageAtlas(imageId, 2);
-            }
         }
 
         const commands = new CommandsStream(
