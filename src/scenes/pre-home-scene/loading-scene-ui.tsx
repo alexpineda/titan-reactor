@@ -81,7 +81,7 @@ export const LoadingSceneUI = ( {useStore} : {useStore: UseBoundStore<StoreApi<L
                         <p>Waiting for: {waitingFor.join(", ")}</p>
                     </>
                 )}
-                {!assetServerReady && <a href="https://github.com/alexpineda/cascbridge/releases/" target="_blank" style={{color: "var(--blue-400)", fontFamily: "sans-serif", marginTop:"3rem"}}> (You may need to download CASCBridge - Local Asset Server)</a>}
+                {!assetServerReady && <a href="https://github.com/alexpineda/cascbridge/releases/latest" target="_blank" style={{color: "var(--blue-400)", fontFamily: "sans-serif", marginTop:"3rem"}}> (You may need to download CASCBridge - Local Asset Server)</a>}
             </div>
         </div>
     );
