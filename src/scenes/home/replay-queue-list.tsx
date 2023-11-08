@@ -2,6 +2,8 @@ import { omitCharacters } from "@utils/chk-utils";
 
 import gameStore  from "@stores/game-store";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
+import { useSceneStore } from "@stores/scene-store";
+import { ReplayScene } from "scenes/replay-scene";
 
 const MAX_REPLAYS_SHOWN = 7;
 
@@ -22,7 +24,8 @@ const UpNextIcon = () => (
 );
 
 export const ReplayQueueList = () => {
-    const { replayQueue, getNextReplay, replay: currentReplay  } = useReplayAndMapStore();
+    const { replayQueue, getNextReplay } = useReplayAndMapStore();
+    const replayScene = useSceneStore( ( state ) => state.nextScene );
     
     const idx = replayQueue.findIndex( ( replay ) => replay === getNextReplay() );
     let sliceIndexStart = Math.max( 0, idx - 2 );
@@ -33,7 +36,7 @@ export const ReplayQueueList = () => {
         sliceIndexStart = Math.max( 0, replayQueue.length - MAX_REPLAYS_SHOWN );
     }
 
-    const upNextReplay = currentReplay ?? getNextReplay();
+    const upNextReplay = replayScene?.id === "@replay" ? (replayScene as ReplayScene).replay : getNextReplay();
 
     return (
         <div

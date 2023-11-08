@@ -102,9 +102,10 @@ export class MapScene implements TRScene {
                 return mapPlayers;
             }
         );
+        
+        janitor.mop(await music.playGame());
         worldComposer.surfaceComposer.gameSurface.show();
         worldComposer.apiSession.ui.show();
-        janitor.mop(music.playGame());
         return {
             component: <GameScene />,
             surface: worldComposer.surfaceComposer.gameSurface.canvas,

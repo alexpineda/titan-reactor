@@ -12,7 +12,6 @@ export const MatchDisplay = () => {
         shallow
     );
     const sceneStatus = useSceneStore((state) => state.status);
-    const nextSceneId = useSceneStore((state) => state.nextScene?.id);
     const { replayQueue, getNextReplay, getDeltaReplay } =
         useReplayAndMapStore();
     const showReplayQueue =
@@ -31,17 +30,17 @@ export const MatchDisplay = () => {
                 userSelect: "none",
                 flex: 1,
             }}>
-            {!showReplayQueue && nextSceneId === "@replay" && <SingleMatchDisplayLarge />}
-            {showReplayQueue && nextSceneId === "@replay" &&  <ReplayQueueList />}
-            {sceneStatus === "idle" && nextSceneId === "@replay" && replayQueue.length > 0 && (
+            {!showReplayQueue && <SingleMatchDisplayLarge />}
+            {showReplayQueue && <ReplayQueueList />}
+            {sceneStatus === "idle" && replayQueue.length > 0 && (
                 <div style={{marginInline: "auto", display: "flex", gap: "8px", marginTop: "16px"}}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
-                        strokeWidth={1.5}
+                        strokeWidth={1.8}
                         stroke="currentColor"
-                        style={{width:"var(--size-5)", color: getDeltaReplay(0) ? "var(--green-5)" : "var(--gray-6)", cursor: "pointer"}}
+                        style={{width:"var(--size-5)", color: getDeltaReplay(0) ? "var(--green-5)" : "var(--gray-7)", cursor: "pointer"}}
                         onClick={() =>getDeltaReplay(0) && useReplayAndMapStore.setState({replayIndex: useReplayAndMapStore.getState().replayIndex - 1})}
                         >
                         <path
@@ -53,7 +52,7 @@ export const MatchDisplay = () => {
 
                     {hasNextReplay && (
                         <InGameMenuButton
-                            background={hasNextReplay ? "var(--green-5)" : "var(--gray-6)"}
+                            background={hasNextReplay ? "var(--green-5)" : "var(--gray-7)"}
                             color="white"
                             onClick={() =>
                                 hasNextReplay && useReplayAndMapStore.getState().loadNextReplay()
@@ -69,9 +68,9 @@ export const MatchDisplay = () => {
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
-                        strokeWidth={1.5}
+                        strokeWidth={1.8}
                         stroke="currentColor"
-                        style={{width:"var(--size-5)", color: getDeltaReplay(2) ? "var(--green-5)" : "var(--gray-6)", cursor: "pointer"}} 
+                        style={{width:"var(--size-5)", color: getDeltaReplay(2) ? "var(--green-5)" : "var(--gray-7)", cursor: "pointer"}} 
                         onClick={() => getDeltaReplay(2) && useReplayAndMapStore.setState({replayIndex: useReplayAndMapStore.getState().replayIndex + 1})}
                         >
                         <path
