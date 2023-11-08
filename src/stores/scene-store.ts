@@ -2,9 +2,11 @@ import { log } from "@ipc/log";
 import { renderAppUI } from "../scenes/app";
 import create from "zustand";
 import { TRScene } from "../scenes/scene";
+import { getWraithSurface } from "../scenes/home/space-scene";
 
 export interface SceneStore {
     scene: TRScene | null;
+    nextScene: TRScene | null;
     status: "idle" | "loading" | "error";
     loadScene: (scene: TRScene, options?: ExecSceneOptions) => Promise<void>;
     clearError: () => void;
@@ -27,6 +29,7 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
     scene: null,
     disposer: undefined,
     status: "idle",
+    nextScene: null,
     error: null,
     loadScene: async (scene: TRScene, _opts: ExecSceneOptions = {}) => {
         const { ignoreSameScene } = {
@@ -42,35 +45,43 @@ export const useSceneStore = create<SceneStore>((set, get) => ({
             console.error("Scene is already loading");
             return;
         }
-        set({ status: "loading" })
+        set({ status: "loading", nextScene: scene })
 
-        if (scene.preloadComponent) {
-            get().disposer && get().disposer!();
-            set({ disposer: undefined });
-            renderAppUI({
-                scene: scene.preloadComponent!,
-                surface: scene.preloadSurface,
-                key: scene.id,
-                hideCursor: scene.hideCursor
-            });
+        if (scene.preload) {
+            const state = await scene.preload( get().scene );
+            if (state) {
+                get().disposer && get().disposer!();
+                set({ disposer: undefined, scene: null });
+                renderAppUI({
+                    scene: state.component!,
+                    surface: state.surface,
+                    key: state.key ?? scene.id,
+                    hideCursor: scene.hideCursor
+                });
+            }
         }
 
         try {
-            const state = await scene.load();
+            const state = await scene.load( get().scene );
             get().disposer && get().disposer!();
-            set({ disposer: state.dispose });
+            set({ disposer: state.dispose, scene: null});
             renderAppUI({
                 scene: state.component!,
                 surface: state.surface,
-                key: scene.id,
+                key: state.key ?? scene.id,
                 hideCursor: scene.hideCursor
             });
-            set({ scene });
+            set({ scene, nextScene: null });
             set({ status: "idle" });
         } catch (err: any) {
             if (err instanceof Error) {
                 log.error(err.stack);
-                set({ error: err, status: "error" })
+                set({ error: err, status: "error", scene: null, nextScene: null })
+                renderAppUI({
+                    surface: getWraithSurface().canvas,
+                    key: "error",
+                    scene: null,
+                })
             } else {
                 log.error(err);
             }

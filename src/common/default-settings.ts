@@ -63,6 +63,7 @@ export const defaultSettingsV6: SettingsV6 = {
         autoplay: true,
         enabled: true,
         show: true,
+        goToHomeBetweenReplays: true,
     },
     graphics: {
         pixelRatio: 1,

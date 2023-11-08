@@ -99,7 +99,7 @@ const _mousemove = ( ev: MouseEvent ) => {
     mouse.y = ( ev.clientY / window.innerHeight ) * 2 - 1;
 };
 
-export const getSurface = () => introSurface;
+export const getWraithSurface = () => introSurface;
 
 let _noiseInstance: WraithNoise;
 let _runs = 0;

@@ -25,6 +25,8 @@ import { pluginsStore } from "@stores/plugins-store";
 import { calculateImagesFromUnitsIscript } from "@utils/images-from-iscript";
 import { ValidatedReplay } from "./load-and-validate-replay";
 import { GameScene } from "./game-scene/game-scene";
+import { getWraithSurface } from "./home/space-scene";
+import { MatchDisplay } from "./home/match-display";
 
 export class ReplayScene implements TRScene {
     id: TRSceneID = "@replay";
@@ -34,6 +36,18 @@ export class ReplayScene implements TRScene {
     
     constructor(replay: ValidatedReplay) {
         this.replay = replay;
+    }
+
+    async preload(scene: TRScene | null) {
+        if (scene && (scene.id === "@replay" || scene.id === "@map")) {
+            // by returning a scene state, we dispose the previous scene before loading another one
+            return {
+                surface: getWraithSurface().canvas,
+                component: <MatchDisplay />,
+                key: "preload"
+            };
+        }
+        return null;
     }
 
     async load() {

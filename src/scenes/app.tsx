@@ -3,7 +3,6 @@ import { useSceneStore } from "@stores/scene-store";
 import { WrappedCanvas } from "@image/canvas/wrapped-canvas";
 import { GlobalErrorState } from "./error-state";
 import { LoadBar, LoadRing } from "./pre-home-scene/load-bar";
-import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { useProcessStore } from "@stores/process-store";
 import { root } from "@render/root";
 import { useEffect, useRef } from "react";
@@ -18,9 +17,9 @@ export const App = ({
     hideCursor?: boolean;
 }) => {
     const error = useSceneStore((state) => state.error);
-    const { map, replay } = useReplayAndMapStore();
+    const isLoading = useSceneStore((state) => state.status === "loading");
+    const isPreHomeScene = useSceneStore((state) => state.nextScene?.id === "@loading");
 
-    const progress = useProcessStore((state) => state.getTotalProgress());
     const itemsRef = useRef<HTMLPreElement>(null);
 
     useEffect(() => {
@@ -60,11 +59,11 @@ export const App = ({
                 thickness={10}
                 style={{
                     marginBottom: "var(--size-10)",
-                    visibility: progress ? "visible" : "hidden",
+                    visibility: isLoading ? "visible" : "hidden",
                 }}
             />
             <div></div>
-            {!error && !!progress && (replay || map) && (
+            {!error && isLoading && !isPreHomeScene &&(
                 <>
                     <LoadRing />
                     <pre

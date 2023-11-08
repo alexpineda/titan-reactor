@@ -211,6 +211,10 @@ const getReplayQueueConfig = (
         label: "Show Replay Queue",
         value: replayQueue.show,
     },
+    "replayQueue.goToHomeBetweenReplays": {
+        label: "Go To Home Between Replays",
+        value: replayQueue.goToHomeBetweenReplays,
+    },
 } );
 
 type MinimapConfig = {

@@ -4,14 +4,18 @@ import { useSettingsStore } from "@stores/settings-store";
 import shallow from "zustand/shallow";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { InGameMenuButton } from "../game-scene/ingame-menu-button";
+import { useSceneStore } from "@stores/scene-store";
 
 export const MatchDisplay = () => {
     const replayQueueSettings = useSettingsStore(
         ( state ) => state.data.replayQueue,
         shallow
     );
+    const sceneStatus = useSceneStore( ( state ) => state.status);
     const { map, replay, replayQueue, getNextReplay } = useReplayAndMapStore();
     const showReplayQueue = replayQueueSettings.enabled && replayQueueSettings.show && replayQueue.length > 0;
+
+    const hasNextReplay = !!getNextReplay();
 
     return (
         <div
@@ -25,7 +29,7 @@ export const MatchDisplay = () => {
             }}>
             {!showReplayQueue && !!( replay ?? map ) && <SingleMatchDisplayLarge />}
             {showReplayQueue && <ReplayQueueList />}
-            {showReplayQueue && replayQueueSettings.autoplay === false && !replay && !!getNextReplay() && <InGameMenuButton
+            {showReplayQueue && replayQueueSettings.autoplay === false && hasNextReplay && sceneStatus === "idle" && <InGameMenuButton
                         background="var(--green-5)"
                         color="white"
                         onClick={() =>

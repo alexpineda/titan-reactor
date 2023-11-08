@@ -21,8 +21,13 @@ export class LoadingScene implements TRScene {
         assetServerReady: false,
         pluginsReady: false,
     }))
-    preloadComponent = <LoadingSceneUI useStore={this.store} />;
 
+    async preload() {
+        return {
+            component: <LoadingSceneUI useStore={this.store} />
+        }
+    }
+    
     async load() {
         const urlParams = new URLSearchParams(window.location.search);
         const assetServerUrlParam = urlParams.get("assetServerUrl");

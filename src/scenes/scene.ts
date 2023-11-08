@@ -10,6 +10,7 @@ export type TRSceneID =
 export type TRSceneState = {
     component?: React.ReactNode;
     surface?: HTMLCanvasElement;
+    key?: string;
     dispose?: () => void;
 }
 export interface TRScene {
@@ -17,8 +18,6 @@ export interface TRScene {
     status?: "loading" | "ready" | "error";
     hideCursor?: boolean;
 
-    preloadComponent?: React.ReactNode;
-    preloadSurface?: HTMLCanvasElement;
-
-    load(): Promise<TRSceneState>;
+    preload?(prevScene: TRScene | null): Promise<TRSceneState | null>;
+    load(prevScene: TRScene | null): Promise<TRSceneState>;
 }

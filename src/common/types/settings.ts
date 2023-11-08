@@ -100,6 +100,7 @@ export interface SettingsV6 {
         enabled: boolean;
         autoplay: boolean;
         show: boolean;
+        goToHomeBetweenReplays: boolean
     };
     postprocessing: {
         anisotropy: number;

@@ -90,7 +90,6 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
     //todo map stuff here
     if (files[0].name.endsWith(".scx") || files[0].name.endsWith(".scm")) {
         useReplayAndMapStore.getState().loadMap(files[0].buffer);
-
         return;
     }
 
@@ -112,7 +111,7 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
 
     useReplayAndMapStore.getState().addReplaysToQueue(replays);
 
-    //todo: if we're in a game do we load?
+    //todo: if we're in a game, show modal
     await sceneStore().loadScene(new HomeScene(), {
         ignoreSameScene: true,
     });
@@ -140,9 +139,11 @@ globalEvents.on("replay-complete", async () => {
         settingsStore().data.replayQueue.enabled &&
         settingsStore().data.replayQueue.autoplay
     ) {
-        await sceneStore().loadScene(new HomeScene(), {
-            ignoreSameScene: true,
-        });
+        if (settingsStore().data.replayQueue.goToHomeBetweenReplays) {
+            await sceneStore().loadScene(new HomeScene(), {
+                ignoreSameScene: true,
+            });
+        }
         useReplayAndMapStore.getState().loadNextReplay();
     }
 });

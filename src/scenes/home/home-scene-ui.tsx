@@ -37,8 +37,6 @@ export const HomeSceneUI = (  ) => {
                 <ConfigButton onClick={() => gameStore().openConfigurationWindow()} />
                 <OpenFileButton buttonType="icon" />
                 <FullScreenButton onClick={() => document.body.requestFullscreen()} />
-
-                
             </div>
 
             <div
