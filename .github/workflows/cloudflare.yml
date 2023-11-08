@@ -35,6 +35,9 @@ jobs:
 
       - name: Run build
         run: yarn build
+        env:
+          VITE_OFFICIAL_PLUGINS_SERVER_URL: ${{ secrets.VITE_OFFICIAL_PLUGINS_SERVER_URL }}
+          VITE_PLUGINS_RUNTIME_ENTRY_URL: ${{ secrets.VITE_PLUGINS_RUNTIME_ENTRY_URL }}
 
       - name: Publish Titan Reactor
         uses: cloudflare/pages-action@1
