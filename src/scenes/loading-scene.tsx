@@ -27,8 +27,8 @@ export class LoadingScene implements TRScene {
             component: <LoadingSceneUI useStore={this.store} />
         }
     }
-    
-    async load() {
+
+    async areServersReady() {
         const urlParams = new URLSearchParams(window.location.search);
         const assetServerUrlParam = urlParams.get("assetServerUrl");
         const assetServerUrl =
@@ -36,48 +36,55 @@ export class LoadingScene implements TRScene {
             localStorage.getItem("assetServerUrl") ??
             "http://localhost:8080";
 
+        if (!this.store.getState().assetServerReady) {
+            try {
+                const ok = await openCascStorageRemote(assetServerUrl);
+                console.log("assetServerUrl", assetServerUrl);
+                if (ok) {
+                    localStorage.setItem("assetServerUrl", assetServerUrl);
+                    useGameStore.setState({ assetServerUrl });
+                    this.store.setState({ assetServerReady: true });
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        let pluginsReady = false;
+
+        try {
+            pluginsReady = await fetch(gameStore().runtimeUrl, { method: "HEAD" }).then(
+                (res) => res.ok
+            );
+            for (const url of gameStore().pluginRepositoryUrls) {
+                pluginsReady =
+                    pluginsReady &&
+                    (await fetch(url + "index.json", { method: "HEAD" }).then(
+                        (res) => res.ok
+                    ));
+                console.log("pluginsReady", url);
+            }
+            console.log("runtimeReady", gameStore().runtimeUrl, pluginsReady);
+            this.store.setState({ pluginsReady });
+        } catch (err) {
+            pluginsReady = false;
+            console.error(err);
+        }
+        return this.store.getState().pluginsReady && this.store.getState().assetServerReady;
+    }
+    
+    async load() {
+        
+
         await settingsStore().init();
         useMacroStore.getState().init();
 
-        await waitForTruthy(async () => {
-            const assetServerReady = !!useGameStore.getState().assetServerUrl;
-            if (!assetServerReady) {
-                try {
-                    const ok = await openCascStorageRemote(assetServerUrl);
-                    console.log("assetServerUrl", assetServerUrl);
-                    if (ok) {
-                        localStorage.setItem("assetServerUrl", assetServerUrl);
-                        useGameStore.setState({ assetServerUrl });
-                    }
-                } catch (err) {
-                    console.error(err);
-                }
-            }
-            this.store.setState({ assetServerReady });
-    
-            let pluginsReady = false;
-    
-            try {
-                pluginsReady = await fetch(gameStore().runtimeUrl, { method: "HEAD" }).then(
-                    (res) => res.ok
-                );
-                for (const url of gameStore().pluginRepositoryUrls) {
-                    pluginsReady =
-                        pluginsReady &&
-                        (await fetch(url + "index.json", { method: "HEAD" }).then(
-                            (res) => res.ok
-                        ));
-                    console.log("pluginsReady", url);
-                }
-                console.log("runtimeReady", gameStore().runtimeUrl, pluginsReady);
-                this.store.setState({ pluginsReady });
-            } catch (err) {
-                pluginsReady = false;
-                console.error(err);
-            }
-            return pluginsReady && assetServerReady;
-        }, 5000);
-    
+        if (!await this.areServersReady()) {
+            await waitForTruthy(async () => {
+                return await this.areServersReady();
+            }, 5000);
+        }
+        
         await pluginsStore().init();
     
         await initializeAssets();
