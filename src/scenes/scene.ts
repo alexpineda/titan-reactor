@@ -1,4 +1,4 @@
-export type SceneStateID =
+export type TRSceneID =
     | "@home"
     | "@loading"
     | "@replay"
@@ -7,9 +7,18 @@ export type SceneStateID =
     | "@interstitial"
     | "@auth";
 
-export interface SceneState {
-    id: SceneStateID;
-    dispose: ( newId?: SceneStateID ) => void;
-    start: ( prevId?: SceneStateID ) => void;
-    beforeNext?: ( newId?: SceneStateID ) => void;
+export type TRSceneState = {
+    component?: React.ReactNode;
+    surface?: HTMLCanvasElement;
+    dispose?: () => void;
+}
+export interface TRScene {
+    id: TRSceneID;
+    status?: "loading" | "ready" | "error";
+    hideCursor?: boolean;
+
+    preloadComponent?: React.ReactNode;
+    preloadSurface?: HTMLCanvasElement;
+
+    load(): Promise<TRSceneState>;
 }

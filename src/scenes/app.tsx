@@ -11,11 +11,11 @@ import { useEffect, useRef } from "react";
 export const App = ({
     surface,
     scene,
-    showCursor,
+    hideCursor,
 }: {
     surface?: HTMLCanvasElement;
     scene: React.ReactNode;
-    showCursor?: boolean;
+    hideCursor?: boolean;
 }) => {
     const error = useSceneStore((state) => state.error);
     const { map, replay } = useReplayAndMapStore();
@@ -50,7 +50,7 @@ export const App = ({
                 height: "100%",
                 display: "flex",
                 flexDirection: "column",
-                cursor: showCursor ? "default" : "none",
+                cursor: hideCursor ? "none" : "default",
             }}>
             {error && <GlobalErrorState error={error} action={null} />}
 
@@ -86,20 +86,20 @@ type SceneRenderOptions = {
     surface?: HTMLCanvasElement;
     key: string;
     scene: React.ReactNode;
-    showCursor?: boolean;
+    hideCursor?: boolean;
 };
 export const renderAppUI = ({
     surface,
     key,
     scene,
-    showCursor,
+    hideCursor,
 }: SceneRenderOptions) => {
     root.render(
         <App
             scene={scene}
             surface={surface}
             key={key}
-            showCursor={showCursor ?? true}
+            hideCursor={hideCursor ?? false}
         />
     );
 };

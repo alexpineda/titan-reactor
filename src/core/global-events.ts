@@ -2,7 +2,7 @@ import { PreProcessFile } from "@ipc/files";
 import { TypeEmitter } from "@utils/type-emitter";
 import type Chk from "bw-chk";
 import type { MacroAction, PluginConfig, PluginMetaData } from "common/types";
-import type { ValidatedReplay } from "../scenes/replay-scene-loader";
+import { ValidatedReplay } from "../scenes/load-and-validate-replay";
 
 export interface GlobalEvents {
     "webglcontextlost": undefined;

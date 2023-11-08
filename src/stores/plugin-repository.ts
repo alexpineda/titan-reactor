@@ -4,8 +4,6 @@ import { getPluginAPIVersion } from "common/utils/api-version";
 
 const log = console;
 
-import semver from "semver";
-import { HostApiVersion } from "common/utils/api-version";
 import { StorageAdapter } from "./storage-adapters/settings-adapter";
 import gameStore from "./game-store";
 
@@ -108,12 +106,6 @@ export class PluginsRepository {
 
             log.info("plugin found", plugin.name, plugin.version);
         }
-    }
-
-    #isPluginIncompatible(plugin: Partial<PluginPackage>) {
-        return (
-            semver.major(HostApiVersion) !== semver.major(getPluginAPIVersion(plugin))
-        );
     }
 
     //todo: do this at build time

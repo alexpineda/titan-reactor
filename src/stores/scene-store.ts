@@ -1,36 +1,23 @@
 import { log } from "@ipc/log";
-import { withErrorMessage } from "common/utils/with-error-message";
+import { renderAppUI } from "../scenes/app";
 import create from "zustand";
-import { SceneState, SceneStateID } from "../scenes/scene";
-
-export type SceneLoader = (prevData?: any) => Promise<SceneState> | SceneState;
+import { TRScene } from "../scenes/scene";
 
 export interface SceneStore {
-    scene: SceneState | null;
-    execSceneLoader: (
-        loader: SceneLoader,
-        id: SceneStateID,
-        options?: ExecSceneOptions
-    ) => Promise<void>;
-    error: Error | null;
-    setError: (error: Error) => void;
+    scene: TRScene | null;
+    status: "idle" | "loading" | "error";
+    loadScene: (scene: TRScene, options?: ExecSceneOptions) => Promise<void>;
     clearError: () => void;
     reset(): void;
+    disposer: (() => void) | void;
+    error: Error | null;
+
 }
 
 type ExecSceneOptions = {
-    errorHandler?: {
-        loader: SceneLoader;
-        id: SceneStateID;
-    };
-    clearError?: boolean;
     ignoreSameScene?: boolean;
     beforeStart?: () => Promise<void>;
 };
-
-const _lastLoadId: string = "";
-
-let _loading = false;
 
 /**
  * A store that manages the current scene.
@@ -38,77 +25,61 @@ let _loading = false;
  */
 export const useSceneStore = create<SceneStore>((set, get) => ({
     scene: null,
+    disposer: undefined,
+    status: "idle",
     error: null,
-    execSceneLoader: async (
-        loader: SceneLoader,
-        id: SceneStateID,
-        _opts: ExecSceneOptions = {}
-    ) => {
-        const { ignoreSameScene, clearError, errorHandler, beforeStart } = {
-            clearError: true,
+    loadScene: async (scene: TRScene, _opts: ExecSceneOptions = {}) => {
+        const { ignoreSameScene } = {
             ignoreSameScene: false,
             ..._opts,
         };
 
-        if (_loading) {
+        if (get().scene?.id === scene.id && ignoreSameScene) {
+            return;
+        }
+
+        if (get().status === "loading") {
             console.error("Scene is already loading");
             return;
         }
-        if (_lastLoadId === id && !ignoreSameScene) {
-            return;
-        }
-        _loading = true;
+        set({ status: "loading" })
 
-        if (clearError) {
-            get().clearError();
-        }
-
-        const oldState = get().scene;
-        let prevData: any = undefined;
-        if (oldState) {
-            try {
-                prevData = oldState.dispose(id);
-            } catch (e) {
-                log.error(withErrorMessage(e, "Error disposing old scene"));
-            }
+        if (scene.preloadComponent) {
+            get().disposer && get().disposer!();
+            set({ disposer: undefined });
+            renderAppUI({
+                scene: scene.preloadComponent!,
+                surface: scene.preloadSurface,
+                key: scene.id,
+                hideCursor: scene.hideCursor
+            });
         }
 
         try {
-            const state = await loader(prevData);
-            oldState?.beforeNext && oldState.beforeNext(id);
-            if (beforeStart) {
-                await beforeStart();
-            }
-            if (window.gc) {
-                window.gc();
-            }
-            state.start(oldState?.id);
-            set({ scene: state });
+            const state = await scene.load();
+            get().disposer && get().disposer!();
+            set({ disposer: state.dispose });
+            renderAppUI({
+                scene: state.component!,
+                surface: state.surface,
+                key: scene.id,
+                hideCursor: scene.hideCursor
+            });
+            set({ scene });
+            set({ status: "idle" });
         } catch (err: any) {
             if (err instanceof Error) {
                 log.error(err.stack);
-                get().setError(err);
+                set({ error: err, status: "error" })
             } else {
                 log.error(err);
             }
-            if (errorHandler) {
-                get().reset();
-                setTimeout(() => {
-                    void get().execSceneLoader(errorHandler.loader, errorHandler.id, {
-                        clearError: false,
-                    });
-                }, 0);
-            }
         }
-        _loading = false;
     },
     reset() {
         set({ scene: null });
     },
-    setError: (error: Error) => {
-        log.error(error.message);
-        set({ error });
-    },
+
     clearError: () => {
         set({ error: null });
     },

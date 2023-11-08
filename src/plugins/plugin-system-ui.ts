@@ -31,7 +31,7 @@ import { MinimapDimensions } from "@render/minimap-dimensions";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import { Timer } from "@utils/timer";
 import { Assets } from "@image/assets";
-import { SceneStateID } from "../scenes/scene";
+import { TRSceneID } from "../scenes/scene";
 
 const screenChanged = ( screen: SceneStore ) => {
     return {
@@ -129,7 +129,7 @@ export interface PluginStateMessage {
     language: string;
     [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions;
     [UI_STATE_EVENT_SCREEN_CHANGED]: {
-        screen: SceneStateID | undefined;
+        screen: TRSceneID | undefined;
         error: string | undefined;
     };
     [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>;

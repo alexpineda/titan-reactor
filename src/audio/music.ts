@@ -17,6 +17,7 @@ class Music {
     playGame() {
         this.#audio.onEnded = this.playGame.bind( this );
         this.#play( `music/${this.races[rand( this.races.length )]}${rand( 4 ) + 1}.ogg` );
+        return () => this.stop();
     }
 
     playMenu() {

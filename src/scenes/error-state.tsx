@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import CommanderImage from "./marine.png";
+import CommanderImage from "@image/assets/marine.png";
 
 export const GlobalErrorState = ( {
     error,

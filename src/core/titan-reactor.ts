@@ -3,11 +3,9 @@ globalThis.Buffer = BufferPolyfill;
 
 import sceneStore from "../stores/scene-store";
 import { logCapabilities } from "@utils/renderer-utils";
-import "../scenes/home/home-scene";
-import { preHomeSceneLoader } from "../scenes/pre-home-scene/pre-home-scene-loader";
-import { homeSceneLoader } from "../scenes/home/home-scene-loader";
+import "../scenes/home/home-scene-ui";
 import { globalEvents } from "./global-events";
-import { ValidatedReplay, loadAndValidateReplay } from "../scenes/replay-scene-loader";
+import { ValidatedReplay, loadAndValidateReplay } from "../scenes/load-and-validate-replay";
 
 import { useSettingsStore, useMacroStore} from "@stores/settings-store";
 import { log } from "@ipc/log";
@@ -19,6 +17,8 @@ import { initCacheDB } from "@image/loader/indexed-db-cache";
 import { supabase, SUPABASE_REPLAY_BUCKET } from "common/supabase";
 import { metaVerse } from "@stores/metaverse-store";
 import { PreProcessFile } from "@ipc/files";
+import { HomeScene } from "../scenes/home-scene";
+import { LoadingScene } from "../scenes/loading-scene";
 /**
  * ENTRY POINT FOR TITAN REACTOR
  */
@@ -113,7 +113,7 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
     useReplayAndMapStore.getState().addReplaysToQueue(replays);
 
     //todo: if we're in a game do we load?
-    await sceneStore().execSceneLoader(homeSceneLoader, "@home", {
+    await sceneStore().loadScene(new HomeScene(), {
         ignoreSameScene: true,
     });
 
@@ -140,7 +140,9 @@ globalEvents.on("replay-complete", async () => {
         settingsStore().data.replayQueue.enabled &&
         settingsStore().data.replayQueue.autoplay
     ) {
-        await sceneStore().execSceneLoader(homeSceneLoader, "@home", {ignoreSameScene: true});
+        await sceneStore().loadScene(new HomeScene(), {
+            ignoreSameScene: true,
+        });
         useReplayAndMapStore.getState().loadNextReplay();
     }
 });
@@ -187,9 +189,9 @@ logCapabilities();
 
     await initCacheDB();
 
-    await sceneStore().execSceneLoader(preHomeSceneLoader, "@loading");
+    await sceneStore().loadScene(new LoadingScene());
 
-    await sceneStore().execSceneLoader(homeSceneLoader, "@home");
+    await sceneStore().loadScene(new HomeScene());
 
     log.debug(`startup in ${performance.measure("start").duration}ms`);
 

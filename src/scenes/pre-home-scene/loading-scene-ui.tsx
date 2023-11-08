@@ -1,8 +1,9 @@
 // import { showFolderDialog } from "@ipc";
 import { useProcessStore } from "@stores/process-store";
-import { useSceneStore } from "@stores/scene-store";
 import { useEffect } from "react";
 import titanReactorLogo from "@image/assets/logo.png";
+import { StoreApi, UseBoundStore } from "zustand";
+import { LoadingSceneStore } from "../loading-scene";
 
 const styleCenterText: React.CSSProperties = {
     position: "absolute",
@@ -35,8 +36,9 @@ const styleCenterText: React.CSSProperties = {
 //     }
 // }
 
-export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsReady: boolean, assetServerReady: boolean } ) => {
-    const error = useSceneStore( ( state ) => state.error );
+export const LoadingSceneUI = ( {useStore} : {useStore: UseBoundStore<StoreApi<LoadingSceneStore>> }  ) => {
+    
+    const {  pluginsReady, assetServerReady } = useStore( state => state );
 
     useEffect( () => {
         return useProcessStore.subscribe( ( store ) => {
@@ -70,19 +72,17 @@ export const PreHomeScene = ( {  pluginsReady, assetServerReady }: { pluginsRead
                 display: "flex",
                 flexDirection: "column",
             }}>
-            {!error && (
-                <div style={styleCenterText}>
-                    {waitingFor.length === 0 && (
-                        <p>Preparing Your Journey</p>
-                    )}
-                    {(waitingFor.length > 0) && (
-                        <>
-                            <p>Waiting for: {waitingFor.join(", ")}</p>
-                        </>
-                    )}
-                    {!assetServerReady && <a href="https://github.com/alexpineda/cascbridge/releases/" target="_blank" style={{color: "var(--blue-400)", fontFamily: "sans-serif", marginTop:"3rem"}}> (You may need to download CASCBridge - Local Asset Server)</a>}
-                </div>
-            )}
+            <div style={styleCenterText}>
+                {waitingFor.length === 0 && (
+                    <p>Preparing Your Journey</p>
+                )}
+                {(waitingFor.length > 0) && (
+                    <>
+                        <p>Waiting for: {waitingFor.join(", ")}</p>
+                    </>
+                )}
+                {!assetServerReady && <a href="https://github.com/alexpineda/cascbridge/releases/" target="_blank" style={{color: "var(--blue-400)", fontFamily: "sans-serif", marginTop:"3rem"}}> (You may need to download CASCBridge - Local Asset Server)</a>}
+            </div>
         </div>
     );
 };

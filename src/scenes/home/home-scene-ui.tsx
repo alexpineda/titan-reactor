@@ -1,4 +1,3 @@
-import { useSceneStore } from "@stores/scene-store";
 import packageJSON from "../../../package.json";
 import gameStore from "@stores/game-store";
 
@@ -12,8 +11,7 @@ import { FullScreenButton } from "./full-screen-button";
 /**
  * React UI for Home Scene
  */
-export const Home = (  ) => {
-    const error = useSceneStore( ( state ) => state.error );
+export const HomeSceneUI = (  ) => {
 
     return (
         <div
@@ -26,7 +24,7 @@ export const Home = (  ) => {
                 display: "flex",
                 flexDirection: "column",
             }}>
-            {!error && <MatchDisplay />}
+            <MatchDisplay />
             <div
                 style={{
                     margin: "24px",

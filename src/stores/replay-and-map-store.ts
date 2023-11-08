@@ -1,10 +1,10 @@
 // convenience store for plugin subscriptions
 import type Chk from "bw-chk";
+import { MapScene } from "../scenes/map-scene";
+import { ReplayScene } from "../scenes/replay-scene";
 import create from "zustand";
-import { replaySceneLoader, ValidatedReplay } from "../scenes/replay-scene-loader";
+import { ValidatedReplay } from "../scenes/load-and-validate-replay";
 import sceneStore from "./scene-store";
-import { homeSceneLoader } from "../scenes/home/home-scene-loader";
-import { mapSceneLoader } from "../scenes/map-scene-loader";
 
 export interface ReplayAndMapStore {
     type: "map" | "replay" | "live";
@@ -34,34 +34,16 @@ export const useReplayAndMapStore = create<ReplayAndMapStore>( ( set, get ) => (
     replayQueue: [],
     replayIndex: -1,
     async loadMap( fileBuffer: ArrayBuffer ) {
-        await sceneStore().execSceneLoader( homeSceneLoader, "@home", {
-            ignoreSameScene: true,
-        } );
-
         get().clearReplayQueue();
 
-        void sceneStore().execSceneLoader( () => mapSceneLoader( fileBuffer ), "@map", {
-            errorHandler: {
-                loader: homeSceneLoader,
-                id: "@home",
-            },
-        } );
+        void sceneStore().loadScene( new MapScene(fileBuffer) );
     },
     async loadNextReplay() {
         if ( get().getNextReplay() === undefined ) {
             return;
         }
 
-        await sceneStore().execSceneLoader( homeSceneLoader, "@home", {
-            ignoreSameScene: true,
-        } );
-
-        await sceneStore().execSceneLoader( () => replaySceneLoader(  get().getNextReplay()! ), "@replay", {
-            errorHandler: {
-                loader: homeSceneLoader,
-                id: "@home",
-            }
-        } );
+        await sceneStore().loadScene( new ReplayScene(  get().getNextReplay()! ) );
 
         get().updateNextReplay();
     },
