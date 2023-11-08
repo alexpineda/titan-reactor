@@ -91,50 +91,50 @@ export class ReplayScene implements TRScene {
             "reset replay and map store"
         );
 
-        if (settingsStore().data.graphics.preloadMapSprites) {
-            const preloadCommandUnits = new Set<number>();
-            const postLoad = new Set<number>();
+        // if (settingsStore().data.graphics.preloadMapSprites) {
+        //     const preloadCommandUnits = new Set<number>();
+        //     const postLoad = new Set<number>();
 
-            const preloadCommands = new CommandsStream(
-                this.replay.rawCmds,
-                this.replay.stormPlayerToGamePlayer
-            );
-            const preloadCommandTypes = [
-                CMDS.TRAIN.id,
-                CMDS.UNIT_MORPH.id,
-                CMDS.BUILDING_MORPH.id,
-                CMDS.BUILD.id,
-            ];
+        //     const preloadCommands = new CommandsStream(
+        //         this.replay.rawCmds,
+        //         this.replay.stormPlayerToGamePlayer
+        //     );
+        //     const preloadCommandTypes = [
+        //         CMDS.TRAIN.id,
+        //         CMDS.UNIT_MORPH.id,
+        //         CMDS.BUILDING_MORPH.id,
+        //         CMDS.BUILD.id,
+        //     ];
 
-            let preOrPost = 0;
+        //     let preOrPost = 0;
 
-            for (const command of preloadCommands.generate()) {
-                if (typeof command !== "number") {
-                    if (preloadCommandTypes.includes(command.id)) {
-                        for (const imageId of calculateImagesFromUnitsIscript(
-                            gameStore().assets!.bwDat,
-                            [command.unitTypeId!]
-                        )) {
-                            if (preOrPost === 0) {
-                                preloadCommandUnits.add(imageId);
-                            } else {
-                                postLoad.add(imageId);
-                            }
-                        }
-                    }
-                } else {
-                    // preload up to 1 minute of commands
-                    if (command > 1 * 24 * 60) {
-                        preOrPost = 1;
-                    }
-                }
-            }
+        //     for (const command of preloadCommands.generate()) {
+        //         if (typeof command !== "number") {
+        //             if (preloadCommandTypes.includes(command.id)) {
+        //                 for (const imageId of calculateImagesFromUnitsIscript(
+        //                     gameStore().assets!.bwDat,
+        //                     [command.unitTypeId!]
+        //                 )) {
+        //                     if (preOrPost === 0) {
+        //                         preloadCommandUnits.add(imageId);
+        //                     } else {
+        //                         postLoad.add(imageId);
+        //                     }
+        //                 }
+        //             }
+        //         } else {
+        //             // preload up to 1 minute of commands
+        //             if (command > 1 * 24 * 60) {
+        //                 preOrPost = 1;
+        //             }
+        //         }
+        //     }
 
-            await preloadMapUnitsAndSpriteFiles(gameStore().assets!, map, [
-                ...preloadCommandUnits,
-            ]);
+        //     await preloadMapUnitsAndSpriteFiles(gameStore().assets!, map, [
+        //         ...preloadCommandUnits,
+        //     ]);
 
-        }
+        // }
 
         const commands = new CommandsStream(
             this.replay.rawCmds as Buffer,
@@ -156,23 +156,36 @@ export class ReplayScene implements TRScene {
 
                 return mapPlayers;
             },
-            (worldComposer) => {
+            async (worldComposer) => {
                 const openBW = worldComposer.world.openBW;
 
-                // openBW.setGameSpeed(64);
+                openBW.setGameSpeed(64);
 
-                // openBW.setReplayFrameListener( () => {
-                //     worldComposer.preRunFrame();
-                // })
-                // // let i = 0;
-                // while (openBW.nextFrameSafe() < replay.header.frameCount ) {
-                //     // console.log( openBW.getCurrentFrame(), openBW.getCurrentReplayFrame() )
-                //     // worldComposer.preRunFrame();
-                //     // i = i  + 1;
-                //     // if ( i > 1000) {
-                //     //     break;
-                //     // }
-                // }
+                openBW.setReplayFrameListener( () => {
+                    worldComposer.preRunFrame();
+                })
+
+                const preloadImages = new Set<number>();
+                if (settingsStore().data.graphics.preloadMapSprites) {
+                    let i = 0;
+                    while (openBW.nextFrameSafe() < this.replay.header.frameCount ) {
+                        // worldComposer.preRunFrame();
+                        i = i  + 1;
+                        if ( i > 20) {
+                            break;
+                        }
+                        for (const sprite of openBW.iterators.sprites) {
+                            for ( const imgAddr of sprite.images.reverse() ) {
+                                const imageStruct = openBW.structs.image.get( imgAddr );
+                                preloadImages.add(imageStruct.typeId);
+                            }
+                        }
+                    }
+                }
+
+                await preloadMapUnitsAndSpriteFiles(gameStore().assets!, map, [
+                    ...preloadImages,
+                ]);
 
                 const emitComplete = debounce(() => {
                     openBW.setReplayFrameListener(() => {});
@@ -188,7 +201,7 @@ export class ReplayScene implements TRScene {
                         emitComplete();
                     }
                 });
-                // openBW.setCurrentReplayFrame( 0 );
+                openBW.setCurrentReplayFrame( 0 );
 
                 // worldComposer.preRunComplete();
             }
