@@ -7,7 +7,6 @@ export class HomeScene implements TRScene {
 
     async load() {
         const wraithScene = await createWraithScene();
-        // setTimeout( () => wraithScene.resize(), 500 );
         return {
             component: <HomeSceneUI />,
             surface: getWraithSurface().canvas,
