@@ -196,14 +196,16 @@ export class ReplayScene implements TRScene {
 
         document.title = `Titan Reactor - ${gameTitle}`;
 
+        janitor.mop(await music.playGame());
         worldComposer.surfaceComposer.gameSurface.show();
         worldComposer.apiSession.ui.show();
-        janitor.mop(music.playGame());
 
         return  {
             component: <GameScene />,
             surface: worldComposer.surfaceComposer.gameSurface.canvas,
-            dispose: () => janitor.dispose()
+            dispose: () => {
+                janitor.dispose()
+            }
         }
     }
 }

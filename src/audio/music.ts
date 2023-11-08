@@ -14,16 +14,17 @@ class Music {
         return this.#audio;
     }
 
-    playGame() {
+    async playGame() {
         this.#audio.onEnded = this.playGame.bind( this );
-        this.#play( `music/${this.races[rand( this.races.length )]}${rand( 4 ) + 1}.ogg` );
+        await this.#play( `music/${this.races[rand( this.races.length )]}${rand( 4 ) + 1}.ogg` );
         return () => this.stop();
     }
 
-    playMenu() {
+    async playMenu() {
         const race = ["t", "z", "p"];
         this.#audio.onEnded = this.playMenu.bind( this );
-        this.#play( race[rand( 2 )] + "rdyroom.ogg" );
+        await this.#play( "music/" + race[rand( 2 )] + "rdyroom.ogg" );
+        return () => this.stop();
     }
 
     async #play( filepath: string ) {

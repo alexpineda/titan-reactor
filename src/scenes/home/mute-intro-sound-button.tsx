@@ -13,6 +13,7 @@ export const MuteIntroSoundButton = (
             }}
             onClick={() => {
                 useSettingsStore.getState().lset("audio.playIntroSounds", !soundOn);
+                useSettingsStore.getState().save();
             }}>
             {soundOn ? (
                 <svg

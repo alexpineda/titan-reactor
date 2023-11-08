@@ -19,6 +19,7 @@ export interface ReplayAndMapStore {
     addToTotalGameTime: ( t: number ) => void;
     replayQueue: ValidatedReplay[];
     getNextReplay: ( this: void ) => ValidatedReplay | undefined;
+    getDeltaReplay: ( d: number ) => ValidatedReplay | undefined;
     addReplaysToQueue: ( replays: ValidatedReplay[] ) => void;
     addReplayToQueue: ( replay: ValidatedReplay ) => void;
     deleteReplayQueueItem: ( replay: ValidatedReplay ) => void;
@@ -46,6 +47,9 @@ export const useReplayAndMapStore = create<ReplayAndMapStore>( ( set, get ) => (
         await sceneStore().loadScene( new ReplayScene(  get().getNextReplay()! ) );
 
         get().updateNextReplay();
+    },
+    getDeltaReplay(d: number) {
+        return get().replayQueue[get().replayIndex + d];
     },
     getNextReplay() {
         return get().replayQueue[get().replayIndex + 1];

@@ -8,12 +8,16 @@ import { useSceneStore } from "@stores/scene-store";
 
 export const MatchDisplay = () => {
     const replayQueueSettings = useSettingsStore(
-        ( state ) => state.data.replayQueue,
+        (state) => state.data.replayQueue,
         shallow
     );
-    const sceneStatus = useSceneStore( ( state ) => state.status);
-    const { map, replay, replayQueue, getNextReplay } = useReplayAndMapStore();
-    const showReplayQueue = replayQueueSettings.enabled && replayQueueSettings.show && replayQueue.length > 0;
+    const sceneStatus = useSceneStore((state) => state.status);
+    const { map, replay, replayQueue, getNextReplay, getDeltaReplay } =
+        useReplayAndMapStore();
+    const showReplayQueue =
+        replayQueueSettings.enabled &&
+        replayQueueSettings.show &&
+        replayQueue.length > 0;
 
     const hasNextReplay = !!getNextReplay();
 
@@ -27,19 +31,57 @@ export const MatchDisplay = () => {
                 userSelect: "none",
                 flex: 1,
             }}>
-            {!showReplayQueue && !!( replay ?? map ) && <SingleMatchDisplayLarge />}
+            {!showReplayQueue && !!(replay ?? map) && <SingleMatchDisplayLarge />}
             {showReplayQueue && <ReplayQueueList />}
-            {showReplayQueue && replayQueueSettings.autoplay === false && hasNextReplay && sceneStatus === "idle" && <InGameMenuButton
-                        background="var(--green-5)"
-                        color="white"
-                        onClick={() =>
-                            useReplayAndMapStore.getState().loadNextReplay()
-                        }
-                        style={{ width: "var(--size-12)", marginInline: "auto", marginTop: "16px"  }}
+            {showReplayQueue && sceneStatus === "idle" && (
+                <div style={{marginInline: "auto", display: "flex", gap: "8px", marginTop: "16px"}}>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        style={{width:"var(--size-5)", color: getDeltaReplay(0) ? "var(--green-5)" : "var(--gray-6)", cursor: "pointer"}}
+                        onClick={() =>getDeltaReplay(0) && useReplayAndMapStore.setState({replayIndex: useReplayAndMapStore.getState().replayIndex - 1})}
                         >
-                        Play Next
-                    </InGameMenuButton>}
-        </div>
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M15.75 19.5L8.25 12l7.5-7.5"
+                        />
+                    </svg>
 
+                    {hasNextReplay && (
+                        <InGameMenuButton
+                            background={hasNextReplay ? "var(--green-5)" : "var(--gray-6)"}
+                            color="white"
+                            onClick={() =>
+                                hasNextReplay && useReplayAndMapStore.getState().loadNextReplay()
+                            }
+                            style={{
+                                width: "var(--size-12)",
+                                justifyContent: "center"
+                            }}>
+                            Play Next
+                        </InGameMenuButton>
+                    )}
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        style={{width:"var(--size-5)", color: getDeltaReplay(2) ? "var(--green-5)" : "var(--gray-6)", cursor: "pointer"}} 
+                        onClick={() => getDeltaReplay(2) && useReplayAndMapStore.setState({replayIndex: useReplayAndMapStore.getState().replayIndex + 1})}
+                        >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M8.25 4.5l7.5 7.5-7.5 7.5"
+                        />
+                    </svg>
+                </div>
+            )}
+        </div>
     );
 };

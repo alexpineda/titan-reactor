@@ -11,7 +11,7 @@ const storage = new LocalStorageAdapter();
 
 export type SettingsStore = {
     data: Settings;
-    save: ( data: Partial<Settings> ) => Promise<Settings>;
+    save: ( data?: Partial<Settings> ) => Promise<Settings>;
     set: ( data: Partial<Settings> ) => void;
     lset: ( path: string, value: any ) => void;
     init: () => Promise<Settings>;

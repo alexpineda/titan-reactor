@@ -7,6 +7,7 @@ import { ConfigButton } from "./config-button";
 
 import { MatchDisplay } from "./match-display";
 import { FullScreenButton } from "./full-screen-button";
+import { MuteIntroSoundButton } from "./mute-intro-sound-button";
 
 /**
  * React UI for Home Scene
@@ -37,6 +38,7 @@ export const HomeSceneUI = (  ) => {
                 <ConfigButton onClick={() => gameStore().openConfigurationWindow()} />
                 <OpenFileButton buttonType="icon" />
                 <FullScreenButton onClick={() => document.body.requestFullscreen()} />
+                <MuteIntroSoundButton />
             </div>
 
             <div
