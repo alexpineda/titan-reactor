@@ -5,7 +5,7 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { useSceneStore } from "@stores/scene-store";
 import { ReplayScene } from "scenes/replay-scene";
 
-const MAX_REPLAYS_SHOWN = 7;
+const MAX_REPLAYS_SHOWN = 8;
 
 const UpNextIcon = () => (
     <svg
@@ -45,15 +45,13 @@ export const ReplayQueueList = () => {
                 flexDirection: "column",
                 userSelect: "none",
                 color: "rgb(100 200 87)",
-                fontSize: "2rem",
+                fontSize: "1.5rem",
                 gap: "2rem",
                 gridTemplateColumns: "auto auto auto",
-                paddingInline: "var(--size-10)",
                 justifyContent: "center",
                 alignItems: "center",
-                background: "rgba(0,0,0,0.8)",
                 borderRadius: "10px",
-                padding: "4rem",
+                padding: "var(--size-6) var(--size-4);",
             }}>
             <h1>Todays Matches</h1>
             <table>
@@ -65,10 +63,10 @@ export const ReplayQueueList = () => {
                         <th>Player 2</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody style={{fontSize: "1.5rem"}}>
                     {replayQueue
                         .slice( sliceIndexStart, sliceIndexStart + MAX_REPLAYS_SHOWN )
-                        .map( ( replay ) => {
+                        .map( ( replay, i ) => {
                             const isUpNext = replay === upNextReplay;
                             const Matchup = () => (
                                 <div style={{ display: "inline-block" }}>
@@ -103,13 +101,19 @@ export const ReplayQueueList = () => {
                                 display: "flex",
                                 alignItems: "center",
                             };
-                            const trBg =
+                            const trBgHighlight =
                                 "linear-gradient(90deg, rgba(203,0,0,1) 0%, rgba(157,0,0,1) 23%, rgba(203,0,0,0.2861519607843137) 33%, rgba(155,17,48,0.01724439775910369) 41%, rgba(98,36,105,0) 49%, rgba(52,52,151,0) 61%, rgba(0,69,203,0.2861519607843137) 68%, rgba(0,24,203,1) 80%)";
+
+                            const lastItemFade = i === MAX_REPLAYS_SHOWN - 1 && i + sliceIndexStart !== replayQueue.length - 1;
+
+                            const trBg = lastItemFade ? "linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%)" : "rgba(0,0,0,0.8)";
+
                             return (
                                 <tr
                                     key={replay.uid}
                                     style={{
-                                        background: isUpNext ? trBg : "transparent",
+                                        background: isUpNext ? trBgHighlight : trBg,
+                                        opacity: lastItemFade ? 0.5 : 1,
                                     }}>
                                     <td>
                                         <div style={alignItems}>{icon}</div>

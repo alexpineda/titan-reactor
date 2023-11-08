@@ -36,6 +36,10 @@ export const MatchDisplay = () => {
                         display: "flex",
                         gap: "8px",
                         marginTop: "16px",
+                        position: "absolute",
+                        bottom: "32px",
+                        left: "50%",
+                        transform: "translateX(-50%)"
                     }}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
