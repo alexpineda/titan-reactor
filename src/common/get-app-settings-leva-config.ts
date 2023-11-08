@@ -197,16 +197,10 @@ type ReplayQueueConfig = {
 const getReplayQueueConfig = (
     replayQueue: Settings["replayQueue"]
 ): ReplayQueueConfig => ( {
-    "replayQueue.enabled": {
-        label: "Enable Replay Queue",
-        value: replayQueue.enabled,
-    },
-
     "replayQueue.autoplay": {
         label: "Autoplay Replay Queue",
         value: replayQueue.autoplay,
     },
-
     "replayQueue.show": {
         label: "Show Replay Queue",
         value: replayQueue.show,
@@ -214,6 +208,10 @@ const getReplayQueueConfig = (
     "replayQueue.goToHomeBetweenReplays": {
         label: "Go To Home Between Replays",
         value: replayQueue.goToHomeBetweenReplays,
+    },
+    "replayQueue.alwaysClearReplayQueue": {
+        label: "Always Clear Replay Queue",
+        value: replayQueue.alwaysClearReplayQueue,
     },
 } );
 

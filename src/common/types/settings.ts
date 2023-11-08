@@ -97,7 +97,7 @@ export interface SettingsV6 {
         logLevel: LogLevel;
     };
     replayQueue: {
-        enabled: boolean;
+        alwaysClearReplayQueue: boolean;
         autoplay: boolean;
         show: boolean;
         goToHomeBetweenReplays: boolean

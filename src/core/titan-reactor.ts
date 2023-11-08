@@ -36,11 +36,14 @@ metaVerse().events.on("load-replay", async (payload) => {
 
     const replay = await loadAndValidateReplay(fileBuffer);
 
-    if (!settingsStore().data.replayQueue.enabled) {
+    if (settingsStore().data.replayQueue.alwaysClearReplayQueue) {
         useReplayAndMapStore.getState().clearReplayQueue();
-        useReplayAndMapStore.getState().addReplayToQueue(replay);
+    }
+
+    useReplayAndMapStore.getState().addReplayToQueue(replay);
+
+    if (settingsStore().data.replayQueue.autoplay) {
         useReplayAndMapStore.getState().loadNextReplay();
-        return;
     }
 });
 
@@ -102,21 +105,15 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
         }
     }
 
-    if (!settingsStore().data.replayQueue.enabled) {
+    if (settingsStore().data.replayQueue.alwaysClearReplayQueue) {
         useReplayAndMapStore.getState().clearReplayQueue();
-        useReplayAndMapStore.getState().addReplayToQueue(replays[0]);
-        useReplayAndMapStore.getState().loadNextReplay();
-        return;
     }
 
     useReplayAndMapStore.getState().addReplaysToQueue(replays);
 
-    //todo: if we're in a game, show modal
-    await sceneStore().loadScene(new HomeScene(), {
-        ignoreSameScene: true,
-    });
-
-    useReplayAndMapStore.getState().loadNextReplay();
+    if (settingsStore().data.replayQueue.autoplay) {
+        useReplayAndMapStore.getState().loadNextReplay();
+    }
 });
 
 // manage total replay watch time
@@ -135,15 +132,15 @@ globalEvents.on("replay-complete", async () => {
     useReplayAndMapStore.getState().addToTotalGameTime(duration);
     _startReplayTime = null;
 
+    if (settingsStore().data.replayQueue.goToHomeBetweenReplays) {
+        await sceneStore().loadScene(new HomeScene(), {
+            ignoreSameScene: true,
+        });
+    }
+
     if (
-        settingsStore().data.replayQueue.enabled &&
         settingsStore().data.replayQueue.autoplay
     ) {
-        if (settingsStore().data.replayQueue.goToHomeBetweenReplays) {
-            await sceneStore().loadScene(new HomeScene(), {
-                ignoreSameScene: true,
-            });
-        }
         useReplayAndMapStore.getState().loadNextReplay();
     }
 });

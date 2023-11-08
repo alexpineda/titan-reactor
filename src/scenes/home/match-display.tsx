@@ -12,10 +12,10 @@ export const MatchDisplay = () => {
         shallow
     );
     const sceneStatus = useSceneStore((state) => state.status);
-    const { map, replay, replayQueue, getNextReplay, getDeltaReplay } =
+    const nextSceneId = useSceneStore((state) => state.nextScene?.id);
+    const { replayQueue, getNextReplay, getDeltaReplay } =
         useReplayAndMapStore();
     const showReplayQueue =
-        replayQueueSettings.enabled &&
         replayQueueSettings.show &&
         replayQueue.length > 0;
 
@@ -31,9 +31,9 @@ export const MatchDisplay = () => {
                 userSelect: "none",
                 flex: 1,
             }}>
-            {!showReplayQueue && !!(replay ?? map) && <SingleMatchDisplayLarge />}
-            {showReplayQueue && <ReplayQueueList />}
-            {showReplayQueue && sceneStatus === "idle" && (
+            {!showReplayQueue && nextSceneId === "@replay" && <SingleMatchDisplayLarge />}
+            {showReplayQueue && nextSceneId === "@replay" &&  <ReplayQueueList />}
+            {sceneStatus === "idle" && nextSceneId === "@replay" && replayQueue.length > 0 && (
                 <div style={{marginInline: "auto", display: "flex", gap: "8px", marginTop: "16px"}}>
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

@@ -60,8 +60,8 @@ export const defaultSettingsV6: SettingsV6 = {
         logLevel: "info",
     },
     replayQueue: {
-        autoplay: true,
-        enabled: true,
+        autoplay: false,
+        alwaysClearReplayQueue: false,
         show: true,
         goToHomeBetweenReplays: true,
     },
