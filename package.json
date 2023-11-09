@@ -20,15 +20,28 @@
         "runtime": "yarn build:runtime && yarn serve:runtime",
         "build": "vite build -c vite.config.web.ts && yarn build:runtime"
     },
+    "files": [
+        "./types",
+        "./host",
+        "./ui",
+        "./src",
+        "package.json",
+        "README.md"
+      ],
+      "types": "./types/index.d.ts",
+      "exports": {
+        "./host/*": "./dist/host/*",
+        "./ui/*": "./dist/ui/*"
+      },
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/imbateam-gg/titan-reactor.git"
+        "url": "git+https://github.com/alexpineda/titan-reactor.git"
     },
     "author": "Alex Pineda <alexpineda@fastmail.com>",
     "bugs": {
-        "url": "https://github.com/imbateam-gg/titan-reactor/issues"
+        "url": "https://github.com/alexpineda/titan-reactor/issues"
     },
-    "homepage": "https://github.com/imbateam-gg/titan-reactor#readme",
+    "homepage": "https://www.blacksheepwall.tv",
     "debug": {
         "env": {
             "VITE_DEV_SERVER_HOSTNAME": "127.0.0.1",

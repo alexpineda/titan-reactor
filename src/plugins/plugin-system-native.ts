@@ -7,11 +7,11 @@ import { withErrorMessage } from "common/utils/with-error-message";
 import { UI_SYSTEM_CUSTOM_MESSAGE } from "./events";
 import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
-import { mix } from "@utils/object-utils";
 import { log } from "@ipc/log";
-import { PluginBase } from "./plugin-base";
+import { PluginBase, PluginSessionContext } from "./plugin-base";
 import { SceneController, VRSceneController } from "./scene-controller";
 import lSet from "lodash.set";
+import { mix } from "@utils/object-utils";
 
 type PluginsConfigSnapshot = Record<
     string,
@@ -28,6 +28,7 @@ export class PluginSystemNative {
 
     #sendCustomUIMessage!: (pluginId: string, message: any) => void;
     #compartments = new WeakMap<PluginBase, { globalThis: object }>();
+    #sessionContext: PluginSessionContext;
 
     /**
      * Error trapping is signficantly slower than not using it.
@@ -43,15 +44,21 @@ export class PluginSystemNative {
         return this.#plugins.reduce.bind(this.#plugins);
     }
 
+    constructor( sessionContext: PluginSessionContext ) {
+        this.#sessionContext = sessionContext;
+    }
+
     async activatePlugin(
         pluginPackage: PluginMetaData,
         createCompartment: (env: unknown) => {
             globalThis: {
                 Function: (...args: any[]) => () => object | PluginBase;
             };
-        }
+        },
+        sessionContext: PluginSessionContext
     ) {
 
+        //todo: remove this
         const compartment = createCompartment({
             PluginBase,
             SceneController,
@@ -59,13 +66,14 @@ export class PluginSystemNative {
         });
 
         try {
-            const Plugin = await import(/* @vite-ignore */ pluginPackage.urls.host! );
+            const Plugin = await import(/* @vite-ignore */pluginPackage.urls.host! );
 
             if (!Plugin) {
                 throw new Error("Plugin constructor must extend PluginBase");
             }
 
-            const plugin = new Plugin.default(pluginPackage);
+            const plugin = new Plugin.default(pluginPackage, sessionContext);
+            mix(plugin, sessionContext.game);
 
             plugin.isSceneController = pluginPackage.isSceneController;
 
@@ -95,12 +103,12 @@ export class PluginSystemNative {
     async init(
         pluginPackages: PluginMetaData[],
         msg: (id: string, message: any) => void,
-        createCompartment: (env: any) => any
+        createCompartment: (env: any) => any,
     ) {
 
         log.debug(`@plugin-system-native: init`);
         for (const pkg of pluginPackages) {
-            const plugin = await this.activatePlugin(pkg, createCompartment);
+            const plugin = await this.activatePlugin(pkg, createCompartment, this.#sessionContext);
             if (plugin) {
                 this.#plugins.push(plugin);
             }
@@ -231,8 +239,9 @@ export class PluginSystemNative {
         pluginPackages: PluginMetaData[],
         createCompartment: (env: any) => any
     ) {
+        
         const additionalPlugins = pluginPackages
-            .map((p) => this.activatePlugin(p, createCompartment))
+            .map((p) => this.activatePlugin(p, createCompartment, this.#sessionContext))
             .filter(Boolean);
 
         this.#plugins = [...this.#plugins, ...additionalPlugins] as PluginBase[];
@@ -241,17 +250,16 @@ export class PluginSystemNative {
     /**
      * Temporarily inject an api into all active plugins.
      */
-    injectApi(object: object) {
-        mix(PluginBase.prototype, object);
-        const keys = Object.keys(object);
+    // injectApi(object: object) {
+    //     const keys = Object.keys(object);
 
-        return () => {
-            keys.forEach((key) => {
-                // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-                delete PluginBase.prototype[key as keyof typeof PluginBase.prototype];
-            });
-        };
-    }
+    //     return () => {
+    //         keys.forEach((key) => {
+    //             // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    //             delete PluginBase.prototype[key as keyof typeof PluginBase.prototype];
+    //         });
+    //     };
+    // }
 
     getConfigSnapshot() {
         return this.#plugins.reduce((acc, plugin) => {

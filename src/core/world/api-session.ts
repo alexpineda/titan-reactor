@@ -30,11 +30,18 @@ export class ApiSession {
         this.#janitor = new Janitor();
 
         this.#events = new WeakRef( events );
-        this.#plugins = this.#janitor.mop( await createPluginSession( openBW, events ) );
-
-        this.#macros = this.#janitor.mop( createMacrosComposer( settings ) );
         const eventsProxy = this.#janitor.mop( new TypeEmitterProxy( events ) );
         const customEvents = this.#janitor.mop( new TypeEmitter() );
+
+        this.#plugins = this.#janitor.mop( await createPluginSession( openBW, events, {
+            settings: settings.vars,
+            events: eventsProxy,
+            customEvents,
+            game: gameTimeApi
+        } ) );
+
+        this.#macros = this.#janitor.mop( createMacrosComposer( settings ) );
+        
 
         this.#macros.macros.targets.setHandler( ":plugin", {
             action: ( action ) =>
@@ -58,26 +65,12 @@ export class ApiSession {
         // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
         this.#macros.setContainer(
             mix( {
-                api: gameTimeApi,
+                game: gameTimeApi,
                 plugins: borrow( this.#plugins.store.vars ),
                 settings: borrow( settings.vars ),
                 events: eventsProxy,
                 customEvents,
             } )
-        );
-
-        this.#janitor.mop(
-            this.native.injectApi(
-                mix(
-                    {
-                        settings: settings.vars,
-                        events: eventsProxy,
-                        customEvents,
-                    },
-                    gameTimeApi
-                )
-            ),
-            "native.injectApi"
         );
 
         this.native.useTryCatchOnHooks =

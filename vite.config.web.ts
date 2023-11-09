@@ -13,8 +13,6 @@ const TARGET = tsConfig.compilerOptions.target;
 export default defineConfig((env) => {
     return {
         ...sharedViteConfig(),
-        // titan-reactor is the subfolder in the black-sheep-wall public dir
-        base: env.command === "build" ? "/" : "/",
         define: {
             __static: JSON.stringify(env.command === "build" ? "" : "/bundled"),
         },
@@ -31,7 +29,7 @@ export default defineConfig((env) => {
                 },
             },
             minify: false, //env.command === "build",
-            sourcemap: false, //env.command === "build",
+            sourcemap: false,//env.command === "build",
         },
         esbuild: {
             target: TARGET,
@@ -47,6 +45,6 @@ export default defineConfig((env) => {
             port: pkg.debug.env.VITE_DEV_SERVER_PORT,
             //   https: true,
             hmr: false,
-        },
+        }
     };
 });

@@ -16,6 +16,6 @@ rmSync(OUTDIR, { recursive: true, force: true });
         minify: false,
         format: "esm",
         bundle: true,
-        
+        packages: 'external',
     });
 })();

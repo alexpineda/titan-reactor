@@ -5,7 +5,7 @@ import { DamageType, Explosion } from "common/enums";
 import { PerspectiveCamera, Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
 import { World } from "./world";
-import { SceneController } from "@plugins/scene-controller";
+import type { SceneController } from "@plugins/scene-controller";
 import { easeInCubic } from "@utils/function-utils";
 import range from "common/utils/range";
 import { mixer } from "@audio/main-mixer";

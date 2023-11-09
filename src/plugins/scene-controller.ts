@@ -1,6 +1,6 @@
 import { GameTimeApi } from "@core/world/game-time-api";
 import { renderComposer } from "@render/render-composer";
-import { Injectables, NativePlugin } from "common/types";
+import {  NativePlugin } from "common/types";
 import { Quaternion, Vector2, Vector3, Vector4 } from "three";
 import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 import { PluginBase } from "./plugin-base";
@@ -10,8 +10,7 @@ import { PluginBase } from "./plugin-base";
  */
 export interface SceneController
     extends Omit<NativePlugin, "config">,
-        GameTimeApi,
-        Injectables {
+        GameTimeApi {
     /**
      * Updates every frame with the current mouse data.
      *
@@ -76,7 +75,7 @@ const _va = new Vector3(),
 /**
  * @public
  */
-export class SceneController extends PluginBase implements SceneController {
+export class SceneController extends PluginBase implements NativePlugin, SceneController {
     override isSceneController = true;
     isWebXR = false;
     viewportsCount = 1;
@@ -101,10 +100,10 @@ export class SceneController extends PluginBase implements SceneController {
 
 const _v3 = new Vector3(), _v4 = new Vector4();
 
-export class VRSceneController extends PluginBase implements SceneController {
+export class VRSceneController extends SceneController implements NativePlugin, SceneController {
     override isSceneController = true;
-    isWebXR = true;
-    viewportsCount = 1;
+    override isWebXR = true;
+    override viewportsCount = 1;
 
     get xr(){
         return renderComposer.glRenderer.xr;
@@ -156,11 +155,11 @@ export class VRSceneController extends PluginBase implements SceneController {
     }
 
     //TODO: change to globalThis
-    onUpdateAudioMixerLocation( ) {
+    override onUpdateAudioMixerLocation( ) {
         return this.getPoseWorldPosition();
     }
 
-    onUpdateAudioMixerOrientation() {
+    override onUpdateAudioMixerOrientation() {
         this.viewport.camera.matrixWorld.decompose( _va, _qa, _vb );
         return _qa;
     }

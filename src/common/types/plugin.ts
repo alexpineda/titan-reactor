@@ -1,6 +1,3 @@
-import { SessionVariables } from "@core/world/settings-session-store";
-import { WorldEvents } from "@core/world/world-events";
-import { TypeEmitterProxy } from "@utils/type-emitter";
 import { FieldDefinition } from "./fields";
 
 export type PluginConfig = Record<string, FieldDefinition>;
@@ -43,21 +40,6 @@ export interface PluginMetaData extends PluginPackage {
         host: string | null,
         ui: string | null,
     }
-}
-
-/**
- * These are the injectable services that are available to plugins during a world session.
- */
-export interface Injectables {
-    /**
-     * Reactive setting values that apply to the active session only.
-     */
-    settings: SessionVariables;
-
-    /**
-     * World events that can be listened to and emitted.
-     */
-    events: TypeEmitterProxy<WorldEvents>;
 }
 
 /**

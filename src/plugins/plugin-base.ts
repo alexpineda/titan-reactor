@@ -1,28 +1,39 @@
 import type { GameTimeApi } from "@core/world/game-time-api";
 import type {
     FieldDefinition,
-    Injectables,
     NativePlugin,
     PluginConfig,
     PluginPackage,
 } from "common/types";
-
-import { log } from "@ipc/log";
 // import { savePluginsConfig } from "renderer/command-center/ipc/plugins";
 import { normalizePluginConfiguration } from "@utils/function-utils";
+import type { SessionVariables } from "@core/world/settings-session-store";
+import type { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
+import type { WorldEvents } from "@core/world/world-events";
 
 const structuredClone =
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     globalThis.structuredClone ??
     ( ( x: any ) => JSON.parse( JSON.stringify( x ) ) as unknown );
 
-export interface PluginBase extends NativePlugin, GameTimeApi, Injectables {}
+export interface PluginBase extends NativePlugin, GameTimeApi {}
 
-export class PluginBase {
+export type PluginSessionContext = {
+    game: GameTimeApi;
+    settings: SessionVariables;
+    events: TypeEmitterProxy<WorldEvents>;
+    customEvents: TypeEmitter<unknown>;
+}
+
+export class PluginBase implements PluginBase {
     readonly id: string;
     readonly name: string;
     isSceneController = false;
     #config: PluginConfig = {};
+
+    game: GameTimeApi;
+    settings: SessionVariables;
+    events: TypeEmitterProxy<WorldEvents>;
 
     /**
      * @internal
@@ -30,10 +41,13 @@ export class PluginBase {
      */
     #normalizedConfig: Record<string, unknown> = {};
 
-    constructor( pluginPackage: PluginPackage ) {
+    constructor( pluginPackage: PluginPackage, opts: PluginSessionContext ) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
         this.rawConfig = structuredClone( pluginPackage.config ?? {} );
+        this.game = opts.game;
+        this.settings = opts.settings;
+        this.events = opts.events;
     }
 
     sendUIMessage: ( message: any ) => void = () => {};
@@ -48,7 +62,7 @@ export class PluginBase {
      */
     saveConfigProperty( key: string, value: unknown, persist = true ): void {
         if ( !( key in this.#config ) ) {
-            log.warn(
+            console.warn(
                 `Plugin ${this.id} tried to set config key ${key} but it was not found`
             );
             return undefined;
