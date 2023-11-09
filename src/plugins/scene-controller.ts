@@ -1,6 +1,8 @@
 import { GameTimeApi } from "@core/world/game-time-api";
+import { renderComposer } from "@render/render-composer";
 import { Injectables, NativePlugin } from "common/types";
-import { Quaternion, Vector2, Vector3 } from "three";
+import { Quaternion, Vector2, Vector3, Vector4 } from "three";
+import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory";
 import { PluginBase } from "./plugin-base";
 
 /**
@@ -95,4 +97,72 @@ export class SceneController extends PluginBase implements SceneController {
         this.viewport.camera.matrixWorld.decompose( _va, _qa, _vb );
         return _qa;
     }
+}
+
+const _v3 = new Vector3(), _v4 = new Vector4();
+
+export class VRSceneController extends PluginBase implements SceneController {
+    override isSceneController = true;
+    isWebXR = true;
+    viewportsCount = 1;
+
+    get xr(){
+        return renderComposer.glRenderer.xr;
+    }
+    baseReferenceSpace = this.xr.getReferenceSpace()!;
+    controllerModelFactory = new XRControllerModelFactory()
+    controller1 = this.xr.getController( 0 );
+    controller2 = this.xr.getController( 1 );
+    lastWorldPosition = new Vector3();
+
+    constructor( ...args: ConstructorParameters<typeof SceneController>) {
+        super(...args);
+        this.getPoseWorldPosition();
+    }
+
+    override onEnterScene( prevData: unknown ) {
+        return Promise.resolve( prevData );
+    }
+
+    moveLocal( targetPosition: Vector3 ) {
+        _v4.set( targetPosition.x, targetPosition.y, targetPosition.z, 1 );
+        const offsetRotation = new Quaternion();
+        const transform = new XRRigidTransform( _v4, offsetRotation );
+        const teleportSpaceOffset = this.baseReferenceSpace.getOffsetReferenceSpace( transform );
+        this.xr.setReferenceSpace( teleportSpaceOffset );
+    }
+
+    moveWorld( targetPosition: Vector3 ) {
+        const currentPosition = this.lastWorldPosition;
+        _v3.copy( targetPosition ).sub( currentPosition );
+        _v4.set( _v3.x, _v3.y, _v3.z, 1 );
+    
+        const offsetRotation = new Quaternion();
+        const transform = new XRRigidTransform( _v4, offsetRotation );
+    
+        const newReferenceSpace = this.baseReferenceSpace.getOffsetReferenceSpace(transform);
+    
+        this.xr.setReferenceSpace(newReferenceSpace);
+    }
+
+
+    getPoseWorldPosition() {
+        const pose = this.xr.getFrame().getViewerPose( this.baseReferenceSpace );
+        if (pose) {
+            this.lastWorldPosition.set(pose.transform.position.x, pose.transform.position.y, pose.transform.position.z);
+            return this.lastWorldPosition;
+        }
+        return this.lastWorldPosition;
+    }
+
+    //TODO: change to globalThis
+    onUpdateAudioMixerLocation( target: Vector3, position: Vector3 ) {
+        return this.getPoseWorldPosition();
+    }
+
+    onUpdateAudioMixerOrientation() {
+        this.viewport.camera.matrixWorld.decompose( _va, _qa, _vb );
+        return _qa;
+    }
+
 }

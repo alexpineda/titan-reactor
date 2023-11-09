@@ -10,7 +10,7 @@ import { Janitor } from "three-janitor";
 import { mix } from "@utils/object-utils";
 import { log } from "@ipc/log";
 import { PluginBase } from "./plugin-base";
-import { SceneController } from "./scene-controller";
+import { SceneController, VRSceneController } from "./scene-controller";
 import lSet from "lodash.set";
 
 type PluginsConfigSnapshot = Record<
@@ -55,6 +55,7 @@ export class PluginSystemNative {
         const compartment = createCompartment({
             PluginBase,
             SceneController,
+            VRSceneController,
         });
 
         try {

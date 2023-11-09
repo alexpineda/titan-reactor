@@ -109,7 +109,7 @@ export const createWorldComposer = async (
 
         if ( sceneController ) {
             apiSession.native.activateSceneController( sceneController );
-            await viewControllerComposer.activate( sceneController,  isWebXR );
+            await viewControllerComposer.activate( sceneController);
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
         }

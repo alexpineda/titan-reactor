@@ -9,7 +9,7 @@ import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
 import { Janitor } from "three-janitor";
 import { createPluginSessionStore } from "@core/world/plugin-session-store";
-import { createCompartment } from "@utils/ses-util";
+import { createCompartment } from "@utils/create-compartment";
 import { globalEvents } from "@core/global-events";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
