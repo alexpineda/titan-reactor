@@ -3,8 +3,6 @@
     "productName": "Titan Reactor",
     "version": "0.7.0",
     "description": "An OpenBW Renderer",
-    "main": "dist/electron/main/index.js",
-    "typings": "dist/types/index.d.ts",
     "scripts": {
         "sanity": "yarn types:check && yarn test:once",
         "types:check": "tsc --noEmit",
