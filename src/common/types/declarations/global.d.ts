@@ -32,3 +32,9 @@ declare module "*.png" {
     const contents: string;
     export = contents;
 }
+
+declare global {
+    var THREE: typeof import("three");
+    var postprocessing: typeof import("postprocessing");
+    // ... other globals
+}

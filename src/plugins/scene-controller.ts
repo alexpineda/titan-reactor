@@ -2,7 +2,7 @@ import { GameTimeApi } from "@core/world/game-time-api";
 import { renderComposer } from "@render/render-composer";
 import { Injectables, NativePlugin } from "common/types";
 import { Quaternion, Vector2, Vector3, Vector4 } from "three";
-import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory";
+import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 import { PluginBase } from "./plugin-base";
 
 /**

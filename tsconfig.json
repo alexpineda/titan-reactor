@@ -20,9 +20,6 @@
         "noErrorTruncation": true,
         "noUncheckedIndexedAccess": false,
 
-        "declaration": true,
-        "declarationDir": "./dist/types",
-
         "noUnusedLocals": true,
         "noUnusedParameters": true,
 
@@ -58,7 +55,7 @@
         },
         "typeRoots": ["./src/common/types/declarations", "./node_modules/@types"],
 
-        "outDir": "generated",
+        
         "resolveJsonModule": true
     },
     "include": ["src/**/*"],
