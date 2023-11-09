@@ -1,15 +1,13 @@
 {
     "compilerOptions": {
-        "target": "ES2020",
-        "module": "ES2020",
+        "target": "ES2022",
+        "module": "ES2022",
         "moduleResolution": "Node",
         "noImplicitOverride": true,
         "allowJs": true,
         "checkJs": false,
         "allowSyntheticDefaultImports": true,
-        "emitDecoratorMetadata": true,
         "esModuleInterop": true,
-        "experimentalDecorators": true,
         "jsx": "react-jsx",
 
         "strict": true,
@@ -18,7 +16,7 @@
         "isolatedModules": false,
         "strictPropertyInitialization": true,
         "forceConsistentCasingInFileNames": true,
-        "lib": ["DOM", "DOM.Iterable", "ESNext"],
+        "lib": ["DOM", "DOM.Iterable", "ES2022", "ES2021.WeakRef"],
         "noErrorTruncation": true,
         "noUncheckedIndexedAccess": false,
 

@@ -156,7 +156,7 @@ export class VRSceneController extends PluginBase implements SceneController {
     }
 
     //TODO: change to globalThis
-    onUpdateAudioMixerLocation( target: Vector3, position: Vector3 ) {
+    onUpdateAudioMixerLocation( ) {
         return this.getPoseWorldPosition();
     }
 

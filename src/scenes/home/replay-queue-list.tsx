@@ -51,7 +51,7 @@ export const ReplayQueueList = () => {
                 justifyContent: "center",
                 alignItems: "center",
                 borderRadius: "10px",
-                padding: "var(--size-6) var(--size-4);",
+                padding: "var(--size-6) var(--size-4)",
             }}>
             <h1>Todays Matches</h1>
             <table>
