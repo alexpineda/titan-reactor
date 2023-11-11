@@ -42,6 +42,7 @@ export interface PluginMetaData extends PluginPackage {
     }
 }
 
+
 /**
  * A plugin that executes in the main process.
  */
@@ -105,6 +106,10 @@ export interface NativePlugin {
      */
     onFrame?( frame: number, commands?: any[] ): void;
     /**
+     * Called before render, every render tick
+     */
+    onTick?( delta: number, elapsed: number ): void;
+    /**
      * When a game has been loaded and the game loop is about to begin
      */
     onSceneReady?(): void;
@@ -117,13 +122,4 @@ export interface NativePlugin {
      */
     onFrameReset?(): void;
 
-    /**
-     * When a scene is entered and nearly initialized.
-     */
-    onEnterScene?( prevData: any ): Promise<unknown>;
-
-    /**
-     * When a scene has exited. Dispose resources here.
-     */
-    onExitScene?( currentData: any ): any;
 }

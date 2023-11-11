@@ -72,7 +72,7 @@ export class PluginSystemNative {
                 throw new Error("Plugin constructor must extend PluginBase");
             }
 
-            const plugin = new Plugin.default(pluginPackage, sessionContext);
+            const plugin = new Plugin.default(pluginPackage, sessionContext) as PluginBase;
             mix(plugin, sessionContext.game);
 
             plugin.isSceneController = pluginPackage.isSceneController;
@@ -232,6 +232,26 @@ export class PluginSystemNative {
             }
         } else {
             this.#hook_onFrame(frame, commands);
+        }
+    }
+
+    #hook_onTick( delta: number, elapsed: number ) {
+        for (const plugin of this.#plugins) {
+            if (plugin.onTick && this.isRegularPluginOrActiveSceneController(plugin)) {
+                plugin.onTick(delta, elapsed);
+            }
+        }
+    }
+
+    hook_onTick( delta: number, elapsed: number ) {
+        if (this.useTryCatchOnHooks) {
+            try {
+                this.#hook_onTick(delta, elapsed);
+            } catch (e) {
+                log.error(withErrorMessage(e, "@plugin-system-native: onFrame"));
+            }
+        } else {
+            this.#hook_onTick( delta, elapsed );
         }
     }
 

@@ -5,10 +5,11 @@ import { DamageType, Explosion } from "common/enums";
 import { PerspectiveCamera, Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
 import { World } from "./world";
-import type { SceneController } from "@plugins/scene-controller";
+import type { SceneController, VRSceneController } from "@plugins/scene-controller";
 import { easeInCubic } from "@utils/function-utils";
 import range from "common/utils/range";
 import { mixer } from "@audio/main-mixer";
+import { renderComposer } from "@render/index";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {
@@ -134,10 +135,22 @@ export const createViewControllerComposer = (
             if ( sceneController?.onExitScene ) {
                 try {
                     world.events.emit( "scene-controller-exit", sceneController.name );
-                    prevData = sceneController.onExitScene( prevData );
+                    const _prevData = sceneController.onExitScene( prevData );
+                    //todo: further validate prevData
+                    if (_prevData?.target && _prevData?.position) {
+                        prevData = _prevData;
+                    }
                 } catch ( e ) {
                     log.error( e );
                 }
+            }
+
+            if (sceneController) {
+                sceneController.parent.removeFromParent();
+            }
+
+            if ( sceneController?.isWebXR ) {
+                (sceneController as VRSceneController).viewerPosition.removeFromParent();
             }
 
             sceneController = null;
@@ -149,6 +162,15 @@ export const createViewControllerComposer = (
 
             viewports.length = 0;
             viewports.push(...createViewports(newController.viewportsCount));
+
+            if (newController.isWebXR) {
+                const vrController = newController as VRSceneController;
+                vrController.setupXR( renderComposer.glRenderer.xr );
+                newController.scene.add( vrController.viewerPosition );
+                vrController.viewerPosition.add( vrController.viewport.camera );
+            }
+
+            newController.scene.add( newController.parent );
 
             await newController.onEnterScene( prevData );
             sceneController = newController;

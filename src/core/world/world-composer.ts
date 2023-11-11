@@ -327,6 +327,11 @@ export const createWorldComposer = async (
                 );
             }
 
+            apiSession.native.hook_onTick(
+                delta,
+                elapsed
+            )
+
             postProcessingComposer.render( delta, elapsed );
 
             inputsComposer.reset();

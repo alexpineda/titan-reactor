@@ -27,6 +27,8 @@
         "sourceMap": true,
         "removeComments": false,
 
+        "declaration": true,
+
         "baseUrl": "src",
         "paths": {
             "common/*": ["common/*"],

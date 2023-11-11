@@ -38,7 +38,6 @@ import { createWraithNoise, playRemix, WraithNoise } from "./wraith-noise";
 import { createWraiths } from "./wraiths";
 import { CameraState, CAMERA_ROTATE_SPEED, createCamera } from "./camera";
 import processStore  from "@stores/process-store";
-import { VRButton } from "@render/vr/vr-button";
 
 CameraControls.install( { THREE: THREE } );
 
@@ -273,10 +272,6 @@ export async function createWraithScene() {
     janitor.mop( renderComposer );
 
     _sceneResizeHandler();
-
-    if (import.meta.env.DEV) {
-        document.body.appendChild( janitor.mop(VRButton.createButton( renderComposer.glRenderer )) );
-    }
 
     return {
         dispose: () => janitor.dispose(),

@@ -65,7 +65,7 @@ export class ApiSession {
         // which is not allowed WITHIN plugins since they are 3rd party, but ok in user macros and sandbox
         this.#macros.setContainer(
             mix( {
-                game: gameTimeApi,
+                api: gameTimeApi,
                 plugins: borrow( this.#plugins.store.vars ),
                 settings: borrow( settings.vars ),
                 events: eventsProxy,
