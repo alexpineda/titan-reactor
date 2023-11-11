@@ -88,7 +88,7 @@
         "react-markdown": "^8.0.0",
         "sanitize-filename": "^1.6.3",
         "scm-extractor": "^1.0.6",
-        "semver": "^7.3.5",
+        "semver": "^7.5.2",
         "three": "0.156.0",
         "three-gpu-pathtracer": "^0.0.6",
         "three-instanced-uniforms-mesh": "^0.46.0",
