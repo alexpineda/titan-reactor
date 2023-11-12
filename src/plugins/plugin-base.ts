@@ -8,22 +8,23 @@ import type {
 // import { savePluginsConfig } from "renderer/command-center/ipc/plugins";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import type { SessionVariables } from "@core/world/settings-session-store";
-import type { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
+import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import type { WorldEvents } from "@core/world/world-events";
+import { usePluginsStore } from "@stores/plugins-store";
 
 const structuredClone =
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     globalThis.structuredClone ??
-    ( ( x: any ) => JSON.parse( JSON.stringify( x ) ) as unknown );
+    ((x: any) => JSON.parse(JSON.stringify(x)) as unknown);
 
 export interface PluginBase extends NativePlugin, GameTimeApi {}
 
 export type PluginSessionContext = {
     game: GameTimeApi;
     settings: SessionVariables;
-    events: TypeEmitterProxy<WorldEvents>;
+    events: TypeEmitter<WorldEvents>;
     customEvents: TypeEmitter<unknown>;
-}
+};
 
 export class PluginBase implements PluginBase {
     readonly id: string;
@@ -41,16 +42,20 @@ export class PluginBase implements PluginBase {
      */
     #normalizedConfig: Record<string, unknown> = {};
 
-    constructor( pluginPackage: PluginPackage, opts: PluginSessionContext ) {
+    constructor(pluginPackage: PluginPackage, session: PluginSessionContext) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
-        this.rawConfig = structuredClone( pluginPackage.config ?? {} );
-        this.game = opts.game;
-        this.settings = opts.settings;
-        this.events = opts.events;
+        this.rawConfig = structuredClone(pluginPackage.config ?? {});
+        this.game = session.game;
+        this.settings = session.settings;
+        this.events = new TypeEmitterProxy(session.events);
     }
 
-    sendUIMessage: ( message: any ) => void = () => {};
+    dispose() {
+        this.events.dispose();
+    }
+
+    sendUIMessage: (message: any) => void = () => {};
 
     /**
      *
@@ -60,8 +65,8 @@ export class PluginBase implements PluginBase {
      * @param value  The configuration value.
      * @returns
      */
-    saveConfigProperty( key: string, value: unknown, persist = true ): void {
-        if ( !( key in this.#config ) ) {
+    saveConfigProperty(key: string, value: unknown, persist = true): void {
+        if (!(key in this.#config)) {
             console.warn(
                 `Plugin ${this.id} tried to set config key ${key} but it was not found`
             );
@@ -69,9 +74,8 @@ export class PluginBase implements PluginBase {
         }
 
         this.#config[key].value = value;
-        if ( persist ) {
-            //todo: persist
-            // savePluginsConfig( this.id, this.#config );
+        if (persist) {
+            usePluginsStore.getState().savePluginConfig( this.id, this.#config );
         }
     }
 
@@ -80,7 +84,7 @@ export class PluginBase implements PluginBase {
      * Same as config but simplified to [key] = value
      */
     refreshConfig() {
-        this.#normalizedConfig = normalizePluginConfiguration( this.#config );
+        this.#normalizedConfig = normalizePluginConfiguration(this.#config);
     }
 
     /**
@@ -93,7 +97,7 @@ export class PluginBase implements PluginBase {
     /**
      * Set the config from unnormalized data (ie leva config schema).
      */
-    set rawConfig( value: PluginConfig ) {
+    set rawConfig(value: PluginConfig) {
         this.#config = value;
         this.refreshConfig();
     }
@@ -106,7 +110,7 @@ export class PluginBase implements PluginBase {
      * @param key The configuration key.
      * @returns the leva configuration for a particular field
      */
-    getFieldDefinition( key: string ) {
+    getFieldDefinition(key: string) {
         return this.#config[key] as FieldDefinition | undefined;
     }
 }

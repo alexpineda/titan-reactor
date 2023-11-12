@@ -5,7 +5,6 @@ import {
     Quaternion,
     Vector2,
     Vector3,
-    Vector4,
     WebXRManager,
     XRTargetRaySpace,
 } from "three";
@@ -159,13 +158,11 @@ export class VRSceneController
             "connected",
             ({ data }: { data: XRInputSource }) => {
                 this.input1 = data;
-                console.log("controller1 connected", data);
             }
         );
         this.controller1.addEventListener("disconnected", () => {
             this.input1 = undefined;
             this.parent.remove(this.controller1.children[0]);
-            console.log("controller1 disconnected");
             
         });
         this.parent.add(this.controller1);
@@ -176,13 +173,11 @@ export class VRSceneController
             "connected",
             ({ data }: { data: XRInputSource }) => {
                 this.input2 = data;
-                console.log("controller2 connected", data);
             }
         );
         this.controller2.addEventListener("disconnected", () => {
             this.input2 = undefined;
             this.parent.remove(this.controller1.children[0])
-            console.log("controller2 disconnected");
         });
         this.parent.add(this.controller2);
 
@@ -198,7 +193,7 @@ export class VRSceneController
             // -1   1
             //    1
             const axes = this.input1!.gamepad!.axes;
-            _a.set(0, axes[3], 0);
+            _a.set(0, axes[3] * delta, 0);
             this.moveLocal(_a);
   
         }
@@ -210,7 +205,7 @@ export class VRSceneController
             // -1   1
             //    1
             const axes = this.input2!.gamepad!.axes;
-            _a.set(axes[2], 0, axes[3]);
+            _a.set(axes[2] * delta , 0, axes[3] * delta);
             this.moveLocal(_a);
   
         }

@@ -3,12 +3,13 @@ import { inverse } from "@utils/function-utils";
 import { canOnlySelectOne } from "@utils/unit-utils";
 import { Camera, Object3D, PerspectiveCamera, Raycaster, Vector2 } from "three";
 import { SelectionBox } from "three/examples/jsm/interactive/SelectionBox";
-import { World } from "@core/world/world";
 import BaseScene from "@render/base-scene";
 import { ImageBase } from "@core/image-base";
 import { ProjectedCameraView } from "../camera/projected-camera-view";
 import { InputsComposer } from "@core/world/input-composer";
 import { SimpleQuadtree } from "@utils/data-structures/simple-quadtree";
+import { TypeEmitter } from "@utils/type-emitter";
+import { WorldEvents } from "@core/world/world-events";
 
 const MIN_DRAG_SIZE = 0.01;
 
@@ -28,7 +29,7 @@ export enum UnitSelectionStatus {
 }
 
 export const createUnitSelectionBox = (
-    world: World,
+    events: TypeEmitter<WorldEvents>,
     mouse: InputsComposer["mouse"],
     scene: BaseScene,
     imageQuadtree: SimpleQuadtree<ImageBase>,
@@ -48,7 +49,7 @@ export const createUnitSelectionBox = (
 
         selectionBox.startPoint.set( mouse.move.x, mouse.move.y, 0.5 );
 
-        world.events.emit( "box-selection-start" );
+        events.emit( "box-selection-start" );
     };
 
     const largerThanMinDrag = () => {
@@ -67,7 +68,7 @@ export const createUnitSelectionBox = (
                     _selectBoxStarted = true;
                 }
             } else {
-                world.events.emit( "box-selection-move" );
+                events.emit( "box-selection-move" );
 
                 _status = UnitSelectionStatus.Dragging;
             }
@@ -145,7 +146,7 @@ export const createUnitSelectionBox = (
             if ( unit ) {
                 draft.push( unit );
             } else {
-                world.events.emit( "box-selection-end", [] );
+                events.emit( "box-selection-end", [] );
                 return;
             }
         } else {
@@ -179,7 +180,7 @@ export const createUnitSelectionBox = (
 
         draft.sort( typeIdSort ).splice( 12 );
 
-        world.events.emit( "box-selection-end", draft );
+        events.emit( "box-selection-end", draft );
     };
 
     return {
@@ -191,7 +192,7 @@ export const createUnitSelectionBox = (
         },
         set enabled( value: boolean ) {
             if ( value !== _enabled ) {
-                world.events.emit( "box-selection-enabled", value );
+                events.emit( "box-selection-enabled", value );
             }
             _enabled = value;
             _selectActivated = value && _selectActivated;

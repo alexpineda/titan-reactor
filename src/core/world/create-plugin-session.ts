@@ -30,7 +30,7 @@ export const createPluginSession = async (
 
     const pluginPackages = pluginsStore().sessionPlugins;
     const uiPlugins = janitor.mop(
-        new PluginSystemUI( openBW, pluginPackages ),
+        new PluginSystemUI( openBW, pluginPackages.filter( ( p ) => p.urls.ui && !p.isSceneController ) ),
         "uiPlugins"
     );
 

@@ -35,7 +35,7 @@ export class ApiSession {
 
         this.#plugins = this.#janitor.mop( await createPluginSession( openBW, events, {
             settings: settings.vars,
-            events: eventsProxy,
+            events,
             customEvents,
             game: gameTimeApi
         } ) );

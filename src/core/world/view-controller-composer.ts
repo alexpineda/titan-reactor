@@ -172,6 +172,8 @@ export const createViewControllerComposer = (
 
             newController.scene.add( newController.parent );
 
+            world.settings.vars.input.unitSelection.set(true);
+            world.settings.vars.input.cursorVisible.set(true);
             await newController.onEnterScene( prevData );
             sceneController = newController;
         

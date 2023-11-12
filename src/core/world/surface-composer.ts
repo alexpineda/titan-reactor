@@ -3,7 +3,9 @@ import { renderComposer } from "@render/render-composer";
 import { settingsStore, useSettingsStore } from "@stores/settings-store";
 import { Janitor } from "three-janitor";
 import debounce from "lodash.debounce";
-import { World } from "./world";
+import Chk from "bw-chk";
+import { WorldEvents } from "./world-events";
+import { TypeEmitter } from "@utils/type-emitter";
 
 export type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 export type SurfaceComposerApi = SurfaceComposer["api"];
@@ -13,11 +15,11 @@ export type SurfaceComposerApi = SurfaceComposer["api"];
  * @param world 
  * @returns 
  */
-export const createSurfaceComposer = ( world: World ) => {
+export const createSurfaceComposer = ( map: Chk, events: TypeEmitter<WorldEvents> ) => {
     const janitor = new Janitor( "SurfaceComposer" );
     const gameSurface = janitor.mop(
         new GameSurface(
-            ...world.map.size,
+            ...map.size,
             renderComposer.srcCanvas
         ),
         "GameSurface"
@@ -39,7 +41,7 @@ export const createSurfaceComposer = ( world: World ) => {
             settingsStore().data.graphics.pixelRatio
         );
 
-        world.events.emit( "resize", gameSurface );
+        events.emit( "resize", gameSurface );
     };
 
     const sceneResizeHandler = debounce( () => {
@@ -73,7 +75,7 @@ export const createSurfaceComposer = ( world: World ) => {
         "useSettingsStore.subscribe"
     );
 
-    world.events.on( "dispose", () => {
+    events.on( "dispose", () => {
         janitor.dispose();
     } );
 

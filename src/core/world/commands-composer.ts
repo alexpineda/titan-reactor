@@ -1,5 +1,6 @@
 import { CommandsStream } from "process-replay";
-import { World } from "./world";
+import { TypeEmitter } from "@utils/type-emitter";
+import { WorldEvents } from "./world-events";
 
 /**
  * Mostly responsible for collecting recent commands into a bundle for consumption by plugins, limits to previous 5 seconds of game time.
@@ -9,7 +10,7 @@ import { World } from "./world";
  * @returns 
  */
 export const createCommandsComposer = (
-    world: World,
+    events: TypeEmitter<WorldEvents>,
     commandsStream: CommandsStream
 ) => {
     let cmds = commandsStream.generate();
@@ -21,7 +22,7 @@ export const createCommandsComposer = (
         cmd = cmds.next();
     }
 
-    world.events.on( "frame-reset", reset );
+    events.on( "frame-reset", reset );
 
     return {
         get commandsThisFrame() {

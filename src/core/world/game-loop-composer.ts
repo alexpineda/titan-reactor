@@ -1,11 +1,12 @@
 import { log } from "@ipc/log";
 import { renderComposer } from "@render/render-composer";
-import { World } from "./world";
+import { WorldEvents } from "./world-events";
+import { TypeEmitter } from "@utils/type-emitter";
 
 export type GameLoopComposer = ReturnType<typeof createGameLoopComposer>;
 export type GameLoopComposerApi = GameLoopComposer["api"];
 
-export const createGameLoopComposer = ( world: World ) => {
+export const createGameLoopComposer = ( events: TypeEmitter<WorldEvents> ) => {
     let delta = 0;
     let lastElapsed = 0;
     let _onUpdate: ( delta: number, elapsed: number ) => void = () => {};
@@ -21,7 +22,7 @@ export const createGameLoopComposer = ( world: World ) => {
         _onUpdate( delta, elapsed );
     };
 
-    world.events.on( "dispose", () => {
+    events.on( "dispose", () => {
         log.debug( "dispose game loop" );
         renderComposer.setAnimationLoop( null );
     } );

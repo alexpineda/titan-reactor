@@ -37,7 +37,6 @@ export const OpenFileButton = (
                 background="var(--gray-5)"
                 color="var(--gray-9)"
                     onClick={() => {
-                        console.log(inputRef.current)
                         if ( inputRef.current ) {
                             inputRef.current.click();
                         }
@@ -65,7 +64,6 @@ export const OpenFileButton = (
                 multiple
                 accept=".rep,.scm,.scx"
                 onChange={async ( evt ) => {
-                    console.log(evt.target.files)
                     evt.preventDefault();
                     if ( evt.target.files ) {
                         const files = [];

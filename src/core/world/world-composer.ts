@@ -28,6 +28,7 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import { mixer } from "@audio/main-mixer";
 import { CommandsStream } from "process-replay";
 import { log } from "@ipc/log";
+import { pluginsStore } from "@stores/plugins-store";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 
@@ -66,10 +67,10 @@ export const createWorldComposer = async (
 
     log.info( "creating composers" );
 
-    const gameLoopComposer = createGameLoopComposer( world );
-    const surfaceComposer = createSurfaceComposer( world );
+    const gameLoopComposer = createGameLoopComposer( events );
+    const surfaceComposer = createSurfaceComposer( map, events );
     const sceneComposer = await createSceneComposer( world, assets );
-    const commandsComposer = createCommandsComposer( world, commands );
+    const commandsComposer = createCommandsComposer( events, commands );
     const inputsComposer = createInputComposer( world, sceneComposer );
     const viewControllerComposer = createViewControllerComposer( world, surfaceComposer, sceneComposer.api.initialStartLocation );
     const sandboxApi = createSandboxApi( world, sceneComposer.pxToWorldInverse );
@@ -109,7 +110,11 @@ export const createWorldComposer = async (
 
         if ( sceneController ) {
             apiSession.native.activateSceneController( sceneController );
+            if (viewControllerComposer.sceneController) {
+                apiSession.ui.deactivatePlugin( viewControllerComposer.sceneController.name );
+            }
             await viewControllerComposer.activate( sceneController);
+            apiSession.ui.activatePlugins( pluginsStore().plugins.filter( p => p.name === sceneController.name ) );
             inputsComposer.unitSelectionBox.camera =
                 viewControllerComposer.primaryCamera!;
         }
