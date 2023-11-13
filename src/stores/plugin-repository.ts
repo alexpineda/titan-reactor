@@ -29,7 +29,7 @@ const defaultReplayPlugins = [
     "@titan-reactor-plugins/unit-selection-display",
     "@titan-reactor-plugins/production-bar",
     "@titan-reactor-plugins/unit-sounds",
-    // "@titan-reactor-plugins/narrative-maker",
+    "@titan-reactor-plugins/auto-observer",
     "@titan-reactor-plugins/vr-controller",
 ];
 

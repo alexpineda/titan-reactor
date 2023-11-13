@@ -230,6 +230,12 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
         dest.groundWeaponCooldown = this.groundWeaponCooldown;
         dest.airWeaponCooldown = this.airWeaponCooldown;
         dest.spellCooldown = this.spellCooldown;
+
+        dest.moveTargetX = this.moveTargetX;
+        dest.moveTargetY = this.moveTargetY;
+
+        dest.orderTargetX = this.orderTargetX;
+        dest.orderTargetY = this.orderTargetY;
         
 
     }

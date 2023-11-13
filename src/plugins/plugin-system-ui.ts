@@ -210,10 +210,7 @@ export class PluginSystemUI {
             const assets = gameStore().assets!;
 
             const payload: SystemReadyMessage = {
-                plugins: pluginPackages.map( ( plugin ) => ( {
-                    ...plugin,
-                    config: normalizePluginConfiguration( plugin.config ?? {} ),
-                } ) ),
+                plugins: this.#normalizePlugins( pluginPackages ),
                 initialStore: initialStore(),
                 assets: {
                     bwDat: assets.bwDat,
@@ -271,6 +268,13 @@ export class PluginSystemUI {
         this.refresh();
 
         
+    }
+
+    #normalizePlugins(pluginPackages: PluginMetaData[]) {
+        return pluginPackages.map( ( plugin ) => ( {
+            ...plugin,
+            config: normalizePluginConfiguration( plugin.config ?? {} ),
+        } ) );
     }
 
     show() {
@@ -344,7 +348,7 @@ export class PluginSystemUI {
     activatePlugins( plugins: PluginMetaData[] ) {
         this.sendMessage( {
             type: UI_SYSTEM_PLUGINS_ENABLED,
-            payload: plugins,
+            payload: this.#normalizePlugins( plugins ),
         } );
     }
 

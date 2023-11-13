@@ -1,17 +1,5 @@
 import { SettingsV6  } from "./types";
 
-export const DEFAULT_PLUGIN_PACKAGES: string[] = [
-    "@titan-reactor-plugins/clock",
-    "@titan-reactor-plugins/player-colors",
-    "@titan-reactor-plugins/camera-standard",
-    "@titan-reactor-plugins/camera-overview",
-    "@titan-reactor-plugins/camera-battle",
-    "@titan-reactor-plugins/players-bar",
-    "@titan-reactor-plugins/unit-selection-display",
-    "@titan-reactor-plugins/production-bar",
-    "@titan-reactor-plugins/unit-sounds",
-];
-
 export const defaultSettingsV6: SettingsV6 = {
     version: 6,
     language: "en-US",
@@ -39,7 +27,7 @@ export const defaultSettingsV6: SettingsV6 = {
         drawCamera: true,
     },
     input: {
-        sceneController: "@titan-reactor-plugins/camera-standard",
+        sceneController: "@titan-reactor-plugins/auto-observer",
         vrController: "@titan-reactor-plugins/vr-controller",
         dampingFactor: 0.1,
         cameraShakeStrength: 1,
