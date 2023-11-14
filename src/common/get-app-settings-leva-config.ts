@@ -284,11 +284,11 @@ const getInputConfig = (
         ),
     },
     "input.dampingFactor": {
-        label: "Camera Movement Damping",
+        label: "Camera Movement Time",
         value: input.dampingFactor,
-        min: 0.01,
-        max: 0.1,
-        step: 0.01,
+        min: 0.1,
+        max: 10,
+        step: 0.1,
     },
     "input.zoomLevels": {
         label: "Camera Zoom Levels",

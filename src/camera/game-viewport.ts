@@ -128,16 +128,16 @@ export class GameViewPort extends Sizeable {
         this.cameraShake.restore( this.camera );
     }
 
-    update( targetDamping: number, delta: number ) {
+    update( targetSmoothTime: number, delta: number ) {
 
         this.viewport.copy(this.getActualSize());
         this.#direction32 = this.rotateSprites
             ? getDirection32( this.projectedView.center, this.camera.getWorldPosition( _target ))
             : 0;
 
-        this.orbit.dampingFactor = MathUtils.damp(
-            this.orbit.dampingFactor,
-            targetDamping,
+        this.orbit.smoothTime = MathUtils.damp(
+            this.orbit.smoothTime,
+            targetSmoothTime,
             0.0001,
             delta
         );

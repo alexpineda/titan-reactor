@@ -88,10 +88,8 @@ export const createPluginSessionStore = (
 
     const vars = plugins.reduce( ( acc, plugin ) => {
         Object.keys( plugin.rawConfig ?? {} ).forEach( ( key ) => {
-            if ( key !== "system" ) {
-                const compKey = [ plugin.name, key ];
-                lSet( acc, compKey, store.createVariable( compKey ) );
-            }
+            const compKey = [ plugin.name, key ];
+            lSet( acc, compKey, store.createVariable( compKey ) );
         } );
 
         return acc;

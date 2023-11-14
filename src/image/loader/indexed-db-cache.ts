@@ -12,18 +12,27 @@ export const cacheDBStoreNames = ["general-casc-cache", "image-cache"] as const;
 
 export let appCacheDb: IDBDatabase;
 
+let _cacheWasOpened = false;
+
 export const initCacheDB = () =>
     new Promise((resolve, reject) => {
+        const _timeout = setTimeout(() => {
+            console.error("IndexedDB timeout");
+            reject(new Error("IndexedDB timeout"));
+        }, 1000);
+
         console.log("Opening IndexedDB");
         const dbReq = indexedDB.open(DB_NAME, DB_VERSION);
 
         dbReq.onblocked = () => {
+            clearTimeout(_timeout);
             console.error("IndexedDB blocked");
             reject(new Error("IndexedDB blocked"));
         };
 
         // Create the schema
         dbReq.onupgradeneeded = () => {
+            clearTimeout(_timeout);
             console.log("IndexedDB upgrade needed");
             appCacheDb = dbReq.result;
             for (const storeName of cacheDBStoreNames) {
@@ -31,26 +40,30 @@ export const initCacheDB = () =>
                     appCacheDb.createObjectStore(storeName, { keyPath: "id" });
                 }
             }
+            _cacheWasOpened = true;
             resolve(undefined);
         };
 
         // Error handler
         dbReq.onerror = (error) => {
+            clearTimeout(_timeout);
             console.error(error);
             reject(error);
         };
 
         // Success handler
         dbReq.onsuccess = () => {
+            clearTimeout(_timeout);
             console.log("IndexedDB opened successfully");
             appCacheDb = dbReq.result;
+            _cacheWasOpened = true;
             resolve(undefined);
         };
     });
 
 export class IndexedDBCache {
     #storeName: CacheDBStoreName;
-    #enabled = true;
+    #enabled = _cacheWasOpened;
 
     constructor(storeName: CacheDBStoreName) {
         this.#storeName = storeName;
@@ -61,6 +74,9 @@ export class IndexedDBCache {
     }
 
     set enabled(value: boolean) {
+        if (_cacheWasOpened === false) {
+            return;
+        }
         if (value !== this.#enabled && value === false) {
             this.clear();
         }
