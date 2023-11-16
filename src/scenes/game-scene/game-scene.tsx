@@ -1,6 +1,8 @@
 import { globalEvents } from "@core/global-events";
 import { useEffect, useState } from "react";
 import { InGameMenuScene } from "./ingame-menu-scene";
+import VRButtonReact from "@render/vr/vr-button-react";
+import { renderComposer } from "@render/index";
 
 const IntroHelp = () => {
     const [showHelp, setShowHelp] = useState(
@@ -34,6 +36,7 @@ const IntroHelp = () => {
                     flexDirection: "column",
                     gap: "8px",
                 }}>
+                <p>Press ESC for the menu.</p>
                 <p>Camera mode: press 1, 2, 3 or 4 on your keyboard.</p>
                 <p>1 - Default Camera</p>
                 <p>2 - Battle Camera</p>
@@ -104,6 +107,7 @@ export const GameScene = () => {
         <>
             {gameMenu && <InGameMenuScene onClose={() => setGameMenu(false)} />}
             <IntroHelp />
+            <VRButtonReact renderer={renderComposer.glRenderer} />
         </>
     );
 };

@@ -236,6 +236,12 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
 
         dest.orderTargetX = this.orderTargetX;
         dest.orderTargetY = this.orderTargetY;
+
+        dest.nextMovementWaypointX = this.nextMovementWaypointX;
+        dest.nextMovementWaypointY = this.nextMovementWaypointY;
+
+        dest.nextTargetWaypointX = this.nextTargetWaypointX;
+        dest.nextTargetWaypointY = this.nextTargetWaypointY;
         
 
     }

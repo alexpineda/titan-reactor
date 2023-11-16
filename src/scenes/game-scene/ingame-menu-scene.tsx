@@ -3,6 +3,8 @@ import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 import sceneStore from "@stores/scene-store";
 import { HomeScene } from "../../scenes/home-scene";
 import { InGameMenuButton } from "./ingame-menu-button";
+import VRButtonReact from "@render/vr/vr-button-react";
+import { renderComposer } from "@render/index";
 
 
 export const InGameMenuScene = ({ onClose }: { onClose:  () => void }) => {
@@ -45,6 +47,7 @@ export const InGameMenuScene = ({ onClose }: { onClose:  () => void }) => {
 </svg>
  Control Panel 
                 </InGameMenuButton>
+                <VRButtonReact renderer={renderComposer.glRenderer} />
                 <InGameMenuButton
                     background="var(--gray-5)"
                     color="var(--gray-9)"

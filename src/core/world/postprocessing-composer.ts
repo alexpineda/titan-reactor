@@ -14,7 +14,6 @@ import { ViewControllerComposer } from "@core/world/view-controller-composer";
 import { World } from "./world";
 import { isImageHd, isMesh } from "@utils/image-utils";
 import { createTransition } from "./transition";
-import { VRButton } from "@render/vr/vr-button";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
@@ -144,12 +143,6 @@ export const createPostProcessingComposer = (
 
     world.events.on("dispose", () => janitor.dispose());
 
-    if (import.meta.env.DEV) {
-        document.body.appendChild(
-            janitor.mop(VRButton.createButton(renderComposer.glRenderer))
-        );
-    }
-    
     return {
         precompile(camera: PerspectiveCamera | OrthographicCamera) {
             _changeRenderMode(false);
