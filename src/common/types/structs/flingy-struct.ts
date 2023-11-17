@@ -12,4 +12,5 @@ export interface FlingyStruct extends ThingyStruct {
     nextTargetWaypointX: number;
     nextTargetWaypointY: number;
     movementFlags: number;
+    currentVelocityDirection: number;
 }

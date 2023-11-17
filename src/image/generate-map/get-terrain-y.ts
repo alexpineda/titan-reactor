@@ -19,7 +19,7 @@ export const getTerrainY = (
 
         const p = py * image.width + px;
 
-        return imageF[p] + offset;
+        return (imageF[p] ?? 0) + offset;
     };
 };
 

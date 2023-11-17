@@ -5,11 +5,12 @@ import { DamageType, Explosion } from "common/enums";
 import { PerspectiveCamera, Vector3 } from "three";
 import { GameViewPort } from "../../camera/game-viewport";
 import { World } from "./world";
-import type { SceneController, VRSceneController } from "@plugins/scene-controller";
+import type { SceneController } from "@plugins/scene-controller";
 import { easeInCubic } from "@utils/function-utils";
 import range from "common/utils/range";
 import { mixer } from "@audio/main-mixer";
 import { renderComposer } from "@render/index";
+import { VRSceneController } from "@plugins/vr-controller";
 
 // frequency, duration, strength multiplier
 const explosionFrequencyDuration = {
@@ -136,8 +137,7 @@ export const createViewControllerComposer = (
                 try {
                     world.events.emit( "scene-controller-exit", sceneController.name );
                     const _prevData = sceneController.onExitScene( prevData );
-                    //todo: further validate prevData
-                    if (_prevData?.target && _prevData?.position) {
+                    if (_prevData) {
                         prevData = _prevData;
                     }
                 } catch ( e ) {

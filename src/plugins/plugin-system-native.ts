@@ -9,9 +9,10 @@ import throttle from "lodash.throttle";
 import { Janitor } from "three-janitor";
 import { log } from "@ipc/log";
 import { PluginBase, PluginSessionContext } from "./plugin-base";
-import { SceneController, VRSceneController } from "./scene-controller";
+import { SceneController } from "./scene-controller";
 import lSet from "lodash.set";
 import { mix } from "@utils/object-utils";
+import { VRSceneController } from "./vr-controller";
 
 type PluginsConfigSnapshot = Record<
     string,

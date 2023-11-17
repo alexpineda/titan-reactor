@@ -2,7 +2,7 @@ import type { DumpedUnit } from "@core/unit";
 import type { PluginStateMessage, SystemReadyMessage } from "@plugins/plugin-system-ui";
 import type { MinimapDimensions } from "@render/minimap-dimensions";
 import type { PluginMetaData, TechDataDAT, UnitDAT, UpgradeDAT } from "common/types";
-import React, { useRef, useEffect, useContext, createContext, useState } from "react";
+import React, { useRef, useEffect, useContext, createContext } from "react";
 import ReactDOM from "react-dom";
 import ReactTestUtils from "react-dom/test-utils";
 import create from "zustand";

@@ -242,7 +242,9 @@ export class UnitsBufferView extends FlingyBufferView implements UnitStruct {
 
         dest.nextTargetWaypointX = this.nextTargetWaypointX;
         dest.nextTargetWaypointY = this.nextTargetWaypointY;
-        
+
+        dest.currentSpeed = this.currentSpeed;
+        dest.currentVelocityDirection = this.currentVelocityDirection;
 
     }
 
