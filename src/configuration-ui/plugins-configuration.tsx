@@ -36,10 +36,10 @@ export const PluginsConfiguration = ({
     setBanner: React.Dispatch<React.SetStateAction<string>>;
 }) => {
     const [ tabIndex, setTabIndex ] = useState( 0 );
-    const plugins = useStore( window.deps.usePluginsStore );
+    const { plugins } = useStore( window.deps.usePluginsStore );
 
     const [ plugin, setSelectedPluginPackage ] = useState<PluginMetaData | undefined>(
-        plugins.plugins[0]
+        plugins[0]
     );
 
     const oldConfig = useRef( plugin?.config );
@@ -86,8 +86,15 @@ export const PluginsConfiguration = ({
                                 display: "flex",
                                 flexDirection: "column",
                             }}>
-                            {plugins.plugins
-                                .sort()
+                            {plugins
+                                .sort((a, b) => {
+                                    if (a.isSceneController && !b.isSceneController) {
+                                        return -1;
+                                    } else if (!a.isSceneController && b.isSceneController) {
+                                        return 1;
+                                    }
+                                    return (a.description ?? a.name).localeCompare(b.description ?? b.name);
+                                })
                                 .map( ( plugin ) => localPluginButton( plugin, !plugin.config?._enabled?.value ) )}
                         </div>
                     </Tab>
@@ -104,7 +111,7 @@ export const PluginsConfiguration = ({
                     {plugin?.description ?? plugin?.name} - {plugin?.version}
                 </h2>
 
-                {plugin && plugins.plugins.includes( plugin ) && (
+                {plugin && plugins.includes( plugin ) && (
                     <>
                         {!isDeprecated( plugin ) && (
                             <DetailSheet

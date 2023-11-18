@@ -54,7 +54,7 @@ const VRButtonReact: React.FC<VRButtonProps> = ({ renderer }) => {
     }
   };
 
-  const buttonText = isSupported ? (currentSession ? "EXIT VR" : "ENTER VR") : 'VR NOT SUPPORTED';
+  const buttonText = isSupported ? (currentSession ? "Exit VR" : "Enter VR") : 'VR Not Supported';
 
   return (
     <InGameMenuButton onClick={handleClick} background={isSupported ? "var(--blue-5)" : "var(--gray-5)"}
