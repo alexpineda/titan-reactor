@@ -168,6 +168,7 @@ export const techTree: TechTree = {
         },
     },
     // ZERG ----------------------------------------------
+    [unitTypes.extractor]: {},
     [unitTypes.creepColony]: {
         units: {
             builds: [ unitTypes.sunkenColony, unitTypes.sporeColony ],

@@ -89,7 +89,6 @@ export class Terrain extends Group {
     }
 
     setTerrainQuality( highDefinition: boolean, anisotropy: number ) {
-        this.shadowsEnabled = highDefinition;
 
         this.#setAnisotropy( anisotropy );
 

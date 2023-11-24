@@ -121,6 +121,7 @@ export const createPostProcessingComposer = (
             : world.settings.getState().postprocessing;
 
         terrain.setTerrainQuality(renderMode3D, postprocessing.anisotropy);
+        terrain.shadowsEnabled = renderMode3D;
         scene.setBorderTileColor(renderMode3D ? 0xffffff : 0x999999);
         scene.sunlight.enabled = renderMode3D;
         images.use3dImages = renderMode3D;

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import type { SpritesBufferView } from "@openbw/structs/sprites-buffer-view";
 import type {
     UnitsBufferView,
@@ -38,10 +37,10 @@ import { getJanitorLogLevel } from "@ipc/global";
 import { getMapTiles } from "@utils/chk-utils";
 import { ImageBase } from "..";
 import { ImageHDMaterial } from "@core/image-hd-material";
-import { calculateImagesFromTechTreeUnits } from "@utils/preload-map-units-and-sprites";
-import { TimeSliceJob } from "@utils/time-slice-job";
+import { calculateImagesFromTechTreeUnit } from "@utils/preload-map-units-and-sprites";
 import { IterableMap } from "@utils/data-structures/iteratible-map";
 import { SimpleQuadtree } from "@utils/data-structures/simple-quadtree";
+import { settingsStore } from "@stores/settings-store";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 export type SceneComposerApi = SceneComposer["api"];
@@ -149,6 +148,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
     }
 
     const _unitPos = new Vector3();
+    const _preloadedUnit = new Set<number>();
 
     const buildUnit = ( unitStruct: UnitsBufferView ) => {
         const unit = units.getOrCreate( unitStruct );
@@ -184,8 +184,17 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
         if ( isCompleted ) {
             world.events.emit( "unit-completed", unit );
+
+            if ( settingsStore().data.graphics.preloadMapSprites ) {
+                // get next units in tech tree and start loading their images
+                const preloads = calculateImagesFromTechTreeUnit(unit.typeId, _preloadedUnit);
+                for (const img of preloads) {
+                    assets.loader.loadImage(img, 2);
+                }
+            }
         }
 
+        
 
     };
 
@@ -361,9 +370,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         Janitor.logLevel = getJanitorLogLevel();
     } );
 
-    const _alreadyCalculated = new Set<number>();
-
-        
     const pxToWorldInverse = makePxToWorld( ...world.map.size, terrain.getTerrainY, true );
 
     return {

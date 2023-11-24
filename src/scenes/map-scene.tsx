@@ -80,6 +80,7 @@ export class MapScene implements TRScene {
             ( openBW: OpenBW ) => {
                 openBW.setUnitLimits( 1700 );
                 openBW.loadMap( dBuffer );
+                openBW.setReplayFrameListener(() => {});
 
                 const mapPlayers: BasePlayer[] = [];
                 const p = new PlayerBufferViewIterator( openBW );

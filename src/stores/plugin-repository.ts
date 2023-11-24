@@ -160,11 +160,9 @@ export class PluginsRepository {
                   .catch(() => false)
             : "";
 
-        const readme = plugin.files.includes("readme.md")
-            ? await fetch(urlJoin(pluginRootUrl, "readme.md"))
+        const readme = await fetch(urlJoin(pluginRootUrl, "readme.md"))
                   .then((r) => r.text())
                   .catch(() => undefined)
-            : undefined;
 
         const config = packageJSON.config ?? {};
 
