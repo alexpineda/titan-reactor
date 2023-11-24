@@ -167,42 +167,6 @@
         "description": "Toggles the minimap to a larger size."
     },
     {
-        "id": "38b94168-507b-469f-ad6d-ef01ef62b5e6",
-        "name": "Minimap: Toggle Full Size",
-        "trigger": {
-            "type": "Hotkey",
-            "value": {
-                "ctrlKey": false,
-                "altKey": false,
-                "shiftKey": false,
-                "codes": ["KeyM"],
-                "onKeyUp": false
-            }
-        },
-        "actions": [
-            {
-                "type": "action",
-                "id": "b01d003f-736f-4560-b1f3-50c61f5dcd29",
-                "path": [":macro", "3f5fb9d4-2a67-4f7e-b70c-fad69f752067", "program"],
-                "operator": "Execute",
-                "value": true,
-                "group": 1
-            },
-            {
-                "type": "action",
-                "id": "a9299cb0-d6f1-4466-92b3-c63faa1e800c",
-                "path": [":macro", "3f5fb9d4-2a67-4f7e-b70c-fad69f752067", "program"],
-                "operator": "SetToDefault",
-                "value": true,
-                "group": 2
-            }
-        ],
-        "enabled": true,
-        "actionSequence": "SingleAlternate",
-        "conditions": [],
-        "description": "Toggles the minimap to a larger size by triggering or resetting the Full Size macro."
-    },
-    {
         "id": "70a5b555-30fe-4e94-bb49-741ca72bf75b",
         "name": "Minimap: Hover Enter",
         "trigger": {

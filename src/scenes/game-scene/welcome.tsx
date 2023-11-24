@@ -31,10 +31,10 @@ export const Welcome = ({onClose} : {onClose: () => void}) => {
                 <p>This has been a labor of love and I hope you enjoy your time here!</p>
                 <p>Press ESC for the menu / help / options.</p>
                 <p>Camera mode: press 1, 2, 3 or 4 on your keyboard.</p>
-                <p>1 - Default Camera</p>
+                <p>1 - Standard Camera</p>
                 <p>2 - 360 Camera</p>
                 <p>3 - Overview Camera</p>
-                <p>4 - Narrative Camera ( you are here)</p>
+                <p>4 - Auto Observer Camera ( you are here)</p>
                 <p
                     style={{
                         textAlign: "right",
