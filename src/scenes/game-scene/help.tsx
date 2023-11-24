@@ -36,7 +36,7 @@ export const Help = ({ onClose }: HelpProps) => {
             <div>
                 Visit{" "}
                 <a
-                    style={{ textDecoration: "underline" }}
+                    style={{ textDecoration: "underline", color: "var(--blue-5)" }}
                     target="_blank"
                     href="https://www.blacksheepwall.tv">
                     blacksheepwall.tv
@@ -49,10 +49,6 @@ export const Help = ({ onClose }: HelpProps) => {
                     overflow: "scroll",
                     overflowX: "hidden",
                 }}>
-                <p>
-                    Most of the controls are managed by Macros or Scene Controller
-                    plugins. You can find these in the Control Panel.
-                </p>
                 <table style={{fontSize: "0.8em", marginTop: "2rem"}}>
                     <thead>
                         <th>Key</th>
@@ -64,7 +60,7 @@ export const Help = ({ onClose }: HelpProps) => {
                             macro.trigger.value as HotkeyTriggerDTO
                         );
                         return (
-                            <tr>
+                            <tr key={macro.id}>
                                 <td>{trigger.stringify()}</td>
                                 <td>{macro.name}</td>
                                 <td>{macro.description}</td>
