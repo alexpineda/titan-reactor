@@ -38,3 +38,11 @@ declare global {
     var postprocessing: typeof import("postprocessing");
     // ... other globals
 }
+
+declare interface Gtag {
+    (command: 'config', targetId: string, config?: object): void;
+    (command: 'set', config: object): void;
+    (command: 'event', action: string, eventParams?: object): void;
+}
+
+declare const gtag: Gtag;

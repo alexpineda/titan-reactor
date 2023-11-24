@@ -89,6 +89,9 @@ globalEvents.on("queue-files", async ({ files: _files }) => {
         console.warn("no files to load")
         return;
     };
+
+    // google analytics - send file name only
+    gtag("event", "queue-files", { "files" : files.map((f) => f.name).join(",") });
     
     //todo map stuff here
     if (files[0].name.endsWith(".scx") || files[0].name.endsWith(".scm")) {
