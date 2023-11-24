@@ -1,7 +1,7 @@
 {
     "name": "titan-reactor",
     "productName": "Titan Reactor",
-    "version": "0.7.3",
+    "version": "0.7.1",
     "description": "An OpenBW Renderer",
     "scripts": {
         "sanity": "yarn types:check && yarn test:once",
