@@ -64,10 +64,5 @@ export const Socials = () => (
             imageUrl={xLogo}
             style={{}}
         />
-        <IconLink
-            href="https://patreon.com/imbateam"
-            imageUrl={patreonLogo}
-            style={{}}
-        />
     </div>
 );
