@@ -1,10 +1,11 @@
 
-        /// <reference types="node" />
-        import Chk from "bw-chk"
-import CameraControls from "camera-controls"
-import { Vector2, Color, Vector3, DataTexture, PerspectiveCamera, OrthographicCamera, Texture, Matrix4, Vector4, CompressedTexture, BufferAttribute, DataArrayTexture, CubeTexture, Object3D, Mesh, BufferGeometry, MeshBasicMaterial, SpriteMaterialParameters, Shader, MeshStandardMaterial, SkinnedMesh, AnimationClip, AudioContext, Quaternion, AnimationMixer, Box3, Sphere, Raycaster, Intersection, Group, Scene, Camera } from "three";
+        
+        import CameraControls from "camera-controls"
+import { CommandsStream, Replay } from "process-replay";
+import { DataTexture, PerspectiveCamera, OrthographicCamera, Texture, Matrix4, Vector4, CompressedTexture, BufferAttribute, DataArrayTexture, CubeTexture, Object3D, Mesh, BufferGeometry, MeshBasicMaterial, SpriteMaterialParameters, Shader, MeshStandardMaterial, SkinnedMesh, AnimationClip, AudioListener, Audio, AudioContext, Quaternion, AnimationMixer, Box3, Sphere, Raycaster, Intersection, Group, Scene, Camera, WebXRManager, XRTargetRaySpace } from "three";
 import { Effect } from "postprocessing";
 import { Janitor } from "three-janitor";
+import { XRControllerModelFactory } from "three/examples/jsm/webxr/XRControllerModelFactory.js";
 
 
 
@@ -47,10 +48,6 @@ interface NativePlugin {
      */
     onConfigChanged?(oldConfig: Record<string, unknown>): void;
     /**
-     * CaLLed when a plugin must release its resources
-     */
-    dispose?(): void;
-    /**
      * Called when an React component sends a message to this window
      */
     onUIMessage?(message: any): void;
@@ -67,6 +64,10 @@ interface NativePlugin {
      */
     onFrame?(frame: number, commands?: any[]): void;
     /**
+     * Called before render, every render tick
+     */
+    onTick?(delta: number, elapsed: number): void;
+    /**
      * When a game has been loaded and the game loop is about to begin
      */
     onSceneReady?(): void;
@@ -78,14 +79,6 @@ interface NativePlugin {
      * When the scene objects have been reset due to replay forwarding or rewinding.
      */
     onFrameReset?(): void;
-    /**
-     * When a scene is entered and nearly initialized.
-     */
-    onEnterScene?(prevData: any): Promise<unknown>;
-    /**
-     * When a scene has exited. Dispose resources here.
-     */
-    onExitScene?(currentData: any): any;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
@@ -106,7 +99,7 @@ interface FieldDefinition<T = unknown> {
     options?: string[] | Record<string, string>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-time-api.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/game-time-api.ts
 
 /**
  * @public
@@ -123,15 +116,15 @@ export interface GameTimeApi extends OverlayComposerApi, InputsComposerApi, Scen
     simpleMessage(message: string): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/overlay-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/overlay-composer.ts
 
 /** @internal */
-declare type OverlayComposerApi = OverlayComposer["api"];
+type OverlayComposerApi = OverlayComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/overlay-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/overlay-composer.ts
 
 /** @internal */
-declare type OverlayComposer = {
+type OverlayComposer = {
     api: {
         isMouseInsideMinimap: () => boolean;
         getMouseMinimapUV: () => Vector2 | undefined;
@@ -142,17 +135,17 @@ declare type OverlayComposer = {
     onFrame(): void;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/input-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/input-composer.ts
 
 /** @internal */
-declare type InputsComposerApi = InputsComposer["api"];
+type InputsComposerApi = InputsComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/input-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/input-composer.ts
 
 /** @internal */
-declare type InputsComposer = ReturnType<typeof createInputComposer>;
+type InputsComposer = ReturnType<typeof createInputComposer>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/input-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/input-composer.ts
 
 /**
  * Hanndles user input including unit selection events ( which is then sent through the message bus for other handlers to use ).
@@ -178,7 +171,7 @@ declare const createInputComposer: (world: World, { images, scene, imageQuadrant
     };
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/world.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/world.ts
 
 /** @internal */
 interface World {
@@ -194,7 +187,7 @@ interface World {
     reset(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/players.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/players.ts
 
 /** @internal */
 declare class Players extends Array<Player> {
@@ -222,12 +215,12 @@ interface Player {
     startLocation?: Vector3;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/players.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/players.ts
 
 /** @internal */
-declare type PlayerName = Pick<BasePlayer, "id" | "name">;
+type PlayerName = Pick<BasePlayer, "id" | "name">;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/players.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/players.ts
 
 /**
  * @public
@@ -239,1149 +232,7 @@ export interface BasePlayer {
     race: string;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/commands/commands-stream.ts
-
-/**
- * A stream of game commands taken from the replay command buffer.
- */
-/** @internal */
-declare class CommandsStream {
-    #private;
-    constructor(buffer?: Buffer, stormPlayerToGamePlayer?: number[]);
-    /**
-     * Creates a copy of this CommandsStream.
-     * @returns {CommandsStream}
-     */
-    copy(): CommandsStream;
-    /**
-     * Generates commands from the buffer.
-     */
-    generate(): Generator<number | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x: number;
-        y: number;
-        unitTag: number;
-        unk?: undefined;
-        unit: number;
-        queued: number;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit: number;
-        unitTags?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x: number;
-        y: number;
-        unk?: undefined;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags: number[];
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit?: undefined;
-        unitTags: number[];
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags: number[];
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType: number;
-        group: number;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType: number;
-        group: number;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit?: undefined;
-        unitTags?: undefined;
-        hotkeyType: number;
-        group: number;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType: number;
-        group: number;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType: number;
-        group: number;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId: number;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId: number;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit?: undefined;
-        unitTags?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId: number;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId: number;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x: number;
-        y: number;
-        unitTag: number;
-        unk?: undefined;
-        unit?: undefined;
-        queued: number;
-        unitTypeId: number;
-        order: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x: number;
-        y: number;
-        unk?: undefined;
-        unit?: undefined;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId: number;
-        order: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x: number;
-        y: number;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId: number;
-        order: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x: number;
-        y: number;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId: number;
-        order: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId: number;
-        order: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued: number;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x: number;
-        y: number;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x: number;
-        y: number;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        senderSlot: number;
-        message: string;
-        hotkeyType?: undefined;
-        group?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        senderSlot: number;
-        message: string;
-        hotkeyType?: undefined;
-        group?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit?: undefined;
-        unitTags?: undefined;
-        senderSlot: number;
-        message: string;
-        hotkeyType?: undefined;
-        group?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        senderSlot: number;
-        message: string;
-        hotkeyType?: undefined;
-        group?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        senderSlot: number;
-        message: string;
-        hotkeyType?: undefined;
-        group?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        value: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        value: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit?: undefined;
-        unitTags?: undefined;
-        value: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        value: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        value: number;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        alliedVictory: boolean;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        alliedVictory: boolean;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit?: undefined;
-        unitTags?: undefined;
-        slotIds: number[];
-        alliedVictory: boolean;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        alliedVictory: boolean;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        alliedVictory: boolean;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unit: number;
-        queued: number;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTags: number[];
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x: number;
-        y: number;
-        unitTag: number;
-        unk: number;
-        unitTypeId: number;
-        order: number;
-        queued: number;
-        unit?: undefined;
-        unitTags?: undefined;
-        slotIds: number[];
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        unitTag: number;
-        x?: undefined;
-        y?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        slotIds: number[];
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    } | {
-        x?: undefined;
-        y?: undefined;
-        unitTag?: undefined;
-        unk?: undefined;
-        unit?: undefined;
-        queued?: undefined;
-        unitTags?: undefined;
-        unitTypeId?: undefined;
-        order?: undefined;
-        hotkeyType?: undefined;
-        group?: undefined;
-        senderSlot?: undefined;
-        message?: undefined;
-        value?: undefined;
-        slotIds?: undefined;
-        alliedVictory?: undefined;
-        frame: number;
-        id: number;
-        player: number;
-        isUnknown: boolean;
-        data: Buffer;
-    }, void, unknown>;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/fogofwar/fog-of-war.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/fogofwar/fog-of-war.ts
 
 /** @internal */
 declare class FogOfWar {
@@ -1399,7 +250,7 @@ declare class FogOfWar {
     isSomewhatExplored(x: number, y: number): boolean;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/fogofwar/fog-of-war-effect.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/fogofwar/fog-of-war-effect.ts
 
 /** @internal */
 declare class FogOfWarEffect extends Effect {
@@ -1421,7 +272,7 @@ declare class FogOfWarEffect extends Effect {
     set fogUvTransform(value: Vector4);
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/openbw.ts
 
 /**
  * @public
@@ -1519,7 +370,7 @@ interface EmscriptenHeap {
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/emscripten.ts
 /** @internal */
-declare type SetGetType = "i8" | "i16" | "i32" | "i64" | "float" | "double" | "i8*" | "i16*" | "i32*" | "i64*" | "float*" | "double*" | "*";
+type SetGetType = "i8" | "i16" | "i32" | "i64" | "float" | "double" | "i8*" | "i16*" | "i32*" | "i64*" | "float*" | "double*" | "*";
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/sound-struct.ts
 /** @internal */
@@ -1535,7 +386,7 @@ interface SoundStruct {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/openbw-wasm.ts
 
 /** @internal */
-declare type Callbacks = {
+type Callbacks = {
     js_fatal_error?: (ptr: number) => string;
     js_pre_main_loop?: () => void;
     js_post_main_loop?: () => void;
@@ -1546,7 +397,7 @@ declare type Callbacks = {
     js_on_replay_frame?: () => void;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/openbw.ts
 
 /**
  * @public
@@ -1634,7 +485,7 @@ export declare class OpenBW implements OpenBW {
     getIScriptProgramDataAddress(): number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw-filelist.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/openbw-filelist.ts
 
 /** @internal */
 declare class OpenBWFileList {
@@ -1645,11 +496,10 @@ declare class OpenBWFileList {
     normalize(path: string): string;
     constructor(openBw: OpenBWWasm);
     loadBuffers(readFile: (filename: string) => Promise<Buffer | Uint8Array>): Promise<void>;
-    dumpFileList(): Promise<void>;
     clear(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/openbw.ts
 
 /**
  * @public
@@ -1664,17 +514,17 @@ declare class OpenBWIterators {
     constructor(openbw: OpenBW);
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/units-buffer-view.ts
 
 /** @internal */
 declare function destroyedUnitsIterator(openBW: OpenBW): Generator<number, void, unknown>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/units-buffer-view.ts
 
 /** @internal */
 declare function killedUnitIterator(openBW: OpenBW): Generator<number, void, unknown>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/units-buffer-view.ts
 
 /** @internal */
 declare class UnitsBufferViewIterator {
@@ -1683,7 +533,7 @@ declare class UnitsBufferViewIterator {
     [Symbol.iterator](): Generator<UnitsBufferView, void, unknown>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/units-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/units-buffer-view.ts
 
 /**
  * Maps to openbw unit_t
@@ -1721,7 +571,7 @@ declare class UnitsBufferView extends FlingyBufferView implements UnitStruct {
     copy(bufferView?: UnitsBufferView): UnitsBufferView;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/flingy-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/flingy-buffer-view.ts
 
 /** @internal */
 declare class FlingyBufferView extends ThingyBufferView implements FlingyStruct {
@@ -1737,9 +587,10 @@ declare class FlingyBufferView extends ThingyBufferView implements FlingyStruct 
     get x(): number;
     get y(): number;
     get currentSpeed(): number;
+    get currentVelocityDirection(): number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/thingy-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/thingy-buffer-view.ts
 
 /**
  * Maps to openbw thingy_t
@@ -1769,7 +620,7 @@ interface ThingyStruct {
     spriteAddr: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/scene-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/scene-composer.ts
 
 /** @internal */
 declare const createSceneComposer: (world: World, assets: Assets) => Promise<{
@@ -1810,32 +661,29 @@ declare const createSceneComposer: (world: World, assets: Assets) => Promise<{
         scene: BaseScene;
         followedUnits: IterableSet<Unit>;
         startLocations: Vector3[];
-        initialStartLocation: Vector3 | undefined;
+        initialStartLocation: Vector3;
         getFollowedUnitsCenterPosition: () => Vector3 | undefined;
         selectedUnits: IterableSet<Unit>;
         createUnitQuadTree: (size: number) => SimpleQuadtree<UnitStruct>;
     };
 }>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/assets.ts
 
 /**
  * @public
  * Most game assets excepting sprites / images.
  */
-export declare type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
+export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture;
     bwDat: BwDAT;
     wireframeIcons?: Blob[];
-} & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
+};
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/assets.ts
 
 /** @internal */
-declare const initializeAssets: (directories: {
-    starcraft: string;
-    assets: string;
-}) => Promise<{
+declare const initializeAssets: () => Promise<{
     selectionCircles: {
         isHD: boolean;
         isHD2: boolean;
@@ -1871,81 +719,16 @@ declare const initializeAssets: (directories: {
         clock: import("three").CompressedTexture;
         square: import("three").CompressedTexture;
     };
-    loadImageAtlas(imageId: number, bwDat: BwDAT): {
-        isHD: boolean;
-        isHD2: boolean;
-        diffuse: import("three").CompressedTexture;
-        imageIndex: number;
-        frames: {
-            x: number;
-            y: number;
-            w: number;
-            h: number;
-            xoff: number;
-            yoff: number;
-        }[];
-        uvPos: {
-            pos: import("three").BufferAttribute;
-            uv: import("three").BufferAttribute;
-            flippedPos: import("three").BufferAttribute;
-            flippedUv: import("three").BufferAttribute;
-        }[];
-        uvPosDataTex: import("three").DataArrayTexture;
-        textureWidth: number;
-        textureHeight: number;
-        spriteWidth: number;
-        spriteHeight: number;
-        unitTileScale: UnitTileScale;
-        teammask: import("three").CompressedTexture | undefined;
-        hdLayers: {
-            emissive: import("three").CompressedTexture | undefined;
-        };
-        dispose(): void;
-    } | undefined;
-    getImageAtlas(imageId: number): AnimAtlas | undefined;
-    hasImageAtlas(imageId: number): boolean;
-    loadImageAtlasAsync(imageId: number, bwDat: BwDAT): Promise<void>;
+    loader: ImageLoaderManager;
     skyBox: CubeTexture;
     refId: (id: number) => number;
     resetImagesCache: () => void;
     arrowIconsGPU: LegacyGRP;
     hoverIconsGPU: LegacyGRP;
     dragIconsGPU: LegacyGRP;
-    openCascStorage: () => Promise<void>;
-    closeCascStorage: () => void;
-    readCascFile: (filePath: string) => Promise<Buffer>;
-    remaining: number;
-    atlases: {
-        isHD: boolean;
-        isHD2: boolean;
-        diffuse: import("three").CompressedTexture;
-        imageIndex: number;
-        frames: {
-            x: number;
-            y: number;
-            w: number;
-            h: number;
-            xoff: number;
-            yoff: number;
-        }[];
-        uvPos: {
-            pos: import("three").BufferAttribute;
-            uv: import("three").BufferAttribute;
-            flippedPos: import("three").BufferAttribute;
-            flippedUv: import("three").BufferAttribute;
-        }[];
-        uvPosDataTex: import("three").DataArrayTexture;
-        textureWidth: number;
-        textureHeight: number;
-        spriteWidth: number;
-        spriteHeight: number;
-        unitTileScale: UnitTileScale;
-        teammask: import("three").CompressedTexture | undefined;
-        hdLayers: {
-            emissive: import("three").CompressedTexture | undefined;
-        };
-        dispose(): void;
-    }[];
+    openCascStorage: (url?: string) => Promise<boolean>;
+    closeCascStorage: () => Promise<void>;
+    readCascFile: (filepath: string) => Promise<Buffer>;
 }>;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/image.ts
@@ -1956,6 +739,214 @@ declare enum UnitTileScale {
     HD2 = 2,
     HD = 4
 }
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/image-loader-manager.ts
+
+/** @internal */
+declare class ImageLoaderManager {
+    #private;
+    maxDownloads: number;
+    currentDownloads: number;
+    imageLoaders: Map<number, ImageLoader>;
+    constructor(refId: (id: number) => number);
+    exists(imageId: number): boolean;
+    getImage(imageId: number, useRefId?: boolean): AnimAtlas | null;
+    loadImage(imageId: number, priority?: number): Promise<void> | undefined;
+    loadImageImmediate(imageId: number): Promise<{
+        isHD: boolean;
+        isHD2: boolean;
+        diffuse: import("three").CompressedTexture;
+        imageIndex: number;
+        frames: {
+            x: number;
+            y: number;
+            w: number;
+            h: number;
+            xoff: number;
+            yoff: number;
+        }[];
+        uvPos: {
+            pos: import("three").BufferAttribute;
+            uv: import("three").BufferAttribute;
+            flippedPos: import("three").BufferAttribute;
+            flippedUv: import("three").BufferAttribute;
+        }[];
+        uvPosDataTex: import("three").DataArrayTexture;
+        textureWidth: number;
+        textureHeight: number;
+        spriteWidth: number;
+        spriteHeight: number;
+        unitTileScale: UnitTileScale;
+        teammask: import("three").CompressedTexture | undefined;
+        hdLayers: {
+            emissive: import("three").CompressedTexture | undefined;
+        };
+        dispose(): void;
+    } | null>;
+    processQueue(): Promise<void>;
+    dispose(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/image-loader.ts
+
+/** @internal */
+declare class ImageLoader {
+    atlas: AnimAtlas | null;
+    loader: ResourceLoader;
+    imageId: number;
+    priority: number;
+    status: ResourceLoaderStatus;
+    onLoaded: () => void;
+    constructor(url: string, imageId: number, cache: IndexedDBCache);
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/load-anim-atlas.ts
+
+/** @internal */
+type AnimAtlas = ReturnType<typeof loadAnimAtlas>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/load-anim-atlas.ts
+
+/** @internal */
+declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<UnitTileScale, "SD">) => {
+    isHD: boolean;
+    isHD2: boolean;
+    diffuse: import("three").CompressedTexture;
+    imageIndex: number;
+    frames: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+        xoff: number;
+        yoff: number;
+    }[];
+    uvPos: {
+        pos: BufferAttribute;
+        uv: BufferAttribute;
+        flippedPos: BufferAttribute;
+        flippedUv: BufferAttribute;
+    }[];
+    uvPosDataTex: DataArrayTexture;
+    textureWidth: number;
+    textureHeight: number;
+    spriteWidth: number;
+    spriteHeight: number;
+    unitTileScale: UnitTileScale;
+    teammask: import("three").CompressedTexture | undefined;
+    hdLayers: {
+        emissive: import("three").CompressedTexture | undefined;
+    };
+    dispose(): void;
+};
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/resource-loader.ts
+
+/** @internal */
+declare class ResourceLoader {
+    #private;
+    url: string;
+    key: string;
+    buffer: Buffer | null;
+    onStatusChange: (status: ResourceLoaderStatus) => void;
+    protected cache?: IndexedDBCache;
+    constructor(url: string, key?: string, cache?: IndexedDBCache);
+    get status(): ResourceLoaderStatus;
+    set status(status: ResourceLoaderStatus);
+    fetch(): Promise<Buffer | null>;
+    cancel(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/resource-loader-status.ts
+/** @internal */
+type ResourceLoaderStatus = "loading" | "loaded" | "error" | "idle" | "cancelled";
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/indexed-db-cache.ts
+
+/** @internal */
+declare class IndexedDBCache {
+    #private;
+    constructor(storeName: CacheDBStoreName);
+    get enabled(): boolean;
+    set enabled(value: boolean);
+    clear(): Promise<unknown>;
+    deleteValue(id: string): Promise<unknown>;
+    setValue(value: SCAssetData): Promise<unknown>;
+    getValue(id: string): Promise<Buffer | null>;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/indexed-db-cache.ts
+
+/** @internal */
+type CacheDBStoreName = "general-casc-cache" | "image-cache";
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/indexed-db-cache.ts
+/// <reference types="node" />
+/** @internal */
+interface SCAssetData {
+    id: string;
+    buffer: ArrayBuffer;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/legacy-grp.ts
+
+/** @internal */
+declare class LegacyGRP {
+    width: number;
+    height: number;
+    grpWidth: number;
+    grpHeight: number;
+    texture: DataTexture;
+    teamcolor?: DataTexture;
+    frames: {
+        x: number;
+        y: number;
+        grpX: number;
+        grpY: number;
+        w: number;
+        h: number;
+    }[];
+    constructor();
+    load({ readGrp, imageDef, palettes, }: {
+        readGrp: () => Promise<Buffer>;
+        imageDef: ImageDAT;
+        palettes: Palettes;
+    }, stride?: number): Promise<this>;
+    dispose(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/images-dat.ts
+
+/**
+ * @public
+ */
+export interface ImageDAT {
+    index: number;
+    grpFile: string;
+    name: string;
+    grp: number;
+    gfxTurns: number;
+    clickable: number;
+    useFullIscript: number;
+    drawIfCloaked: number;
+    drawFunction: number;
+    remapping: number;
+    iscript: number;
+    shieldOverlay: number;
+    attackOverlay: number;
+    damageOverlay: number;
+    specialOverlay: number;
+    landingDustOverlay: number;
+    liftOffDustOverlay: number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/legacy-grp.ts
+
+/** @internal */
+type Palettes = Uint8Array[] & {
+    dark?: Buffer;
+    light?: Buffer;
+};
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/bw-dat.ts
 
@@ -1997,12 +988,12 @@ interface IScriptProgram {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
-declare type IScriptAnimation = IScriptOperations[];
+type IScriptAnimation = IScriptOperations[];
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
-declare type IScriptOperations = [string, number[]];
+type IScriptOperations = [string, number[]];
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sounds-dat.ts
 
@@ -2035,66 +1026,6 @@ export interface TechDataDAT {
     researched: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/enums/upgrades.ts
-/** @internal */
-declare enum upgrades {
-    terranInfantryArmor = 0,
-    terranVehiclePlating = 1,
-    terranShipPlating = 2,
-    zergCarapace = 3,
-    zergFlyerCarapace = 4,
-    protossArmor = 5,
-    protossPlating = 6,
-    terranInfantryWeapons = 7,
-    terranVehicleWeapons = 8,
-    terranShipWeapons = 9,
-    zergMeleeAttacks = 10,
-    zergMissileAttacks = 11,
-    zergFlyerAttacks = 12,
-    protossGroundWeapons = 13,
-    protossAirWeapons = 14,
-    protossPlasmaShields = 15,
-    u238Shells = 16,
-    ionThrusters = 17,
-    burstLasers = 18,
-    titanReactor = 19,
-    ocularImplants = 20,
-    moebiusReactor = 21,
-    apolloReactor = 22,
-    colossusReactor = 23,
-    ventralSacs = 24,
-    antennae = 25,
-    pneumatizedCarapace = 26,
-    metabolicBoost = 27,
-    adrenalGlands = 28,
-    muscularAugments = 29,
-    groovedSpines = 30,
-    gameteMeiosis = 31,
-    metasynapticNode = 32,
-    singularityCharge = 33,
-    legEnhancements = 34,
-    scarabDamage = 35,
-    reaverCapacity = 36,
-    graviticDrive = 37,
-    sensorArray = 38,
-    graviticBoosters = 39,
-    khaydarinAmulet = 40,
-    apialSensors = 41,
-    graviticThrusters = 42,
-    carrierCapacity = 43,
-    khaydarinCore = 44,
-    unk45 = 45,
-    unk46 = 46,
-    argusJewel = 47,
-    unk48 = 48,
-    argusTalisman = 49,
-    unk50 = 50,
-    caduceusReactor = 51,
-    chitinousPlating = 52,
-    anabolicSynthesis = 53,
-    charonBooster = 54
-}
-
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/upgrades-dat.ts
 
 /**
@@ -2112,201 +1043,6 @@ export interface UpgradeDAT {
     name: string;
     maxRepeats: number;
     race: number;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/enums/orders.ts
-/** @internal */
-declare enum orders {
-    die = 0,
-    stop = 1,
-    gaurd = 2,
-    playerGaurd = 3,
-    turretGaurd = 4,
-    bunkerGaurd = 5,
-    move = 6,
-    stopReaver = 7,
-    attack1 = 8,
-    attack2 = 9,
-    attackUnit = 10,
-    attackFixedRange = 11,
-    attackTile = 12,
-    hover = 13,
-    attackMove = 14,
-    infestedCommandCenter = 15,
-    unusedNothing = 16,
-    unusedPowerup = 17,
-    towerGaurd = 18,
-    towerAttack = 19,
-    vultureMine = 20,
-    stayInRange = 21,
-    turretAttack = 22,
-    nothing = 23,
-    unused24 = 24,
-    droneStartBuild = 25,
-    droneBuild = 26,
-    castInfestation = 27,
-    moveToInfest = 28,
-    infestingCommandCenter = 29,
-    placeBuilding = 30,
-    placeProtossBuilding = 31,
-    createProtossBuilding = 32,
-    constructingBuilding = 33,
-    repair = 34,
-    moveToRepair = 35,
-    placeAddOn = 36,
-    buildAddOn = 37,
-    train = 38,
-    rallyPointUnit = 39,
-    rallyPointTile = 40,
-    zergBirth = 41,
-    zergUnitMorph = 42,
-    zergBuildingMorph = 43,
-    incompleteBuilding = 44,
-    incompleteMorphing = 45,
-    buildNydusExit = 46,
-    enterNydusCanal = 47,
-    incompleteWarping = 48,
-    follow = 49,
-    carrier = 50,
-    reaverCarrierMove = 51,
-    carrierStop = 52,
-    carrierAttack = 53,
-    carrierMoveToAttack = 54,
-    carrierIgnore2 = 55,
-    carrierFight = 56,
-    carrierHoldPosition = 57,
-    reaver = 58,
-    reaverAttack = 59,
-    reaverMoveToAttack = 60,
-    reaverFight = 61,
-    reaverHoldPosition = 62,
-    trainFighter = 63,
-    interceptorAttack = 64,
-    scarabAttack = 65,
-    rechargeShieldsUnit = 66,
-    rechargeShieldsBattery = 67,
-    shieldBattery = 68,
-    interceptorReturn = 69,
-    droneLand = 70,
-    buildingLand = 71,
-    buildingLiftOff = 72,
-    droneLiftOff = 73,
-    liftingOff = 74,
-    researchTech = 75,
-    upgrade = 76,
-    larva = 77,
-    spawningLarva = 78,
-    harvest1 = 79,
-    harvest2 = 80,
-    moveToGas = 81,
-    waitForGas = 82,
-    harvestGas = 83,
-    returnGas = 84,
-    moveToMinerals = 85,
-    waitForMinerals = 86,
-    miningMinerals = 87,
-    harvest3 = 88,
-    harvest4 = 89,
-    returnMinerals = 90,
-    interrupted = 91,
-    enterTransport = 92,
-    pickupIdle = 93,
-    pickupTransport = 94,
-    pickupBunker = 95,
-    pickup4 = 96,
-    powerupIdle = 97,
-    sieging = 98,
-    unsieging = 99,
-    watchTarget = 100,
-    initCreepGrowth = 101,
-    spreadCreep = 102,
-    stoppingCreepGrowth = 103,
-    guardianAspect = 104,
-    archonWarp = 105,
-    completingArchonSummon = 106,
-    holdPosition = 107,
-    queenHoldPosition = 108,
-    cloak = 109,
-    decloak = 110,
-    unload = 111,
-    moveUnload = 112,
-    fireYamatoGun = 113,
-    moveToFireYamatoGun = 114,
-    castLockdown = 115,
-    burrowing = 116,
-    burrowed = 117,
-    unburrowing = 118,
-    castDarkSwarm = 119,
-    castParasite = 120,
-    castSpawnBroodlings = 121,
-    castEmpShockwave = 122,
-    nukeWait = 123,
-    nukeTrain = 124,
-    nukeLaunch = 125,
-    nukePaint = 126,
-    nukeUnit = 127,
-    castNuclearStrike = 128,
-    nukeTrack = 129,
-    initializeArbiter = 130,
-    cloakNearbyUnits = 131,
-    placeSpiderMine = 132,
-    rightClickAction = 133,
-    suicideUnit = 134,
-    suicideTile = 135,
-    suicideHoldPosition = 136,
-    castRecall = 137,
-    teleport = 138,
-    castScannerSweep = 139,
-    scanner = 140,
-    castDefensiveMatrix = 141,
-    castPsionicStorm = 142,
-    castIrradiate = 143,
-    castPlague = 144,
-    castConsume = 145,
-    castEnsnare = 146,
-    castStasisField = 147,
-    castHallucination = 148,
-    hallucination2 = 149,
-    resetCollision = 150,
-    resetHarvestCollision = 151,
-    patrol = 152,
-    CTFCOPInit = 153,
-    CTFCOPStarted = 154,
-    CTFCOP2 = 155,
-    computerAI = 156,
-    atkMoveEp = 157,
-    harrassMove = 158,
-    AIPatrol = 159,
-    guardPost = 160,
-    rescuePassive = 161,
-    neutral = 162,
-    computerReturn = 163,
-    InitializePsiProvider = 164,
-    scarabSelfDestructing = 165,
-    critter = 166,
-    hiddenGun = 167,
-    openDoor = 168,
-    closeDoor = 169,
-    hideTrap = 170,
-    revealTrap = 171,
-    enableDoodad = 172,
-    disableDoodad = 173,
-    warpIn = 174,
-    medic = 175,
-    medicHeal = 176,
-    medicHealMove = 177,
-    medicHoldPosition = 178,
-    medicHealToIdle = 179,
-    castRestoration = 180,
-    castDisruptionWeb = 181,
-    castMindControl = 182,
-    darkArchonMeld = 183,
-    castFeedback = 184,
-    castOpticalFlare = 185,
-    castMaelstrom = 186,
-    junkYardDog = 187,
-    fatal = 188,
-    none = 189
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/orders-dat.ts
@@ -2429,37 +1165,12 @@ export declare class UnitDAT implements UnitDAT {
     constructor(data: UnitDATIncomingType);
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/images-dat.ts
-
-/**
- * @public
- */
-export interface ImageDAT {
-    index: number;
-    grpFile: string;
-    name: string;
-    grp: number;
-    gfxTurns: number;
-    clickable: number;
-    useFullIscript: number;
-    drawIfCloaked: number;
-    drawFunction: number;
-    remapping: number;
-    iscript: number;
-    shieldOverlay: number;
-    attackOverlay: number;
-    damageOverlay: number;
-    specialOverlay: number;
-    landingDustOverlay: number;
-    liftOffDustOverlay: number;
-}
-
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/parse-lo.ts
 /// <reference types="node" />
 /**
  * @public
  */
-export declare type LoDAT = number[][][];
+export type LoDAT = number[][][];
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sprites-dat.ts
 
@@ -2525,7 +1236,7 @@ export interface FlingyDAT {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 
 /** @internal */
-declare type GrpSprite = {
+type GrpSprite = {
     w: number;
     h: number;
     frames: AnimFrame[];
@@ -2536,7 +1247,7 @@ declare type GrpSprite = {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 /// <reference types="node" />
 /** @internal */
-declare type AnimFrame = {
+type AnimFrame = {
     x: number;
     y: number;
     w: number;
@@ -2545,125 +1256,7 @@ declare type AnimFrame = {
     yoff: number;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
-
-/** @internal */
-declare type AnimAtlas = ReturnType<typeof loadAnimAtlas>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
-
-/** @internal */
-declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<UnitTileScale, "SD">) => {
-    isHD: boolean;
-    isHD2: boolean;
-    diffuse: import("three").CompressedTexture;
-    imageIndex: number;
-    frames: {
-        x: number;
-        y: number;
-        w: number;
-        h: number;
-        xoff: number;
-        yoff: number;
-    }[];
-    uvPos: {
-        pos: BufferAttribute;
-        uv: BufferAttribute;
-        flippedPos: BufferAttribute;
-        flippedUv: BufferAttribute;
-    }[];
-    uvPosDataTex: DataArrayTexture;
-    textureWidth: number;
-    textureHeight: number;
-    spriteWidth: number;
-    spriteHeight: number;
-    unitTileScale: UnitTileScale;
-    teammask: import("three").CompressedTexture | undefined;
-    hdLayers: {
-        emissive: import("three").CompressedTexture | undefined;
-    };
-    dispose(): void;
-};
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
-
-/** @internal */
-declare class LegacyGRP {
-    width: number;
-    height: number;
-    grpWidth: number;
-    grpHeight: number;
-    texture: DataTexture;
-    teamcolor?: DataTexture;
-    frames: {
-        x: number;
-        y: number;
-        grpX: number;
-        grpY: number;
-        w: number;
-        h: number;
-    }[];
-    constructor();
-    load({ readGrp, imageDef, palettes, }: {
-        readGrp: () => Promise<Buffer>;
-        imageDef: ImageDAT;
-        palettes: Palettes;
-    }, stride?: number): Promise<this>;
-    dispose(): void;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
-
-/** @internal */
-declare type Palettes = Uint8Array[] & {
-    dark?: Buffer;
-    light?: Buffer;
-};
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
-
-/** @internal */
-declare const openCascStorage: (bwPath: string) => Promise<void>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
-
-/** @internal */
-declare const closeCascStorage: () => void;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
-
-/** @internal */
-declare const generateUIIcons: (readFile: ReadFile) => Promise<{
-    cmdIcons: ArrayBuffer[];
-    gameIcons: {
-        minerals: Blob;
-        vespeneZerg: Blob;
-        vespeneTerran: Blob;
-        vespeneProtoss: Blob;
-        zerg: Blob;
-        terran: Blob;
-        protoss: Blob;
-        energy: Blob;
-    };
-    raceInsetIcons: {
-        zerg: Blob;
-        terran: Blob;
-        protoss: Blob;
-    };
-    workerIcons: {
-        apm: ArrayBuffer | SharedArrayBuffer;
-        terran: ArrayBuffer | SharedArrayBuffer;
-        zerg: ArrayBuffer | SharedArrayBuffer;
-        protoss: ArrayBuffer | SharedArrayBuffer;
-    };
-}>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/file.ts
-/// <reference types="node" />
-/** @internal */
-declare type ReadFile = (filename: string) => Promise<Buffer>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-entities.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/image-entities.ts
 
 /**
  * A collection of all images in the game.
@@ -2685,7 +1278,7 @@ declare class ImageEntities {
     getUnit(image: ImageBase): Unit | undefined;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-base.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/image-base.ts
 
 /**
  * Base structure for how starcraft image objects are represented in three.js
@@ -2707,12 +1300,12 @@ interface ImageBase extends Object3D {
     readonly unitTileScale: UnitTileScale;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/image-utils.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/image-utils.ts
 
 /** @internal */
 declare const isImageHd: (image: Object3D) => image is ImageHD;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-hd.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/image-hd.ts
 
 /**
  * A threejs mesh for a starcraft image.
@@ -2752,7 +1345,7 @@ declare class ImageHD extends Mesh<BufferGeometry, ImageHDMaterial | ImageHDInst
     raycast(raycaster: Raycaster, intersects: Intersection[]): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-hd-material.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/image-hd-material.ts
 
 /** @internal */
 declare class ImageHDMaterial extends MeshBasicMaterial {
@@ -2779,7 +1372,7 @@ declare class ImageHDMaterial extends MeshBasicMaterial {
     customProgramCacheKey(): string;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-hd-instanced-material.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/image-hd-instanced-material.ts
 
 /** @internal */
 declare class ImageHDInstancedMaterial extends MeshBasicMaterial {
@@ -2801,12 +1394,12 @@ declare class ImageHDInstancedMaterial extends MeshBasicMaterial {
     customProgramCacheKey(): string;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/image-utils.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/image-utils.ts
 
 /** @internal */
 declare const isImage3d: (image: Object3D) => image is Image3D;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-3d.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/image-3d.ts
 
 /**
  * Starcraft image as a 3D object in GLB format with animations.
@@ -2848,7 +1441,7 @@ declare class Image3D extends Object3D implements ImageBase {
     static clone(source: Object3D): Object3D<import("three").Object3DEventMap>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-glb-atlas.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/load-glb-atlas.ts
 
 /** @internal */
 interface GltfAtlas extends AnimAtlas {
@@ -2859,19 +1452,15 @@ interface GltfAtlas extends AnimAtlas {
     fixedFrames: number[];
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/global.ts
-
-/**
- * INTERCEPTS IPC MESSAGES AND PUSHES THEM INTO THE GLOBAL EVENT BUS. WE DO THIS TO KEEP THINGS CLEAN.
- * ALSO CREATES GLOBAL SOUND MIXER AND MUSIC PLAYER
- */
-/** @internal */
-declare const mixer: MainMixer;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/audio/main-mixer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/audio/main-mixer.ts
 
 /** @internal */
-declare class MainMixer {
+declare const mixer: Mixer;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/audio/main-mixer.ts
+
+/** @internal */
+declare class Mixer {
     intro: GainNode;
     sound: GainNode;
     music: GainNode;
@@ -2893,17 +1482,38 @@ declare class MainMixer {
         source: AudioBufferSourceNode;
         gain: GainNode;
     };
-    loadAudioBuffer(filenameOrId: string | number): Promise<AudioBuffer>;
+    loadCascAudio(filename: string): Promise<AudioBuffer>;
+    loadCascAudioById(id: number): Promise<AudioBuffer>;
+    loadAudioBuffer(url: string): Promise<AudioBuffer>;
     connect(...args: AudioNode[]): () => void;
     createGain(value: number): GainNode;
     createDistortion(k?: number): WaveShaperNode;
     smoothStop(gain: GainNode, delta?: number, decay?: number): void;
 }
 
+//C:/Users/Game_Master/Projects/titan-reactor/src/audio/music.ts
+
+/** @internal */
+declare const music: Music;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/audio/music.ts
+
+/** @internal */
+declare class Music {
+    #private;
+    races: string[];
+    constructor(listener: AudioListener);
+    getAudio(): Audio<GainNode>;
+    playGame(): Promise<() => void>;
+    playMenu(): Promise<() => void>;
+    stop(): void;
+    dispose(): void;
+}
+
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
 
 /** @internal */
-declare type Settings = SettingsV6;
+type Settings = SettingsV6;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
 
@@ -2912,16 +1522,9 @@ interface SettingsV6 {
     version: 6;
     language: string;
     session: {
-        type: "replay" | "live" | "map";
+        type: "replay" | "map";
         sandbox: boolean;
         audioListenerDistance: number;
-    };
-    directories: {
-        starcraft: string;
-        maps: string;
-        replays: string;
-        assets: string;
-        plugins: string;
     };
     audio: {
         global: number;
@@ -2931,8 +1534,9 @@ interface SettingsV6 {
     };
     graphics: {
         pixelRatio: number;
-        useHD2: "auto" | "ignore" | "force";
-        preload: boolean;
+        useHD: boolean;
+        use3D: boolean;
+        preloadMapSprites: boolean;
         cursorSize: number;
     };
     minimap: {
@@ -2948,6 +1552,7 @@ interface SettingsV6 {
     };
     input: {
         sceneController: string;
+        vrController: string;
         dampingFactor: number;
         movementSpeed: number;
         rotateSpeed: number;
@@ -2957,6 +1562,7 @@ interface SettingsV6 {
         cursorVisible: boolean;
     };
     utilities: {
+        cacheLocally: boolean;
         sanityCheckReplayCommands: boolean;
         debugMode: boolean;
         detectMeleeObservers: boolean;
@@ -2964,12 +1570,12 @@ interface SettingsV6 {
         alertDesynced: boolean;
         alertDesyncedThreshold: number;
         logLevel: LogLevel;
-        autoPlayReplayQueue: boolean;
     };
-    plugins: {
-        serverPort: number;
-        developmentDirectory?: string;
-        activated: string[];
+    replayQueue: {
+        alwaysClearReplayQueue: boolean;
+        autoplay: boolean;
+        show: boolean;
+        goToHomeBetweenReplays: boolean;
     };
     postprocessing: {
         anisotropy: number;
@@ -2997,151 +1603,14 @@ interface SettingsV6 {
         sunlightIntensity: number;
         shadowQuality: number;
     };
-    macros: MacrosDTO;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/logging.ts
 
 /** @internal */
-declare type LogLevel = "info" | "warn" | "error" | "debug";
+type LogLevel = "info" | "warn" | "error" | "debug";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-interface MacrosDTO {
-    revision: number;
-    macros: MacroDTO[];
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-interface MacroDTO {
-    id: string;
-    name: string;
-    description?: string;
-    enabled: boolean;
-    trigger: MacroTriggerDTO;
-    actions: MacroAction[];
-    actionSequence: MacroActionSequence;
-    conditions: MacroCondition[];
-    error?: string;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-interface MacroTriggerDTO {
-    type: TriggerType;
-    value?: unknown;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-declare enum TriggerType {
-    None = "None",
-    Hotkey = "Hotkey",
-    WorldEvent = "WorldEvent"
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-interface MacroAction<T extends TargetType = TargetType> {
-    type: "action";
-    id: string;
-    error?: MacroActionConfigurationError;
-    path: TargetedPath<T>;
-    value?: unknown;
-    operator: Operator;
-    group?: number;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-declare type TargetType = ":app" | ":plugin" | ":function" | ":macro";
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-interface MacroActionConfigurationError {
-    critical?: boolean;
-    type: MacroActionConfigurationErrorType;
-    message: string;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-declare enum MacroActionConfigurationErrorType {
-    MissingField = "MissingField",
-    InvalidField = "InvalidField",
-    InvalidFieldValue = "InvalidFieldValue",
-    InvalidInstruction = "InvalidInstruction",
-    InvalidCondition = "InvalidCondition",
-    MissingPlugin = "MissingPlugin",
-    InvalidPlugin = "InvalidPlugin",
-    InvalidMacro = "InvalidMacro",
-    InvalidAction = "InvalidAction"
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-declare type TargetedPath<T extends TargetType = TargetType> = [T, ...string[]];
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
-/** @internal */
-declare enum Operator {
-    SetToDefault = "SetToDefault",
-    Set = "Set",
-    Toggle = "Toggle",
-    Increase = "Increase",
-    Decrease = "Decrease",
-    IncreaseCycle = "IncreaseCycle",
-    DecreaseCycle = "DecreaseCycle",
-    Min = "Min",
-    Max = "Max",
-    Execute = "Execute"
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-declare enum MacroActionSequence {
-    AllSync = "AllSync",
-    SingleAlternate = "SingleAlternate",
-    SingleRandom = "SingleRandom"
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-interface MacroCondition<T extends TargetType = TargetType> {
-    type: "condition";
-    id: string;
-    error?: MacroActionConfigurationError;
-    path: TargetedPath<T>;
-    value?: unknown;
-    comparator: ConditionComparator;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/macros.ts
-
-/** @internal */
-declare enum ConditionComparator {
-    Equals = "Equals",
-    NotEquals = "NotEquals",
-    GreaterThan = "GreaterThan",
-    LessThan = "LessThan",
-    GreaterThanOrEquals = "GreaterThanOrEquals",
-    LessThanOrEquals = "LessThanOrEquals",
-    Execute = "Execute"
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/image-3d-material.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/image-3d-material.ts
 
 /**
  * Custom material for starcraft images. Takes into account team color, warp in flash, and modifiers.
@@ -3164,7 +1633,7 @@ declare class Image3DMaterial extends MeshStandardMaterial {
     customProgramCacheKey(): string;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/unit.ts
 
 /**
  * @public
@@ -3222,9 +1691,10 @@ interface FlingyStruct extends ThingyStruct {
     nextTargetWaypointX: number;
     nextTargetWaypointY: number;
     movementFlags: number;
+    currentVelocityDirection: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/sprite-entities.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/sprite-entities.ts
 
 /** @internal */
 declare class SpriteEntities {
@@ -3252,7 +1722,7 @@ interface SpriteType extends Group {
     };
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit-entities.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/unit-entities.ts
 
 /** @internal */
 declare class UnitEntities {
@@ -3267,7 +1737,7 @@ declare class UnitEntities {
     clear(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/iteratible-map.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/data-structures/iteratible-map.ts
 /**
  * A map that also keeps track of insertion order
  * @public
@@ -3284,7 +1754,7 @@ export declare class IterableMap<T, R> {
     get length(): number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/simple-quadtree.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/data-structures/simple-quadtree.ts
 
 /**
  * @public
@@ -3298,7 +1768,7 @@ export declare class SimpleQuadtree<T> {
     clear(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/data-structures/iterable-set.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/data-structures/iterable-set.ts
 /** @internal */
 declare class IterableSet<T> {
     #private;
@@ -3312,10 +1782,11 @@ declare class IterableSet<T> {
     delete(value: T): void;
     has(key: T): boolean;
     clear(): void;
+    get(index: number): T;
     [Symbol.iterator](): IterableIterator<T>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/base-scene.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/render/base-scene.ts
 
 /**
  * @public
@@ -3333,7 +1804,7 @@ export declare class BaseScene extends Scene {
     dispose(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/sunlight.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/render/sunlight.ts
 
 /** @internal */
 declare class Sunlight {
@@ -3353,7 +1824,7 @@ declare class Sunlight {
     dispose(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/terrain.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/terrain.ts
 
 /**
  * A high level object representing the terrain.
@@ -3390,7 +1861,7 @@ interface TerrainQuartile extends Mesh<BufferGeometry, MeshStandardMaterial | Me
     };
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-map/get-terrain-y.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/generate-map/get-terrain-y.ts
 /** @internal */
 declare const getTerrainY: (image: {
     width: number;
@@ -3398,15 +1869,15 @@ declare const getTerrainY: (image: {
     data: Uint8ClampedArray;
 }, scale: number, mapWidth: number, mapHeight: number, offset?: number) => (worldX: number, worldY: number) => number;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-map/get-terrain-y.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/generate-map/get-terrain-y.ts
 
 /** @internal */
-declare type GetTerrainY = ReturnType<typeof getTerrainY>;
+type GetTerrainY = ReturnType<typeof getTerrainY>;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/terrain.ts
 
 /** @internal */
-declare type GeometryOptions = {
+type GeometryOptions = {
     /**
      * low, walkable, mid, mid-walkable, high, high-walkable, mid/high/walkable
      */
@@ -3431,7 +1902,7 @@ declare type GeometryOptions = {
     firstBlurPassKernelSize: number;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/creep/creep.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/creep/creep.ts
 
 /** @internal */
 declare class Creep {
@@ -3448,7 +1919,7 @@ declare class Creep {
     dispose(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/simple-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/simple-buffer-view.ts
 /**
  A template for representing game struct(s) (eg units, sprites, etc)
 */
@@ -3474,7 +1945,7 @@ interface PxToWorld {
     xyz: (x: number, y: number, out: Vector3) => Vector3;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/sprites-buffer-view.ts
 
 /**
  * Maps to openbw sprite_t starting from index address
@@ -3511,7 +1982,7 @@ interface SpriteStruct {
     mainImageIndex: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/intrusive-list.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/intrusive-list.ts
 /**
  * Represents an openbw intrusive_list
  */
@@ -3527,7 +1998,7 @@ declare class IntrusiveList {
     reverse(): Generator<number, void, unknown>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/images-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/images-buffer-view.ts
 
 /** @internal */
 declare class ImageBufferView implements ImageStruct {
@@ -3570,7 +2041,7 @@ interface ImageStruct {
     modifierData2: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/iscript-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/iscript-buffer-view.ts
 
 /** @internal */
 declare class IScriptBufferView implements IScriptStateStruct {
@@ -3598,17 +2069,17 @@ interface IScriptStateStruct {
     wait: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view-iterator.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/sprites-buffer-view-iterator.ts
 
 /** @internal */
 declare function deletedSpritesIterator(openBW: OpenBW): Generator<number, void, unknown>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/images-buffer-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/images-buffer-view.ts
 
 /** @internal */
 declare function deletedImageIterator(openBW: OpenBW): Generator<number, void, unknown>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/buffer-view/sprites-buffer-view-iterator.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/structs/sprites-buffer-view-iterator.ts
 
 /** @internal */
 declare class SpritesBufferViewIterator {
@@ -3618,7 +2089,7 @@ declare class SpritesBufferViewIterator {
     getSprite(addr: number): SpritesBufferView;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/openbw.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/openbw.ts
 
 /** @internal */
 declare class OpenBWStructViews {
@@ -3626,12 +2097,17 @@ declare class OpenBWStructViews {
     constructor(openbw: OpenBW);
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/file.ts
+/// <reference types="node" />
+/** @internal */
+type ReadFile = (filename: string) => Promise<Buffer>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/settings-session-store.ts
 
 /** @internal */
-declare type SettingsSessionStore = ReturnType<typeof createSettingsSessionStore>;
+type SettingsSessionStore = ReturnType<typeof createSettingsSessionStore>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/settings-session-store.ts
 
 /**
  * An api that allows the consumer to modify setting values and have the system respond, eg fog of war level.
@@ -3642,7 +2118,7 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
     dispose: () => void;
     getState: () => {
         session: {
-            type: "replay" | "live" | "map";
+            type: "replay" | "map";
             sandbox: boolean;
             audioListenerDistance: number;
         };
@@ -3654,6 +2130,7 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
         };
         input: {
             sceneController: string;
+            vrController: string;
             dampingFactor: number;
             movementSpeed: number;
             rotateSpeed: number;
@@ -3700,11 +2177,11 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
             shadowQuality: number;
         };
     };
-    setValue: (path: string[], value: unknown) => void;
+    setValue: (path: string[], value: unknown, silentUpdate?: boolean | undefined) => void;
     getValue: (path: string[]) => unknown;
     merge: (rhs: {
         session?: {
-            type?: "replay" | "live" | "map" | undefined;
+            type?: "replay" | "map" | undefined;
             sandbox?: boolean | undefined;
             audioListenerDistance?: number | undefined;
         } | undefined;
@@ -3716,6 +2193,7 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
         } | undefined;
         input?: {
             sceneController?: string | undefined;
+            vrController?: string | undefined;
             dampingFactor?: number | undefined;
             movementSpeed?: number | undefined;
             rotateSpeed?: number | undefined;
@@ -3762,7 +2240,7 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
             shadowQuality?: number | undefined;
         } | undefined;
     }) => void;
-    operate: (action: Operation, transformPath?: ((path: string[]) => string[]) | undefined) => void;
+    operate: (action: Operation, transformPath?: ((path: string[]) => string[]) | undefined, silentUpdate?: boolean | undefined) => void;
     createVariable: (path: string[]) => ((value?: unknown) => unknown) & {
         set: (value: any) => void;
         get: () => unknown;
@@ -3774,10 +2252,19 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
         max: () => void;
         reset: () => void;
         toggle: () => void;
+        $set: (value: any) => void;
+        $inc: () => void;
+        $incCycle: () => void;
+        $dec: () => void;
+        $decCycle: () => void;
+        $min: () => void;
+        $max: () => void;
+        $reset: () => void;
+        $toggle: () => void;
     };
     sourceOfTruth: SourceOfTruth<{
         session: {
-            type: "replay" | "live" | "map";
+            type: "replay" | "map";
             sandbox: boolean;
             audioListenerDistance: number;
         };
@@ -3789,6 +2276,7 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
         };
         input: {
             sceneController: string;
+            vrController: string;
             dampingFactor: number;
             movementSpeed: number;
             rotateSpeed: number;
@@ -3837,7 +2325,7 @@ declare const createSettingsSessionStore: (events: TypeEmitter<WorldEvents>) => 
     }>;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/type-emitter.ts
 
 /** @internal */
 declare class TypeEmitter<T> {
@@ -3848,17 +2336,17 @@ declare class TypeEmitter<T> {
     dispose(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/type-emitter.ts
 
 /**
  * @public
  */
-declare type Listener<T> = {
+type Listener<T> = {
     fn: (v: T) => any;
     priority: number;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/world-events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/world-events.ts
 
 /** @internal */
 interface WorldEvents {
@@ -3914,15 +2402,15 @@ interface WorldEvents {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/settings.ts
 
 /** @internal */
-declare type SessionSettingsData = Pick<Settings, "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d" | "session">;
+type SessionSettingsData = Pick<Settings, "audio" | "input" | "minimap" | "postprocessing" | "postprocessing3d" | "session">;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/utils/deep-partial.ts
 /** @internal */
-declare type DeepPartial<T> = T extends object ? {
+type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/game-surface.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/render/game-surface.ts
 
 /** @internal */
 declare class GameSurface extends Surface {
@@ -3940,17 +2428,16 @@ declare class GameSurface extends Surface {
     get screenAspect(): Vector3;
     getMinimapDimensions(minimapScale: number): Pick<MinimapDimensions, "minimapWidth" | "minimapHeight">;
     dispose(): void;
-    show(): void;
+    show(): HTMLCanvasElement;
     hide(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/canvas/surface.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/canvas/surface.ts
 /** @internal */
 declare class Surface {
     #private;
-    ctx?: CanvasRenderingContext2D;
     canvas: HTMLCanvasElement;
-    constructor(canvas?: HTMLCanvasElement, useContext?: boolean, styles?: Partial<ElementCSSInlineStyle["style"]>);
+    constructor(canvas?: HTMLCanvasElement, styles?: Partial<ElementCSSInlineStyle["style"]>);
     setDimensions(width: number, height: number, pixelRatio?: number): void;
     get aspect(): number;
     get width(): number;
@@ -3962,7 +2449,7 @@ declare class Surface {
     dispose(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/minimap-dimensions.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/render/minimap-dimensions.ts
 /** @internal */
 interface MinimapDimensions {
     matrix: number[];
@@ -3970,36 +2457,36 @@ interface MinimapDimensions {
     minimapHeight: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/mouse-input.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/input/mouse-input.ts
 
 /** @internal */
-declare type MouseEventDTO = {
+type MouseEventDTO = {
     ctrlKey: boolean;
     shiftKey: boolean;
     altKey: boolean;
     button: number;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/settings-session-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/settings-session-store.ts
 
 /**
  * @public
  */
-export declare type SessionVariables = {
+export type SessionVariables = {
     [K in keyof SessionSettingsData]: {
         [T in keyof SessionSettingsData[K]]: MutationVariable;
     };
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/operatable-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/stores/operatable-store.ts
 
 /** @internal */
-declare type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
+type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/operatable-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/stores/operatable-store.ts
 
 /** @internal */
-declare const createMutationVariable: (operate: (operation: Operation) => void, getValue: (path: string[]) => unknown) => (path: string[]) => ((value?: unknown) => unknown) & {
+declare const createMutationVariable: (operate: OperationRequest, getValue: (path: string[]) => unknown) => (path: string[]) => ((value?: unknown) => unknown) & {
     set: (value: any) => void;
     get: () => unknown;
     /**
@@ -4034,7 +2521,45 @@ declare const createMutationVariable: (operate: (operation: Operation) => void, 
      * Reset the value of the property to the default.
      */
     toggle: () => void;
+    $set: (value: any) => void;
+    /**
+     * Increase the value of the property.
+     */
+    $inc: () => void;
+    /**
+     * Increase the value of the property. Loop around if the value is greater than the maximum.
+     */
+    $incCycle: () => void;
+    /**
+     * Decrease the value of the property.
+     */
+    $dec: () => void;
+    /**
+     * Decrease the value of the property. Loop around if the value is less than the minimum.
+     */
+    $decCycle: () => void;
+    /**
+     * Set the value of the property to the minimum.
+     */
+    $min: () => void;
+    /**
+     * Set the value of the property to the maximum.
+     */
+    $max: () => void;
+    /**
+     * Reset the value of the property to the default.
+     */
+    $reset: () => void;
+    /**
+     * Reset the value of the property to the default.
+     */
+    $toggle: () => void;
 };
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/stores/operatable-store.ts
+
+/** @internal */
+type OperationRequest = (action: Operation, transformPath?: (path: string[]) => string[], silentUpdate?: boolean) => void;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
 
@@ -4045,7 +2570,22 @@ interface Operation {
     value?: any;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/source-of-truth.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
+/** @internal */
+declare enum Operator {
+    SetToDefault = "SetToDefault",
+    Set = "Set",
+    Toggle = "Toggle",
+    Increase = "Increase",
+    Decrease = "Decrease",
+    IncreaseCycle = "IncreaseCycle",
+    DecreaseCycle = "DecreaseCycle",
+    Min = "Min",
+    Max = "Max",
+    Execute = "Execute"
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/stores/source-of-truth.ts
 
 /**
  * An object that emits the diff when it is updated.
@@ -4060,12 +2600,12 @@ declare class SourceOfTruth<T extends object> {
     clone(): T;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/scene-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/scene-composer.ts
 
 /** @internal */
-declare type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
+type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/mouse-input.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/input/mouse-input.ts
 
 /** @internal */
 declare class MouseInput {
@@ -4086,7 +2626,7 @@ declare class MouseInput {
     dispose(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/arrow-key-input.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/input/arrow-key-input.ts
 
 /** @internal */
 declare class ArrowKeyInput {
@@ -4096,7 +2636,7 @@ declare class ArrowKeyInput {
     dispose(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/input/create-unit-selection.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/input/create-unit-selection.ts
 
 /** @internal */
 declare enum UnitSelectionStatus {
@@ -4105,12 +2645,12 @@ declare enum UnitSelectionStatus {
     Hovering = 2
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-controller-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/view-controller-composer.ts
 
 /** @internal */
-declare type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
+type ViewControllerComposer = ReturnType<typeof createViewControllerComposer>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-controller-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/view-controller-composer.ts
 
 /**
  * The Scene Controller plugin is responsible for managing the game viewports.
@@ -4121,7 +2661,7 @@ declare type ViewControllerComposer = ReturnType<typeof createViewControllerComp
  * @returns
  */
 /** @internal */
-declare const createViewControllerComposer: (world: World, { gameSurface }: SurfaceComposer) => {
+declare const createViewControllerComposer: (world: World, { gameSurface }: SurfaceComposer, initialStartLocation: Vector3) => {
     api: {
         readonly viewport: GameViewPort;
         readonly secondViewport: GameViewPort;
@@ -4136,10 +2676,10 @@ declare const createViewControllerComposer: (world: World, { gameSurface }: Surf
      * Resets all viewports.
      *
      * @param newController
-     * @param firstRunData
+     * @param globalData
      * @returns
      */
-    activate(newController: SceneController | null | undefined, firstRunData?: any): Promise<void>;
+    activate(newController: SceneController): Promise<void>;
     /**
      * Primary viewport is necessary because audio will require a camera position, and depth of field will only apply in one viewport for performance.
      */
@@ -4152,16 +2692,16 @@ declare const createViewControllerComposer: (world: World, { gameSurface }: Surf
     generatePrevData(): {
         target: Vector3;
         position: Vector3;
-    } | null;
+    };
     doShakeCalculation(explosionType: Explosion, damageType: DamageType, spritePos: Vector3): void;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/surface-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/surface-composer.ts
 
 /** @internal */
-declare type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
+type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/surface-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/surface-composer.ts
 
 /**
  * Creates the game canvases, listeners, and resizers.
@@ -4169,7 +2709,7 @@ declare type SurfaceComposer = ReturnType<typeof createSurfaceComposer>;
  * @returns
  */
 /** @internal */
-declare const createSurfaceComposer: (world: World) => {
+declare const createSurfaceComposer: (map: Chk, events: TypeEmitter<WorldEvents>) => {
     gameSurface: GameSurface;
     resize: (immediate?: boolean) => void;
     mount(): void;
@@ -4178,7 +2718,7 @@ declare const createSurfaceComposer: (world: World) => {
     };
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/game-viewport.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/camera/game-viewport.ts
 
 /**
  * @public
@@ -4186,7 +2726,6 @@ declare const createSurfaceComposer: (world: World) => {
  */
 export declare class GameViewPort extends Sizeable {
     #private;
-    name: string;
     camera: PerspectiveCamera | OrthographicCamera;
     projectedView: ProjectedCameraView;
     orbit: CameraControls;
@@ -4198,9 +2737,11 @@ export declare class GameViewPort extends Sizeable {
         strength: Vector3;
         needsUpdate: boolean;
     };
+    protected surface: Surface;
     constrainToAspect: boolean;
     needsUpdate: boolean;
     rotateSprites: boolean;
+    autoUpdateSmoothTime: boolean;
     audioType: "stereo" | "3d" | null;
     set renderMode3D(val: boolean);
     get renderMode3D(): boolean;
@@ -4215,11 +2756,11 @@ export declare class GameViewPort extends Sizeable {
     };
     shakeStart(elapsed: number, strength: number): void;
     shakeEnd(): void;
-    update(targetDamping: number, delta: number): void;
+    update(targetSmoothTime: number, delta: number): void;
     get direction32(): number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/sizeable.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/camera/sizeable.ts
 
 /**
  * A class that can be used to set the size and location of a surface on the screen.
@@ -4248,7 +2789,7 @@ declare class Sizeable {
     fullScreen(): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/projected-camera-view.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/camera/projected-camera-view.ts
 
 /**
  * World position for the four corners of our view
@@ -4273,7 +2814,7 @@ declare class ProjectedCameraView {
     update(camera: Camera, target: Vector3): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/camera/camera-shake.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/camera/camera-shake.ts
 
 /** @internal */
 declare class CameraShake {
@@ -4293,24 +2834,18 @@ declare class CameraShake {
     restore(camera: Camera): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/scene-controller.ts
 
 /**
- * These are the injectable services that are available to plugins during a world session.
+ * @public
  */
-/** @internal */
-interface Injectables {
-    /**
-     * Reactive setting values that apply to the active session only.
-     */
-    settings: SessionVariables;
-    /**
-     * World events that can be listened to and emitted.
-     */
-    events: TypeEmitterProxy<WorldEvents>;
-}
+export type PrevSceneData = {
+    position: Vector3;
+    target: Vector3;
+    data?: any;
+};
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/type-emitter.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/type-emitter.ts
 
 /**
  * @public
@@ -4347,13 +2882,22 @@ interface PluginPackage {
     peerDependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
     config?: PluginConfig;
-    permissions?: string[];
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /** @internal */
-declare type PluginConfig = Record<string, FieldDefinition>;
+type PluginConfig = Record<string, FieldDefinition>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/plugin-base.ts
+
+/** @internal */
+type PluginSessionContext = {
+    game: GameTimeApi;
+    settings: SessionVariables;
+    events: TypeEmitter<WorldEvents>;
+    customEvents: TypeEmitter<unknown>;
+};
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/enums/explosions.ts
 /** @internal */
@@ -4395,27 +2939,27 @@ declare enum DamageType {
     IgnoreArmor = 4
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/scene-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/scene-composer.ts
 
 /** @internal */
-declare type SceneComposerApi = SceneComposer["api"];
+type SceneComposerApi = SceneComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/surface-composer.ts
-
-/** @internal */
-declare type SurfaceComposerApi = SurfaceComposer["api"];
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/surface-composer.ts
 
 /** @internal */
-declare type PostProcessingComposerApi = PostProcessingComposer["api"];
+type SurfaceComposerApi = SurfaceComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/postprocessing-composer.ts
 
 /** @internal */
-declare type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
+type PostProcessingComposerApi = PostProcessingComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/postprocessing-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/postprocessing-composer.ts
+
+/** @internal */
+type PostProcessingComposer = ReturnType<typeof createPostProcessingComposer>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/postprocessing-composer.ts
 
 /** @internal */
 declare const createPostProcessingComposer: (world: World, { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer, viewportsComposer: ViewControllerComposer, assets: Assets) => {
@@ -4429,22 +2973,22 @@ declare const createPostProcessingComposer: (world: World, { scene, images, spri
     render(delta: number, elapsed: number): void;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/view-controller-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/view-controller-composer.ts
 
 /** @internal */
-declare type ViewControllerComposerApi = ViewControllerComposer["api"];
+type ViewControllerComposerApi = ViewControllerComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/openbw-composer.ts
-
-/** @internal */
-declare type OpenBwComposerApi = OpenBwComposer["api"];
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/openbw-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/openbw-composer.ts
 
 /** @internal */
-declare type OpenBwComposer = ReturnType<typeof createOpenBWComposer>;
+type OpenBwComposerApi = OpenBwComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/openbw-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/openbw-composer.ts
+
+/** @internal */
+type OpenBwComposer = ReturnType<typeof createOpenBWComposer>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/openbw-composer.ts
 
 /**
  * A lot of communication with OpenBW happens here.
@@ -4491,20 +3035,20 @@ declare const createOpenBWComposer: (world: World, scene: Pick<SceneComposer, "p
     };
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-loop-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/game-loop-composer.ts
 
 /** @internal */
-declare type GameLoopComposerApi = GameLoopComposer["api"];
+type GameLoopComposerApi = GameLoopComposer["api"];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-loop-composer.ts
-
-/** @internal */
-declare type GameLoopComposer = ReturnType<typeof createGameLoopComposer>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/world/game-loop-composer.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/game-loop-composer.ts
 
 /** @internal */
-declare const createGameLoopComposer: (world: World) => {
+type GameLoopComposer = ReturnType<typeof createGameLoopComposer>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/world/game-loop-composer.ts
+
+/** @internal */
+declare const createGameLoopComposer: (events: TypeEmitter<WorldEvents>) => {
     readonly delta: number;
     start(): void;
     stop(): void;
@@ -4515,96 +3059,7 @@ declare const createGameLoopComposer: (world: World) => {
     };
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
-
-/**
- * @public
- * A replay file structure containing header information and raw command and map data
- */
-export declare type Replay = Awaited<ReturnType<typeof parseReplay>>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
-/// <reference types="node" />
-/** @internal */
-declare const parseReplay: (buf: Buffer) => Promise<{
-    version: number;
-    rawHeader: Buffer;
-    header: {
-        isBroodwar: number;
-        gameName: string;
-        mapName: string;
-        gameType: number;
-        gameSubtype: number;
-        players: ReplayPlayer[];
-        frameCount: number;
-        randomSeed: number;
-        ancillary: {
-            campaignId: number;
-            commandByte: number;
-            playerBytes: Buffer;
-            unk1: number;
-            playerName: Buffer;
-            gameFlags: number;
-            mapWidth: number;
-            mapHeight: number;
-            activePlayerCount: number;
-            slotCount: number;
-            gameSpeed: number;
-            gameState: number;
-            unk2: number;
-            tileset: number;
-            replayAutoSave: number;
-            computerPlayerCount: number;
-            unk3: number;
-            unk4: number;
-            unk5: number;
-            unk6: number;
-            victoryCondition: number;
-            resourceType: number;
-            useStandardUnitStats: number;
-            fogOfWarEnabled: number;
-            createInitialUnits: number;
-            useFixedPositions: number;
-            restrictionFlags: number;
-            alliesEnabled: number;
-            teamsEnabled: number;
-            cheatsEnabled: number;
-            tournamentMode: number;
-            victoryConditionValue: number;
-            startingMinerals: number;
-            startingGas: number;
-            unk7: number;
-        };
-    };
-    rawCmds: Buffer;
-    chk: Buffer;
-    limits: {
-        images: number;
-        sprites: number;
-        thingies: number;
-        units: number;
-        bullets: number;
-        orders: number;
-        fogSprites: number;
-    };
-    stormPlayerToGamePlayer: number[];
-}>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay-header.ts
-/// <reference types="node" />
-/** @internal */
-interface ReplayPlayer {
-    id: number;
-    name: string;
-    race: "zerg" | "terran" | "protoss" | "unknown";
-    team: number;
-    color: string;
-    isComputer: boolean;
-    isHuman: boolean;
-    isActive: boolean;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/openbw/sandbox-api.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/openbw/sandbox-api.ts
 
 /**
  * @public
@@ -4623,23 +3078,36 @@ export declare const createSandboxApi: (_world: World, pxToWorldInverse: PxToWor
     orderUnitRightClick(unitOrId: UnitStruct | number, targetUnitOrId: UnitStruct | number | null, x?: number, y?: number): void;
 };
         declare global {
+            var THREE: typeof import("three");
+var postprocessing: typeof import("postprocessing");
+var CameraControls: typeof import("camera-controls");
+var enums: any;
+var Janitor: typeof import("three-janitor");
             
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-base.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/plugin-base.ts
 
-export interface PluginBase extends NativePlugin, GameTimeApi, Injectables {
+export interface PluginBase extends NativePlugin, GameTimeApi {
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/utils/types/plugin-host-types.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/utils/types/plugin-host-types.ts
 
 export type context = any;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/scene-controller.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/scene-controller.ts
 
 /**
  * @public
  */
-export interface SceneController extends Omit<NativePlugin, "config">, GameTimeApi, Injectables {
+export interface SceneController extends Omit<NativePlugin, "config">, GameTimeApi {
+    /**
+     * When a scene is entered and nearly initialized.
+     */
+    onEnterScene(prevData: PrevSceneData): Promise<void> | void;
+    /**
+     * When a scene has exited. Dispose resources here.
+     */
+    onExitScene?(currentData: PrevSceneData): PrevSceneData | void;
     /**
      * Updates every frame with the current mouse data.
      *
@@ -4679,25 +3147,31 @@ export interface SceneController extends Omit<NativePlugin, "config">, GameTimeA
     onMinimapDragUpdate?(pos: Vector2, isDragStart: boolean, mouseButton?: number): void;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/scene-controller.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/scene-controller.ts
 
 /**
  * @public
  */
-export class SceneController extends PluginBase implements SceneController {
+export class SceneController extends PluginBase implements NativePlugin, SceneController {
     isSceneController: boolean;
-    onEnterScene(prevData: unknown): Promise<unknown>;
+    isWebXR: boolean;
+    viewportsCount: number;
+    parent: Group<import("three").Object3DEventMap>;
     onUpdateAudioMixerOrientation(): Quaternion;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-base.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/plugin-base.ts
 
-export class PluginBase {
+export class PluginBase implements PluginBase {
     #private;
     readonly id: string;
     readonly name: string;
     isSceneController: boolean;
-    constructor(pluginPackage: PluginPackage);
+    game: GameTimeApi;
+    settings: SessionVariables;
+    events: TypeEmitterProxy<WorldEvents>;
+    constructor(pluginPackage: PluginPackage, session: PluginSessionContext);
+    dispose(): void;
     sendUIMessage: (message: any) => void;
     /**
      *
@@ -4709,7 +3183,6 @@ export class PluginBase {
      */
     saveConfigProperty(key: string, value: unknown, persist?: boolean): void;
     refreshConfig(): void;
-    get configExists(): boolean;
     /**
      * Read from the normalized configuration.
      */
@@ -4724,6 +3197,33 @@ export class PluginBase {
      * @returns the leva configuration for a particular field
      */
     getFieldDefinition(key: string): FieldDefinition<unknown> | undefined;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/vr-controller.ts
+
+/**
+ * @public
+ */
+export class VRSceneController extends SceneController implements NativePlugin, SceneController {
+    isSceneController: boolean;
+    isWebXR: boolean;
+    viewportsCount: number;
+    xr: WebXRManager;
+    baseReferenceSpace: XRReferenceSpace;
+    controllerModelFactory: XRControllerModelFactory;
+    controller1: XRTargetRaySpace;
+    controller2: XRTargetRaySpace;
+    input1?: XRInputSource;
+    input2?: XRInputSource;
+    lastWorldPosition: Vector3;
+    viewerPosition: Group<import("three").Object3DEventMap>;
+    constructor(...args: ConstructorParameters<typeof SceneController>);
+    setupXR(xr: WebXRManager): void;
+    moveLocal(targetPosition: Vector3): void;
+    moveWorld(targetPosition: Vector3): void;
+    getPoseWorldPosition(): Vector3;
+    onUpdateAudioMixerLocation(): Vector3;
+    onUpdateAudioMixerOrientation(): Quaternion;
 }
         }
         
