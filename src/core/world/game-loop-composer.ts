@@ -11,6 +11,7 @@ export const createGameLoopComposer = ( events: TypeEmitter<WorldEvents> ) => {
     let lastElapsed = 0;
     let _onUpdate: ( delta: number, elapsed: number ) => void = () => {};
 
+    // the < 0 stuff is due to a bug when WebXR is entering/exiting
     const GAME_LOOP = ( elapsed: number ) => {
         if (elapsed < 0) { 
             console.error( "Negative elapsed time detected. Skipping frame." );
@@ -19,7 +20,7 @@ export const createGameLoopComposer = ( events: TypeEmitter<WorldEvents> ) => {
         delta = elapsed - lastElapsed;
         lastElapsed = elapsed;
 
-        _onUpdate( delta, elapsed );
+        _onUpdate( delta < 0 ? 0 : delta, elapsed );
     };
 
     events.on( "dispose", () => {
