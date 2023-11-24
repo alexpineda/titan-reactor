@@ -27,7 +27,7 @@ export const preloadMapUnitsAndSpriteFiles = async (
     await Promise.all(
         allImages.map( ( imageId ) =>
             assets
-                .loadImageImmediate( imageId )//, assets.bwDat )
+                .loader.loadImageImmediate( imageId )
                 .then( () => preload.increment() )
         )
     );

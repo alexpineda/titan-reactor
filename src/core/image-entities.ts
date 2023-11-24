@@ -67,9 +67,9 @@ export class ImageEntities {
 
     getOrCreate( imageIndex: number, imageTypeId: number ) {
         const assets = gameStore().assets!;
-        assets.loadImageAtlas( imageTypeId )
+        assets.loader.loadImage(imageTypeId, 3)
 
-        const atlas = assets.getImageAtlas( imageTypeId );
+        const atlas = assets.loader.getImage( imageTypeId );
         
         // atlas hasn't loaded yet
         if ( !atlas ) {

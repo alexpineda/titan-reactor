@@ -359,20 +359,7 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         }
         janitor.dispose();
         Janitor.logLevel = getJanitorLogLevel();
-        // preloader.dispose();
     } );
-
-    // const preloader = new TimeSliceJob(
-    //     ( imageId, next ) => {
-    //         if ( assets.hasImageAtlas( imageId ) ) {
-    //             return false;
-    //         }
-    //         console.log("preload", imageId)
-    //         assets.loadImageAtlasAsync( imageId, assets.bwDat ).then( next ).catch( next );
-    //     },
-    //     calculateImagesFromTechTreeUnits( world.map.units.map( ( unit ) => unit.unitId ) ),
-    //     2000
-    // );
 
     const _alreadyCalculated = new Set<number>();
 
@@ -399,15 +386,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             elapsed: number,
             renderMode3D: boolean,
         ) {
-            // preloader.update( elapsed );
-
-            // if ( preloader.isComplete() && elapsed - preloader.timeCompleted > 10000 ) {
-            //     const work = calculateImagesFromTechTreeUnits(
-            //         units.units._dangerousArray.map( ( unit ) => unit.typeId ),
-            //         _alreadyCalculated
-            //     );
-            //     preloader.addWork( work );
-            // }
 
             world.fogOfWar.onFrame( world.players.getVisionFlag() );
 

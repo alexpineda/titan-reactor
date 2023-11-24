@@ -27,7 +27,7 @@ import processStore from "@stores/process-store";
 import { CubeTexture, CubeTextureLoader, Texture } from "three";
 import { loadEnvironmentMap } from "./environment/env-map";
 import { loadDATFiles } from "common/bwdat/load-dat-files";
-import { ImageLoaderManager } from "./loader/image-loader";
+import { ImageLoaderManager } from "./loader/image-loader-manager";
 
 /**
  * @public
@@ -115,18 +115,6 @@ export const initializeAssets = async () => {
         selectionCircles,
         minimapConsole,
         loader: imageLoaderManager,
-        loadImageAtlas(imageId: number, priority = 3) {
-            return imageLoaderManager.loadImage(imageId, priority);
-        },
-        getImageAtlas(imageId: number): AnimAtlas | null {
-            return imageLoaderManager.getImage(imageId);
-        },
-        hasImageAtlas(imageId: number): boolean {
-            return !!imageLoaderManager.exists(imageId);
-        },
-        loadImageImmediate(imageId: number) {
-            return imageLoaderManager.loadImageImmediate(imageId);
-        },
         skyBox,
         refId,
         resetImagesCache: () => {

@@ -1,23 +1,19 @@
 import { ResourceLoader } from "./resource-loader";
 
 function concatenateArrayBuffers(arrayBuffers: ArrayBuffer[]) {
-    // Step 2: Calculate Total Length
     const totalLength = arrayBuffers.reduce(
         (acc, arrayBuffer) => acc + arrayBuffer.byteLength,
         0
     );
 
-    // Step 3: Create a New Uint8Array
     const result = new Uint8Array(totalLength);
 
-    // Step 4: Copy Data
     let offset = 0;
     for (let arrayBuffer of arrayBuffers) {
         result.set(new Uint8Array(arrayBuffer), offset);
         offset += arrayBuffer.byteLength;
     }
 
-    // Step 5: Convert to Buffer
     return Buffer.from(result);
 }
 

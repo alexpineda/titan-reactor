@@ -28,8 +28,9 @@ export const applyRenderModeToSprite = (
             switch ( effect.type ) {
                 // set emissive on main image if I'm visible
                 case "flat-on-ground":
-                    sprite.rotation.x = -Math.PI / 2;
-                    sprite.position.y = terrainY + 0.1;
+                    // deprecated once we moved to shader based billboarding
+                    // sprite.rotation.x = Math.PI / 2;
+                    // sprite.position.y = terrainY + 0.1;
                     break;
             }
         }
