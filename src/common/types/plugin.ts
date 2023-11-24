@@ -1,6 +1,3 @@
-import { SessionVariables } from "@core/world/settings-session-store";
-import { WorldEvents } from "@core/world/world-events";
-import { TypeEmitterProxy } from "@utils/type-emitter";
 import { FieldDefinition } from "./fields";
 
 export type PluginConfig = Record<string, FieldDefinition>;
@@ -45,20 +42,6 @@ export interface PluginMetaData extends PluginPackage {
     }
 }
 
-/**
- * These are the injectable services that are available to plugins during a world session.
- */
-export interface Injectables {
-    /**
-     * Reactive setting values that apply to the active session only.
-     */
-    settings: SessionVariables;
-
-    /**
-     * World events that can be listened to and emitted.
-     */
-    events: TypeEmitterProxy<WorldEvents>;
-}
 
 /**
  * A plugin that executes in the main process.
@@ -102,10 +85,7 @@ export interface NativePlugin {
      * Called when a plugin has it's configuration changed by the user
      */
     onConfigChanged?( oldConfig: Record<string, unknown> ): void;
-    /**
-     * CaLLed when a plugin must release its resources
-     */
-    dispose?(): void;
+ 
     /**
      * Called when an React component sends a message to this window
      */
@@ -123,6 +103,10 @@ export interface NativePlugin {
      */
     onFrame?( frame: number, commands?: any[] ): void;
     /**
+     * Called before render, every render tick
+     */
+    onTick?( delta: number, elapsed: number ): void;
+    /**
      * When a game has been loaded and the game loop is about to begin
      */
     onSceneReady?(): void;
@@ -135,13 +119,4 @@ export interface NativePlugin {
      */
     onFrameReset?(): void;
 
-    /**
-     * When a scene is entered and nearly initialized.
-     */
-    onEnterScene?( prevData: any ): Promise<unknown>;
-
-    /**
-     * When a scene has exited. Dispose resources here.
-     */
-    onExitScene?( currentData: any ): any;
 }

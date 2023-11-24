@@ -62,9 +62,8 @@ export const createSettingsSessionStore = ( events: TypeEmitter<WorldEvents> ) =
     const store = createOperatableStore(
         createDeepStore<PartialSettings>( {
             initialState: sourceOfTruth.clone(),
-            validateMerge: ( newSettings, rhs ) =>
-                events.emit( "settings-changed", { settings: newSettings, rhs } ) !==
-                false,
+            onUpdate: ( newSettings, rhs ) =>
+                events.emit( "settings-changed", { settings: newSettings, rhs } ),
         } ),
         sourceOfTruth,
         ( path, state ) =>

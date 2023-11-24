@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { resolve, join } from "path";
 import * as tsm from "ts-morph";
 // import aliases from "../aliases";
@@ -174,6 +175,53 @@ const getFileFromModulePath = (project: tsm.Project, modulePath: string) => {
     return file;
 };
 
+const _forget = new Set<tsm.ImportTypeNode>();
+
+export const replaceTransientImport = ({
+    node, sourceFile, declarationFile
+}: {
+    node: tsm.ImportTypeNode,
+    sourceFile: tsm.SourceFile,
+    declarationFile: tsm.SourceFile,
+}, inProject: tsm.Project, diagnostics: Diagnostic) => {
+    const literal = node.getFirstDescendantByKind(
+        tsm.SyntaxKind.StringLiteral
+    )!;
+    const file = resolveModule(
+        literal.getLiteralValue(),
+        sourceFile.getDirectoryPath(),
+        inProject
+    );
+    if (file) {
+        // find the node with the id and add to work items
+        const importedNode = findChildrenOfKindById(
+            node,
+            file
+            // [...file.getExportedDeclarations().values()].flat()
+        );
+
+        // strip the import type
+        const nodeText = getNodeId(node)!.getText();
+        node.replaceWithText(nodeText);
+
+        // add a @transient tag to the imported node for additional clarity
+        if (
+            !hasJsDocTag(importedNode, "transient") &&
+            tsm.Node.isJSDocable(importedNode)
+        ) {
+            importedNode.addJsDoc({
+                description: `@transient`,
+            });
+        }
+        return importedNode;
+    } else {
+        //TODO if the transient import is external, eg zustand
+        // we need to add the identifier to imports
+        diagnostics.importFileNotFound.add(literal.getLiteralValue());
+        return null;
+    }
+};
+
 /**
  * Replace transient imports with regular imports.
  *
@@ -193,41 +241,15 @@ export const replaceTransientImports = (
             declarationFile
                 .getDescendantsOfKind(tsm.SyntaxKind.ImportType)
                 .map((importType) => {
-                    const literal = importType.getFirstDescendantByKind(
-                        tsm.SyntaxKind.StringLiteral
-                    )!;
-                    const file = resolveModule(
-                        literal.getLiteralValue(),
-                        sourceFile.getDirectoryPath(),
-                        inProject
-                    );
-                    if (file) {
-                        // find the node with the id and add to work items
-                        const importedNode = findChildrenOfKindById(
-                            importType,
-                            file
-                            // [...file.getExportedDeclarations().values()].flat()
-                        );
-
-                        // strip the import type
-                        importType.replaceWithText(getNodeId(importType)!.getText());
-
-                        // add a @transient tag to the imported node for additional clarity
-                        if (
-                            !hasJsDocTag(importedNode, "transient") &&
-                            tsm.Node.isJSDocable(importedNode)
-                        ) {
-                            importedNode.addJsDoc({
-                                description: `@transient`,
-                            });
-                        }
-                        return importedNode;
-                    } else {
-                        //TODO if the transient import is external, eg zustand
-                        // we need to add the identifier to imports
-                        diagnostics.importFileNotFound.add(literal.getLiteralValue());
-                        return null;
-                    }
+                    return replaceTransientImport(
+                        {
+                            node: importType,
+                            sourceFile,
+                            declarationFile,
+                        },
+                        inProject,
+                        diagnostics
+                    )
                 })
                 .filter((x) => x)
         ),

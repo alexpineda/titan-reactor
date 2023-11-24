@@ -1,4 +1,4 @@
-import { PluginConfig } from "common/types";
+import type { PluginConfig } from "common/types";
 
 export function inverse<T extends ( ...args: any[] ) => any>( fn: T ) {
     return ( ...args: Parameters<T> ) => !fn( ...args );

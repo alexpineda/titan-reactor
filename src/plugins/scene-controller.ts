@@ -1,15 +1,36 @@
 import { GameTimeApi } from "@core/world/game-time-api";
-import { Injectables, NativePlugin } from "common/types";
-import { Quaternion, Vector2, Vector3 } from "three";
+import { NativePlugin } from "common/types";
+import {
+    Group,
+    Quaternion,
+    Vector2,
+    Vector3,
+} from "three";
 import { PluginBase } from "./plugin-base";
 
 /**
  * @public
  */
-export interface SceneController
-    extends Omit<NativePlugin, "config">,
-        GameTimeApi,
-        Injectables {
+export type PrevSceneData = {
+    position: Vector3;
+    target: Vector3;
+    data?: any;
+};
+
+/**
+ * @public
+ */
+export interface SceneController extends Omit<NativePlugin, "config">, GameTimeApi {
+    /**
+     * When a scene is entered and nearly initialized.
+     */
+    onEnterScene(prevData: PrevSceneData): Promise<void> | void;
+
+    /**
+     * When a scene has exited. Dispose resources here.
+     */
+    onExitScene?(currentData: PrevSceneData): PrevSceneData | void;
+
     /**
      * Updates every frame with the current mouse data.
      *
@@ -43,7 +64,7 @@ export interface SceneController
      * @param elapsed - Time in milliseconds since the game started
      * @param truck - x,y movement deltas
      */
-    onCameraKeyboardUpdate?( delta: number, elapsed: number, truck: Vector2 ): void;
+    onCameraKeyboardUpdate?(delta: number, elapsed: number, truck: Vector2): void;
 
     /**
      * An optional override for the position of the audio listener.
@@ -51,7 +72,7 @@ export interface SceneController
      * @param target - Vector3 of the current camera target
      * @param position - Vector 3 of the current camera position
      */
-    onUpdateAudioMixerLocation( target: Vector3, position: Vector3 ): Vector3;
+    onUpdateAudioMixerLocation(target: Vector3, position: Vector3): Vector3;
 
     /**
      * Updates when the minimap is clicked and dragged.
@@ -74,17 +95,17 @@ const _va = new Vector3(),
 /**
  * @public
  */
-export class SceneController extends PluginBase implements SceneController {
+export class SceneController
+    extends PluginBase
+    implements NativePlugin, SceneController
+{
     override isSceneController = true;
     isWebXR = false;
     viewportsCount = 1;
-
-    override onEnterScene( prevData: unknown ) {
-        return Promise.resolve( prevData );
-    }
+    parent = new Group();
 
     //TODO: change to globalThis
-    onUpdateAudioMixerLocation( target: Vector3, position: Vector3 ) {
+    onUpdateAudioMixerLocation(target: Vector3, position: Vector3) {
         return position.lerp(
             target,
             this.settings.session.audioListenerDistance() as number
@@ -92,7 +113,9 @@ export class SceneController extends PluginBase implements SceneController {
     }
 
     onUpdateAudioMixerOrientation() {
-        this.viewport.camera.matrixWorld.decompose( _va, _qa, _vb );
+        this.viewport.camera.matrixWorld.decompose(_va, _qa, _vb);
         return _qa;
     }
 }
+
+

@@ -9,18 +9,20 @@ import { PluginSystemUI } from "@plugins/plugin-system-ui";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
 import { Janitor } from "three-janitor";
 import { createPluginSessionStore } from "@core/world/plugin-session-store";
-import { createCompartment } from "@utils/ses-util";
+import { createCompartment } from "@utils/create-compartment";
 import { globalEvents } from "@core/global-events";
 import { WorldEvents } from "./world-events";
 import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
 import { normalizePluginConfiguration } from "@utils/function-utils";
 import { pluginsStore } from "@stores/plugins-store";
+import { PluginSessionContext } from "@plugins/plugin-base";
 
 export type PluginSession = Awaited<ReturnType<typeof createPluginSession>>;
 
 export const createPluginSession = async (
     openBW: OpenBW,
-    _events: TypeEmitter<WorldEvents>
+    _events: TypeEmitter<WorldEvents>,
+    sessionContext: PluginSessionContext
 ) => {
     const janitor = new Janitor( "PluginSession" );
 
@@ -28,7 +30,7 @@ export const createPluginSession = async (
 
     const pluginPackages = pluginsStore().sessionPlugins;
     const uiPlugins = janitor.mop(
-        new PluginSystemUI( openBW, pluginPackages ),
+        new PluginSystemUI( openBW, pluginPackages.filter( ( p ) => p.urls.ui && !p.isSceneController ) ),
         "uiPlugins"
     );
 
@@ -41,7 +43,7 @@ export const createPluginSession = async (
     } );
 
     const nativePlugins = janitor.mop(
-        new PluginSystemNative(),
+        new PluginSystemNative(sessionContext),
         "nativePlugins"
     );
 

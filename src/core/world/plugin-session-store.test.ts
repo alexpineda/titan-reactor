@@ -6,6 +6,7 @@ import { log } from "@ipc/log";
 import { PluginSystemNative } from "@plugins/plugin-system-native";
 import { PluginMetaData } from "common/types";
 import { PluginSystemUI } from "@plugins/plugin-system-ui";
+import { PluginSessionContext } from "@plugins/plugin-base";
 
 jest.mock( "@ipc/log" );
 jest.mock( "@core/global-events" );
@@ -44,6 +45,7 @@ const createBasePlugin = ( _package?: Partial<PluginMetaData> ) => {
     };
 
     const plugins = new PluginSystemNative(
+        {} as PluginSessionContext
         // [pluginPackage as unknown as PluginMetaData],
         // () => {},
         // () => {}

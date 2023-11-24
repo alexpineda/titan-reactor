@@ -11,8 +11,10 @@ import { techTree } from "common/enums";
 export const preloadMapUnitsAndSpriteFiles = async (
     assets: Assets,
     map: Pick<Chk, "units" | "sprites">,
-    extraImages: number[] = []
+    extraUnits: number[] = []
 ) => {
+
+    const unitImages = [...calculateImagesFromTechTreeUnits(extraUnits), ...calculateImagesFromUnitsIscript(assets.bwDat, extraUnits)];
 
     const unitSprites = new Set(
         map.units.map( ( u ) => u.sprite ).filter( ( s ) => Number.isInteger( s ) ) as number[]
@@ -20,18 +22,25 @@ export const preloadMapUnitsAndSpriteFiles = async (
     const allSprites = [
         ...new Set( [...unitSprites, ...map.sprites.map( ( s ) => s.spriteId )] ),
     ];
-    const allImages = [ ...calculateImagesFromSpritesIscript( assets.bwDat, allSprites ), ...extraImages];
+    const allImages = [ ...calculateImagesFromSpritesIscript( assets.bwDat, allSprites ), ...unitImages];
 
     const preload = processStore().create( "preload", allImages.length );
 
     await Promise.all(
         allImages.map( ( imageId ) =>
             assets
-                .loadImageImmediate( imageId )//, assets.bwDat )
+                .loader.loadImageImmediate( imageId )
                 .then( () => preload.increment() )
         )
     );
 
+};
+
+const _unit: number[] = [];
+export const calculateImagesFromTechTreeUnit = ( unit: number ,
+    cache?: Set<number> ) => {
+    _unit[0] = unit;
+    return calculateImagesFromTechTreeUnits( _unit, cache );
 };
 
 export const calculateImagesFromTechTreeUnits = (

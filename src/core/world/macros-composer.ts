@@ -2,7 +2,7 @@ import { Macros } from "@macros";
 import {  useMacroStore } from "@stores/settings-store";
 import { SettingsSessionStore } from "./settings-session-store";
 import { Janitor } from "three-janitor";
-import { createCompartment } from "@utils/ses-util";
+import { createCompartment } from "@utils/create-compartment";
 import { globalEvents } from "../global-events";
 import { TargetComposer } from "./target-composer";
 import { log } from "@ipc/log";

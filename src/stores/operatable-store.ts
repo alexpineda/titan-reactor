@@ -7,7 +7,7 @@ import { SourceOfTruth } from "./source-of-truth";
 export type MutationVariable = ReturnType<ReturnType<typeof createMutationVariable>>;
 
 export const createMutationVariable =
-    ( operate: ( operation: Operation ) => void, getValue: ( path: string[] ) => unknown ) =>
+    ( operate: OperationRequest, getValue: ( path: string[] ) => unknown ) =>
     ( path: string[] ) => {
         const _data: {
             value: unknown;
@@ -19,10 +19,10 @@ export const createMutationVariable =
             operator: Operator.Set,
         };
 
-        const apply = ( operator: Operator, value?: any ) => {
+        const apply = ( operator: Operator, value?: any, silentUpdate = false ) => {
             _data.operator = operator;
             _data.value = value;
-            operate( _data );
+            operate( _data, x => x, silentUpdate );
         };
 
         const fn = function ( value?: unknown ) {
@@ -69,11 +69,50 @@ export const createMutationVariable =
              * Reset the value of the property to the default.
              */
             toggle: () => apply( Operator.Toggle ),
+
+            // silent update variants
+
+            $set: ( value: any ) => apply( Operator.Set, value, true ),
+
+            /**
+             * Increase the value of the property.
+             */
+            $inc: () => apply( Operator.Increase, null, true ),
+            /**
+             * Increase the value of the property. Loop around if the value is greater than the maximum.
+             */
+            $incCycle: () => apply( Operator.IncreaseCycle, null, true ),
+            /**
+             * Decrease the value of the property.
+             */
+            $dec: () => apply( Operator.Decrease, null, true ),
+            /**
+             * Decrease the value of the property. Loop around if the value is less than the minimum.
+             */
+            $decCycle: () => apply( Operator.DecreaseCycle, null, true ),
+            /**
+             * Set the value of the property to the minimum.
+             */
+            $min: () => apply( Operator.Min, null, true ),
+            /**
+             * Set the value of the property to the maximum.
+             */
+            $max: () => apply( Operator.Max, null, true ),
+            /**
+             * Reset the value of the property to the default.
+             */
+            $reset: () => apply( Operator.SetToDefault, null, true ),
+            /**
+             * Reset the value of the property to the default.
+             */
+            $toggle: () => apply( Operator.Toggle, null, true ),
         } );
     };
 
+type OperationRequest = ( action: Operation, transformPath?: ( path: string[] ) => string[], silentUpdate?: boolean ) => void;
+
 export type OperatableStore<T extends object> = DeepStore<T> & {
-    operate: ( action: Operation, transformPath?: ( path: string[] ) => string[] ) => void;
+    operate: OperationRequest;
     createVariable: ( path: string[] ) => MutationVariable;
     sourceOfTruth: SourceOfTruth<T>;
 };
@@ -98,7 +137,9 @@ export function createOperatableStore<T extends object>(
 
     const operate = (
         operation: Operation,
-        transformPath: ( path: string[] ) => string[] = ( x ) => x
+        // this should probably belong to the store itself
+        transformPath: ( path: string[] ) => string[] = ( x ) => x,
+        silentUpdate = false
     ) => {
         const path = transformPath( operation.path );
 
@@ -112,7 +153,8 @@ export function createOperatableStore<T extends object>(
                     field,
                     operation.value,
                     sourceOfTruth.getValue( path )
-                )
+                ),
+                silentUpdate
             );
         } else {
             log.warn( "Session field is no found." );

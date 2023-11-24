@@ -10,7 +10,7 @@ import {
     WebGLRenderer,
 } from "three";
 import { EffectComposer, Pass } from "postprocessing";
-import { ColorManagement } from "three/src/math/ColorManagement";
+import { ColorManagement } from "three";
 import { globalEvents } from "../core/global-events";
 
 ColorManagement.enabled = true;

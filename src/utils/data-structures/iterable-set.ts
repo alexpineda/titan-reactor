@@ -59,6 +59,10 @@ export class IterableSet<T> {
         this.onChange( this.#copy );
     }
 
+    get(index: number) {
+        return this.#copy[index];
+    }
+
     [Symbol.iterator]() {
         return this.#copy[Symbol.iterator]();
     }

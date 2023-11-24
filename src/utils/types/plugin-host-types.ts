@@ -2,6 +2,7 @@
 
 export { PluginBase } from "../../plugins/plugin-base";
 export { SceneController } from "../../plugins/scene-controller";
-export  {enums} from "../../common/enums/enumsbundle";
+export { VRSceneController } from "../../plugins/vr-controller";
+export { enums } from "../../common/enums/enumsbundle";
 
 export type context = any;

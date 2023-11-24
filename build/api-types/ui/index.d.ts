@@ -1,58 +1,35 @@
 
         
-        import Chk from "bw-chk"
-import React from "react"
+        import React from "react"
+import Chk from "bw-chk"
+import { Replay } from "process-replay";
 import { CompressedTexture, BufferAttribute, DataArrayTexture, CubeTexture, DataTexture, Texture } from "three";
 
 
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /** @internal */
 declare function chunk(arr: Int32Array, n: number): Int32Array[];
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @internal
- */
-declare function convertIcons({ cmdIcons, gameIcons, raceInsetIcons, wireframeIcons, workerIcons, }: Required<SystemReadyMessage["assets"]>): {
-    cmdIcons: string[];
-    wireframeIcons: string[];
-    raceInsetIcons: {
-        protoss: string;
-        terran: string;
-        zerg: string;
-    };
-    workerIcons: {
-        protoss: string;
-        terran: string;
-        zerg: string;
-        apm: string;
-    };
-    gameIcons: {
-        energy: string;
-        minerals: string;
-        protoss: string;
-        terran: string;
-        zerg: string;
-        vespeneProtoss: string;
-        vespeneTerran: string;
-        vespeneZerg: string;
-    };
-};
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /** @internal */
-interface SystemReadyMessage {
-    initialStore: PluginStateMessage;
-    plugins: PluginMetaData[];
-    assets: Pick<Assets, "bwDat" | "gameIcons" | "cmdIcons" | "raceInsetIcons" | "workerIcons" | "wireframeIcons">;
-    enums: any;
+interface Component {
+    pluginId: string;
+    id: number;
+    order: number | undefined;
+    messageHandler: EventTarget;
+    JSXElement: React.FC<any>;
+    snap: string;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/** @internal */
+type StateMessage = Partial<PluginStateMessage>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/plugin-system-ui.ts
 
 /**
  * @resolve
@@ -62,7 +39,7 @@ interface PluginStateMessage {
     language: string;
     [UI_STATE_EVENT_DIMENSIONS_CHANGED]: MinimapDimensions;
     [UI_STATE_EVENT_SCREEN_CHANGED]: {
-        screen: SceneStateID | undefined;
+        screen: TRSceneID | undefined;
         error: string | undefined;
     };
     [UI_STATE_EVENT_WORLD_CHANGED]: ReturnType<typeof worldPartial>;
@@ -76,12 +53,12 @@ interface PluginStateMessage {
     [UI_STATE_EVENT_UNITS_SELECTED]: DumpedUnit[] | DeepPartial<Unit>[];
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_DIMENSIONS_CHANGED = "dimensions";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/render/minimap-dimensions.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/render/minimap-dimensions.ts
 /** @internal */
 interface MinimapDimensions {
     matrix: number[];
@@ -89,21 +66,22 @@ interface MinimapDimensions {
     minimapHeight: number;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_SCREEN_CHANGED = "screen";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/scenes/scene.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/scenes/scene.ts
+/// <reference types="react" />
 /** @internal */
-declare type SceneStateID = "@home" | "@loading" | "@replay" | "@map" | "@iscriptah" | "@interstitial";
+type TRSceneID = "@home" | "@loading" | "@replay" | "@map" | "@iscriptah" | "@interstitial" | "@auth";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_WORLD_CHANGED = "world";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/plugin-system-ui.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/plugin-system-ui.ts
 
 /** @internal */
 declare const worldPartial: (world: ReplayAndMapStore) => {
@@ -121,7 +99,7 @@ declare const worldPartial: (world: ReplayAndMapStore) => {
         mapName: string;
         gameType: number;
         gameSubtype: number;
-        players: ReplayPlayer[];
+        players: import("process-replay").ReplayPlayer[];
         frameCount: number;
         randomSeed: number;
         ancillary: {
@@ -164,140 +142,56 @@ declare const worldPartial: (world: ReplayAndMapStore) => {
     } | undefined;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/stores/replay-and-map-store.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/stores/replay-and-map-store.ts
 
 /** @internal */
 interface ReplayAndMapStore {
     type: "map" | "replay" | "live";
     live: boolean;
     map?: Chk;
-    replay?: Replay;
+    replay?: ValidatedReplay;
     mapImage?: HTMLCanvasElement;
     reset: () => void;
     totalGameTime: number;
+    replayIndex: number;
     addToTotalGameTime: (t: number) => void;
     replayQueue: ValidatedReplay[];
-    nextReplay: ValidatedReplay | undefined;
+    getNextReplay: (this: void) => ValidatedReplay | undefined;
+    getDeltaReplay: (d: number) => ValidatedReplay | undefined;
     addReplaysToQueue: (replays: ValidatedReplay[]) => void;
+    addReplayToQueue: (replay: ValidatedReplay) => void;
     deleteReplayQueueItem: (replay: ValidatedReplay) => void;
-    queueUpNextReplay: (replay: ValidatedReplay) => void;
     clearReplayQueue: () => void;
     flushWatchedReplays: () => void;
+    updateNextReplay: () => void;
+    loadNextReplay: () => Promise<void>;
+    loadMap: (fileBuffer: ArrayBuffer) => Promise<void>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
-
-/**
- * @public
- * A replay file structure containing header information and raw command and map data
- */
-export declare type Replay = Awaited<ReturnType<typeof parseReplay>>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay.ts
-/// <reference types="node" />
-/** @internal */
-declare const parseReplay: (buf: Buffer) => Promise<{
-    version: number;
-    rawHeader: Buffer;
-    header: {
-        isBroodwar: number;
-        gameName: string;
-        mapName: string;
-        gameType: number;
-        gameSubtype: number;
-        players: ReplayPlayer[];
-        frameCount: number;
-        randomSeed: number;
-        ancillary: {
-            campaignId: number;
-            commandByte: number;
-            playerBytes: Buffer;
-            unk1: number;
-            playerName: Buffer;
-            gameFlags: number;
-            mapWidth: number;
-            mapHeight: number;
-            activePlayerCount: number;
-            slotCount: number;
-            gameSpeed: number;
-            gameState: number;
-            unk2: number;
-            tileset: number;
-            replayAutoSave: number;
-            computerPlayerCount: number;
-            unk3: number;
-            unk4: number;
-            unk5: number;
-            unk6: number;
-            victoryCondition: number;
-            resourceType: number;
-            useStandardUnitStats: number;
-            fogOfWarEnabled: number;
-            createInitialUnits: number;
-            useFixedPositions: number;
-            restrictionFlags: number;
-            alliesEnabled: number;
-            teamsEnabled: number;
-            cheatsEnabled: number;
-            tournamentMode: number;
-            victoryConditionValue: number;
-            startingMinerals: number;
-            startingGas: number;
-            unk7: number;
-        };
-    };
-    rawCmds: Buffer;
-    chk: Buffer;
-    limits: {
-        images: number;
-        sprites: number;
-        thingies: number;
-        units: number;
-        bullets: number;
-        orders: number;
-        fogSprites: number;
-    };
-    stormPlayerToGamePlayer: number[];
-}>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/process-replay/parse-replay-header.ts
-/// <reference types="node" />
-/** @internal */
-interface ReplayPlayer {
-    id: number;
-    name: string;
-    race: "zerg" | "terran" | "protoss" | "unknown";
-    team: number;
-    color: string;
-    isComputer: boolean;
-    isHuman: boolean;
-    isActive: boolean;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/scenes/replay-scene-loader.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/scenes/load-and-validate-replay.ts
 
 /** @internal */
-declare type ValidatedReplay = Replay & {
+type ValidatedReplay = Replay & {
     buffer: Buffer;
     uid: number;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_ON_FRAME = "frame";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_PRODUCTION = "production";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/plugins/events.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/events.ts
 
 /** @internal */
 declare const UI_STATE_EVENT_UNITS_SELECTED = "units";
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/unit.ts
 
 /**
  * @public
@@ -322,7 +216,7 @@ export interface DumpedUnit extends Partial<Unit> {
     buildQueue?: number[];
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/core/unit.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/core/unit.ts
 
 /**
  * @public
@@ -380,6 +274,7 @@ interface FlingyStruct extends ThingyStruct {
     nextTargetWaypointX: number;
     nextTargetWaypointY: number;
     movementFlags: number;
+    currentVelocityDirection: number;
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/structs/thingy-struct.ts
@@ -506,9 +401,334 @@ export declare class UnitDAT implements UnitDAT {
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/utils/deep-partial.ts
 /** @internal */
-declare type DeepPartial<T> = T extends object ? {
+type DeepPartial<T> = T extends object ? {
     [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Use the translation function to translate a string
+ */
+export declare const useLocale: () => string | undefined;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * The replay header information.
+ */
+export declare const useReplay: () => {
+    isBroodwar: number;
+    gameName: string;
+    mapName: string;
+    gameType: number;
+    gameSubtype: number;
+    players: import("process-replay").ReplayPlayer[];
+    frameCount: number;
+    randomSeed: number;
+    ancillary: {
+        campaignId: number;
+        commandByte: number;
+        playerBytes: Buffer;
+        unk1: number;
+        playerName: Buffer;
+        gameFlags: number;
+        mapWidth: number;
+        mapHeight: number;
+        activePlayerCount: number;
+        slotCount: number;
+        gameSpeed: number;
+        gameState: number;
+        unk2: number;
+        tileset: number;
+        replayAutoSave: number;
+        computerPlayerCount: number;
+        unk3: number;
+        unk4: number;
+        unk5: number;
+        unk6: number;
+        victoryCondition: number;
+        resourceType: number;
+        useStandardUnitStats: number;
+        fogOfWarEnabled: number;
+        createInitialUnits: number;
+        useFixedPositions: number;
+        restrictionFlags: number;
+        alliesEnabled: number;
+        teamsEnabled: number;
+        cheatsEnabled: number;
+        tournamentMode: number;
+        victoryConditionValue: number;
+        startingMinerals: number;
+        startingGas: number;
+        unk7: number;
+    };
+} | undefined;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * The map information.
+ */
+export declare const useMap: () => {
+    title: string;
+    description: string;
+    width: number;
+    height: number;
+    tileset: number;
+    tilesetName: string;
+} | undefined;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * The current frame of the replay.
+ */
+export declare const useFrame: () => number | undefined;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * All players in the current replay.
+ */
+export declare const usePlayers: () => import("process-replay").ReplayPlayer[];
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Returns a function getPlayerInfo that can be used to get resource information about a player.
+ */
+export declare const usePlayerFrame: () => (id: number) => PlayerInfo;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Player information.
+ */
+export declare class PlayerInfo {
+    _struct_size: number;
+    playerId: number;
+    playerData: Required<StateMessage>["production"]["playerData"];
+    get _offset(): number;
+    get minerals(): number;
+    get vespeneGas(): number;
+    get supply(): number;
+    get supplyMax(): number;
+    get workerSupply(): number;
+    get armySupply(): number;
+    get apm(): number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Returns a function that can be used to get player information.
+ */
+export declare const usePlayer: () => (playerId: number) => import("process-replay").ReplayPlayer | undefined;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Returns user selected units (if any).
+ */
+export declare const useSelectedUnits: () => {
+    extras: {
+        dat: UnitDAT;
+    };
+    isAttacking?: boolean | undefined;
+    id?: number | undefined;
+    typeId?: number | undefined;
+    owner?: number | undefined;
+    energy?: number | undefined;
+    shields?: number | undefined;
+    statusFlags?: number | undefined;
+    remainingBuildTime?: number | undefined;
+    resourceAmount?: number | undefined;
+    order?: number | null | undefined;
+    kills?: number | undefined;
+    orderTargetAddr?: number | undefined;
+    orderTargetX?: number | undefined;
+    orderTargetY?: number | undefined;
+    orderTargetUnit?: number | undefined;
+    groundWeaponCooldown?: number | undefined;
+    airWeaponCooldown?: number | undefined;
+    spellCooldown?: number | undefined;
+    subunit?: {
+        id?: number | undefined;
+        typeId?: number | undefined;
+        owner?: number | undefined;
+        energy?: number | undefined;
+        shields?: number | undefined;
+        statusFlags?: number | undefined;
+        remainingBuildTime?: number | undefined;
+        resourceAmount?: number | undefined;
+        order?: number | null | undefined;
+        kills?: number | undefined;
+        orderTargetAddr?: number | undefined;
+        orderTargetX?: number | undefined;
+        orderTargetY?: number | undefined;
+        orderTargetUnit?: number | undefined;
+        groundWeaponCooldown?: number | undefined;
+        airWeaponCooldown?: number | undefined;
+        spellCooldown?: number | undefined;
+        subunit?: any | null | undefined;
+        subunitId?: number | null | undefined;
+        x?: number | undefined;
+        y?: number | undefined;
+        direction?: number | undefined;
+        currentSpeed?: number | undefined;
+        moveTargetX?: number | undefined;
+        moveTargetY?: number | undefined;
+        nextMovementWaypointX?: number | undefined;
+        nextMovementWaypointY?: number | undefined;
+        nextTargetWaypointX?: number | undefined;
+        nextTargetWaypointY?: number | undefined;
+        movementFlags?: number | undefined;
+        currentVelocityDirection?: number | undefined;
+        hp?: number | undefined;
+        spriteIndex?: number | undefined;
+        spriteAddr?: number | undefined;
+    } | null | undefined;
+    subunitId?: number | null | undefined;
+    x?: number | undefined;
+    y?: number | undefined;
+    direction?: number | undefined;
+    currentSpeed?: number | undefined;
+    moveTargetX?: number | undefined;
+    moveTargetY?: number | undefined;
+    nextMovementWaypointX?: number | undefined;
+    nextMovementWaypointY?: number | undefined;
+    nextTargetWaypointX?: number | undefined;
+    nextTargetWaypointY?: number | undefined;
+    movementFlags?: number | undefined;
+    currentVelocityDirection?: number | undefined;
+    hp?: number | undefined;
+    spriteIndex?: number | undefined;
+    spriteAddr?: number | undefined;
+}[];
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Get the icon id for a particular unit type.
+ */
+export declare const getUnitIcon: (unit: DumpedUnit) => any;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Returns three functions that can be used to get player production information.
+ * Units, Upgrades and Research.
+ */
+export declare const useProduction: () => (((playerId: number) => ({
+    typeId: number;
+    icon: number;
+    count: number;
+    progress: number;
+    isUnit: boolean;
+} | null)[]) | ((playerId: number) => {
+    typeId: number;
+    icon: number;
+    level: number;
+    isUpgrade: boolean;
+    progress: number;
+}[]) | ((playerId: number) => {
+    typeId: number;
+    icon: number;
+    progress: number;
+    isResearch: boolean;
+}[]))[];
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Converts a frame numer to a time string eg 01:00.
+ */
+export declare const getFriendlyTime: (frame: number) => string;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/load-anim-atlas.ts
+
+/** @internal */
+declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<UnitTileScale, "SD">) => {
+    isHD: boolean;
+    isHD2: boolean;
+    diffuse: import("three").CompressedTexture;
+    imageIndex: number;
+    frames: {
+        x: number;
+        y: number;
+        w: number;
+        h: number;
+        xoff: number;
+        yoff: number;
+    }[];
+    uvPos: {
+        pos: BufferAttribute;
+        uv: BufferAttribute;
+        flippedPos: BufferAttribute;
+        flippedUv: BufferAttribute;
+    }[];
+    uvPosDataTex: DataArrayTexture;
+    textureWidth: number;
+    textureHeight: number;
+    spriteWidth: number;
+    spriteHeight: number;
+    unitTileScale: UnitTileScale;
+    teammask: import("three").CompressedTexture | undefined;
+    hdLayers: {
+        emissive: import("three").CompressedTexture | undefined;
+    };
+    dispose(): void;
+};
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/image.ts
+
+/** @internal */
+declare enum UnitTileScale {
+    SD = 1,
+    HD2 = 2,
+    HD = 4
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ */
+export declare const openUrl: (url: string) => void;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
+
+/**
+ * @public
+ * Images and game data.
+ */
+export type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat">;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/plugins/plugin-system-ui.ts
+
+/** @internal */
+interface SystemReadyMessage {
+    initialStore: PluginStateMessage;
+    plugins: PluginMetaData[];
+    assets: Pick<Assets, "bwDat"> & {
+        url: string;
+        imagesUrl: string;
+    };
+    enums: any;
+}
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
@@ -517,16 +737,17 @@ declare type DeepPartial<T> = T extends object ? {
  */
 /** @internal */
 interface PluginMetaData extends PluginPackage {
-    nativeSource?: string | null;
     path: string;
     date?: Date;
     readme?: string;
-    indexFile: string;
-    externMethods: string[];
-    hooks: string[];
     isSceneController: boolean;
     apiVersion: string;
-    hostIndexFile: string;
+    url: string;
+    config: PluginConfig;
+    urls: {
+        host: string | null;
+        ui: string | null;
+    };
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
@@ -554,13 +775,12 @@ interface PluginPackage {
     peerDependencies?: Record<string, string>;
     devDependencies?: Record<string, string>;
     config?: PluginConfig;
-    permissions?: string[];
 }
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/plugin.ts
 
 /** @internal */
-declare type PluginConfig = Record<string, FieldDefinition>;
+type PluginConfig = Record<string, FieldDefinition>;
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/fields.ts
 
@@ -580,25 +800,22 @@ interface FieldDefinition<T = unknown> {
     options?: string[] | Record<string, string>;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/assets.ts
 
 /**
  * @public
  * Most game assets excepting sprites / images.
  */
-export declare type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
+export type Assets = Awaited<ReturnType<typeof initializeAssets>> & {
     envMap?: Texture;
     bwDat: BwDAT;
     wireframeIcons?: Blob[];
-} & Partial<Awaited<ReturnType<typeof generateUIIcons>>>;
+};
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/assets.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/assets.ts
 
 /** @internal */
-declare const initializeAssets: (directories: {
-    starcraft: string;
-    assets: string;
-}) => Promise<{
+declare const initializeAssets: () => Promise<{
     selectionCircles: {
         isHD: boolean;
         isHD2: boolean;
@@ -634,51 +851,31 @@ declare const initializeAssets: (directories: {
         clock: import("three").CompressedTexture;
         square: import("three").CompressedTexture;
     };
-    loadImageAtlas(imageId: number, bwDat: BwDAT): {
-        isHD: boolean;
-        isHD2: boolean;
-        diffuse: import("three").CompressedTexture;
-        imageIndex: number;
-        frames: {
-            x: number;
-            y: number;
-            w: number;
-            h: number;
-            xoff: number;
-            yoff: number;
-        }[];
-        uvPos: {
-            pos: import("three").BufferAttribute;
-            uv: import("three").BufferAttribute;
-            flippedPos: import("three").BufferAttribute;
-            flippedUv: import("three").BufferAttribute;
-        }[];
-        uvPosDataTex: import("three").DataArrayTexture;
-        textureWidth: number;
-        textureHeight: number;
-        spriteWidth: number;
-        spriteHeight: number;
-        unitTileScale: UnitTileScale;
-        teammask: import("three").CompressedTexture | undefined;
-        hdLayers: {
-            emissive: import("three").CompressedTexture | undefined;
-        };
-        dispose(): void;
-    } | undefined;
-    getImageAtlas(imageId: number): AnimAtlas | undefined;
-    hasImageAtlas(imageId: number): boolean;
-    loadImageAtlasAsync(imageId: number, bwDat: BwDAT): Promise<void>;
+    loader: ImageLoaderManager;
     skyBox: CubeTexture;
     refId: (id: number) => number;
     resetImagesCache: () => void;
     arrowIconsGPU: LegacyGRP;
     hoverIconsGPU: LegacyGRP;
     dragIconsGPU: LegacyGRP;
-    openCascStorage: () => Promise<void>;
-    closeCascStorage: () => void;
-    readCascFile: (filePath: string) => Promise<Buffer>;
-    remaining: number;
-    atlases: {
+    openCascStorage: (url?: string) => Promise<boolean>;
+    closeCascStorage: () => Promise<void>;
+    readCascFile: (filepath: string) => Promise<Buffer>;
+}>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/image-loader-manager.ts
+
+/** @internal */
+declare class ImageLoaderManager {
+    #private;
+    maxDownloads: number;
+    currentDownloads: number;
+    imageLoaders: Map<number, ImageLoader>;
+    constructor(refId: (id: number) => number);
+    exists(imageId: number): boolean;
+    getImage(imageId: number, useRefId?: boolean): AnimAtlas | null;
+    loadImage(imageId: number, priority?: number): Promise<void> | undefined;
+    loadImageImmediate(imageId: number): Promise<{
         isHD: boolean;
         isHD2: boolean;
         diffuse: import("three").CompressedTexture;
@@ -708,17 +905,136 @@ declare const initializeAssets: (directories: {
             emissive: import("three").CompressedTexture | undefined;
         };
         dispose(): void;
-    }[];
-}>;
+    } | null>;
+    processQueue(): Promise<void>;
+    dispose(): void;
+}
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/image.ts
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/image-loader.ts
 
 /** @internal */
-declare enum UnitTileScale {
-    SD = 1,
-    HD2 = 2,
-    HD = 4
+declare class ImageLoader {
+    atlas: AnimAtlas | null;
+    loader: ResourceLoader;
+    imageId: number;
+    priority: number;
+    status: ResourceLoaderStatus;
+    onLoaded: () => void;
+    constructor(url: string, imageId: number, cache: IndexedDBCache);
 }
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/load-anim-atlas.ts
+
+/** @internal */
+type AnimAtlas = ReturnType<typeof loadAnimAtlas>;
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/resource-loader.ts
+
+/** @internal */
+declare class ResourceLoader {
+    #private;
+    url: string;
+    key: string;
+    buffer: Buffer | null;
+    onStatusChange: (status: ResourceLoaderStatus) => void;
+    protected cache?: IndexedDBCache;
+    constructor(url: string, key?: string, cache?: IndexedDBCache);
+    get status(): ResourceLoaderStatus;
+    set status(status: ResourceLoaderStatus);
+    fetch(): Promise<Buffer | null>;
+    cancel(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/resource-loader-status.ts
+/** @internal */
+type ResourceLoaderStatus = "loading" | "loaded" | "error" | "idle" | "cancelled";
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/indexed-db-cache.ts
+
+/** @internal */
+declare class IndexedDBCache {
+    #private;
+    constructor(storeName: CacheDBStoreName);
+    get enabled(): boolean;
+    set enabled(value: boolean);
+    clear(): Promise<unknown>;
+    deleteValue(id: string): Promise<unknown>;
+    setValue(value: SCAssetData): Promise<unknown>;
+    getValue(id: string): Promise<Buffer | null>;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/indexed-db-cache.ts
+
+/** @internal */
+type CacheDBStoreName = "general-casc-cache" | "image-cache";
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/loader/indexed-db-cache.ts
+/// <reference types="node" />
+/** @internal */
+interface SCAssetData {
+    id: string;
+    buffer: ArrayBuffer;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/legacy-grp.ts
+
+/** @internal */
+declare class LegacyGRP {
+    width: number;
+    height: number;
+    grpWidth: number;
+    grpHeight: number;
+    texture: DataTexture;
+    teamcolor?: DataTexture;
+    frames: {
+        x: number;
+        y: number;
+        grpX: number;
+        grpY: number;
+        w: number;
+        h: number;
+    }[];
+    constructor();
+    load({ readGrp, imageDef, palettes, }: {
+        readGrp: () => Promise<Buffer>;
+        imageDef: ImageDAT;
+        palettes: Palettes;
+    }, stride?: number): Promise<this>;
+    dispose(): void;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/images-dat.ts
+
+/**
+ * @public
+ */
+export interface ImageDAT {
+    index: number;
+    grpFile: string;
+    name: string;
+    grp: number;
+    gfxTurns: number;
+    clickable: number;
+    useFullIscript: number;
+    drawIfCloaked: number;
+    drawFunction: number;
+    remapping: number;
+    iscript: number;
+    shieldOverlay: number;
+    attackOverlay: number;
+    damageOverlay: number;
+    specialOverlay: number;
+    landingDustOverlay: number;
+    liftOffDustOverlay: number;
+}
+
+//C:/Users/Game_Master/Projects/titan-reactor/src/image/atlas/legacy-grp.ts
+
+/** @internal */
+type Palettes = Uint8Array[] & {
+    dark?: Buffer;
+    light?: Buffer;
+};
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/bw-dat.ts
 
@@ -760,12 +1076,12 @@ interface IScriptProgram {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
-declare type IScriptAnimation = IScriptOperations[];
+type IScriptAnimation = IScriptOperations[];
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/iscript.ts
 
 /** @internal */
-declare type IScriptOperations = [string, number[]];
+type IScriptOperations = [string, number[]];
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sounds-dat.ts
 
@@ -826,37 +1142,12 @@ export interface OrderDAT {
     name: string;
 }
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/images-dat.ts
-
-/**
- * @public
- */
-export interface ImageDAT {
-    index: number;
-    grpFile: string;
-    name: string;
-    grp: number;
-    gfxTurns: number;
-    clickable: number;
-    useFullIscript: number;
-    drawIfCloaked: number;
-    drawFunction: number;
-    remapping: number;
-    iscript: number;
-    shieldOverlay: number;
-    attackOverlay: number;
-    damageOverlay: number;
-    specialOverlay: number;
-    landingDustOverlay: number;
-    liftOffDustOverlay: number;
-}
-
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/parse-lo.ts
 /// <reference types="node" />
 /**
  * @public
  */
-export declare type LoDAT = number[][][];
+export type LoDAT = number[][][];
 
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/bwdat/sprites-dat.ts
 
@@ -922,7 +1213,7 @@ export interface FlingyDAT {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 
 /** @internal */
-declare type GrpSprite = {
+type GrpSprite = {
     w: number;
     h: number;
     frames: AnimFrame[];
@@ -933,7 +1224,7 @@ declare type GrpSprite = {
 //C:/Users/Game_Master/Projects/titan-reactor/src/common/types/anim-grp.ts
 /// <reference types="node" />
 /** @internal */
-declare type AnimFrame = {
+type AnimFrame = {
     x: number;
     y: number;
     w: number;
@@ -942,125 +1233,7 @@ declare type AnimFrame = {
     yoff: number;
 };
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
-
-/** @internal */
-declare type AnimAtlas = ReturnType<typeof loadAnimAtlas>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/load-anim-atlas.ts
-
-/** @internal */
-declare const loadAnimAtlas: (buf: Buffer, imageIndex: number, scale: Exclude<UnitTileScale, "SD">) => {
-    isHD: boolean;
-    isHD2: boolean;
-    diffuse: import("three").CompressedTexture;
-    imageIndex: number;
-    frames: {
-        x: number;
-        y: number;
-        w: number;
-        h: number;
-        xoff: number;
-        yoff: number;
-    }[];
-    uvPos: {
-        pos: BufferAttribute;
-        uv: BufferAttribute;
-        flippedPos: BufferAttribute;
-        flippedUv: BufferAttribute;
-    }[];
-    uvPosDataTex: DataArrayTexture;
-    textureWidth: number;
-    textureHeight: number;
-    spriteWidth: number;
-    spriteHeight: number;
-    unitTileScale: UnitTileScale;
-    teammask: import("three").CompressedTexture | undefined;
-    hdLayers: {
-        emissive: import("three").CompressedTexture | undefined;
-    };
-    dispose(): void;
-};
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
-
-/** @internal */
-declare class LegacyGRP {
-    width: number;
-    height: number;
-    grpWidth: number;
-    grpHeight: number;
-    texture: DataTexture;
-    teamcolor?: DataTexture;
-    frames: {
-        x: number;
-        y: number;
-        grpX: number;
-        grpY: number;
-        w: number;
-        h: number;
-    }[];
-    constructor();
-    load({ readGrp, imageDef, palettes, }: {
-        readGrp: () => Promise<Buffer>;
-        imageDef: ImageDAT;
-        palettes: Palettes;
-    }, stride?: number): Promise<this>;
-    dispose(): void;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/atlas/legacy-grp.ts
-
-/** @internal */
-declare type Palettes = Uint8Array[] & {
-    dark?: Buffer;
-    light?: Buffer;
-};
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
-
-/** @internal */
-declare const openCascStorage: (bwPath: string) => Promise<void>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/casclib.ts
-
-/** @internal */
-declare const closeCascStorage: () => void;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/renderer/image/generate-icons/generate-icons.ts
-
-/** @internal */
-declare const generateUIIcons: (readFile: ReadFile) => Promise<{
-    cmdIcons: ArrayBuffer[];
-    gameIcons: {
-        minerals: Blob;
-        vespeneZerg: Blob;
-        vespeneTerran: Blob;
-        vespeneProtoss: Blob;
-        zerg: Blob;
-        terran: Blob;
-        protoss: Blob;
-        energy: Blob;
-    };
-    raceInsetIcons: {
-        zerg: Blob;
-        terran: Blob;
-        protoss: Blob;
-    };
-    workerIcons: {
-        apm: ArrayBuffer | SharedArrayBuffer;
-        terran: ArrayBuffer | SharedArrayBuffer;
-        zerg: ArrayBuffer | SharedArrayBuffer;
-        protoss: ArrayBuffer | SharedArrayBuffer;
-    };
-}>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/common/types/file.ts
-/// <reference types="node" />
-/** @internal */
-declare type ReadFile = (filename: string) => Promise<Buffer>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
@@ -1068,291 +1241,7 @@ declare type ReadFile = (filename: string) => Promise<Buffer>;
  */
 export declare const enums: any;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/** @internal */
-interface Component {
-    pluginId: string;
-    id: number;
-    order: number | undefined;
-    messageHandler: EventTarget;
-    JSXElement: React.FC<any>;
-    snap: string;
-    screen: string;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/** @internal */
-declare type StateMessage = Partial<PluginStateMessage>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Use the translation function to translate a string
- */
-export declare const useLocale: () => string | undefined;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * The replay header information.
- */
-export declare const useReplay: () => {
-    isBroodwar: number;
-    gameName: string;
-    mapName: string;
-    gameType: number;
-    gameSubtype: number;
-    players: ReplayPlayer[];
-    frameCount: number;
-    randomSeed: number;
-    ancillary: {
-        campaignId: number;
-        commandByte: number;
-        playerBytes: Buffer;
-        unk1: number;
-        playerName: Buffer;
-        gameFlags: number;
-        mapWidth: number;
-        mapHeight: number;
-        activePlayerCount: number;
-        slotCount: number;
-        gameSpeed: number;
-        gameState: number;
-        unk2: number;
-        tileset: number;
-        replayAutoSave: number;
-        computerPlayerCount: number;
-        unk3: number;
-        unk4: number;
-        unk5: number;
-        unk6: number;
-        victoryCondition: number;
-        resourceType: number;
-        useStandardUnitStats: number;
-        fogOfWarEnabled: number;
-        createInitialUnits: number;
-        useFixedPositions: number;
-        restrictionFlags: number;
-        alliesEnabled: number;
-        teamsEnabled: number;
-        cheatsEnabled: number;
-        tournamentMode: number;
-        victoryConditionValue: number;
-        startingMinerals: number;
-        startingGas: number;
-        unk7: number;
-    };
-} | undefined;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * The map information.
- */
-export declare const useMap: () => {
-    title: string;
-    description: string;
-    width: number;
-    height: number;
-    tileset: number;
-    tilesetName: string;
-} | undefined;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * The current frame of the replay.
- */
-export declare const useFrame: () => number | undefined;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * All players in the current replay.
- */
-export declare const usePlayers: () => ReplayPlayer[];
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Returns a function getPlayerInfo that can be used to get resource information about a player.
- */
-export declare const usePlayerFrame: () => (id: number) => PlayerInfo;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Player information.
- */
-export declare class PlayerInfo {
-    _struct_size: number;
-    playerId: number;
-    playerData: Required<StateMessage>["production"]["playerData"];
-    get _offset(): number;
-    get minerals(): number;
-    get vespeneGas(): number;
-    get supply(): number;
-    get supplyMax(): number;
-    get workerSupply(): number;
-    get armySupply(): number;
-    get apm(): number;
-}
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Returns a function that can be used to get player information.
- */
-export declare const usePlayer: () => (playerId: number) => ReplayPlayer | undefined;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Returns user selected units (if any).
- */
-export declare const useSelectedUnits: () => {
-    extras: {
-        dat: UnitDAT;
-    };
-    isAttacking?: boolean | undefined;
-    id?: number | undefined;
-    typeId?: number | undefined;
-    owner?: number | undefined;
-    energy?: number | undefined;
-    shields?: number | undefined;
-    statusFlags?: number | undefined;
-    remainingBuildTime?: number | undefined;
-    resourceAmount?: number | undefined;
-    order?: number | null | undefined;
-    kills?: number | undefined;
-    orderTargetAddr?: number | undefined;
-    orderTargetX?: number | undefined;
-    orderTargetY?: number | undefined;
-    orderTargetUnit?: number | undefined;
-    groundWeaponCooldown?: number | undefined;
-    airWeaponCooldown?: number | undefined;
-    spellCooldown?: number | undefined;
-    subunit?: {
-        id?: number | undefined;
-        typeId?: number | undefined;
-        owner?: number | undefined;
-        energy?: number | undefined;
-        shields?: number | undefined;
-        statusFlags?: number | undefined;
-        remainingBuildTime?: number | undefined;
-        resourceAmount?: number | undefined;
-        order?: number | null | undefined;
-        kills?: number | undefined;
-        orderTargetAddr?: number | undefined;
-        orderTargetX?: number | undefined;
-        orderTargetY?: number | undefined;
-        orderTargetUnit?: number | undefined;
-        groundWeaponCooldown?: number | undefined;
-        airWeaponCooldown?: number | undefined;
-        spellCooldown?: number | undefined;
-        subunit?: any | null | undefined;
-        subunitId?: number | null | undefined;
-        x?: number | undefined;
-        y?: number | undefined;
-        direction?: number | undefined;
-        currentSpeed?: number | undefined;
-        moveTargetX?: number | undefined;
-        moveTargetY?: number | undefined;
-        nextMovementWaypointX?: number | undefined;
-        nextMovementWaypointY?: number | undefined;
-        nextTargetWaypointX?: number | undefined;
-        nextTargetWaypointY?: number | undefined;
-        movementFlags?: number | undefined;
-        hp?: number | undefined;
-        spriteIndex?: number | undefined;
-        spriteAddr?: number | undefined;
-    } | null | undefined;
-    subunitId?: number | null | undefined;
-    x?: number | undefined;
-    y?: number | undefined;
-    direction?: number | undefined;
-    currentSpeed?: number | undefined;
-    moveTargetX?: number | undefined;
-    moveTargetY?: number | undefined;
-    nextMovementWaypointX?: number | undefined;
-    nextMovementWaypointY?: number | undefined;
-    nextTargetWaypointX?: number | undefined;
-    nextTargetWaypointY?: number | undefined;
-    movementFlags?: number | undefined;
-    hp?: number | undefined;
-    spriteIndex?: number | undefined;
-    spriteAddr?: number | undefined;
-}[];
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Get the icon id for a particular unit type.
- */
-export declare const getUnitIcon: (unit: DumpedUnit) => any;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Returns three functions that can be used to get player production information.
- * Units, Upgrades and Research.
- */
-export declare const useProduction: () => (((playerId: number) => ({
-    typeId: number;
-    icon: number;
-    count: number;
-    progress: number;
-    isUnit: boolean;
-} | null)[]) | ((playerId: number) => {
-    typeId: number;
-    icon: number;
-    level: number;
-    isUpgrade: boolean;
-    progress: number;
-}[]) | ((playerId: number) => {
-    typeId: number;
-    icon: number;
-    progress: number;
-    isResearch: boolean;
-}[]))[];
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Converts a frame numer to a time string eg 01:00.
- */
-export declare const getFriendlyTime: (frame: number) => string;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- */
-export declare const openUrl: (url: string) => void;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
-
-/**
- * @public
- * Images and game data.
- */
-export declare type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat"> & ReturnType<typeof convertIcons>;
-
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
@@ -1360,7 +1249,7 @@ export declare type RuntimeAssets = Pick<SystemReadyMessage["assets"], "bwDat"> 
  */
 export declare const assets: RuntimeAssets;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
@@ -1372,7 +1261,7 @@ export declare const RollingNumber: ({ value, upSpeed, downSpeed, ...props }: {
     downSpeed: number | undefined;
 }) => JSX.Element;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
@@ -1380,7 +1269,7 @@ export declare const RollingNumber: ({ value, upSpeed, downSpeed, ...props }: {
  */
 export declare const useMessage: (cb?: ((event: any) => void) | undefined, deps?: unknown[]) => void;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
@@ -1388,7 +1277,7 @@ export declare const useMessage: (cb?: ((event: any) => void) | undefined, deps?
  */
 export declare const useSendMessage: () => (message: unknown) => void;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
@@ -1396,7 +1285,7 @@ export declare const useSendMessage: () => (message: unknown) => void;
  */
 export declare const usePluginConfig: () => object;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
@@ -1404,20 +1293,19 @@ export declare const usePluginConfig: () => object;
  */
 export declare const useStyleSheet: (content: string, deps?: never[]) => void;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
 /**
  * @public
  */
 export declare const proxyFetch: (url: string) => Promise<Response>;
 
-//C:/Users/Game_Master/Projects/titan-reactor/src/main/plugins/runtime.tsx
+//C:/Users/Game_Master/Projects/titan-reactor/src/runtime.tsx
 
-/**
- * @internal
- */
+/** @internal */
 declare const _rc: (pluginId: string, component: Component, JSXElement: React.FC<any>) => void;
         declare global {
+            var registerComponent: ( component: Partial<Pick<Component, "order" | "snap" | "screen">>, JSXElement: React.FC<any> ) => void;
             
         }
         

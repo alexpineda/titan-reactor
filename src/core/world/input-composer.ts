@@ -43,7 +43,7 @@ export const createInputComposer = (
     );
 
     const unitSelectionBox = createUnitSelectionBox(
-        world,
+        world.events,
         mouseInput,
         scene,
         imageQuadrants,

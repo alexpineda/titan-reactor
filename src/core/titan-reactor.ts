@@ -185,7 +185,9 @@ logCapabilities();
     // }
     // metaVerse().setSession(session);
 
-    await initCacheDB();
+    try {
+        await initCacheDB();
+    } catch (e) {}
 
     await sceneStore().loadScene(new LoadingScene());
 

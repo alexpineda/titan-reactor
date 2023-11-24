@@ -63,4 +63,11 @@ export class FlingyBufferView extends ThingyBufferView implements FlingyStruct {
         return FP8(this._bw.HEAPU32[this._addr32 + 21]);
     }
 
+    get currentVelocityDirection() {
+        const heading = this._bw.HEAP8[this._addr8 + ( 25 << 2 )];
+        const v = fractional_part( heading, 8 );
+        if ( v < 0 ) return 256 + v;
+        else return v;
+    }
+
 }

@@ -29,7 +29,7 @@ const defaultReplayPlugins = [
     "@titan-reactor-plugins/unit-selection-display",
     "@titan-reactor-plugins/production-bar",
     "@titan-reactor-plugins/unit-sounds",
-    // "@titan-reactor-plugins/narrative-maker",
+    "@titan-reactor-plugins/auto-observer",
     "@titan-reactor-plugins/vr-controller",
 ];
 
@@ -146,7 +146,7 @@ export class PluginsRepository {
         let isSceneController = false;
 
         const hostFile = plugin.files.includes("host.js")
-            ? await fetch(`${pluginRootUrl}/dist/host.js`)
+            ? await fetch(urlJoin(pluginRootUrl, "dist", "host.js"))
                   .then(async (r) => {
                       isSceneController = (await r.text()).includes("onEnterScene");
                       return true;
@@ -155,16 +155,14 @@ export class PluginsRepository {
             : null;
 
         const uiFile = plugin.files.includes("ui.js")
-            ? await fetch(`${pluginRootUrl}/dist/ui.js`)
+            ? await fetch(urlJoin(pluginRootUrl, "dist", "ui.js"))
                   .then(() => true)
                   .catch(() => false)
             : "";
 
-        const readme = plugin.files.includes("readme.md")
-            ? await fetch(`${pluginRootUrl}/readme.md`)
+        const readme = await fetch(urlJoin(pluginRootUrl, "readme.md"))
                   .then((r) => r.text())
                   .catch(() => undefined)
-            : undefined;
 
         const config = packageJSON.config ?? {};
 

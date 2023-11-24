@@ -1,28 +1,40 @@
 import type { GameTimeApi } from "@core/world/game-time-api";
 import type {
     FieldDefinition,
-    Injectables,
     NativePlugin,
     PluginConfig,
     PluginPackage,
 } from "common/types";
-
-import { log } from "@ipc/log";
 // import { savePluginsConfig } from "renderer/command-center/ipc/plugins";
 import { normalizePluginConfiguration } from "@utils/function-utils";
+import type { SessionVariables } from "@core/world/settings-session-store";
+import { TypeEmitter, TypeEmitterProxy } from "@utils/type-emitter";
+import type { WorldEvents } from "@core/world/world-events";
+import { usePluginsStore } from "@stores/plugins-store";
 
 const structuredClone =
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     globalThis.structuredClone ??
-    ( ( x: any ) => JSON.parse( JSON.stringify( x ) ) as unknown );
+    ((x: any) => JSON.parse(JSON.stringify(x)) as unknown);
 
-export interface PluginBase extends NativePlugin, GameTimeApi, Injectables {}
+export interface PluginBase extends NativePlugin, GameTimeApi {}
 
-export class PluginBase {
+export type PluginSessionContext = {
+    game: GameTimeApi;
+    settings: SessionVariables;
+    events: TypeEmitter<WorldEvents>;
+    customEvents: TypeEmitter<unknown>;
+};
+
+export class PluginBase implements PluginBase {
     readonly id: string;
     readonly name: string;
     isSceneController = false;
     #config: PluginConfig = {};
+
+    game: GameTimeApi;
+    settings: SessionVariables;
+    events: TypeEmitterProxy<WorldEvents>;
 
     /**
      * @internal
@@ -30,13 +42,20 @@ export class PluginBase {
      */
     #normalizedConfig: Record<string, unknown> = {};
 
-    constructor( pluginPackage: PluginPackage ) {
+    constructor(pluginPackage: PluginPackage, session: PluginSessionContext) {
         this.id = pluginPackage.id;
         this.name = pluginPackage.name;
-        this.rawConfig = structuredClone( pluginPackage.config ?? {} );
+        this.rawConfig = structuredClone(pluginPackage.config ?? {});
+        this.game = session.game;
+        this.settings = session.settings;
+        this.events = new TypeEmitterProxy(session.events);
     }
 
-    sendUIMessage: ( message: any ) => void = () => {};
+    dispose() {
+        this.events.dispose();
+    }
+
+    sendUIMessage: (message: any) => void = () => {};
 
     /**
      *
@@ -46,18 +65,17 @@ export class PluginBase {
      * @param value  The configuration value.
      * @returns
      */
-    saveConfigProperty( key: string, value: unknown, persist = true ): void {
-        if ( !( key in this.#config ) ) {
-            log.warn(
+    saveConfigProperty(key: string, value: unknown, persist = true): void {
+        if (!(key in this.#config)) {
+            console.warn(
                 `Plugin ${this.id} tried to set config key ${key} but it was not found`
             );
             return undefined;
         }
 
         this.#config[key].value = value;
-        if ( persist ) {
-            //todo: persist
-            // savePluginsConfig( this.id, this.#config );
+        if (persist) {
+            usePluginsStore.getState().savePluginConfig( this.id, this.#config );
         }
     }
 
@@ -66,7 +84,7 @@ export class PluginBase {
      * Same as config but simplified to [key] = value
      */
     refreshConfig() {
-        this.#normalizedConfig = normalizePluginConfiguration( this.#config );
+        this.#normalizedConfig = normalizePluginConfiguration(this.#config);
     }
 
     /**
@@ -79,7 +97,7 @@ export class PluginBase {
     /**
      * Set the config from unnormalized data (ie leva config schema).
      */
-    set rawConfig( value: PluginConfig ) {
+    set rawConfig(value: PluginConfig) {
         this.#config = value;
         this.refreshConfig();
     }
@@ -92,7 +110,7 @@ export class PluginBase {
      * @param key The configuration key.
      * @returns the leva configuration for a particular field
      */
-    getFieldDefinition( key: string ) {
+    getFieldDefinition(key: string) {
         return this.#config[key] as FieldDefinition | undefined;
     }
 }

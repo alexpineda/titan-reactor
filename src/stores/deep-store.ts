@@ -47,8 +47,17 @@ export function createDeepStore<T extends Record<string, any>>( {
 
     const getValue = ( path: string[] ) => lGet( store, path ) as unknown;
 
-    const setValue = ( path: string[], value: any ) => {
-        merge( lSet<DeepPartial<T>>( {}, path, value ), path, value );
+    /**
+     * Merge changes to our deep store
+     * Typically we want a copy so that it can be diffed against the change, but this incurs quite a cost
+     * So we provide the option to "silentUpdate" to avoid this cost. Only use if performance critical.
+     */
+    const setValue = ( path: string[], value: any, silentUpdate = false ) => {
+        if (silentUpdate) {
+            lSet<DeepPartial<T>>( store, path, value );
+        } else {
+            merge( lSet<DeepPartial<T>>( {}, path, value ), path, value );
+        }
     };
 
     return {
@@ -61,7 +70,7 @@ export function createDeepStore<T extends Record<string, any>>( {
 
 export interface DeepStore<T extends object> {
     getState: () => T;
-    setValue: ( path: string[], value: unknown ) => void;
+    setValue: ( path: string[], value: unknown, silentUpdate?: boolean ) => void;
     getValue: ( path: string[] ) => unknown;
     merge: ( rhs: DeepPartial<T> ) => void;
 }

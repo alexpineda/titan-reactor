@@ -3,7 +3,6 @@ import { Unit } from "@core/unit";
 import gameStore from "@stores/game-store";
 import { IterableMap } from "@utils/data-structures/iteratible-map";
 
-//TODO: Deprecate
 // The primary purpose of this class is to provide a storage for damage effects, and serialization to plugins ui
 // We can store damage effects in a map, and we can serialize the map to plugins ui via an ArrayBuffer of unitData
 export class UnitEntities {

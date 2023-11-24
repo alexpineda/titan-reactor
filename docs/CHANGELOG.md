@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [unreleased]
+## [7.0.1]
+
+## Added
+- Auto observer plugin
+- Help Menu
+
 ## [7.0.0] - 2023-11-07
 
 ## Added
@@ -329,7 +335,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Good support for HD2/HD terrain, sluggish first render time, on the todo list.
 -   Unit selection / unit boxing for the time being.
 
-[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.7.0...HEAD
+[unreleased]: https://github.com/imbateam-gg/titan-reactor/compare/v0.7.1...HEAD
+[0.7.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.7.0...v0.7.1
 [0.7.0]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.9...v0.7.0
 [0.6.9]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.8...v0.6.9
 [0.6.8]: https://github.com/imbateam-gg/titan-reactor/compare/v0.6.7...v0.6.8

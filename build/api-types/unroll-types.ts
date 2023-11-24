@@ -15,6 +15,7 @@ import {
     isReferencedByAncestorDeclaration,
     getStatement,
     outputNodeText,
+    replaceTransientImport,
 } from "./util";
 
 /**
@@ -32,7 +33,7 @@ export const unrollTypes = async ({
     wrapInGlobal = [],
     globalExternals = [],
     defaultInternal = false,
-    prefix = ""
+    prefix = "",
 }: {
     inFiles: string[];
     tsConfigFilePath?: string;
@@ -97,6 +98,12 @@ export const unrollTypes = async ({
     // note: processed, not necessarily collected
     const _alreadyTriedToCollectNode = new Set<tsm.Node>();
 
+    const _transients = new Set<{
+        node: tsm.ImportTypeNode;
+        sourceFile: tsm.SourceFile;
+        declarationFile: tsm.SourceFile;
+    }>();
+
     /**
      * Recursively "collects" all definitions that are local to the project based off identifiers found in the source code (node).
      *
@@ -113,7 +120,7 @@ export const unrollTypes = async ({
      *
      * @param parentNode tsm.Node
      */
-    function _collect(parentNode: tsm.Node) {
+    function _traverse(parentNode: tsm.Node) {
         const sourceFile = parentNode.getSourceFile();
 
         parentNode.getDescendantsOfKind(tsm.SyntaxKind.Identifier).forEach((id) => {
@@ -145,8 +152,8 @@ export const unrollTypes = async ({
                     result.diagnostics.externalDeclarations.add(id.getText());
                     continue;
                 }
-                _addToCollectedNodes(defNode);
                 _collect(defNode);
+                _traverse(defNode);
             }
 
             if (definitionNodes.length === 0) {
@@ -162,26 +169,33 @@ export const unrollTypes = async ({
             outProject
         );
 
-        if (parentNode.getSourceFile().getFilePath().endsWith("input-composer.ts")) {
-            debugger;
-        }
-
         if (declarationFile === undefined) {
             console.error(parentNode.getSourceFile().getFilePath());
             throw new Error("Could not emit file declaration");
         }
 
-        const transient = replaceTransientImports(
-            declarationFile,
-            parentNode.getSourceFile(),
-            inProject,
-            result.diagnostics
-        );
-
-        for (const node of transient) {
-            _addToCollectedNodes(node);
-            _collect(node);
+        for (const transient of declarationFile
+            .getDescendantsOfKind(tsm.SyntaxKind.ImportType)
+            .map((node) => ({
+                node,
+                sourceFile,
+                declarationFile,
+            }))) {
+            _transients.add(transient);
         }
+
+        // const transient = replaceTransientImports(
+        //     declarationFile,
+        //     parentNode.getSourceFile(),
+        //     inProject,
+        //     result.diagnostics
+        // );
+
+        // for (const node of transient) {
+        //     _transients.add(node);
+        //     _collect(node);
+        //     _traverse(node);
+        // }
     }
 
     /**
@@ -272,21 +286,19 @@ export const unrollTypes = async ({
         }
     }
 
-    function _addToCollectedNodes(node: tsm.Node) {
-        if (hasOwnIdentifier(node)) {
-            const nodeId = getNodeId(node)!.getText();
-            if (isExportable(node)) {
-                if (!_collectedNodeDefinitions.includes(node)) {
-                    _collectedNodeDefinitions.push(node);
-                    if (_collectedNodeDefinitionsListMap.has(nodeId)) {
-                        _collectedNodeDefinitionsListMap.get(nodeId)!.push(node);
-                    } else {
-                        _collectedNodeDefinitionsListMap.set(nodeId, [node]);
-                    }
-
-                    // set all nodes to exported so we can get declarations from TS
-                    getExportableNode(node).setIsExported(true);
+    function _collect(node: tsm.Node) {
+        if (hasOwnIdentifier(node) && isExportable(node)) {
+            if (!_collectedNodeDefinitions.includes(node)) {
+                const nodeId = getNodeId(node)!.getText();
+                _collectedNodeDefinitions.push(node);
+                if (_collectedNodeDefinitionsListMap.has(nodeId)) {
+                    _collectedNodeDefinitionsListMap.get(nodeId)!.push(node);
+                } else {
+                    _collectedNodeDefinitionsListMap.set(nodeId, [node]);
                 }
+
+                // set all nodes to exported so we can get declarations from TS
+                getExportableNode(node).setIsExported(true);
             }
         }
     }
@@ -301,7 +313,16 @@ export const unrollTypes = async ({
             sourceFile = inProject.getSourceFile(file);
         }
 
-        _collect(sourceFile);
+        _traverse(sourceFile);
+
+        for (const t of _transients) {
+            try {
+            console.log(t.node.getFullText())
+            _collect(replaceTransientImport(t, inProject, result.diagnostics));
+            } catch (e) {
+                console.error(e);
+            }
+        }
 
         const rootNodes = [
             ...(sourceFile.getExportedDeclarations().values() as Iterable<tsm.Node>),
