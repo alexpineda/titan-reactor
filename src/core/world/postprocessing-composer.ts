@@ -14,6 +14,7 @@ import { ViewControllerComposer } from "@core/world/view-controller-composer";
 import { World } from "./world";
 import { isImageHd, isMesh } from "@utils/image-utils";
 import { createTransition } from "./transition";
+import { Terrain } from "@core/terrain";
 
 //tank base, minerals
 const ignoreRecieveShadow = [250, 253, 347, 349, 351];
@@ -27,8 +28,9 @@ export type PostProcessingComposerApi = PostProcessingComposer["api"];
 // Renders each viewport.
 export const createPostProcessingComposer = (
     world: World,
-    { scene, images, sprites, terrain, ...sceneComposer }: SceneComposer,
+    { scene, images, sprites, ...sceneComposer }: SceneComposer,
     viewportsComposer: ViewControllerComposer,
+    terrain: Terrain,
     assets: Assets
 ) => {
     const janitor = new Janitor("PostProcessingComposer");
@@ -147,7 +149,7 @@ export const createPostProcessingComposer = (
     return {
         precompile(camera: PerspectiveCamera | OrthographicCamera) {
             _changeRenderMode(false);
-            sceneComposer.onFrame(0, 0, false);
+            sceneComposer.onFrame(0, false);
 
             renderComposer.glRenderer.compile(scene, camera);
         },

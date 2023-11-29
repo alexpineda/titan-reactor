@@ -30,7 +30,7 @@ export const defaultSettingsV6: SettingsV6 = {
         sceneController: "@titan-reactor-plugins/auto-observer",
         vrController: "@titan-reactor-plugins/vr-controller",
         dampingFactor: 0.1,
-        cameraShakeStrength: 1,
+        cameraShakeStrength: 5,
         movementSpeed: 1.15,
         rotateSpeed: 0.15,
         zoomLevels: [ 0.5, 1, 2 ],

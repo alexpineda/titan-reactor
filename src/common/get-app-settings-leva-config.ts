@@ -306,7 +306,8 @@ const getInputConfig = (
         label: "Camera Shake Strength",
         value: input.cameraShakeStrength,
         min: 0,
-        max: 1,
+        max: 20,
+        step: 0.5
     },
     "input.unitSelection": {
         label: "Enable Unit Selection",
