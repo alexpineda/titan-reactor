@@ -14,7 +14,7 @@ import { startOpenBWAndWorld } from "./start-openbw-and-world";
 import { Janitor } from "three-janitor";
 import { useReplayAndMapStore } from "@stores/replay-and-map-store";
 // import { cleanMapTitles  } from "@utils/chk-utils";
-import { calculateImagesFromTechTreeUnits, preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
+import { preloadMapUnitsAndSpriteFiles } from "@utils/preload-map-units-and-sprites";
 import gameStore from "@stores/game-store";
 import { globalEvents } from "@core/global-events";
 import debounce from "lodash.debounce";
@@ -25,7 +25,6 @@ import { ValidatedReplay } from "./load-and-validate-replay";
 import { GameScene } from "./game-scene/game-scene";
 import { getWraithSurface } from "./home/space-scene";
 import { MatchDisplay } from "./home/match-display";
-import { calculateImagesFromUnitsIscript } from "@utils/images-from-iscript";
 
 export class ReplayScene implements TRScene {
     id: TRSceneID = "@replay";

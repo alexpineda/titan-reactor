@@ -20,7 +20,6 @@ export const overlayEffectsMainImage: { image: Image3D | null } = { image: null 
 export const applyRenderModeToSprite = (
     spriteTypeId: number,
     sprite: SpriteType,
-    terrainY: number
 ) => {
     sprite.rotation.x = 0;
     if ( modelSetModifiers.sprites[spriteTypeId] ) {

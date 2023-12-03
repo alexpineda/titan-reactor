@@ -1,7 +1,6 @@
 import discordLogo from "@image/assets/discord.png";
 import youtubeLogo from "@image/assets/youtube.png";
 import githubLogo from "@image/assets/github.png";
-import patreonLogo from "@image/assets/patreon.png";
 import xLogo from "@image/assets/logo-white.png";
 import { useState } from "react";
 

@@ -7,8 +7,7 @@ import {
     speedHandler,
 } from "@openbw/speed-handler";
 import { buildSound } from "@utils/sound-utils";
-import { floor32 } from "common/utils/conversions";
-import { SceneComposer } from "./scene-composer";
+import { PxToWorld, floor32 } from "common/utils/conversions";
 import { MathUtils } from "three";
 import { createCompletedUpgradesHelper } from "@openbw/completed-upgrades";
 import { ViewControllerComposer } from "@core/world/view-controller-composer";
@@ -16,6 +15,7 @@ import { World } from "./world";
 import { Timer } from "@utils/timer";
 import { borrow, Borrowed } from "@utils/object-utils";
 import { SimpleBufferView } from "@openbw/structs/simple-buffer-view";
+import { Creep } from "..";
 
 export type OpenBwComposer = ReturnType<typeof createOpenBWComposer>;
 export type OpenBwComposerApi = OpenBwComposer["api"];
@@ -31,7 +31,8 @@ export type OpenBwComposerApi = OpenBwComposer["api"];
  */
 export const createOpenBWComposer = (
     world: World,
-    scene: Pick<SceneComposer, "pxToWorld" | "terrainExtra">,
+    pxToWorld: PxToWorld,
+    creep: Creep,
     viewInput: ViewControllerComposer
 ) => {
     let _currentFrame = 0;
@@ -55,7 +56,7 @@ export const createOpenBWComposer = (
                     y,
                     typeId,
                     unitTypeId,
-                    scene.pxToWorld,
+                    pxToWorld,
                     viewInput.primaryViewport!.audioType,
                     viewInput.primaryViewport!.projectedView,
                     soundChannels
@@ -91,7 +92,7 @@ export const createOpenBWComposer = (
     const buildCreep = ( frame: number ) => {
         _tiles.address = world.openBW.getTilesPtr();
         _tiles.viewSize = world.openBW.getTilesSize();
-        scene.terrainExtra.creep.generate( _tiles, frame );
+        creep.generate( _tiles, frame );
     };
 
     let lastElapsed = 0;
@@ -113,7 +114,7 @@ export const createOpenBWComposer = (
                 y,
                 typeId,
                 unitTypeId,
-                scene.pxToWorld,
+                pxToWorld,
                 viewInput.primaryViewport!.audioType,
                 viewInput.primaryViewport!.projectedView,
                 soundChannels
@@ -141,7 +142,7 @@ export const createOpenBWComposer = (
             world.openBW.generateFrame();
             _tiles.address = world.openBW.getTilesPtr();
             _tiles.viewSize = world.openBW.getTilesSize();
-            scene.terrainExtra.creep.generateImmediate( _tiles );
+            creep.generateImmediate( _tiles );
         },
         update( elapsed: number, frame: number ) {
             lastElapsed = elapsed;

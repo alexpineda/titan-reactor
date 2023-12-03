@@ -29,6 +29,12 @@ import { mixer } from "@audio/main-mixer";
 import { CommandsStream } from "process-replay";
 import { log } from "@ipc/log";
 import { pluginsStore } from "@stores/plugins-store";
+import { unitTypes } from "common/enums";
+import { makePxToWorld } from "common/utils/conversions";
+import { getMapTiles } from "@utils/chk-utils";
+import { terrainComposer } from "@image/generate-map/terrain-composer";
+import { UnitTileScale } from "common/types";
+import { Vector3 } from "three";
 
 export type WorldComposer = Awaited<ReturnType<typeof createWorldComposer>>;
 
@@ -67,16 +73,46 @@ export const createWorldComposer = async (
 
     log.info( "creating composers" );
 
+    const { terrain, ...terrainExtra } = janitor.mop(
+        await terrainComposer(
+            ...world.map.size,
+            world.map.tileset,
+            getMapTiles( world.map ),
+            UnitTileScale.HD
+        ),
+        "terrain"
+    );
+    const pxToWorld = makePxToWorld( ...world.map.size, terrain.getTerrainY );
+    const pxToWorldFlat = makePxToWorld( ...world.map.size, () => 0);
+    const pxToWorldInverse = makePxToWorld( ...world.map.size, terrain.getTerrainY, true );
+
+    const startLocations = world.map.units
+    .filter( ( u ) => u.unitId === unitTypes.startLocation )
+    .map( ( u ) => {
+        const location = pxToWorld.xyz( u.x, u.y, new Vector3() );
+
+        const player = world.players.find( ( p ) => p.id === u.player );
+        if ( player ) {
+            player.startLocation = (new Vector3).copy( location );
+        }
+
+        return location
+    })   
+
+    const playerWithStartLocation = world.players.find(p => p.startLocation);
+    const initialStartLocation = playerWithStartLocation ? playerWithStartLocation.startLocation ?? new Vector3() : startLocations[0] ?? new Vector3();
+
     const gameLoopComposer = createGameLoopComposer( events );
     const surfaceComposer = createSurfaceComposer( map, events );
-    const sceneComposer = await createSceneComposer( world, assets );
+    const viewControllerComposer = createViewControllerComposer( world, surfaceComposer, initialStartLocation );
+    const sceneComposer = await createSceneComposer( world, assets, viewControllerComposer, { terrain, heightMaps: terrainExtra.heightMaps, pxToWorld } );
     const commandsComposer = createCommandsComposer( events, commands );
     const inputsComposer = createInputComposer( world, sceneComposer );
-    const viewControllerComposer = createViewControllerComposer( world, surfaceComposer, sceneComposer.api.initialStartLocation );
-    const sandboxApi = createSandboxApi( world, sceneComposer.pxToWorldInverse );
+    const sandboxApi = createSandboxApi( world, pxToWorldInverse );
     const openBwComposer = createOpenBWComposer(
         world,
-        sceneComposer,
+        pxToWorld,
+        terrainExtra.creep,
         viewControllerComposer
     );
 
@@ -84,6 +120,7 @@ export const createWorldComposer = async (
         world,
         sceneComposer,
         viewControllerComposer,
+        terrain,
         assets
     );
     const overlayComposer = createOverlayComposer(
@@ -93,6 +130,8 @@ export const createWorldComposer = async (
         inputsComposer,
         postProcessingComposer,
         viewControllerComposer,
+        terrainExtra.creep,
+        terrainExtra.minimapTex,
         assets
     );
 
@@ -194,6 +233,13 @@ export const createWorldComposer = async (
             simpleMessage( val: string ) {
                 simpleText.set( val );
             },
+            initialStartLocation,
+            startLocations,
+            pxToWorld,
+            pxToWorldFlat,
+            pxToWorldInverse,
+            terrain,
+            terrainExtra
         },
         surfaceComposer.api,
         sceneComposer.api,
@@ -308,7 +354,6 @@ export const createWorldComposer = async (
             if ( openBwComposer.update( elapsed, world.openBW.nextFrame() ) ) {
                 sceneComposer.onFrame(
                     delta,
-                    elapsed,
                     viewControllerComposer.primaryViewport.renderMode3D
                 );
 

@@ -10,6 +10,7 @@ import {
     Mesh,
     PlaneGeometry,
     Raycaster,
+    Texture,
     Vector2,
 } from "three";
 import { SceneComposer } from "./scene-composer";
@@ -24,6 +25,7 @@ import { SurfaceComposer } from "./surface-composer";
 import { PostProcessingComposer } from "./postprocessing-composer";
 import { InputsComposer } from "./input-composer";
 import { ViewControllerComposer } from "./view-controller-composer";
+import { Creep } from "..";
 
 export type OverlayComposer = {
     api: {
@@ -47,13 +49,14 @@ const white = new Color( 0xffffff );
 export const createOverlayComposer = (
     world: World,
     {
-        terrainExtra,
         units,
     }: SceneComposer,
     surfaces: SurfaceComposer,
     inputs: InputsComposer,
     post: PostProcessingComposer,
     viewports: ViewControllerComposer,
+    creep: Creep,
+    minimapTex: Texture,
     assets: Assets
 ): OverlayComposer => {
     const janitor = new Janitor( "OverlayComposer" );
@@ -82,7 +85,7 @@ export const createOverlayComposer = (
 
     const minimapMaterial = new MinimapMaterial(
         ...world.map.size,
-        terrainExtra.minimapTex
+        minimapTex
     );
 
     const minimap = new Mesh( new PlaneGeometry( 1, 1 ), minimapMaterial );
@@ -313,7 +316,7 @@ export const createOverlayComposer = (
         onFrame() {
             minimapMaterial.update(
                 world.fogOfWar.buffer,
-                terrainExtra.creep.minimapImageData,
+                creep.minimapImageData,
                 world.fogOfWar.effect.opacity
             );
 

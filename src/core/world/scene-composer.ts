@@ -11,7 +11,6 @@ import {
 } from "@core/model-effects";
 import { SpriteEntities } from "@core/sprite-entities";
 import { UnitEntities } from "@core/unit-entities";
-import { terrainComposer } from "@image/generate-map/terrain-composer";
 import BaseScene from "@render/base-scene";
 import {
     imageIsDoodad,
@@ -24,62 +23,41 @@ import {
 import { Janitor, JanitorLogLevel } from "three-janitor";
 import { spriteIsHidden, spriteSortOrder } from "@utils/sprite-utils";
 import { calculateFollowedUnitsTarget, unitIsCompleted, unitIsFlying } from "@utils/unit-utils";
-import { drawFunctions, imageTypes, unitTypes } from "common/enums";
-import { ImageStruct, UnitStruct, UnitTileScale } from "common/types";
+import { drawFunctions, imageTypes  } from "common/enums";
+import { ImageStruct, UnitStruct  } from "common/types";
 import { Assets } from "@image/assets";
-import { floor32, makePxToWorld } from "common/utils/conversions";
+import { PxToWorld, floor32 } from "common/utils/conversions";
 import { Color, MathUtils, Vector2, Vector3 } from "three";
 import { World } from "./world";
 import { Unit } from "@core/unit";
 import { IterableSet } from "@utils/data-structures/iterable-set";
 import { borrow, Borrowed } from "@utils/object-utils";
 import { getJanitorLogLevel } from "@ipc/global";
-import { getMapTiles } from "@utils/chk-utils";
 import { ImageBase } from "..";
 import { ImageHDMaterial } from "@core/image-hd-material";
 import { calculateImagesFromTechTreeUnit } from "@utils/preload-map-units-and-sprites";
 import { IterableMap } from "@utils/data-structures/iteratible-map";
 import { SimpleQuadtree } from "@utils/data-structures/simple-quadtree";
 import { settingsStore } from "@stores/settings-store";
+import { HeightMaps } from "@image/generate-map";
+import { Terrain } from "@core/terrain";
+import { ViewControllerComposer } from "./view-controller-composer";
+import gameStore from "@stores/game-store";
 
 export type SceneComposer = Awaited<ReturnType<typeof createSceneComposer>>;
 export type SceneComposerApi = SceneComposer["api"];
 
 const white = new Color( 0xffffff );
 
+type AdditionalSceneParams = {
+    terrain: Terrain;
+    heightMaps: HeightMaps,
+    pxToWorld: PxToWorld
+}
+
 // Primarily concerned about converting OpenBW state to three objects and animations
-export const createSceneComposer = async ( world: World, assets: Assets ) => {
+export const createSceneComposer = async ( world: World, assets: Assets, viewController: ViewControllerComposer, { terrain, pxToWorld, heightMaps } : AdditionalSceneParams ) => {
     const janitor = new Janitor( "SceneComposer" );
-
-    const { terrain, ...terrainExtra } = janitor.mop(
-        await terrainComposer(
-            ...world.map.size,
-            world.map.tileset,
-            getMapTiles( world.map ),
-            UnitTileScale.HD
-        ),
-        "terrain"
-    );
-
-    const pxToWorld = makePxToWorld( ...world.map.size, terrain.getTerrainY );
-    const pxToWorldFlat = makePxToWorld( ...world.map.size, () => 0);
-
-    const startLocations = world.map.units
-        .filter( ( u ) => u.unitId === unitTypes.startLocation )
-        .map( ( u ) => {
-            const location = pxToWorld.xyz( u.x, u.y, new Vector3() );
-
-            const player = world.players.find( ( p ) => p.id === u.player );
-            if ( player ) {
-                player.startLocation = (new Vector3).copy( location );
-            }
-
-            return location
-        })   
-
-    const playerWithStartLocation = world.players.find(p => p.startLocation);
-    const initialStartLocation = playerWithStartLocation ? playerWithStartLocation.startLocation ?? new Vector3() : startLocations[0] ?? new Vector3();
-
     const _world = borrow( world );
 
     const units = new UnitEntities();
@@ -87,9 +65,9 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
     units.externalOnCreateUnit = ( unit ) => _world.events!.emit( "unit-created", unit );
 
     world.openBW.uploadHeightMap(
-        terrainExtra.heightMaps.singleChannel,
-        ( terrainExtra.heightMaps.texture.image as ImageData ).width,
-        ( terrainExtra.heightMaps.texture.image as ImageData ).height
+        heightMaps.singleChannel,
+        ( heightMaps.texture.image as ImageData ).width,
+        ( heightMaps.texture.image as ImageData ).height
     );
 
     const scene = janitor.mop(
@@ -312,6 +290,12 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
 
                 if ( unit ) {
                     images.setUnit( image, unit );
+                    if (unit.isAttacking) {
+                        const weapon = gameStore().assets?.bwDat.weapons[unit.extras.dat.groundWeapon] || gameStore().assets?.bwDat.weapons[unit.extras.dat.airWeapon];
+                        if (weapon) {
+                            viewController.doShakeCalculation(weapon.explosionType, weapon.damageType, sprite.position);
+                        }
+                    }
                 }
 
                 if ( isImage3d( image ) ) {
@@ -331,7 +315,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         applyRenderModeToSprite(
             spriteStruct.typeId,
             sprite,
-            terrain.getTerrainY( sprite.position.x, sprite.position.z )
         );
 
         sprite.updateMatrix();
@@ -370,7 +353,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         Janitor.logLevel = getJanitorLogLevel();
     } );
 
-    const pxToWorldInverse = makePxToWorld( ...world.map.size, terrain.getTerrainY, true );
 
     return {
         images,
@@ -381,15 +363,8 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
         selectedUnits,
         followedUnits,
         scene,
-        terrain,
-        terrainExtra,
-        pxToWorld,
-        pxToWorldInverse,
-        pxToWorldFlat,
-        startLocations,
         onFrame(
             delta: number,
-            elapsed: number,
             renderMode3D: boolean,
         ) {
 
@@ -452,7 +427,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
                 _world.fogOfWar!.forceInstantUpdate = true;
             },
             pxToWorld,
-            pxToWorldFlat,
             get units() : IterableMap<number, Unit> {
                 return units.units
             },
@@ -460,8 +434,6 @@ export const createSceneComposer = async ( world: World, assets: Assets ) => {
             unitQuadtree,
             scene,
             followedUnits,
-            startLocations,
-            initialStartLocation,
             //TODO: extend followedunits instead
             getFollowedUnitsCenterPosition: () => calculateFollowedUnitsTarget( followedUnits, pxToWorld ),
             selectedUnits,
